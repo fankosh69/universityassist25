@@ -248,9 +248,9 @@ const Search = () => {
     return (
       <div className="min-h-screen bg-background">
         <SEOHead 
-          title="Search German University Programs | UniMatch Germany"
-          description="Search and discover over 400 German university programs. Find bachelor's, master's, and PhD programs that match your goals."
-          keywords="German universities, study in Germany, university programs, bachelor, master, PhD, Germany education"
+          title="Search German University Programs | University Assist"
+          description="Your way to Germany - Search and discover over 400 German university programs. Find bachelor's, master's, and PhD programs that match your goals."
+          keywords="German universities, study in Germany, university programs, bachelor, master, PhD, Germany education, University Assist"
         />
         <Navigation />
         <div className="container mx-auto px-4 py-8">
@@ -263,11 +263,11 @@ const Search = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
-        title="Search German University Programs | UniMatch Germany"
-        description="Search and discover over 400 German university programs. Find bachelor's, master's, and PhD programs that match your goals."
-        keywords="German universities, study in Germany, university programs, bachelor, master, PhD, Germany education"
-        ogTitle="Find Your Perfect German University Program"
-        ogDescription="Discover 400+ programs from top German universities. Search by field, degree type, city, and more."
+        title="Search German University Programs | University Assist"
+        description="Your way to Germany - Search and discover over 400 German university programs. Find bachelor's, master's, and PhD programs that match your goals."
+        keywords="German universities, study in Germany, university programs, bachelor, master, PhD, Germany education, University Assist"
+        ogTitle="Find Your Perfect German University Program | University Assist"
+        ogDescription="Your way to Germany - Discover 400+ programs from top German universities. Search by field, degree type, city, and more."
       />
       <Navigation />
       <div className="container mx-auto px-4 py-8">

@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { GraduationCap, Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Logo from "@/components/Logo";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -90,13 +91,13 @@ const Auth = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <GraduationCap className="h-12 w-12 text-white" />
+            <Logo variant="white" showText={false} />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">
-            German University Admissions
+            University Assist
           </h1>
           <p className="text-white/80">
-            Your pathway to German universities
+            Your way to Germany
           </p>
         </div>
 

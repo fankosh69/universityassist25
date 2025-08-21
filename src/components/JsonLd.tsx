@@ -15,25 +15,25 @@ const JsonLd = ({ data }: JsonLdProps) => {
 export const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "name": "UniMatch Germany",
-  "description": "Find your perfect German university program with intelligent matching",
-  "url": "https://unimatch-germany.com",
-  "logo": "https://unimatch-germany.com/logo.png",
+  "name": "University Assist",
+  "description": "Your way to Germany - Find your perfect German university program with intelligent matching",
+  "url": "https://universityassist.com",
+  "logo": "https://universityassist.com/logo.png",
   "sameAs": [
-    "https://twitter.com/unimatchgermany",
-    "https://facebook.com/unimatchgermany"
+    "https://twitter.com/universityassist",
+    "https://facebook.com/universityassist"
   ]
 };
 
 export const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  "name": "UniMatch Germany",
-  "description": "German University Admissions Platform",
-  "url": "https://unimatch-germany.com",
+  "name": "University Assist",
+  "description": "Your way to Germany - German University Admissions Platform",
+  "url": "https://universityassist.com",
   "potentialAction": {
     "@type": "SearchAction",
-    "target": "https://unimatch-germany.com/search?q={search_term_string}",
+    "target": "https://universityassist.com/search?q={search_term_string}",
     "query-input": "required name=search_term_string"
   }
 };

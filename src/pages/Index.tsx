@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  GraduationCap, 
   Search, 
   Target, 
   ChevronRight, 
@@ -15,6 +14,7 @@ import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-image.jpg";
 import SEOHead from "@/components/SEOHead";
 import JsonLd, { organizationSchema, websiteSchema } from "@/components/JsonLd";
+import Logo from "@/components/Logo";
 
 const Index = () => {
   const features = [
@@ -45,11 +45,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
-        title="UniMatch Germany - Find Your Perfect German University Program"
-        description="Discover 400+ German university programs with intelligent matching. Find bachelor's, master's, and PhD programs that match your academic profile and career goals."
-        keywords="German universities, study in Germany, university programs, bachelor, master, PhD, Germany education, university admission"
-        ogTitle="Find Your Perfect German University Program | UniMatch Germany"
-        ogDescription="Join thousands of students who found their ideal German university program with our intelligent matching system."
+        title="University Assist - Your Way to Germany | Find German University Programs"
+        description="Your way to Germany - Discover 400+ German university programs with intelligent matching. Find bachelor's, master's, and PhD programs that match your academic profile and career goals."
+        keywords="German universities, study in Germany, university programs, bachelor, master, PhD, Germany education, university admission, University Assist"
+        ogTitle="University Assist - Your Way to Germany | Find German University Programs"
+        ogDescription="Your way to Germany - Join thousands of students who found their ideal German university program with our intelligent matching system."
         ogImage={heroImage}
       />
       <JsonLd data={organizationSchema} />
@@ -58,10 +58,7 @@ const Index = () => {
       {/* Navigation */}
       <nav className="bg-white/95 backdrop-blur-sm border-b shadow-soft sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-foreground">UniMatch Germany</span>
-          </div>
+          <Logo />
           <div className="flex items-center space-x-4">
             <Link to="/auth">
               <Button variant="ghost">Sign In</Button>
@@ -84,12 +81,12 @@ const Index = () => {
         </div>
         <div className="relative container mx-auto px-4 py-24 text-center text-white">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            Your Gateway to
+            Your Way to
             <br />
             <span className="text-accent">German Universities</span>
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto">
-            Find the perfect German university program that matches your academic background, 
+            University Assist helps you find the perfect German university program that matches your academic background, 
             goals, and preferences. Start your journey to world-class education today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -252,12 +249,9 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <GraduationCap className="h-6 w-6" />
-                <span className="font-bold">UniMatch Germany</span>
-              </div>
+              <Logo variant="white" />
               <p className="text-white/70">
-                Your trusted partner for German university admissions
+                Your way to Germany - Your trusted partner for German university admissions
               </p>
             </div>
             <div className="space-y-4">
@@ -286,7 +280,7 @@ const Index = () => {
             </div>
           </div>
           <div className="border-t border-white/20 mt-8 pt-8 text-center text-white/70">
-            <p>&copy; 2024 UniMatch Germany. All rights reserved.</p>
+            <p>&copy; 2024 University Assist. All rights reserved.</p>
           </div>
         </div>
       </footer>
