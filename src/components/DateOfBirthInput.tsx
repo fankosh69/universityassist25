@@ -60,18 +60,46 @@ export function DateOfBirthInput({
   }, [value, isTouched, onValidationChange]);
 
   const handleInputChange = (newValue: string) => {
-    // Allow partial dates while typing
-    setInputValue(newValue);
+    // Remove any non-digit characters for processing
+    const digitsOnly = newValue.replace(/\D/g, '');
+    
+    let formattedValue = '';
+    let shouldUpdateCursor = false;
+    
+    // Format based on number of digits entered
+    if (digitsOnly.length <= 4) {
+      // Year part (YYYY)
+      formattedValue = digitsOnly;
+    } else if (digitsOnly.length <= 6) {
+      // Year + Month part (YYYY-MM)
+      formattedValue = `${digitsOnly.slice(0, 4)}-${digitsOnly.slice(4)}`;
+      // If they just completed the year (4 digits), move cursor past the dash
+      if (digitsOnly.length === 4 && inputValue.length === 3) {
+        shouldUpdateCursor = true;
+      }
+    } else if (digitsOnly.length <= 8) {
+      // Full date (YYYY-MM-DD)
+      formattedValue = `${digitsOnly.slice(0, 4)}-${digitsOnly.slice(4, 6)}-${digitsOnly.slice(6)}`;
+      // If they just completed the month (6 digits), move cursor past the second dash
+      if (digitsOnly.length === 6 && inputValue.length === 6) {
+        shouldUpdateCursor = true;
+      }
+    } else {
+      // Limit to 8 digits max (YYYY-MM-DD)
+      formattedValue = `${digitsOnly.slice(0, 4)}-${digitsOnly.slice(4, 6)}-${digitsOnly.slice(6, 8)}`;
+    }
+    
+    setInputValue(formattedValue);
     
     // Only validate and update parent if it's a complete date
-    if (newValue.length === 10 && newValue.includes('-')) {
-      onChange(newValue);
+    if (formattedValue.length === 10 && formattedValue.includes('-')) {
+      onChange(formattedValue);
       if (isTouched) {
-        const result = validateDOB(newValue);
+        const result = validateDOB(formattedValue);
         setValidation(result);
         onValidationChange?.(result);
       }
-    } else if (newValue === '') {
+    } else if (formattedValue === '') {
       onChange('');
       setValidation(null);
       onValidationChange?.({ valid: true });
@@ -122,7 +150,7 @@ export function DateOfBirthInput({
       e.key === 'Delete' ||
       e.key === 'Tab' ||
       e.key === 'Enter' ||
-      /^[0-9-]$/.test(e.key)
+      /^[0-9]$/.test(e.key) // Only allow digits, no dashes since we auto-format
     ) {
       return;
     }
@@ -130,17 +158,8 @@ export function DateOfBirthInput({
   };
 
   const formatDisplayValue = (val: string): string => {
-    // Remove any non-digit characters except hyphens
-    const cleaned = val.replace(/[^\d-]/g, '');
-    
-    // If it looks like a date, format it properly
-    if (cleaned.length <= 4) {
-      return cleaned;
-    } else if (cleaned.length <= 7) {
-      return cleaned.replace(/^(\d{4})(\d{1,2})/, '$1-$2');
-    } else {
-      return cleaned.replace(/^(\d{4})(\d{2})(\d{1,2})/, '$1-$2-$3');
-    }
+    // This function is no longer needed since we handle formatting in handleInputChange
+    return val;
   };
 
   const getInputClassName = () => {
@@ -207,12 +226,16 @@ export function DateOfBirthInput({
             placeholder="YYYY-MM-DD"
             className={getInputClassName()}
             value={inputValue}
-            onChange={(e) => handleInputChange(formatDisplayValue(e.target.value))}
+            onChange={(e) => handleInputChange(e.target.value)}
             onBlur={handleInputBlur}
             onKeyDown={handleInputKeyDown}
             required={required}
             maxLength={10}
           />
+          {/* Format helper */}
+          <div className="absolute right-3 top-3 text-xs text-muted-foreground pointer-events-none">
+            YYYY/MM/DD
+          </div>
         </div>
         
         {/* Calendar Picker Button */}
@@ -280,6 +303,13 @@ export function DateOfBirthInput({
           </PopoverContent>
         </Popover>
       </div>
+      
+      {/* Format instruction helper */}
+      {!isTouched && !inputValue && (
+        <p className="text-xs text-muted-foreground">
+          💡 Type your birth date: Year, then month, then day (e.g., 19951207 becomes 1995-12-07)
+        </p>
+      )}
       
       {validation && validation.message && isTouched && (
         <div 
