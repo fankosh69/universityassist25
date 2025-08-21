@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-image.jpg";
+import SEOHead from "@/components/SEOHead";
+import JsonLd, { organizationSchema, websiteSchema } from "@/components/JsonLd";
 
 const Index = () => {
   const features = [
@@ -42,6 +44,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead 
+        title="UniMatch Germany - Find Your Perfect German University Program"
+        description="Discover 400+ German university programs with intelligent matching. Find bachelor's, master's, and PhD programs that match your academic profile and career goals."
+        keywords="German universities, study in Germany, university programs, bachelor, master, PhD, Germany education, university admission"
+        ogTitle="Find Your Perfect German University Program | UniMatch Germany"
+        ogDescription="Join thousands of students who found their ideal German university program with our intelligent matching system."
+        ogImage={heroImage}
+      />
+      <JsonLd data={organizationSchema} />
+      <JsonLd data={websiteSchema} />
+      
       {/* Navigation */}
       <nav className="bg-white/95 backdrop-blur-sm border-b shadow-soft sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">

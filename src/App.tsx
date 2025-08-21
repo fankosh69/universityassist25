@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Search from "./pages/Search";
+import SavedPrograms from "./pages/SavedPrograms";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,6 +64,10 @@ const App = () => {
             <Route 
               path="/profile" 
               element={user ? <Profile /> : <Navigate to="/auth" />} 
+            />
+            <Route 
+              path="/saved" 
+              element={user ? <SavedPrograms /> : <Navigate to="/auth" />} 
             />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

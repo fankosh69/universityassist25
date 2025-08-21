@@ -7,6 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Search as SearchIcon, Filter, MapPin, Clock, Globe, GraduationCap, ExternalLink } from "lucide-react";
+import Navigation from "@/components/Navigation";
+import SEOHead from "@/components/SEOHead";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface Program {
   id: string;
@@ -27,8 +30,6 @@ interface Program {
     logo_url?: string;
   };
 }
-
-import Navigation from "@/components/Navigation";
 
 const Search = () => {
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -246,16 +247,14 @@ const Search = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
+        <SEOHead 
+          title="Search German University Programs | UniMatch Germany"
+          description="Search and discover over 400 German university programs. Find bachelor's, master's, and PhD programs that match your goals."
+          keywords="German universities, study in Germany, university programs, bachelor, master, PhD, Germany education"
+        />
         <Navigation />
         <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-1/3"></div>
-            <div className="grid gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-64 bg-muted rounded"></div>
-              ))}
-            </div>
-          </div>
+          <LoadingSpinner size="lg" message="Loading German university programs..." />
         </div>
       </div>
     );
@@ -263,6 +262,13 @@ const Search = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead 
+        title="Search German University Programs | UniMatch Germany"
+        description="Search and discover over 400 German university programs. Find bachelor's, master's, and PhD programs that match your goals."
+        keywords="German universities, study in Germany, university programs, bachelor, master, PhD, Germany education"
+        ogTitle="Find Your Perfect German University Program"
+        ogDescription="Discover 400+ programs from top German universities. Search by field, degree type, city, and more."
+      />
       <Navigation />
       <div className="container mx-auto px-4 py-8">
       {/* Header */}
