@@ -59,14 +59,17 @@ export type Database = {
       profiles: {
         Row: {
           career_goals: string | null
+          country_code: string | null
           created_at: string
           credits_taken: number | null
           current_education_level: string | null
           current_field_of_study: string | null
           current_gpa: number | null
           current_institution: string | null
+          date_of_birth: string | null
           email: string | null
           full_name: string | null
+          gender: string | null
           id: string
           language_certificates: string[] | null
           nationality: string | null
@@ -79,14 +82,17 @@ export type Database = {
         }
         Insert: {
           career_goals?: string | null
+          country_code?: string | null
           created_at?: string
           credits_taken?: number | null
           current_education_level?: string | null
           current_field_of_study?: string | null
           current_gpa?: number | null
           current_institution?: string | null
+          date_of_birth?: string | null
           email?: string | null
           full_name?: string | null
+          gender?: string | null
           id: string
           language_certificates?: string[] | null
           nationality?: string | null
@@ -99,14 +105,17 @@ export type Database = {
         }
         Update: {
           career_goals?: string | null
+          country_code?: string | null
           created_at?: string
           credits_taken?: number | null
           current_education_level?: string | null
           current_field_of_study?: string | null
           current_gpa?: number | null
           current_institution?: string | null
+          date_of_birth?: string | null
           email?: string | null
           full_name?: string | null
+          gender?: string | null
           id?: string
           language_certificates?: string[] | null
           nationality?: string | null
