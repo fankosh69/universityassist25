@@ -95,11 +95,16 @@ const Auth = () => {
       "gmaill.com": "gmail.com",
       "gmail.co": "gmail.com",
       "gmai.co": "gmail.com",
+      "gmail.cm": "gmail.com",
+      "gmail.om": "gmail.com",
       
-      // Yahoo typos
+      // Yahoo typos - Yahoo should be .com, not .net
       "yaho.com": "yahoo.com",
       "yahooo.com": "yahoo.com",
       "yahoo.co": "yahoo.com",
+      "yahoo.net": "yahoo.com",
+      "yahoo.cm": "yahoo.com",
+      "yahoo.om": "yahoo.com",
       "ymail.co": "ymail.com",
       
       // Hotmail/Outlook typos
@@ -107,22 +112,26 @@ const Auth = () => {
       "hotmai.com": "hotmail.com",
       "hotmil.com": "hotmail.com",
       "hotmail.co": "hotmail.com",
+      "hotmail.cm": "hotmail.com",
+      "hotmail.om": "hotmail.com",
       "outlok.com": "outlook.com",
       "outlook.co": "outlook.com",
+      "outlook.cm": "outlook.com",
+      "outlook.om": "outlook.com",
       
       // Other common domains
       "aol.co": "aol.com",
+      "aol.cm": "aol.com",
+      "aol.om": "aol.com",
       "msn.co": "msn.com",
+      "msn.cm": "msn.com",
+      "msn.om": "msn.com",
       "live.co": "live.com",
+      "live.cm": "live.com",
+      "live.om": "live.com",
       "icloud.co": "icloud.com",
-      
-      // Common TLD typos
-      "gmail.cm": "gmail.com",
-      "gmail.om": "gmail.com",
-      "yahoo.cm": "yahoo.com",
-      "yahoo.om": "yahoo.com",
-      "hotmail.cm": "hotmail.com",
-      "hotmail.om": "hotmail.com",
+      "icloud.cm": "icloud.com",
+      "icloud.om": "icloud.com",
     };
     
     const correction = domainCorrections[domain];
@@ -135,11 +144,84 @@ const Auth = () => {
       return "Please enter a valid email domain (e.g., example.com)";
     }
     
-    // Check for domains with only one character after the dot
+    // Split domain into parts
     const parts = domain.split('.');
     const tld = parts[parts.length - 1];
-    if (tld.length < 2) {
+    const domainName = parts.slice(0, -1).join('.');
+    
+    // Check for invalid TLDs (too short or invalid characters)
+    if (tld.length < 2 || tld.length > 6) {
       return "Please enter a valid email domain";
+    }
+    
+    // List of valid TLDs (most common ones)
+    const validTLDs = [
+      'com', 'org', 'net', 'edu', 'gov', 'mil', 'int', 'biz', 'info', 'name',
+      'pro', 'aero', 'coop', 'museum', 'ac', 'ad', 'ae', 'af', 'ag', 'ai',
+      'al', 'am', 'ao', 'aq', 'ar', 'as', 'at', 'au', 'aw', 'ax', 'az',
+      'ba', 'bb', 'bd', 'be', 'bf', 'bg', 'bh', 'bi', 'bj', 'bm', 'bn',
+      'bo', 'br', 'bs', 'bt', 'bw', 'by', 'bz', 'ca', 'cc', 'cd', 'cf',
+      'cg', 'ch', 'ci', 'ck', 'cl', 'cm', 'cn', 'co', 'cr', 'cu', 'cv',
+      'cw', 'cx', 'cy', 'cz', 'de', 'dj', 'dk', 'dm', 'do', 'dz', 'ec',
+      'ee', 'eg', 'er', 'es', 'et', 'eu', 'fi', 'fj', 'fk', 'fm', 'fo',
+      'fr', 'ga', 'gb', 'gd', 'ge', 'gf', 'gg', 'gh', 'gi', 'gl', 'gm',
+      'gn', 'gp', 'gq', 'gr', 'gs', 'gt', 'gu', 'gw', 'gy', 'hk', 'hm',
+      'hn', 'hr', 'ht', 'hu', 'id', 'ie', 'il', 'im', 'in', 'io', 'iq',
+      'ir', 'is', 'it', 'je', 'jm', 'jo', 'jp', 'ke', 'kg', 'kh', 'ki',
+      'km', 'kn', 'kp', 'kr', 'kw', 'ky', 'kz', 'la', 'lb', 'lc', 'li',
+      'lk', 'lr', 'ls', 'lt', 'lu', 'lv', 'ly', 'ma', 'mc', 'md', 'me',
+      'mg', 'mh', 'mk', 'ml', 'mm', 'mn', 'mo', 'mp', 'mq', 'mr', 'ms',
+      'mt', 'mu', 'mv', 'mw', 'mx', 'my', 'mz', 'na', 'nc', 'ne', 'nf',
+      'ng', 'ni', 'nl', 'no', 'np', 'nr', 'nu', 'nz', 'om', 'pa', 'pe',
+      'pf', 'pg', 'ph', 'pk', 'pl', 'pm', 'pn', 'pr', 'ps', 'pt', 'pw',
+      'py', 'qa', 're', 'ro', 'rs', 'ru', 'rw', 'sa', 'sb', 'sc', 'sd',
+      'se', 'sg', 'sh', 'si', 'sk', 'sl', 'sm', 'sn', 'so', 'sr', 'ss',
+      'st', 'sv', 'sx', 'sy', 'sz', 'tc', 'td', 'tf', 'tg', 'th', 'tj',
+      'tk', 'tl', 'tm', 'tn', 'to', 'tr', 'tt', 'tv', 'tw', 'tz', 'ua',
+      'ug', 'uk', 'us', 'uy', 'uz', 'va', 'vc', 've', 'vg', 'vi', 'vn',
+      'vu', 'wf', 'ws', 'ye', 'yt', 'za', 'zm', 'zw'
+    ];
+    
+    // Check if TLD is valid
+    if (!validTLDs.includes(tld)) {
+      // Check for common TLD typos
+      const tldCorrections: { [key: string]: string } = {
+        'co': 'com',
+        'cm': 'com',
+        'om': 'com',
+        'con': 'com',
+        'cmo': 'com',
+        'ne': 'net',
+        'nte': 'net',
+        'ent': 'net',
+        'or': 'org',
+        'ogr': 'org',
+        'rog': 'org',
+      };
+      
+      const suggestedTLD = tldCorrections[tld];
+      if (suggestedTLD) {
+        return `Did you mean ${email.split('@')[0]}@${domainName}.${suggestedTLD}?`;
+      }
+      
+      return `"${tld}" is not a valid domain extension. Please check your email address.`;
+    }
+    
+    // Check for domains that should have specific TLDs
+    const specificDomainTLDs: { [key: string]: string } = {
+      'yahoo': 'com',
+      'gmail': 'com',
+      'hotmail': 'com',
+      'outlook': 'com',
+      'aol': 'com',
+      'msn': 'com',
+      'live': 'com',
+      'icloud': 'com',
+    };
+    
+    const expectedTLD = specificDomainTLDs[domainName];
+    if (expectedTLD && tld !== expectedTLD) {
+      return `Did you mean ${email.split('@')[0]}@${domainName}.${expectedTLD}?`;
     }
     
     return "";
