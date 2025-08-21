@@ -121,7 +121,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
   };
 
   const getStrengthColor = (strength?: string, valid?: boolean) => {
-    if (!valid) return 'text-red-600'; // Show red for invalid passwords
+    // Always show strength-based colors, regardless of other validation errors
     switch (strength) {
       case 'strong': return 'text-green-600';
       case 'okay': return 'text-orange-500';
