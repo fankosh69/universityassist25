@@ -70,7 +70,13 @@ const Search = () => {
         // Load sample data if no database programs exist
         setPrograms(getSamplePrograms());
       } else {
-        setPrograms(data as any || getSamplePrograms());
+        // Transform the data structure to match our interface
+        const transformedPrograms = (data || []).map(program => ({
+          ...program,
+          university: program.universities
+        }));
+        
+        setPrograms(transformedPrograms.length > 0 ? transformedPrograms : getSamplePrograms());
       }
     } catch (error) {
       console.error('Error:', error);

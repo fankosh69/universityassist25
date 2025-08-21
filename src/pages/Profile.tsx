@@ -96,9 +96,18 @@ const Profile = () => {
 
       if (error) throw error;
 
+      // Generate matches after profile update
+      try {
+        const { matchingService } = await import("@/lib/matching-service");
+        await matchingService.generateMatches(user.id);
+      } catch (matchError) {
+        console.error('Error generating matches:', matchError);
+        // Don't fail the profile save if matching fails
+      }
+
       toast({
         title: "Success!",
-        description: "Your profile has been saved successfully.",
+        description: "Your profile has been saved and program matches updated!",
       });
       navigate("/dashboard");
     } catch (error: any) {

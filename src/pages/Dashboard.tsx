@@ -62,6 +62,7 @@ const Dashboard = () => {
         .select(`
           id,
           compatibility_score,
+          match_reasons,
           programs!inner(
             name,
             field_of_study,
@@ -74,7 +75,22 @@ const Dashboard = () => {
         .limit(5);
 
       if (matchesData) {
-        setMatches(matchesData as any);
+        // Transform the data structure - handle the array from inner join
+        const transformedMatches = matchesData.map((match: any) => ({
+          id: match.id,
+          compatibility_score: match.compatibility_score,
+          match_reasons: match.match_reasons,
+          program: {
+            name: match.programs.name,
+            field_of_study: match.programs.field_of_study,
+            degree_type: match.programs.degree_type,
+            university: {
+              name: match.programs.universities.name,
+              city: match.programs.universities.city
+            }
+          }
+        }));
+        setMatches(transformedMatches);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
