@@ -11,11 +11,12 @@ import { Mail, Lock, User, Phone, Calendar } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Logo from "@/components/Logo";
 import { CountryCodeSelect } from "@/components/CountryCodeSelect";
+import { EmailInput } from "@/components/EmailInput";
+import { validateEmailClient } from "@/lib/email-validation";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [phoneError, setPhoneError] = useState("");
-  const [emailError, setEmailError] = useState("");
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get("tab") === "signup" ? "signup" : "signin";
   const [signUpData, setSignUpData] = useState({
@@ -73,160 +74,6 @@ const Auth = () => {
     return "";
   };
 
-  // Email validation function
-  const validateEmailDomain = (email: string): string => {
-    if (!email.trim()) return "";
-    
-    // Basic email format check
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return "Please enter a valid email address";
-    }
-    
-    const domain = email.split('@')[1]?.toLowerCase();
-    if (!domain) return "";
-    
-    // Common domain typos and their corrections
-    const domainCorrections: { [key: string]: string } = {
-      // Gmail typos
-      "gamil.com": "gmail.com",
-      "gmai.com": "gmail.com",
-      "gmial.com": "gmail.com",
-      "gmaill.com": "gmail.com",
-      "gmail.co": "gmail.com",
-      "gmai.co": "gmail.com",
-      "gmail.cm": "gmail.com",
-      "gmail.om": "gmail.com",
-      
-      // Yahoo typos - Yahoo should be .com, not .net
-      "yaho.com": "yahoo.com",
-      "yahooo.com": "yahoo.com",
-      "yahoo.co": "yahoo.com",
-      "yahoo.net": "yahoo.com",
-      "yahoo.cm": "yahoo.com",
-      "yahoo.om": "yahoo.com",
-      "ymail.co": "ymail.com",
-      
-      // Hotmail/Outlook typos
-      "hotmial.com": "hotmail.com",
-      "hotmai.com": "hotmail.com",
-      "hotmil.com": "hotmail.com",
-      "hotmail.co": "hotmail.com",
-      "hotmail.cm": "hotmail.com",
-      "hotmail.om": "hotmail.com",
-      "outlok.com": "outlook.com",
-      "outlook.co": "outlook.com",
-      "outlook.cm": "outlook.com",
-      "outlook.om": "outlook.com",
-      
-      // Other common domains
-      "aol.co": "aol.com",
-      "aol.cm": "aol.com",
-      "aol.om": "aol.com",
-      "msn.co": "msn.com",
-      "msn.cm": "msn.com",
-      "msn.om": "msn.com",
-      "live.co": "live.com",
-      "live.cm": "live.com",
-      "live.om": "live.com",
-      "icloud.co": "icloud.com",
-      "icloud.cm": "icloud.com",
-      "icloud.om": "icloud.com",
-    };
-    
-    const correction = domainCorrections[domain];
-    if (correction) {
-      return `Did you mean ${email.split('@')[0]}@${correction}?`;
-    }
-    
-    // Check for domains without proper TLD
-    if (!domain.includes('.') || domain.endsWith('.')) {
-      return "Please enter a valid email domain (e.g., example.com)";
-    }
-    
-    // Split domain into parts
-    const parts = domain.split('.');
-    const tld = parts[parts.length - 1];
-    const domainName = parts.slice(0, -1).join('.');
-    
-    // Check for invalid TLDs (too short or invalid characters)
-    if (tld.length < 2 || tld.length > 6) {
-      return "Please enter a valid email domain";
-    }
-    
-    // List of valid TLDs (most common ones)
-    const validTLDs = [
-      'com', 'org', 'net', 'edu', 'gov', 'mil', 'int', 'biz', 'info', 'name',
-      'pro', 'aero', 'coop', 'museum', 'ac', 'ad', 'ae', 'af', 'ag', 'ai',
-      'al', 'am', 'ao', 'aq', 'ar', 'as', 'at', 'au', 'aw', 'ax', 'az',
-      'ba', 'bb', 'bd', 'be', 'bf', 'bg', 'bh', 'bi', 'bj', 'bm', 'bn',
-      'bo', 'br', 'bs', 'bt', 'bw', 'by', 'bz', 'ca', 'cc', 'cd', 'cf',
-      'cg', 'ch', 'ci', 'ck', 'cl', 'cm', 'cn', 'co', 'cr', 'cu', 'cv',
-      'cw', 'cx', 'cy', 'cz', 'de', 'dj', 'dk', 'dm', 'do', 'dz', 'ec',
-      'ee', 'eg', 'er', 'es', 'et', 'eu', 'fi', 'fj', 'fk', 'fm', 'fo',
-      'fr', 'ga', 'gb', 'gd', 'ge', 'gf', 'gg', 'gh', 'gi', 'gl', 'gm',
-      'gn', 'gp', 'gq', 'gr', 'gs', 'gt', 'gu', 'gw', 'gy', 'hk', 'hm',
-      'hn', 'hr', 'ht', 'hu', 'id', 'ie', 'il', 'im', 'in', 'io', 'iq',
-      'ir', 'is', 'it', 'je', 'jm', 'jo', 'jp', 'ke', 'kg', 'kh', 'ki',
-      'km', 'kn', 'kp', 'kr', 'kw', 'ky', 'kz', 'la', 'lb', 'lc', 'li',
-      'lk', 'lr', 'ls', 'lt', 'lu', 'lv', 'ly', 'ma', 'mc', 'md', 'me',
-      'mg', 'mh', 'mk', 'ml', 'mm', 'mn', 'mo', 'mp', 'mq', 'mr', 'ms',
-      'mt', 'mu', 'mv', 'mw', 'mx', 'my', 'mz', 'na', 'nc', 'ne', 'nf',
-      'ng', 'ni', 'nl', 'no', 'np', 'nr', 'nu', 'nz', 'om', 'pa', 'pe',
-      'pf', 'pg', 'ph', 'pk', 'pl', 'pm', 'pn', 'pr', 'ps', 'pt', 'pw',
-      'py', 'qa', 're', 'ro', 'rs', 'ru', 'rw', 'sa', 'sb', 'sc', 'sd',
-      'se', 'sg', 'sh', 'si', 'sk', 'sl', 'sm', 'sn', 'so', 'sr', 'ss',
-      'st', 'sv', 'sx', 'sy', 'sz', 'tc', 'td', 'tf', 'tg', 'th', 'tj',
-      'tk', 'tl', 'tm', 'tn', 'to', 'tr', 'tt', 'tv', 'tw', 'tz', 'ua',
-      'ug', 'uk', 'us', 'uy', 'uz', 'va', 'vc', 've', 'vg', 'vi', 'vn',
-      'vu', 'wf', 'ws', 'ye', 'yt', 'za', 'zm', 'zw'
-    ];
-    
-    // Check if TLD is valid
-    if (!validTLDs.includes(tld)) {
-      // Check for common TLD typos
-      const tldCorrections: { [key: string]: string } = {
-        'co': 'com',
-        'cm': 'com',
-        'om': 'com',
-        'con': 'com',
-        'cmo': 'com',
-        'ne': 'net',
-        'nte': 'net',
-        'ent': 'net',
-        'or': 'org',
-        'ogr': 'org',
-        'rog': 'org',
-      };
-      
-      const suggestedTLD = tldCorrections[tld];
-      if (suggestedTLD) {
-        return `Did you mean ${email.split('@')[0]}@${domainName}.${suggestedTLD}?`;
-      }
-      
-      return `"${tld}" is not a valid domain extension. Please check your email address.`;
-    }
-    
-    // Check for domains that should have specific TLDs
-    const specificDomainTLDs: { [key: string]: string } = {
-      'yahoo': 'com',
-      'gmail': 'com',
-      'hotmail': 'com',
-      'outlook': 'com',
-      'aol': 'com',
-      'msn': 'com',
-      'live': 'com',
-      'icloud': 'com',
-    };
-    
-    const expectedTLD = specificDomainTLDs[domainName];
-    if (expectedTLD && tld !== expectedTLD) {
-      return `Did you mean ${email.split('@')[0]}@${domainName}.${expectedTLD}?`;
-    }
-    
-    return "";
-  };
-
   // Handle phone input change with validation
   const handlePhoneChange = (phone: string) => {
     setSignUpData({ ...signUpData, phone });
@@ -243,24 +90,16 @@ const Auth = () => {
     }
   };
 
-  // Handle email input change with validation
-  const handleEmailChange = (email: string) => {
-    setSignUpData({ ...signUpData, email });
-    const error = validateEmailDomain(email);
-    setEmailError(error);
-  };
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Validate email domain
-    const emailValidationError = validateEmailDomain(signUpData.email);
-    if (emailValidationError) {
-      setEmailError(emailValidationError);
+    // Validate email using new validation system
+    const emailValidation = validateEmailClient(signUpData.email);
+    if (!emailValidation.valid) {
       toast({
         title: "Invalid Email",
-        description: emailValidationError,
+        description: emailValidation.message,
         variant: "destructive",
       });
       setLoading(false);
@@ -398,23 +237,13 @@ const Auth = () => {
               {/* Sign In Tab */}
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signin-email"
-                        type="email"
-                        placeholder="Enter your email"
-                        className="pl-10"
-                        value={signInData.email}
-                        onChange={(e) =>
-                          setSignInData({ ...signInData, email: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                  </div>
+                  <EmailInput
+                    id="signin-email"
+                    value={signInData.email}
+                    onChange={(email) => setSignInData({ ...signInData, email })}
+                    placeholder="Enter your email"
+                    required
+                  />
                   <div className="space-y-2">
                     <Label htmlFor="signin-password">Password</Label>
                     <div className="relative">
@@ -525,24 +354,13 @@ const Auth = () => {
                     )}
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        placeholder="Enter your email"
-                        className={`pl-10 ${emailError ? "border-destructive" : ""}`}
-                        value={signUpData.email}
-                        onChange={(e) => handleEmailChange(e.target.value)}
-                        required
-                      />
-                    </div>
-                    {emailError && (
-                      <p className="text-sm text-destructive mt-1">{emailError}</p>
-                    )}
-                  </div>
+                  <EmailInput
+                    id="signup-email"
+                    value={signUpData.email}
+                    onChange={(email) => setSignUpData({ ...signUpData, email })}
+                    placeholder="Enter your email"
+                    required
+                  />
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
                     <div className="relative">
