@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Mail, AlertTriangle, CheckCircle } from "lucide-react";
+import { Mail, AlertTriangle, CheckCircle, Info } from "lucide-react";
 import { validateEmailClient, validateEmail, type EmailValidationResult } from "@/lib/email-validation";
+import { EmailInstructions } from "@/components/EmailInstructions";
 
 interface EmailInputProps {
   value: string;
@@ -27,6 +28,7 @@ export function EmailInput({
   const [validation, setValidation] = useState<EmailValidationResult | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   // Client-side validation on input change
   useEffect(() => {
@@ -70,6 +72,16 @@ export function EmailInput({
 
   const handleSuggestionClick = (suggestion: string) => {
     onChange(suggestion);
+  };
+
+  const getDomain = () => {
+    if (!value || !value.includes('@')) return null;
+    return value.split('@')[1];
+  };
+
+  const isSchoolOrCompanyEmail = () => {
+    return validation?.level === 'warn' && 
+           (validation.message?.includes('school/university') || validation.message?.includes('company'));
   };
 
   const getInputClassName = () => {
@@ -151,7 +163,29 @@ export function EmailInput({
                 Click to use: {validation.suggestion}
               </Button>
             )}
+
+            {isSchoolOrCompanyEmail() && (
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                className="h-auto p-0 mt-1 text-blue-600 underline flex items-center gap-1"
+                onClick={() => setShowInstructions(!showInstructions)}
+              >
+                <Info className="h-3 w-3" />
+                {showInstructions ? 'Hide' : 'Show'} email delivery instructions
+              </Button>
+            )}
           </div>
+        </div>
+      )}
+      
+      {showInstructions && isSchoolOrCompanyEmail() && getDomain() && (
+        <div className="mt-2">
+          <EmailInstructions 
+            domain={getDomain()!} 
+            organizationType={validation?.message?.includes('school/university') ? 'school' : 'company'} 
+          />
         </div>
       )}
     </div>

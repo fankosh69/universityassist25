@@ -312,7 +312,7 @@ export async function validateEmail(email: string): Promise<EmailValidationResul
       return {
         valid: true,
         level: 'warn',
-        message: 'This looks like a school/university email. Make sure you can receive messages outside your organization.'
+        message: 'This looks like a school/university email. To ensure you receive our messages, please add noreply@uniassist.net and support@uniassist.net to your email whitelist or safe senders list. You may also need to check your spam/junk folder initially.'
       };
     }
     
