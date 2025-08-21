@@ -51,14 +51,14 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const confirmInputRef = useRef<HTMLInputElement>(null);
 
-  // Validate password whenever value or personal info changes
+  // Validate password whenever value or personal info changes (without confirm password check)
   useEffect(() => {
     if (value || isTouched) {
-      const result = validatePassword(value, personalInfo, showConfirmation ? confirmValue : undefined);
+      const result = validatePassword(value, personalInfo); // Don't include confirm password in main validation
       setValidation(result);
       onValidationChange?.(result);
     }
-  }, [value, personalInfo, confirmValue, isTouched, showConfirmation, onValidationChange]);
+  }, [value, personalInfo, isTouched, onValidationChange]);
 
   // Validate confirmation separately
   useEffect(() => {
@@ -120,10 +120,11 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
     );
   };
 
-  const getStrengthColor = (strength?: string) => {
+  const getStrengthColor = (strength?: string, valid?: boolean) => {
+    if (!valid) return 'text-red-600'; // Show red for invalid passwords
     switch (strength) {
       case 'strong': return 'text-green-600';
-      case 'okay': return 'text-yellow-600';
+      case 'okay': return 'text-orange-500';
       case 'weak': return 'text-red-600';
       default: return 'text-muted-foreground';
     }
@@ -181,11 +182,11 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
           <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center gap-1">
               {validation.valid ? (
-                <CheckCircle className="h-4 w-4 text-green-600" />
+                <CheckCircle className={`h-4 w-4 ${getStrengthColor(validation.strength, validation.valid)}`} />
               ) : (
                 <AlertTriangle className="h-4 w-4 text-red-600" />
               )}
-              <span className={getStrengthColor(validation.strength)}>
+              <span className={getStrengthColor(validation.strength, validation.valid)}>
                 Strength: {getStrengthLabel(validation.strength)}
               </span>
             </div>
@@ -199,18 +200,6 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
               <div key={index} className="flex items-start gap-2 text-sm text-destructive">
                 <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <span>{error}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Suggestions */}
-        {validation && validation.suggestions && validation.suggestions.length > 0 && isTouched && (
-          <div className="space-y-1">
-            {validation.suggestions.map((suggestion, index) => (
-              <div key={index} className="flex items-start gap-2 text-sm text-blue-600">
-                <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>{suggestion}</span>
               </div>
             ))}
           </div>
@@ -268,19 +257,19 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
           </div>
 
           {/* Confirmation Match Status */}
-          {confirmValue && (
+          {confirmValue && isConfirmTouched && (
             <div className="flex items-center gap-2 text-sm">
               {confirmValidation?.valid ? (
                 <div className="flex items-center gap-1 text-green-600">
                   <CheckCircle className="h-4 w-4" />
                   <span>Passwords match</span>
                 </div>
-              ) : isConfirmTouched ? (
-                <div className="flex items-center gap-1 text-destructive">
-                  <AlertTriangle className="h-4 w-4" />
+              ) : (
+                <div className="flex items-start gap-2 text-sm text-destructive">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>Passwords don't match</span>
                 </div>
-              ) : null}
+              )}
             </div>
           )}
         </div>
