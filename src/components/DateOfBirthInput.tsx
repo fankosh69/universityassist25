@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, AlertTriangle, CheckCircle, Info, CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -32,6 +33,14 @@ export function DateOfBirthInput({
   const [isTouched, setIsTouched] = useState(false);
   const [inputValue, setInputValue] = useState(value);
   const [isOpen, setIsOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState<Date>(() => {
+    if (value) {
+      return new Date(value);
+    }
+    // Default to a reasonable birth year (25 years ago)
+    const defaultYear = new Date().getFullYear() - 25;
+    return new Date(defaultYear, 0, 1);
+  });
 
   // Update input value when prop changes
   useEffect(() => {
@@ -94,6 +103,16 @@ export function DateOfBirthInput({
     setIsOpen(false);
   };
 
+  const handleYearChange = (year: string) => {
+    const newDate = new Date(parseInt(year), calendarMonth.getMonth(), 1);
+    setCalendarMonth(newDate);
+  };
+
+  const handleMonthChange = (month: string) => {
+    const newDate = new Date(calendarMonth.getFullYear(), parseInt(month), 1);
+    setCalendarMonth(newDate);
+  };
+
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // Allow navigation keys, backspace, delete, and digits
     if (
@@ -152,6 +171,26 @@ export function DateOfBirthInput({
     }
   };
 
+  // Generate year options (from 1900 to current year)
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: currentYear - 1899 }, (_, i) => currentYear - i);
+  
+  // Month options
+  const monthOptions = [
+    { value: "0", label: "January" },
+    { value: "1", label: "February" },
+    { value: "2", label: "March" },
+    { value: "3", label: "April" },
+    { value: "4", label: "May" },
+    { value: "5", label: "June" },
+    { value: "6", label: "July" },
+    { value: "7", label: "August" },
+    { value: "8", label: "September" },
+    { value: "9", label: "October" },
+    { value: "10", label: "November" },
+    { value: "11", label: "December" },
+  ];
+
   const currentDate = inputValue && inputValue.length === 10 ? new Date(inputValue) : undefined;
   const maxDate = new Date();
 
@@ -191,13 +230,51 @@ export function DateOfBirthInput({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
+            <div className="p-3 border-b">
+              <div className="flex gap-2 items-center justify-between">
+                {/* Year Selector */}
+                <Select
+                  value={calendarMonth.getFullYear().toString()}
+                  onValueChange={handleYearChange}
+                >
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="h-[200px]">
+                    {yearOptions.map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Month Selector */}
+                <Select
+                  value={calendarMonth.getMonth().toString()}
+                  onValueChange={handleMonthChange}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {monthOptions.map((month) => (
+                      <SelectItem key={month.value} value={month.value}>
+                        {month.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <CalendarComponent
               mode="single"
               selected={currentDate}
               onSelect={handleCalendarSelect}
               disabled={(date) => date > maxDate || date < new Date("1900-01-01")}
+              month={calendarMonth}
+              onMonthChange={setCalendarMonth}
               initialFocus
-              defaultMonth={currentDate || new Date(2000, 0)}
               className="pointer-events-auto"
             />
           </PopoverContent>
