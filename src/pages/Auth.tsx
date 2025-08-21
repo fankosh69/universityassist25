@@ -15,6 +15,7 @@ import { CountryCodeSelect } from "@/components/CountryCodeSelect";
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [phoneError, setPhoneError] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get("tab") === "signup" ? "signup" : "signin";
   const [signUpData, setSignUpData] = useState({
@@ -72,6 +73,78 @@ const Auth = () => {
     return "";
   };
 
+  // Email validation function
+  const validateEmailDomain = (email: string): string => {
+    if (!email.trim()) return "";
+    
+    // Basic email format check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address";
+    }
+    
+    const domain = email.split('@')[1]?.toLowerCase();
+    if (!domain) return "";
+    
+    // Common domain typos and their corrections
+    const domainCorrections: { [key: string]: string } = {
+      // Gmail typos
+      "gamil.com": "gmail.com",
+      "gmai.com": "gmail.com",
+      "gmial.com": "gmail.com",
+      "gmaill.com": "gmail.com",
+      "gmail.co": "gmail.com",
+      "gmai.co": "gmail.com",
+      
+      // Yahoo typos
+      "yaho.com": "yahoo.com",
+      "yahooo.com": "yahoo.com",
+      "yahoo.co": "yahoo.com",
+      "ymail.co": "ymail.com",
+      
+      // Hotmail/Outlook typos
+      "hotmial.com": "hotmail.com",
+      "hotmai.com": "hotmail.com",
+      "hotmil.com": "hotmail.com",
+      "hotmail.co": "hotmail.com",
+      "outlok.com": "outlook.com",
+      "outlook.co": "outlook.com",
+      
+      // Other common domains
+      "aol.co": "aol.com",
+      "msn.co": "msn.com",
+      "live.co": "live.com",
+      "icloud.co": "icloud.com",
+      
+      // Common TLD typos
+      "gmail.cm": "gmail.com",
+      "gmail.om": "gmail.com",
+      "yahoo.cm": "yahoo.com",
+      "yahoo.om": "yahoo.com",
+      "hotmail.cm": "hotmail.com",
+      "hotmail.om": "hotmail.com",
+    };
+    
+    const correction = domainCorrections[domain];
+    if (correction) {
+      return `Did you mean ${email.split('@')[0]}@${correction}?`;
+    }
+    
+    // Check for domains without proper TLD
+    if (!domain.includes('.') || domain.endsWith('.')) {
+      return "Please enter a valid email domain (e.g., example.com)";
+    }
+    
+    // Check for domains with only one character after the dot
+    const parts = domain.split('.');
+    const tld = parts[parts.length - 1];
+    if (tld.length < 2) {
+      return "Please enter a valid email domain";
+    }
+    
+    return "";
+  };
+
   // Handle phone input change with validation
   const handlePhoneChange = (phone: string) => {
     setSignUpData({ ...signUpData, phone });
@@ -88,9 +161,29 @@ const Auth = () => {
     }
   };
 
+  // Handle email input change with validation
+  const handleEmailChange = (email: string) => {
+    setSignUpData({ ...signUpData, email });
+    const error = validateEmailDomain(email);
+    setEmailError(error);
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Validate email domain
+    const emailValidationError = validateEmailDomain(signUpData.email);
+    if (emailValidationError) {
+      setEmailError(emailValidationError);
+      toast({
+        title: "Invalid Email",
+        description: emailValidationError,
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
 
     // Validate phone number
     const phoneValidationError = validatePhoneNumber(signUpData.phone, signUpData.country_code);
@@ -358,14 +451,15 @@ const Auth = () => {
                         id="signup-email"
                         type="email"
                         placeholder="Enter your email"
-                        className="pl-10"
+                        className={`pl-10 ${emailError ? "border-destructive" : ""}`}
                         value={signUpData.email}
-                        onChange={(e) =>
-                          setSignUpData({ ...signUpData, email: e.target.value })
-                        }
+                        onChange={(e) => handleEmailChange(e.target.value)}
                         required
                       />
                     </div>
+                    {emailError && (
+                      <p className="text-sm text-destructive mt-1">{emailError}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
