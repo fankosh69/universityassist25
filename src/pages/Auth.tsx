@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, User, Phone } from "lucide-react";
+import { Lock, User, Phone, ArrowLeft } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Logo from "@/components/Logo";
 import { CountryCodeSelect } from "@/components/CountryCodeSelect";
@@ -297,7 +297,17 @@ const Auth = () => {
         </div>
 
         <Card className="shadow-strong backdrop-blur-sm bg-white/95">
-          <CardHeader>
+          <CardHeader className="relative">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/")}
+              className="absolute left-4 top-4 h-10 w-10 rounded-full bg-white shadow-md hover:shadow-lg hover:bg-gray-50 border border-gray-200 transition-all duration-200"
+              aria-label="Go back to home page"
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </Button>
             <CardTitle className="text-center text-2xl">
               Get Started
             </CardTitle>
