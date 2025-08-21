@@ -16,17 +16,21 @@ import { DateOfBirthInput } from "@/components/DateOfBirthInput";
 import { ParentGuardianInfo } from "@/components/ParentGuardianInfo";
 import { validateEmailClient } from "@/lib/email-validation";
 import { validateDOB, validateParentInfo, type DOBValidationResult, type ParentInfo } from "@/lib/dob-validation";
+import { PasswordInput } from "@/components/PasswordInput";
+import { validatePassword, type PasswordCheck } from "@/lib/password-validation";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [phoneError, setPhoneError] = useState("");
   const [parentErrors, setParentErrors] = useState<string[]>([]);
   const [dobValidation, setDobValidation] = useState<DOBValidationResult | null>(null);
+  const [passwordValidation, setPasswordValidation] = useState<PasswordCheck | null>(null);
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get("tab") === "signup" ? "signup" : "signin";
   const [signUpData, setSignUpData] = useState({
     email: "",
     password: "",
+    confirmPassword: "",
     full_name: "",
     gender: "",
     date_of_birth: "",
@@ -107,6 +111,11 @@ const Auth = () => {
     setParentErrors([]); // Clear parent errors when DOB changes
   };
 
+  // Handle password validation change
+  const handlePasswordValidationChange = (validation: PasswordCheck) => {
+    setPasswordValidation(validation);
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -166,6 +175,23 @@ const Auth = () => {
         setLoading(false);
         return;
       }
+    }
+
+    // Validate password
+    const finalPasswordValidation = validatePassword(signUpData.password, {
+      name: signUpData.full_name,
+      email: signUpData.email,
+      dob: signUpData.date_of_birth
+    }, signUpData.confirmPassword);
+    
+    if (!finalPasswordValidation.valid) {
+      toast({
+        title: "Invalid Password",
+        description: finalPasswordValidation.errors[0],
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
     }
 
     // Validate required fields
@@ -409,24 +435,24 @@ const Auth = () => {
                     placeholder="Enter your email"
                     required
                   />
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        placeholder="Create a password"
-                        className="pl-10"
-                        value={signUpData.password}
-                        onChange={(e) =>
-                          setSignUpData({ ...signUpData, password: e.target.value })
-                        }
-                        required
-                        minLength={6}
-                      />
-                    </div>
-                  </div>
+                  
+                  <PasswordInput
+                    id="signup-password"
+                    label="Password"
+                    placeholder="Create a secure password"
+                    value={signUpData.password}
+                    onChange={(password) => setSignUpData({ ...signUpData, password })}
+                    personalInfo={{
+                      name: signUpData.full_name,
+                      email: signUpData.email,
+                      dob: signUpData.date_of_birth
+                    }}
+                    onValidationChange={handlePasswordValidationChange}
+                    showConfirmation={true}
+                    confirmValue={signUpData.confirmPassword}
+                    onConfirmChange={(confirmPassword) => setSignUpData({ ...signUpData, confirmPassword })}
+                    required
+                  />
                   <Button
                     type="submit"
                     variant="hero"
