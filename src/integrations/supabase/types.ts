@@ -14,7 +14,242 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      matches: {
+        Row: {
+          compatibility_score: number
+          created_at: string
+          id: string
+          match_reasons: string[] | null
+          profile_id: string
+          program_id: string
+        }
+        Insert: {
+          compatibility_score: number
+          created_at?: string
+          id?: string
+          match_reasons?: string[] | null
+          profile_id: string
+          program_id: string
+        }
+        Update: {
+          compatibility_score?: number
+          created_at?: string
+          id?: string
+          match_reasons?: string[] | null
+          profile_id?: string
+          program_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          career_goals: string | null
+          created_at: string
+          credits_taken: number | null
+          current_education_level: string | null
+          current_field_of_study: string | null
+          current_gpa: number | null
+          current_institution: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          language_certificates: string[] | null
+          nationality: string | null
+          phone: string | null
+          preferred_cities: string[] | null
+          preferred_degree_type: string | null
+          preferred_fields: string[] | null
+          thesis_topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          career_goals?: string | null
+          created_at?: string
+          credits_taken?: number | null
+          current_education_level?: string | null
+          current_field_of_study?: string | null
+          current_gpa?: number | null
+          current_institution?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          language_certificates?: string[] | null
+          nationality?: string | null
+          phone?: string | null
+          preferred_cities?: string[] | null
+          preferred_degree_type?: string | null
+          preferred_fields?: string[] | null
+          thesis_topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          career_goals?: string | null
+          created_at?: string
+          credits_taken?: number | null
+          current_education_level?: string | null
+          current_field_of_study?: string | null
+          current_gpa?: number | null
+          current_institution?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          language_certificates?: string[] | null
+          nationality?: string | null
+          phone?: string | null
+          preferred_cities?: string[] | null
+          preferred_degree_type?: string | null
+          preferred_fields?: string[] | null
+          thesis_topic?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      programs: {
+        Row: {
+          application_deadline: string | null
+          created_at: string
+          degree_type: string
+          description: string | null
+          duration_semesters: number
+          ects_credits: number | null
+          field_of_study: string
+          id: string
+          language_requirements: string[] | null
+          minimum_gpa: number | null
+          name: string
+          prerequisites: string[] | null
+          semester_start: string | null
+          tuition_fees: number | null
+          university_id: string
+        }
+        Insert: {
+          application_deadline?: string | null
+          created_at?: string
+          degree_type: string
+          description?: string | null
+          duration_semesters: number
+          ects_credits?: number | null
+          field_of_study: string
+          id?: string
+          language_requirements?: string[] | null
+          minimum_gpa?: number | null
+          name: string
+          prerequisites?: string[] | null
+          semester_start?: string | null
+          tuition_fees?: number | null
+          university_id: string
+        }
+        Update: {
+          application_deadline?: string | null
+          created_at?: string
+          degree_type?: string
+          description?: string | null
+          duration_semesters?: number
+          ects_credits?: number | null
+          field_of_study?: string
+          id?: string
+          language_requirements?: string[] | null
+          minimum_gpa?: number | null
+          name?: string
+          prerequisites?: string[] | null
+          semester_start?: string | null
+          tuition_fees?: number | null
+          university_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programs_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_programs: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+          program_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id: string
+          program_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+          program_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_programs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_programs_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      universities: {
+        Row: {
+          city: string
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          ranking: number | null
+          type: string | null
+          website: string | null
+        }
+        Insert: {
+          city: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          ranking?: number | null
+          type?: string | null
+          website?: string | null
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          ranking?: number | null
+          type?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
