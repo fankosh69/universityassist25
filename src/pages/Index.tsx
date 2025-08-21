@@ -60,10 +60,10 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Logo />
           <div className="flex items-center space-x-4">
-            <Link to="/auth">
+            <Link to="/auth?tab=signin">
               <Button variant="ghost">Sign In</Button>
             </Link>
-            <Link to="/auth">
+            <Link to="/auth?tab=signup">
               <Button variant="hero">Get Started</Button>
             </Link>
           </div>
@@ -90,7 +90,7 @@ const Index = () => {
             goals, and preferences. Start your journey to world-class education today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/auth">
+            <Link to="/auth?tab=signup">
               <Button variant="hero" size="xl" className="min-w-48">
                 Start Your Journey
                 <ChevronRight className="ml-2 h-5 w-5" />
@@ -235,7 +235,7 @@ const Index = () => {
           <p className="text-xl mb-8 text-white/90 max-w-2xl mx-auto">
             Join thousands of students who have successfully found their ideal German university program
           </p>
-          <Link to="/auth">
+          <Link to="/auth?tab=signup">
             <Button variant="hero" size="xl" className="bg-white text-primary hover:bg-white/90">
               Start Matching Now
               <Award className="ml-2 h-5 w-5" />

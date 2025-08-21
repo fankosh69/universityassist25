@@ -75,10 +75,10 @@ const Navigation = () => {
             </>
           ) : (
             <>
-              <Link to="/auth">
+              <Link to="/auth?tab=signin">
                 <Button variant="ghost">Sign In</Button>
               </Link>
-              <Link to="/auth">
+              <Link to="/auth?tab=signup">
                 <Button variant="hero">Get Started</Button>
               </Link>
             </>
