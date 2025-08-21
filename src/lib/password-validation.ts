@@ -126,17 +126,16 @@ function calculateStrength(password: string): 'weak' | 'okay' | 'strong' {
   if (/\d/.test(password)) score += 1;
   if (/[^A-Za-z0-9]/.test(password)) score += 1;
   
-  // Bonus for length and variety
-  if (password.length >= 16) score += 1;
-  if (password.length >= 20) score += 1;
+  // Bonus for good length
+  if (password.length >= 14) score += 1;
   
   // Penalty for common patterns
   if (detectRepeatingChars(password) || detectSequences(password)) {
     score -= 2;
   }
   
-  if (score >= 7) return 'strong';
-  if (score >= 4) return 'okay';
+  if (score >= 5) return 'strong';  // More achievable
+  if (score >= 3) return 'okay';    // Reasonable
   return 'weak';
 }
 
