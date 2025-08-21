@@ -211,7 +211,8 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
             <p>💡 Password requirements:</p>
             <ul className="list-disc list-inside ml-4 space-y-0.5">
               <li>At least 8 characters</li>
-              <li>Include letters, numbers, and special characters</li>
+              <li>Include uppercase and lowercase letters</li>
+              <li>Include numbers and special characters</li>
               <li>No spaces allowed</li>
               <li>Don't use personal information (name, email, birthdate)</li>
             </ul>

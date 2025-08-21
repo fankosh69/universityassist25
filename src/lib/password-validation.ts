@@ -157,8 +157,12 @@ export function validatePassword(
   }
   
   // Composition validation
-  if (!/[A-Za-z]/.test(password)) {
-    errors.push("Add at least one letter.");
+  if (!/[a-z]/.test(password)) {
+    errors.push("Add at least one lowercase letter.");
+  }
+  
+  if (!/[A-Z]/.test(password)) {
+    errors.push("Add at least one uppercase letter.");
   }
   
   if (!/\d/.test(password)) {
@@ -239,6 +243,12 @@ export function validatePassword(
     }
     if (!/[!@#$%^&*()_+\-=\[\]{}|;:'",.<>/?`~]/.test(password)) {
       suggestions.push("Add special characters like !, @, #, $, %, etc.");
+    }
+    if (!/[a-z]/.test(password)) {
+      suggestions.push("Include at least one lowercase letter.");
+    }
+    if (!/[A-Z]/.test(password)) {
+      suggestions.push("Include at least one uppercase letter.");
     }
     if (errors.some(e => e.includes("name") || e.includes("email") || e.includes("birth"))) {
       suggestions.push("Create a password that doesn't relate to your personal information.");
