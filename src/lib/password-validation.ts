@@ -149,8 +149,8 @@ export function validatePassword(
   const suggestions: string[] = [];
   
   // Length validation
-  if (password.length < 12) {
-    errors.push("Use at least 12 characters.");
+  if (password.length < 8) {
+    errors.push("Use at least 8 characters.");
   }
   
   if (password.length > 128) {
@@ -235,8 +235,8 @@ export function validatePassword(
   
   // Generate suggestions
   if (errors.length > 0) {
-    if (password.length < 12) {
-      suggestions.push("Try adding more characters to reach at least 12.");
+    if (password.length < 8) {
+      suggestions.push("Try adding more characters to reach at least 8.");
     }
     if (!/[!@#$%^&*()_+\-=\[\]{}|;:'",.<>/?`~]/.test(password)) {
       suggestions.push("Add special characters like !, @, #, $, %, etc.");
