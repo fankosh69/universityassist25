@@ -11,14 +11,14 @@ const Logo = ({ className = "", showText = true, variant = "default" }: LogoProp
     <svg 
       viewBox="0 0 24 24" 
       className="h-8 w-8" 
-      fill="currentColor"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
     >
-      <path d="M4 12L20 12M20 12L14 6M20 12L14 18" 
-        stroke="currentColor" 
-        strokeWidth="2" 
+      <path 
+        d="M19 12H5M12 5l-7 7 7 7" 
         strokeLinecap="round" 
-        strokeLinejoin="round" 
-        fill="none"
+        strokeLinejoin="round"
       />
     </svg>
   );
@@ -33,8 +33,12 @@ const Logo = ({ className = "", showText = true, variant = "default" }: LogoProp
     "text-accent";
 
   return (
-    <Link to="/" className={`flex items-center space-x-2 ${className}`}>
-      <div className={iconColorClass}>
+    <Link 
+      to="/" 
+      className={`flex items-center space-x-2 hover:opacity-80 transition-opacity ${className}`}
+      title="Back to Home"
+    >
+      <div className={`${iconColorClass} hover:scale-110 transition-transform`}>
         <ArrowIcon />
       </div>
       {showText && (
