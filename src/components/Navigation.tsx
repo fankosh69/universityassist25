@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import Logo from "@/components/Logo";
+import LanguageSelector from "@/components/LanguageSelector";
 
 const Navigation = () => {
   const [user, setUser] = useState<any>(null);
@@ -54,6 +55,8 @@ const Navigation = () => {
             <SearchIcon className="h-4 w-4" />
             Browse Programs
           </Link>
+          
+          <LanguageSelector />
           
           {user ? (
             <>
