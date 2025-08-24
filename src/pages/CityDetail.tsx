@@ -8,7 +8,8 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
-import { MapPin, Building, Users, Trophy, Globe } from "lucide-react";
+import CityMap from "@/components/CityMap";
+import { MapPin, Building, Users, Trophy, Globe, Map } from "lucide-react";
 
 interface City {
   id: string;
@@ -183,6 +184,26 @@ export default function CityDetail() {
             </p>
           </div>
         </div>
+
+        {/* Interactive Map */}
+        {city.lat && city.lng && (
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Explore {city.name}</h2>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Map className="h-5 w-5" />
+                <span>Interactive Map</span>
+              </div>
+            </div>
+            <CityMap
+              cityId={city.id}
+              cityName={city.name}
+              cityLat={city.lat}
+              cityLng={city.lng}
+              className="w-full"
+            />
+          </div>
+        )}
 
         {/* Universities Section */}
         <div className="mb-12">
