@@ -82,6 +82,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ambassadors_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ambassadors_university_id_fkey"
             columns: ["university_id"]
             isOneToOne: false
@@ -250,6 +257,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "matches_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "matches_program_id_fkey"
             columns: ["program_id"]
             isOneToOne: false
@@ -399,6 +413,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_matches_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -559,6 +580,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "saved_programs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "saved_programs_program_id_fkey"
             columns: ["program_id"]
             isOneToOne: false
@@ -661,6 +689,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_academics_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -793,6 +828,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_roles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       watchlist: {
@@ -820,6 +862,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "watchlist_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "watchlist_program_id_fkey"
             columns: ["program_id"]
             isOneToOne: false
@@ -830,7 +879,78 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      safe_profiles: {
+        Row: {
+          career_goals: string | null
+          country_code: string | null
+          created_at: string | null
+          credits_taken: number | null
+          current_education_level: string | null
+          current_field_of_study: string | null
+          current_gpa: number | null
+          current_institution: string | null
+          date_of_birth: string | null
+          email: string | null
+          full_name: string | null
+          gender: string | null
+          id: string | null
+          language_certificates: string[] | null
+          nationality: string | null
+          phone: string | null
+          preferred_cities: string[] | null
+          preferred_degree_type: string | null
+          preferred_fields: string[] | null
+          thesis_topic: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          career_goals?: string | null
+          country_code?: never
+          created_at?: string | null
+          credits_taken?: number | null
+          current_education_level?: string | null
+          current_field_of_study?: string | null
+          current_gpa?: number | null
+          current_institution?: string | null
+          date_of_birth?: never
+          email?: never
+          full_name?: never
+          gender?: string | null
+          id?: string | null
+          language_certificates?: string[] | null
+          nationality?: string | null
+          phone?: never
+          preferred_cities?: string[] | null
+          preferred_degree_type?: string | null
+          preferred_fields?: string[] | null
+          thesis_topic?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          career_goals?: string | null
+          country_code?: never
+          created_at?: string | null
+          credits_taken?: number | null
+          current_education_level?: string | null
+          current_field_of_study?: string | null
+          current_gpa?: number | null
+          current_institution?: string | null
+          date_of_birth?: never
+          email?: never
+          full_name?: never
+          gender?: string | null
+          id?: string | null
+          language_certificates?: string[] | null
+          nationality?: string | null
+          phone?: never
+          preferred_cities?: string[] | null
+          preferred_degree_type?: string | null
+          preferred_fields?: string[] | null
+          thesis_topic?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_access_profile: {
@@ -864,7 +984,34 @@ export type Database = {
           semester_start_date: string
         }[]
       }
+      get_public_safe_profile: {
+        Args: { profile_uuid: string }
+        Returns: {
+          display_name: string
+          education_level: string
+          field_of_study: string
+          id: string
+          institution: string
+        }[]
+      }
       get_safe_profile_data: {
+        Args: { profile_uuid: string }
+        Returns: {
+          created_at: string
+          current_education_level: string
+          current_field_of_study: string
+          current_institution: string
+          date_of_birth: string
+          email: string
+          full_name: string
+          gender: string
+          id: string
+          nationality: string
+          phone: string
+          updated_at: string
+        }[]
+      }
+      get_ultra_secure_profile_data: {
         Args: { profile_uuid: string }
         Returns: {
           created_at: string
