@@ -137,19 +137,31 @@ export const AdminDashboard = () => {
               Quick Actions
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="text-sm text-muted-foreground">
+          <CardContent className="space-y-3">
+            <button 
+              onClick={() => window.location.href = '/admin/programs'}
+              className="flex items-center text-sm text-primary hover:text-primary-dark transition-colors cursor-pointer"
+            >
               • Add new programs and universities
-            </div>
-            <div className="text-sm text-muted-foreground">
+            </button>
+            <button 
+              onClick={() => window.location.href = '/admin/periods'}
+              className="flex items-center text-sm text-primary hover:text-primary-dark transition-colors cursor-pointer"
+            >
               • Manage application deadlines
-            </div>
-            <div className="text-sm text-muted-foreground">
+            </button>
+            <button 
+              onClick={() => window.location.href = '/admin/packages'}
+              className="flex items-center text-sm text-primary hover:text-primary-dark transition-colors cursor-pointer"
+            >
               • Update service packages
-            </div>
-            <div className="text-sm text-muted-foreground">
+            </button>
+            <button 
+              onClick={() => window.location.href = '/admin/users'}
+              className="flex items-center text-sm text-primary hover:text-primary-dark transition-colors cursor-pointer"
+            >
               • Monitor user activity
-            </div>
+            </button>
           </CardContent>
         </Card>
 

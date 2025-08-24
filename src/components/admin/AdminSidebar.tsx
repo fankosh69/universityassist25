@@ -47,13 +47,13 @@ export function AdminSidebar() {
 
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
-    isActive ? "bg-primary text-primary-foreground font-medium" : "hover:bg-muted/50";
+    isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground";
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarContent>
+    <Sidebar collapsible="icon" className="bg-sidebar border-sidebar-border">
+      <SidebarContent className="bg-sidebar">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-primary font-semibold">
+          <SidebarGroupLabel className="text-sidebar-primary font-semibold">
             <Settings className="h-4 w-4 mr-2" />
             {state === "expanded" && "Admin Panel"}
           </SidebarGroupLabel>
