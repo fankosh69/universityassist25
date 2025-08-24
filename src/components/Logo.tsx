@@ -7,7 +7,7 @@ interface LogoProps {
   variant?: "default" | "white" | "dark";
 }
 
-const Logo = ({ className = "", showText = true, variant = "default" }: LogoProps) => {
+const Logo = ({ className = "", showText = false, variant = "default" }: LogoProps) => {
   return (
     <Link 
       to="/" 
