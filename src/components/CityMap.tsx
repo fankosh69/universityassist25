@@ -44,7 +44,8 @@ const CityMap: React.FC<CityMapProps> = ({
         setMapboxToken(data.token);
       } catch (error) {
         console.error('Error fetching Mapbox token:', error);
-        setError('Failed to load map configuration');
+        // Don't set error immediately, allow fallback to work
+        setLoading(false);
       }
     };
 
@@ -57,7 +58,7 @@ const CityMap: React.FC<CityMapProps> = ({
         const { data, error } = await supabase
           .from('universities')
           .select('id, name, lat, lng, slug')
-          .eq('city_id', cityId)
+          .eq('city', cityName)  // Use city name for lookup
           .not('lat', 'is', null)
           .not('lng', 'is', null);
 
@@ -154,6 +155,42 @@ const CityMap: React.FC<CityMapProps> = ({
       map.current?.remove();
     };
   }, [mapboxToken, universities, cityLat, cityLng, cityName]);
+
+  // If no Mapbox token or error, show university list fallback
+  if (!mapboxToken && !loading) {
+    return (
+      <Card className={className}>
+        <CardContent className="p-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold mb-2">Universities in {cityName}</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Interactive map is temporarily unavailable. Here are the universities in this city:
+            </p>
+          </div>
+          <div className="space-y-2">
+            {universities.length > 0 ? (
+              universities.map((uni) => (
+                <Button
+                  key={uni.id}
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => window.open(`/universities/${uni.slug}`, '_blank')}
+                >
+                  <Navigation className="h-4 w-4 mr-2" />
+                  {uni.name}
+                </Button>
+              ))
+            ) : (
+              <p className="text-muted-foreground text-center py-4">
+                No universities found in {cityName}
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (error) {
     return (

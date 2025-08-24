@@ -51,11 +51,11 @@ export default function CityDetail() {
         if (cityError) throw cityError;
         setCity(cityData);
 
-        // Fetch universities in this city
+        // Fetch universities in this city with city name lookup
         const { data: universitiesData, error: universitiesError } = await supabase
           .from('universities')
           .select('*')
-          .eq('city_id', cityData.id)
+          .eq('city', cityData.name)  // Use city name instead of city_id
           .order('ranking', { ascending: true });
 
         if (universitiesError) throw universitiesError;

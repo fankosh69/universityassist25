@@ -51,6 +51,12 @@ const Navigation = () => {
         <Logo />
         
         <div className="flex items-center space-x-4">
+          <Link to="/cities" className="text-muted-foreground hover:text-foreground transition-colors">
+            Cities
+          </Link>
+          <Link to="/universities" className="text-muted-foreground hover:text-foreground transition-colors">
+            Universities
+          </Link>
           <Link to="/search" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
             <SearchIcon className="h-4 w-4" />
             Browse Programs
