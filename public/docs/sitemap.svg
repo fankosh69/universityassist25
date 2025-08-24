@@ -1,0 +1,51 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .node { fill: #e1f5fe; stroke: #2E57F6; stroke-width: 2; }
+      .text { font-family: 'Ubuntu', sans-serif; font-size: 12px; fill: #333; }
+      .link { stroke: #666; stroke-width: 1.5; fill: none; }
+    </style>
+  </defs>
+  
+  <!-- Root Node -->
+  <rect x="350" y="50" width="100" height="40" class="node" rx="5"/>
+  <text x="400" y="75" text-anchor="middle" class="text">Home /</text>
+  
+  <!-- Main Sections -->
+  <rect x="50" y="150" width="80" height="40" class="node" rx="5"/>
+  <text x="90" y="175" text-anchor="middle" class="text">Cities</text>
+  
+  <rect x="200" y="150" width="100" height="40" class="node" rx="5"/>
+  <text x="250" y="175" text-anchor="middle" class="text">Universities</text>
+  
+  <rect x="360" y="150" width="80" height="40" class="node" rx="5"/>
+  <text x="400" y="175" text-anchor="middle" class="text">Programs</text>
+  
+  <rect x="500" y="150" width="100" height="40" class="node" rx="5"/>
+  <text x="550" y="175" text-anchor="middle" class="text">Ambassadors</text>
+  
+  <rect x="650" y="150" width="80" height="40" class="node" rx="5"/>
+  <text x="690" y="175" text-anchor="middle" class="text">Dashboard</text>
+  
+  <!-- Connection Lines -->
+  <line x1="400" y1="90" x2="90" y2="150" class="link"/>
+  <line x1="400" y1="90" x2="250" y2="150" class="link"/>
+  <line x1="400" y1="90" x2="400" y2="150" class="link"/>
+  <line x1="400" y1="90" x2="550" y2="150" class="link"/>
+  <line x1="400" y1="90" x2="690" y2="150" class="link"/>
+  
+  <!-- Example Pages -->
+  <rect x="30" y="250" width="120" height="30" class="node" rx="3"/>
+  <text x="90" y="270" text-anchor="middle" class="text" font-size="10">cities/berlin</text>
+  
+  <rect x="180" y="250" width="140" height="30" class="node" rx="3"/>
+  <text x="250" y="270" text-anchor="middle" class="text" font-size="10">universities/tu-berlin</text>
+  
+  <rect x="340" y="250" width="120" height="30" class="node" rx="3"/>
+  <text x="400" y="270" text-anchor="middle" class="text" font-size="10">programs/cs</text>
+  
+  <!-- Connection Lines to Examples -->
+  <line x1="90" y1="190" x2="90" y2="250" class="link"/>
+  <line x1="250" y1="190" x2="250" y2="250" class="link"/>
+  <line x1="400" y1="190" x2="400" y2="250" class="link"/>
+</svg>

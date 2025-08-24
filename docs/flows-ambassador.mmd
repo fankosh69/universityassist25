@@ -1,0 +1,24 @@
+flowchart LR
+  login[Student logs in<br/>from Germany] --> detect{Country=DE?}
+  detect -- yes --> invite[Send Ambassador Invite<br/>Email/WhatsApp]
+  detect -- no --> normal[Normal User Flow]
+  
+  invite --> consent[Consent Form:<br/>name display + LinkedIn<br/>+ testimonial + video]
+  consent --> upload[Upload Content:<br/>Video, Photos,<br/>Testimonial]
+  
+  upload --> review[Admin review<br/>& approve]
+  review --> approve{Approved?}
+  
+  approve -- yes --> publish[Publish on<br/>City/University/<br/>Program pages]
+  approve -- no --> feedback[Feedback to<br/>Ambassador]
+  
+  feedback --> upload
+  publish --> visible[Visible to<br/>prospective students]
+  
+  visible --> engage[Student<br/>Engagement]
+  
+  style login fill:#e1f5fe
+  style invite fill:#f3e5f5
+  style consent fill:#fff3e0
+  style publish fill:#e8f5e8
+  style visible fill:#e8f5e8

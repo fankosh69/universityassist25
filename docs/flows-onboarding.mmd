@@ -1,0 +1,22 @@
+flowchart LR
+  start([Sign up / Sign in]) --> role{Role selected?}
+  role -->|Student| prof[Complete Profile:<br/>GPA, Language, ECTS]
+  prof --> match[Program Match &<br/>Gap Analysis]
+  match --> watch[Watchlist +<br/>Deadlines]
+  watch --> apply[Start Application<br/>Prospect→Applicant]
+  
+  role -->|Parent| link[Link to Student /<br/>Consent]
+  role -->|Counselor| school[Claim/Join School]
+  
+  school --> cohort[Cohort Tracking &<br/>Student Management]
+  link --> parent_dash[Parent Dashboard<br/>View Progress]
+  
+  apply --> docs[Document Upload<br/>& OCR Processing]
+  docs --> review[Admin Review &<br/>Approval]
+  review --> submitted[Application<br/>Submitted]
+  
+  style start fill:#e1f5fe
+  style prof fill:#f3e5f5
+  style match fill:#e8f5e8
+  style apply fill:#fff3e0
+  style submitted fill:#e8f5e8

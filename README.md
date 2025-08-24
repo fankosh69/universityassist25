@@ -64,10 +64,13 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/349dd91b-ef49-433c-a84d-4502db0c1cfc) and click on Share -> Publish.
 
-## Can I connect a custom domain to my Lovable project?
+## Site Architecture
 
-Yes, you can!
+- [Visual sitemap](./public/docs/sitemap.svg) - Interactive site structure
+- [Onboarding flow](./docs/flows-onboarding.mmd) - User registration process
+- [Ambassador flow](./docs/flows-ambassador.mmd) - Student ambassador recruitment
+- [SEO Sitemaps](./public/sitemap-index.xml) - XML sitemaps for search engines
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Custom Domain
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+You can easily connect a custom domain to your project by following the instructions in the Lovable documentation or directly in your project settings.

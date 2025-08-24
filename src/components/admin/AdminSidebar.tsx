@@ -12,7 +12,8 @@ import {
   BarChart3,
   Home,
   Menu,
-  Shield
+  Shield,
+  FileText
 } from "lucide-react";
 
 import {
@@ -36,6 +37,7 @@ const adminMenuItems = [
   { title: "Service Packages", url: "/admin/packages", icon: Package },
   { title: "User Management", url: "/admin/users", icon: Users },
   { title: "Security", url: "/admin/security", icon: Shield },
+  { title: "Sitemap", url: "/admin/sitemap", icon: FileText },
 ];
 
 export function AdminSidebar() {
