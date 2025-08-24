@@ -16,6 +16,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { InstitutionTypeBadge } from "@/components/InstitutionTypeBadge";
+import { INSTITUTION_TYPES } from "@/lib/institution-types";
 
 interface University {
   id: string;
@@ -280,7 +283,7 @@ export const AdminUniversities = () => {
                 )}
                 
                 {university.type && (
-                  <Badge variant="secondary">{university.type}</Badge>
+                  <InstitutionTypeBadge type={university.type} />
                 )}
                 
                 {university.ranking && (
@@ -381,12 +384,23 @@ export const AdminUniversities = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="type">University Type</Label>
-                <Input
-                  id="type"
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  placeholder="e.g., Public, Private, Technical"
-                />
+                <Select 
+                  value={formData.type} 
+                  onValueChange={(value) => setFormData({ ...formData, type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select institution type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INSTITUTION_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        <div className="flex items-center gap-2">
+                          <span>{type.labelEn} ({type.labelDe})</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>

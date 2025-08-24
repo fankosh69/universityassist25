@@ -9,6 +9,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
+import { InstitutionTypeBadge } from "@/components/InstitutionTypeBadge";
 import { MapPin, Globe, Users, Trophy, GraduationCap, Calendar, Euro, Clock } from "lucide-react";
 
 interface University {
@@ -180,7 +181,7 @@ export default function UniversityDetail() {
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">{university.type}</Badge>
+                  <InstitutionTypeBadge type={university.type} />
                   {university.ranking && (
                     <Badge variant="outline" className="flex items-center gap-1">
                       <Trophy className="h-3 w-3" />

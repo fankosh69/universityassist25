@@ -12,6 +12,7 @@ import { MapPin, Clock, Euro, GraduationCap, Calendar, FileText, Heart } from "l
 import { toast } from "sonner";
 import { LanguageFlags } from "@/components/LanguageFlags";
 import { formatProgramTitle } from "@/lib/degree-formatting";
+import { InstitutionTypeBadge } from "@/components/InstitutionTypeBadge";
 
 interface Program {
   id: string;
@@ -271,6 +272,7 @@ export default function ProgramDetail() {
                   {program.degree_level.charAt(0).toUpperCase() + program.degree_level.slice(1).toLowerCase()}
                 </Badge>
                 <Badge variant="outline">{program.field_of_study}</Badge>
+                <InstitutionTypeBadge type={program.universities.type} />
                 {program.application_method === 'uni_assist_direct' && (
                   <Badge variant="destructive">Uni-Assist Direct Application</Badge>
                 )}

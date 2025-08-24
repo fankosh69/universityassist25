@@ -13,6 +13,8 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { LanguageFlags } from '@/components/LanguageFlags';
 import { formatProgramTitle } from '@/lib/degree-formatting';
+import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
+import { INSTITUTION_TYPES, normalizeInstitutionType } from '@/lib/institution-types';
 
 interface Program {
   id: string;
@@ -41,6 +43,7 @@ interface SearchFilters {
   maxTuitionFees: string;
   uniAssistRequired: boolean | null;
   duration: string;
+  institutionType: string;
 }
 
 const EnhancedSearch: React.FC = () => {
@@ -59,7 +62,8 @@ const EnhancedSearch: React.FC = () => {
     city: 'all',
     maxTuitionFees: 'all',
     uniAssistRequired: null,
-    duration: 'all'
+    duration: 'all',
+    institutionType: 'all'
   });
 
   // Get unique filter options
@@ -68,8 +72,9 @@ const EnhancedSearch: React.FC = () => {
     const fieldsOfStudy = [...new Set(allPrograms.map(p => p.field_of_study))].filter(Boolean);
     const cities = [...new Set(allPrograms.map(p => p.universities?.city))].filter(Boolean);
     const durations = [...new Set(allPrograms.map(p => p.duration_semesters))].filter(Boolean).sort((a, b) => a - b);
+    const institutionTypes = [...new Set(allPrograms.map(p => p.universities?.type))].filter(Boolean);
     
-    return { degreeLevels, fieldsOfStudy, cities, durations };
+    return { degreeLevels, fieldsOfStudy, cities, durations, institutionTypes };
   }, [allPrograms]);
 
   useEffect(() => {
@@ -160,6 +165,12 @@ const EnhancedSearch: React.FC = () => {
     if (filters.duration && filters.duration !== 'all') {
       filtered = filtered.filter(p => p.duration_semesters === parseInt(filters.duration));
     }
+    if (filters.institutionType && filters.institutionType !== 'all') {
+      filtered = filtered.filter(p => {
+        const normalizedType = normalizeInstitutionType(p.universities?.type || '');
+        return normalizedType === filters.institutionType;
+      });
+    }
 
     setPrograms(filtered);
   }, [searchQuery, filters, allPrograms]);
@@ -212,7 +223,8 @@ const EnhancedSearch: React.FC = () => {
       city: 'all',
       maxTuitionFees: 'all',
       uniAssistRequired: null,
-      duration: 'all'
+      duration: 'all',
+      institutionType: 'all'
     });
     setSearchQuery('');
   };
@@ -376,6 +388,23 @@ const EnhancedSearch: React.FC = () => {
                   </Select>
                 </div>
 
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Institution Type</label>
+                  <Select value={filters.institutionType} onValueChange={(value) => setFilters(prev => ({ ...prev, institutionType: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any type</SelectItem>
+                      {INSTITUTION_TYPES.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.labelEn} ({type.labelDe})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="flex flex-col space-y-2">
                   <label className="text-sm font-medium">Uni-Assist</label>
                   <div className="flex items-center space-x-2">
@@ -460,7 +489,8 @@ const EnhancedSearch: React.FC = () => {
                     <span>{program.universities?.name}</span>
                   </div>
                   
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+                    <div>
                       <Link 
                         to={`/universities/${program.universities?.slug}`}
                         className="hover:text-primary transition-colors"
@@ -473,8 +503,16 @@ const EnhancedSearch: React.FC = () => {
                         className="hover:text-primary transition-colors"
                       >
                         {program.universities?.city}
-                      </Link>, {program.universities?.type}
-                    </p>
+                      </Link>
+                    </div>
+                    {program.universities?.type && (
+                      <InstitutionTypeBadge 
+                        type={program.universities.type} 
+                        useShort={true}
+                        className="text-xs"
+                      />
+                    )}
+                  </div>
                   
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4" />
