@@ -97,7 +97,7 @@ const App = () => {
             <Route path="/admin/programs" element={<AdminLayout><AdminPrograms /></AdminLayout>} />
             <Route path="/admin/security" element={<AdminLayout><AdminSecurity /></AdminLayout>} />
             <Route path="/admin/cities" element={<AdminLayout><div>Cities Management</div></AdminLayout>} />
-            <Route path="/admin/universities" element={<AdminLayout><div>Universities Management</div></AdminLayout>} />
+            <Route path="/admin/universities" element={<AdminLayout><AdminUniversities /></AdminLayout>} />
             <Route path="/admin/periods" element={<AdminLayout><div>Application Periods</div></AdminLayout>} />
             <Route path="/admin/packages" element={<AdminLayout><div>Service Packages</div></AdminLayout>} />
             <Route path="/admin/users" element={<AdminLayout><div>User Management</div></AdminLayout>} />

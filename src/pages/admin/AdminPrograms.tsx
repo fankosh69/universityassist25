@@ -6,10 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Trash2, Search } from "lucide-react";
+import { Plus, Edit, Trash2, Search, ExternalLink, Clock, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LanguageFlags } from "@/components/LanguageFlags";
+import { getDeadlineStatus, getApplicationMethodInfo, getStatusColor } from "@/lib/deadline-utils";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +21,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Program {
   id: string;
@@ -32,6 +41,13 @@ interface Program {
   uni_assist_required: boolean;
   university_id: string;
   published: boolean;
+  application_method: 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates';
+  program_url?: string;
+  winter_intake: boolean;
+  summer_intake: boolean;
+  winter_deadline?: string;
+  summer_deadline?: string;
+  recognition_weeks_before: number;
   universities?: {
     name: string;
     city: string;
@@ -66,10 +82,17 @@ export const AdminPrograms = () => {
     uni_assist_required: boolean;
     university_id: string;
     published: boolean;
+    application_method: 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates';
+    program_url: string;
+    winter_intake: boolean;
+    summer_intake: boolean;
+    winter_deadline: Date | null;
+    summer_deadline: Date | null;
+    recognition_weeks_before: number;
   }>({
     name: "",
     description: "",
-    degree_type: "",
+    degree_type: "B.A.",
     degree_level: "bachelor",
     field_of_study: "",
     duration_semesters: 6,
@@ -78,7 +101,14 @@ export const AdminPrograms = () => {
     language_of_instruction: ["de"],
     uni_assist_required: false,
     university_id: "",
-    published: true
+    published: true,
+    application_method: "direct",
+    program_url: "",
+    winter_intake: true,
+    summer_intake: false,
+    winter_deadline: null,
+    summer_deadline: null,
+    recognition_weeks_before: 10,
   });
 
   useEffect(() => {
@@ -97,7 +127,14 @@ export const AdminPrograms = () => {
         .order('name');
 
       if (error) throw error;
-      setPrograms(data || []);
+      
+      // Cast data to proper types
+      const typedData = (data || []).map(program => ({
+        ...program,
+        application_method: program.application_method as 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates',
+      }));
+      
+      setPrograms(typedData);
     } catch (error) {
       console.error('Error fetching programs:', error);
       toast({
@@ -128,10 +165,17 @@ export const AdminPrograms = () => {
     e.preventDefault();
     
     try {
+      // Convert dates to strings for database
+      const submitData = {
+        ...formData,
+        winter_deadline: formData.winter_deadline ? formData.winter_deadline.toISOString().split('T')[0] : null,
+        summer_deadline: formData.summer_deadline ? formData.summer_deadline.toISOString().split('T')[0] : null,
+      };
+
       if (editingProgram) {
         const { error } = await supabase
           .from('programs')
-          .update(formData)
+          .update(submitData)
           .eq('id', editingProgram.id);
 
         if (error) throw error;
@@ -142,7 +186,7 @@ export const AdminPrograms = () => {
       } else {
         const { error } = await supabase
           .from('programs')
-          .insert(formData);
+          .insert(submitData);
 
         if (error) throw error;
         toast({
@@ -203,7 +247,14 @@ export const AdminPrograms = () => {
       language_of_instruction: program.language_of_instruction,
       uni_assist_required: program.uni_assist_required,
       university_id: program.university_id,
-      published: program.published
+      published: program.published,
+      application_method: program.application_method || 'direct',
+      program_url: program.program_url || '',
+      winter_intake: program.winter_intake,
+      summer_intake: program.summer_intake,
+      winter_deadline: program.winter_deadline ? new Date(program.winter_deadline) : null,
+      summer_deadline: program.summer_deadline ? new Date(program.summer_deadline) : null,
+      recognition_weeks_before: program.recognition_weeks_before || 10,
     });
     setIsDialogOpen(true);
   };
@@ -213,7 +264,7 @@ export const AdminPrograms = () => {
     setFormData({
       name: "",
       description: "",
-      degree_type: "",
+      degree_type: "B.A.",
       degree_level: "bachelor",
       field_of_study: "",
       duration_semesters: 6,
@@ -222,7 +273,14 @@ export const AdminPrograms = () => {
       language_of_instruction: ["de"],
       uni_assist_required: false,
       university_id: "",
-      published: true
+      published: true,
+      application_method: "direct",
+      program_url: "",
+      winter_intake: true,
+      summer_intake: false,
+      winter_deadline: null,
+      summer_deadline: null,
+      recognition_weeks_before: 10,
     });
     setIsDialogOpen(false);
   };
@@ -277,12 +335,89 @@ export const AdminPrograms = () => {
               </p>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm">
-                <div><strong>Degree:</strong> {program.degree_level} in {program.field_of_study}</div>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {program.program_url ? (
+                      <a 
+                        href={program.program_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="font-medium hover:underline flex items-center gap-1"
+                      >
+                        {program.name}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : (
+                      <span className="font-medium">{program.name}</span>
+                    )}
+                  </div>
+                  <Badge variant="outline">{program.degree_type}</Badge>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <strong>Language:</strong>
+                  <LanguageFlags languages={program.language_of_instruction} />
+                </div>
+
                 <div><strong>Duration:</strong> {program.duration_semesters} semesters</div>
                 <div><strong>ECTS:</strong> {program.ects_credits}</div>
                 <div><strong>Tuition:</strong> €{program.tuition_fees}/year</div>
-                <div><strong>Language:</strong> {program.language_of_instruction.join(', ')}</div>
+                
+                <div>
+                  <strong>Intake:</strong> 
+                  <div className="flex gap-1 mt-1">
+                    {program.winter_intake && (
+                      <Badge variant="secondary" className="text-xs">
+                        Winter
+                        {program.winter_deadline && (
+                          <span className="ml-1">
+                            <Clock className="h-3 w-3 inline ml-1" />
+                            {(() => {
+                              const deadline = getDeadlineStatus(
+                                new Date(program.winter_deadline), 
+                                'winter', 
+                                program.winter_intake, 
+                                program.summer_intake,
+                                program.winter_deadline ? new Date(program.winter_deadline) : null,
+                                program.summer_deadline ? new Date(program.summer_deadline) : null
+                              );
+                              return deadline.timeText;
+                            })()}
+                          </span>
+                        )}
+                      </Badge>
+                    )}
+                    {program.summer_intake && (
+                      <Badge variant="secondary" className="text-xs">
+                        Summer
+                        {program.summer_deadline && (
+                          <span className="ml-1">
+                            <Clock className="h-3 w-3 inline ml-1" />
+                            {(() => {
+                              const deadline = getDeadlineStatus(
+                                new Date(program.summer_deadline), 
+                                'summer', 
+                                program.winter_intake, 
+                                program.summer_intake,
+                                program.winter_deadline ? new Date(program.winter_deadline) : null,
+                                program.summer_deadline ? new Date(program.summer_deadline) : null
+                              );
+                              return deadline.timeText;
+                            })()}
+                          </span>
+                        )}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Badge variant="outline" className="text-xs">
+                    {getApplicationMethodInfo(program.application_method).name}
+                  </Badge>
+                </div>
+
                 <div className="flex items-center gap-2">
                   <span className={`px-2 py-1 rounded text-xs ${program.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                     {program.published ? 'Published' : 'Draft'}
@@ -375,6 +510,33 @@ export const AdminPrograms = () => {
               </div>
 
               <div>
+                <Label htmlFor="degree_type">Degree Type</Label>
+                <Select
+                  value={formData.degree_type}
+                  onValueChange={(value) => setFormData({ ...formData, degree_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select degree type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="B.A.">B.A. - Bachelor of Arts</SelectItem>
+                    <SelectItem value="B.Sc.">B.Sc. - Bachelor of Science</SelectItem>
+                    <SelectItem value="B.Eng.">B.Eng. - Bachelor of Engineering</SelectItem>
+                    <SelectItem value="B.Ed.">B.Ed. - Bachelor of Education</SelectItem>
+                    <SelectItem value="B.Com.">B.Com. - Bachelor of Commerce</SelectItem>
+                    <SelectItem value="M.A.">M.A. - Master of Arts</SelectItem>
+                    <SelectItem value="M.Sc.">M.Sc. - Master of Science</SelectItem>
+                    <SelectItem value="M.Eng.">M.Eng. - Master of Engineering</SelectItem>
+                    <SelectItem value="M.Ed.">M.Ed. - Master of Education</SelectItem>
+                    <SelectItem value="M.Com.">M.Com. - Master of Commerce</SelectItem>
+                    <SelectItem value="MBA">MBA - Master of Business Administration</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <Label htmlFor="field_of_study">Field of Study</Label>
                 <Input
                   id="field_of_study"
@@ -383,51 +545,227 @@ export const AdminPrograms = () => {
                   required
                 />
               </div>
+
+              <div>
+                <Label htmlFor="program_url">Program URL</Label>
+                <Input
+                  id="program_url"
+                  type="url"
+                  value={formData.program_url}
+                  onChange={(e) => setFormData({ ...formData, program_url: e.target.value })}
+                  placeholder="https://university.edu/program"
+                />
+              </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="duration_semesters">Duration (Semesters)</Label>
-                <Input
-                  id="duration_semesters"
-                  type="number"
-                  value={formData.duration_semesters}
-                  onChange={(e) => setFormData({ ...formData, duration_semesters: parseInt(e.target.value) })}
-                  required
-                />
-              </div>
+            <div>
+              <Label htmlFor="application_method">Application Method</Label>
+              <Select
+                value={formData.application_method}
+                onValueChange={(value: 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates') => 
+                  setFormData({ ...formData, application_method: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="direct">Direct Application</SelectItem>
+                  <SelectItem value="uni_assist_direct">Uni-Assist Direct Application</SelectItem>
+                  <SelectItem value="uni_assist_vpd">Uni-Assist VPD</SelectItem>
+                  <SelectItem value="recognition_certificates">Recognition of Certificates (Hochschule Konstanz)</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {formData.application_method === 'uni_assist_vpd' && (
+                <Alert className="mt-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Application to uni-assist should be submitted at least 5 weeks before the university deadline.
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {formData.application_method === 'recognition_certificates' && (
+                <Alert className="mt-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Application for recognition should be submitted at least 10 weeks before the visible deadline. 
+                    This process is only applicable for specific universities in Baden-Württemberg.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
 
-              <div>
-                <Label htmlFor="ects_credits">ECTS Credits</Label>
-                <Input
-                  id="ects_credits"
-                  type="number"
-                  value={formData.ects_credits}
-                  onChange={(e) => setFormData({ ...formData, ects_credits: parseInt(e.target.value) })}
-                />
+            <div className="space-y-4">
+              <Label>Intake Availability</Label>
+              <div className="flex gap-6">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="winter_intake"
+                    checked={formData.winter_intake}
+                    onCheckedChange={(checked) => setFormData({ ...formData, winter_intake: !!checked })}
+                  />
+                  <Label htmlFor="winter_intake">Winter Intake</Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="summer_intake"
+                    checked={formData.summer_intake}
+                    onCheckedChange={(checked) => setFormData({ ...formData, summer_intake: !!checked })}
+                  />
+                  <Label htmlFor="summer_intake">Summer Intake</Label>
+                </div>
               </div>
+            </div>
 
-              <div>
-                <Label htmlFor="tuition_fees">Tuition Fees (€/year)</Label>
-                <Input
-                  id="tuition_fees"
-                  type="number"
-                  value={formData.tuition_fees}
-                  onChange={(e) => setFormData({ ...formData, tuition_fees: parseInt(e.target.value) })}
-                />
+            <div className="grid grid-cols-2 gap-4">
+              {formData.winter_intake && (
+                <div>
+                  <Label>Winter Deadline</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !formData.winter_deadline && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.winter_deadline ? format(formData.winter_deadline, "PPP") : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.winter_deadline}
+                        onSelect={(date) => setFormData({ ...formData, winter_deadline: date || null })}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+              
+              {formData.summer_intake && (
+                <div>
+                  <Label>Summer Deadline</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !formData.summer_deadline && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.summer_deadline ? format(formData.summer_deadline, "PPP") : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.summer_deadline}
+                        onSelect={(date) => setFormData({ ...formData, summer_deadline: date || null })}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label>Language of Instruction</Label>
+              <div className="flex gap-4 mt-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="lang_de"
+                    checked={formData.language_of_instruction.includes('de')}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setFormData({ 
+                          ...formData, 
+                          language_of_instruction: [...formData.language_of_instruction.filter(l => l !== 'de'), 'de']
+                        });
+                      } else {
+                        setFormData({ 
+                          ...formData, 
+                          language_of_instruction: formData.language_of_instruction.filter(l => l !== 'de')
+                        });
+                      }
+                    }}
+                  />
+                  <Label htmlFor="lang_de" className="flex items-center gap-2">
+                    🇩🇪 German
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="lang_en"
+                    checked={formData.language_of_instruction.includes('en')}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setFormData({ 
+                          ...formData, 
+                          language_of_instruction: [...formData.language_of_instruction.filter(l => l !== 'en'), 'en']
+                        });
+                      } else {
+                        setFormData({ 
+                          ...formData, 
+                          language_of_instruction: formData.language_of_instruction.filter(l => l !== 'en')
+                        });
+                      }
+                    }}
+                  />
+                  <Label htmlFor="lang_en" className="flex items-center gap-2">
+                    🇬🇧 English
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="duration_semesters">Duration (Semesters)</Label>
+                  <Input
+                    id="duration_semesters"
+                    type="number"
+                    value={formData.duration_semesters}
+                    onChange={(e) => setFormData({ ...formData, duration_semesters: parseInt(e.target.value) })}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="ects_credits">ECTS Credits</Label>
+                  <Input
+                    id="ects_credits"
+                    type="number"
+                    value={formData.ects_credits}
+                    onChange={(e) => setFormData({ ...formData, ects_credits: parseInt(e.target.value) })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="tuition_fees">Tuition Fees (€/year)</Label>
+                  <Input
+                    id="tuition_fees"
+                    type="number"
+                    value={formData.tuition_fees}
+                    onChange={(e) => setFormData({ ...formData, tuition_fees: parseInt(e.target.value) })}
+                  />
+                </div>
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="uni_assist_required"
-                  checked={formData.uni_assist_required}
-                  onCheckedChange={(checked) => setFormData({ ...formData, uni_assist_required: !!checked })}
-                />
-                <Label htmlFor="uni_assist_required">Uni-Assist Required</Label>
-              </div>
-
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="published"
