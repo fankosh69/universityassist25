@@ -23,6 +23,9 @@ import AmbassadorsList from "./pages/ambassadors/AmbassadorsList";
 import AmbassadorProfile from "./pages/ambassadors/AmbassadorProfile";
 import ProfilePage from "./pages/profile/ProfilePage";
 import NotFound from "./pages/NotFound";
+import { AdminLayout } from "./components/admin/AdminLayout";
+import { AdminDashboard } from "./pages/admin/AdminDashboard";
+import { AdminPrograms } from "./pages/admin/AdminPrograms";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +90,16 @@ const App = () => {
               path="/profile" 
               element={user ? <ProfilePage /> : <Navigate to="/auth" />} 
             />
+            
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+            <Route path="/admin/programs" element={<AdminLayout><AdminPrograms /></AdminLayout>} />
+            <Route path="/admin/cities" element={<AdminLayout><div>Cities Management</div></AdminLayout>} />
+            <Route path="/admin/universities" element={<AdminLayout><div>Universities Management</div></AdminLayout>} />
+            <Route path="/admin/periods" element={<AdminLayout><div>Application Periods</div></AdminLayout>} />
+            <Route path="/admin/packages" element={<AdminLayout><div>Service Packages</div></AdminLayout>} />
+            <Route path="/admin/users" element={<AdminLayout><div>User Management</div></AdminLayout>} />
+            
             {/* Legacy routes */}
             <Route path="/cities/:citySlug" element={<CityDetail />} />
             <Route path="*" element={<NotFound />} />
