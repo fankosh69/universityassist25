@@ -7,10 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Filter, ChevronDown, MapPin, Clock, Euro, GraduationCap, Heart, X } from 'lucide-react';
+import { Search, Filter, ChevronDown, MapPin, Clock, Euro, GraduationCap, Heart, X, CreditCard } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { LanguageFlags } from '@/components/LanguageFlags';
 
 interface Program {
   id: string;
@@ -21,10 +22,13 @@ interface Program {
   duration_semesters: number;
   tuition_fees: number;
   uni_assist_required: boolean;
+  application_method: string;
+  language_of_instruction: string[];
   slug: string;
   universities: {
     name: string;
     city: string;
+    type: string;
     slug: string;
   };
 }
@@ -80,7 +84,7 @@ const EnhancedSearch: React.FC = () => {
           .from('programs')
           .select(`
             *,
-            universities!inner(name, city, slug)
+            universities!inner(name, city, type, slug)
           `)
           .eq('published', true)
           .order('name');
@@ -427,8 +431,12 @@ const EnhancedSearch: React.FC = () => {
                   <div className="flex-1">
                     <CardTitle className="text-lg mb-2 line-clamp-2">{program.name}</CardTitle>
                     <div className="flex flex-wrap gap-2 mb-3">
-                      <Badge variant="outline">{program.degree_type}</Badge>
-                      <Badge variant="secondary">{program.degree_level}</Badge>
+                      <Badge variant="outline">
+                        {program.degree_type.charAt(0).toUpperCase() + program.degree_type.slice(1).toLowerCase()}
+                      </Badge>
+                      <Badge variant="secondary">
+                        {program.degree_level.charAt(0).toUpperCase() + program.degree_level.slice(1).toLowerCase()}
+                      </Badge>
                       <Badge variant="outline">{program.field_of_study}</Badge>
                     </div>
                   </div>
@@ -451,7 +459,7 @@ const EnhancedSearch: React.FC = () => {
                   
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4" />
-                    <span>{program.universities?.city}</span>
+                    <span>{program.universities?.city}, {program.universities?.type}</span>
                   </div>
                   
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -469,11 +477,34 @@ const EnhancedSearch: React.FC = () => {
                     </span>
                   </div>
 
-                  {program.uni_assist_required && (
-                    <Badge variant="destructive" className="text-xs">
-                      Uni-Assist Required
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-2 text-sm">
+                    {program.application_method === 'direct' && (
+                      <Badge variant="outline" className="text-xs">Direct Application</Badge>
+                    )}
+                    {program.application_method === 'uni_assist' && (
+                      <Badge variant="destructive" className="text-xs">Uni-Assist Required</Badge>
+                    )}
+                    {program.application_method === 'uni_assist_vpd' && (
+                      <Badge variant="destructive" className="text-xs">Uni-Assist VPD</Badge>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CreditCard className="h-4 w-4" />
+                    <span>
+                      Application Fee: {
+                        program.application_method === 'uni_assist' || 
+                        program.application_method === 'uni_assist_vpd' 
+                          ? 'Yes' 
+                          : 'No'
+                      }
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="text-xs font-medium">Language:</span>
+                    <LanguageFlags languages={program.language_of_instruction || ['de']} size="sm" />
+                  </div>
                   
                   <div className="pt-3">
                     <Link to={`/universities/${program.universities?.slug}/programs/${program.slug}`}>

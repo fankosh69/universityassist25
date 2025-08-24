@@ -10,6 +10,7 @@ import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
 import { MapPin, Clock, Euro, GraduationCap, Calendar, FileText, Heart } from "lucide-react";
 import { toast } from "sonner";
+import { LanguageFlags } from "@/components/LanguageFlags";
 
 interface Program {
   id: string;
@@ -216,7 +217,9 @@ export default function ProgramDetail() {
           
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div>
-              <h1 className="text-4xl font-bold mb-4">{program.name}</h1>
+              <h1 className="text-4xl font-bold mb-4">
+                {program.degree_type.toUpperCase()} {program.name} - {program.universities.name}
+              </h1>
               <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-4">
                 <div className="flex items-center gap-2">
                   <GraduationCap className="h-5 w-5" />
@@ -430,12 +433,8 @@ export default function ProgramDetail() {
                 
                 <div className="pt-2 border-t">
                   <p className="font-medium mb-2">Language of Instruction</p>
-                  <div className="flex flex-wrap gap-1">
-                    {program.language_of_instruction?.map((lang, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {lang.toUpperCase()}
-                      </Badge>
-                    ))}
+                  <div className="flex flex-wrap gap-2">
+                    <LanguageFlags languages={program.language_of_instruction || ['de']} size="md" />
                   </div>
                 </div>
               </CardContent>
