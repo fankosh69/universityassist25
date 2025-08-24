@@ -4,6 +4,7 @@ import { LogOut, User, Search as SearchIcon, Bookmark } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Logo from "@/components/Logo";
 import LanguageSelector from "@/components/LanguageSelector";
 
@@ -11,6 +12,7 @@ const Navigation = () => {
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation('common');
 
   useEffect(() => {
     // Get initial session
@@ -52,14 +54,14 @@ const Navigation = () => {
         
         <div className="flex items-center space-x-4">
           <Link to="/cities" className="text-muted-foreground hover:text-foreground transition-colors">
-            Cities
+            {t('navigation.cities')}
           </Link>
           <Link to="/universities" className="text-muted-foreground hover:text-foreground transition-colors">
-            Universities
+            {t('navigation.universities')}
           </Link>
           <Link to="/search" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
             <SearchIcon className="h-4 w-4" />
-            Browse Programs
+            {t('navigation.search')}
           </Link>
           
           <LanguageSelector />
@@ -67,28 +69,28 @@ const Navigation = () => {
           {user ? (
             <>
               <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
-                Dashboard
+                {t('navigation.dashboard')}
               </Link>
               <Link to="/saved" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
                 <Bookmark className="h-4 w-4" />
-                Saved
+                {t('navigation.saved')}
               </Link>
               <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
                 <User className="h-4 w-4" />
-                Profile
+                {t('navigation.profile')}
               </Link>
               <Button variant="ghost" onClick={handleSignOut} className="flex items-center gap-1">
                 <LogOut className="h-4 w-4" />
-                Sign Out
+                {t('navigation.signout')}
               </Button>
             </>
           ) : (
             <>
               <Link to="/auth?tab=signin">
-                <Button variant="ghost">Sign In</Button>
+                <Button variant="ghost">{t('navigation.signin')}</Button>
               </Link>
               <Link to="/auth?tab=signup">
-                <Button variant="hero">Get Started</Button>
+                <Button variant="hero">{t('navigation.signup')}</Button>
               </Link>
             </>
           )}

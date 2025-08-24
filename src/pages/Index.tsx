@@ -11,35 +11,38 @@ import {
   MapPin 
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import heroImage from "@/assets/hero-image.jpg";
 import SEOHead from "@/components/SEOHead";
 import JsonLd, { organizationSchema, websiteSchema } from "@/components/JsonLd";
-import Logo from "@/components/Logo";
+import Navigation from "@/components/Navigation";
 
 const Index = () => {
+  const { t } = useTranslation('common');
+  
   const features = [
     {
       icon: Users,
-      title: "Profile Building",
-      description: "Create your comprehensive academic profile with GPA, experience, and goals"
+      title: t('features.profileBuilding'),
+      description: t('features.profileBuildingDesc')
     },
     {
       icon: Search,
-      title: "Smart Search",
-      description: "Explore 400+ German university programs with detailed requirements and deadlines"
+      title: t('features.smartSearch'),
+      description: t('features.smartSearchDesc')
     },
     {
       icon: Target,
-      title: "Intelligent Matching",
-      description: "Get personalized program recommendations based on your profile and preferences"
+      title: t('features.intelligentMatching'),
+      description: t('features.intelligentMatchingDesc')
     }
   ];
 
   const stats = [
-    { number: "400+", label: "University Programs" },
-    { number: "50+", label: "German Universities" },
-    { number: "95%", label: "Match Accuracy" },
-    { number: "24/7", label: "Support Available" }
+    { number: "400+", label: t('stats.programs') },
+    { number: "50+", label: t('stats.universities') },
+    { number: "95%", label: t('stats.accuracy') },
+    { number: "24/7", label: t('stats.support') }
   ];
 
   return (
@@ -55,20 +58,7 @@ const Index = () => {
       <JsonLd data={organizationSchema} />
       <JsonLd data={websiteSchema} />
       
-      {/* Navigation */}
-      <nav className="bg-white/95 backdrop-blur-sm border-b shadow-soft sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Logo />
-          <div className="flex items-center space-x-4">
-            <Link to="/auth?tab=signin">
-              <Button variant="ghost">Sign In</Button>
-            </Link>
-            <Link to="/auth?tab=signup">
-              <Button variant="hero">Get Started</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
 
       {/* Hero Section */}
       <section className="relative bg-gradient-hero overflow-hidden">
@@ -81,18 +71,17 @@ const Index = () => {
         </div>
         <div className="relative container mx-auto px-4 py-24 text-center text-white">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            Your Way to
+            {t('hero.title')}
             <br />
-            <span className="text-accent">German Universities</span>
+            <span className="text-accent">{t('hero.titleHighlight')}</span>
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto">
-            University Assist helps you find the perfect German university program that matches your academic background, 
-            goals, and preferences. Start your journey to world-class education today.
+            {t('hero.subtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/auth?tab=signup">
               <Button variant="hero" size="xl" className="min-w-48">
-                Start Your Journey
+                {t('hero.startJourney')}
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
@@ -102,7 +91,7 @@ const Index = () => {
                 size="xl" 
                 className="min-w-48 bg-white/10 border-white/20 text-white hover:bg-white/20"
               >
-                Browse Programs
+                {t('hero.browsePrograms')}
               </Button>
             </Link>
           </div>
@@ -132,10 +121,10 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 text-foreground">
-              How It Works
+              {t('features.howItWorks')}
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Our intelligent platform simplifies your German university application process
+              {t('features.howItWorksSubtitle')}
             </p>
           </div>
           
@@ -162,38 +151,38 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 text-foreground">
-              Popular Programs
+              {t('popularPrograms.title')}
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Explore some of the most sought-after programs in German universities
+              {t('popularPrograms.subtitle')}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {
-                title: "Computer Science",
+                title: t('popularPrograms.computerScience'),
                 university: "Technical University of Munich",
                 location: "Munich, Bavaria",
-                degree: "Master's",
-                duration: "4 Semesters",
-                tuition: "Free"
+                degree: t('popularPrograms.masters'),
+                duration: `4 ${t('popularPrograms.semesters')}`,
+                tuition: t('popularPrograms.free')
               },
               {
-                title: "Mechanical Engineering",
+                title: t('popularPrograms.mechanicalEngineering'),
                 university: "RWTH Aachen University",
                 location: "Aachen, NRW",
-                degree: "Master's",
-                duration: "4 Semesters",
-                tuition: "Free"
+                degree: t('popularPrograms.masters'),
+                duration: `4 ${t('popularPrograms.semesters')}`,
+                tuition: t('popularPrograms.free')
               },
               {
-                title: "Medicine",
+                title: t('popularPrograms.medicine'),
                 university: "Heidelberg University",
                 location: "Heidelberg, BW",
-                degree: "Bachelor's",
-                duration: "12 Semesters",
-                tuition: "Free"
+                degree: t('popularPrograms.bachelors'),
+                duration: `12 ${t('popularPrograms.semesters')}`,
+                tuition: t('popularPrograms.free')
               }
             ].map((program, index) => (
               <Card key={index} className="shadow-soft hover:shadow-medium transition-shadow duration-300">
@@ -215,7 +204,7 @@ const Index = () => {
                       </Badge>
                     </div>
                     <Button variant="ghost" className="w-full justify-between">
-                      Learn More
+                      {t('popularPrograms.learnMore')}
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
@@ -230,14 +219,14 @@ const Index = () => {
       <section className="py-20 bg-gradient-academic text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-6">
-            Ready to Find Your Perfect Match?
+            {t('hero.readyToMatch')}
           </h2>
           <p className="text-xl mb-8 text-white/90 max-w-2xl mx-auto">
-            Join thousands of students who have successfully found their ideal German university program
+            {t('hero.joinThousands')}
           </p>
           <Link to="/auth?tab=signup">
             <Button variant="hero" size="xl" className="bg-white text-primary hover:bg-white/90">
-              Start Matching Now
+              {t('hero.startMatching')}
               <Award className="ml-2 h-5 w-5" />
             </Button>
           </Link>
@@ -249,38 +238,41 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
-              <Logo variant="white" />
+              <Link to="/">
+                <img src="/university-assist-logo.png" alt="University Assist" className="h-8" />
+              </Link>
               <p className="text-white/70">
-                Your way to Germany - Your trusted partner for German university admissions
+                {t('footer.tagline')}
               </p>
             </div>
             <div className="space-y-4">
-              <h3 className="font-semibold">Platform</h3>
+              <h3 className="font-semibold">{t('footer.platform')}</h3>
               <ul className="space-y-2 text-white/70">
-                <li>Search Programs</li>
-                <li>Profile Builder</li>
-                <li>Match Algorithm</li>
+                <li><Link to="/search" className="hover:text-white transition-colors">{t('footer.searchPrograms')}</Link></li>
+                <li><Link to="/profile" className="hover:text-white transition-colors">{t('footer.profileBuilder')}</Link></li>
+                <li><Link to="/dashboard" className="hover:text-white transition-colors">{t('footer.matchAlgorithm')}</Link></li>
               </ul>
             </div>
             <div className="space-y-4">
-              <h3 className="font-semibold">Resources</h3>
+              <h3 className="font-semibold">{t('footer.resources')}</h3>
               <ul className="space-y-2 text-white/70">
-                <li>Study Guide</li>
-                <li>Application Tips</li>
-                <li>Visa Information</li>
+                <li><Link to="/guides" className="hover:text-white transition-colors">{t('footer.studyGuide')}</Link></li>
+                <li><Link to="/tips" className="hover:text-white transition-colors">{t('footer.applicationTips')}</Link></li>
+                <li><Link to="/visa" className="hover:text-white transition-colors">{t('footer.visaInformation')}</Link></li>
               </ul>
             </div>
             <div className="space-y-4">
-              <h3 className="font-semibold">Support</h3>
+              <h3 className="font-semibold">{t('footer.support')}</h3>
               <ul className="space-y-2 text-white/70">
-                <li>Help Center</li>
-                <li>Contact Us</li>
-                <li>FAQ</li>
+                <li><Link to="/help" className="hover:text-white transition-colors">{t('footer.helpCenter')}</Link></li>
+                <li><Link to="/contact" className="hover:text-white transition-colors">{t('footer.contactUs')}</Link></li>
+                <li><Link to="/faq" className="hover:text-white transition-colors">{t('footer.faq')}</Link></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-white/20 mt-8 pt-8 text-center text-white/70">
-            <p>&copy; 2024 University Assist. All rights reserved.</p>
+            <p>{t('footer.copyright')}</p>
+            <p className="mt-2 text-sm">{t('footer.disclaimer')}</p>
           </div>
         </div>
       </footer>

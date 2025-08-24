@@ -123,7 +123,71 @@
     "deadline_passed": "Deadline passed",
     "export_calendar": "Export to Calendar"
   },
+  "navigation": {
+    "home": "Home",
+    "search": "Search Programs",
+    "cities": "Cities",
+    "universities": "Universities",
+    "saved": "Saved Programs",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "signin": "Sign In",
+    "signup": "Get Started",
+    "signout": "Sign Out"
+  },
+  "hero": {
+    "title": "Your Way to",
+    "titleHighlight": "German Universities",
+    "subtitle": "University Assist helps you find the perfect German university program that matches your academic background, goals, and preferences. Start your journey to world-class education today.",
+    "startJourney": "Start Your Journey",
+    "browsePrograms": "Browse Programs",
+    "readyToMatch": "Ready to Find Your Perfect Match?",
+    "joinThousands": "Join thousands of students who have successfully found their ideal German university program",
+    "startMatching": "Start Matching Now"
+  },
+  "features": {
+    "howItWorks": "How It Works",
+    "howItWorksSubtitle": "Our intelligent platform simplifies your German university application process",
+    "profileBuilding": "Profile Building",
+    "profileBuildingDesc": "Create your comprehensive academic profile with GPA, experience, and goals",
+    "smartSearch": "Smart Search",
+    "smartSearchDesc": "Explore 400+ German university programs with detailed requirements and deadlines",
+    "intelligentMatching": "Intelligent Matching",
+    "intelligentMatchingDesc": "Get personalized program recommendations based on your profile and preferences"
+  },
+  "stats": {
+    "programs": "University Programs",
+    "universities": "German Universities",
+    "accuracy": "Match Accuracy",
+    "support": "Support Available"
+  },
+  "popularPrograms": {
+    "title": "Popular Programs",
+    "subtitle": "Explore some of the most sought-after programs in German universities",
+    "learnMore": "Learn More",
+    "computerScience": "Computer Science",
+    "mechanicalEngineering": "Mechanical Engineering",
+    "medicine": "Medicine",
+    "masters": "Master's",
+    "bachelors": "Bachelor's",
+    "semesters": "Semesters",
+    "free": "Free"
+  },
   "footer": {
-    "disclaimer": "University Assist is not affiliated with uni-assist e.V., DAAD, or German universities. All trademarks belong to their respective owners."
+    "disclaimer": "University Assist is not affiliated with uni-assist e.V., DAAD, or German universities. All trademarks belong to their respective owners.",
+    "platform": "Platform",
+    "resources": "Resources",
+    "support": "Support",
+    "searchPrograms": "Search Programs",
+    "profileBuilder": "Profile Builder",
+    "matchAlgorithm": "Match Algorithm",
+    "studyGuide": "Study Guide",
+    "applicationTips": "Application Tips",
+    "visaInformation": "Visa Information",
+    "helpCenter": "Help Center",
+    "contactUs": "Contact Us",
+    "faq": "FAQ",
+    "copyright": "© 2024 University Assist. All rights reserved.",
+    "tagline": "Your way to Germany - Your trusted partner for German university admissions"
   }
 }

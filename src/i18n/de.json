@@ -123,7 +123,71 @@
     "deadline_passed": "Frist verstrichen",
     "export_calendar": "In Kalender exportieren"
   },
+  "navigation": {
+    "home": "Startseite",
+    "search": "Programme suchen",
+    "cities": "Städte",
+    "universities": "Universitäten",
+    "saved": "Gespeicherte Programme",
+    "dashboard": "Dashboard",
+    "profile": "Profil",
+    "signin": "Anmelden",
+    "signup": "Loslegen",
+    "signout": "Abmelden"
+  },
+  "hero": {
+    "title": "Ihr Weg zu",
+    "titleHighlight": "Deutschen Universitäten",
+    "subtitle": "University Assist hilft Ihnen dabei, das perfekte deutsche Universitätsprogramm zu finden, das zu Ihrem akademischen Hintergrund, Ihren Zielen und Vorlieben passt. Beginnen Sie noch heute Ihre Reise zu einer erstklassigen Ausbildung.",
+    "startJourney": "Reise beginnen",
+    "browsePrograms": "Programme durchsuchen",
+    "readyToMatch": "Bereit, Ihr perfektes Match zu finden?",
+    "joinThousands": "Schließen Sie sich Tausenden von Studenten an, die erfolgreich ihr ideales deutsches Universitätsprogramm gefunden haben",
+    "startMatching": "Jetzt matchen"
+  },
+  "features": {
+    "howItWorks": "Wie es funktioniert",
+    "howItWorksSubtitle": "Unsere intelligente Plattform vereinfacht Ihren deutschen Universitätsbewerbungsprozess",
+    "profileBuilding": "Profil erstellen",
+    "profileBuildingDesc": "Erstellen Sie Ihr umfassendes akademisches Profil mit GPA, Erfahrung und Zielen",
+    "smartSearch": "Intelligente Suche",
+    "smartSearchDesc": "Erkunden Sie 400+ deutsche Universitätsprogramme mit detaillierten Anforderungen und Fristen",
+    "intelligentMatching": "Intelligentes Matching",
+    "intelligentMatchingDesc": "Erhalten Sie personalisierte Programmempfehlungen basierend auf Ihrem Profil und Ihren Präferenzen"
+  },
+  "stats": {
+    "programs": "Universitätsprogramme",
+    "universities": "Deutsche Universitäten",
+    "accuracy": "Match-Genauigkeit",
+    "support": "Support verfügbar"
+  },
+  "popularPrograms": {
+    "title": "Beliebte Programme",
+    "subtitle": "Entdecken Sie einige der gefragtesten Programme deutscher Universitäten",
+    "learnMore": "Mehr erfahren",
+    "computerScience": "Informatik",
+    "mechanicalEngineering": "Maschinenbau",
+    "medicine": "Medizin",
+    "masters": "Master",
+    "bachelors": "Bachelor",
+    "semesters": "Semester",
+    "free": "Kostenlos"
+  },
   "footer": {
-    "disclaimer": "University Assist ist nicht mit uni-assist e.V., DAAD oder deutschen Universitäten verbunden. Alle Markenzeichen gehören ihren jeweiligen Eigentümern."
+    "disclaimer": "University Assist ist nicht mit uni-assist e.V., DAAD oder deutschen Universitäten verbunden. Alle Markenzeichen gehören ihren jeweiligen Eigentümern.",
+    "platform": "Plattform",
+    "resources": "Ressourcen",
+    "support": "Support",
+    "searchPrograms": "Programme suchen",
+    "profileBuilder": "Profil-Builder",
+    "matchAlgorithm": "Match-Algorithmus",
+    "studyGuide": "Studienführer",
+    "applicationTips": "Bewerbungstipps",
+    "visaInformation": "Visa-Informationen",
+    "helpCenter": "Hilfe-Center",
+    "contactUs": "Kontakt",
+    "faq": "FAQ",
+    "copyright": "© 2024 University Assist. Alle Rechte vorbehalten.",
+    "tagline": "Ihr Weg nach Deutschland - Ihr vertrauensvoller Partner für deutsche Universitätszulassungen"
   }
 }

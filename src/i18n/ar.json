@@ -123,7 +123,71 @@
     "deadline_passed": "انتهى الموعد النهائي",
     "export_calendar": "تصدير للتقويم"
   },
+  "navigation": {
+    "home": "الرئيسية",
+    "search": "البحث عن البرامج",
+    "cities": "المدن",
+    "universities": "الجامعات",
+    "saved": "البرامج المحفوظة",
+    "dashboard": "لوحة التحكم",
+    "profile": "الملف الشخصي",
+    "signin": "تسجيل الدخول",
+    "signup": "ابدأ الآن",
+    "signout": "تسجيل الخروج"
+  },
+  "hero": {
+    "title": "طريقك إلى",
+    "titleHighlight": "الجامعات الألمانية",
+    "subtitle": "University Assist يساعدك في العثور على برنامج الجامعة الألمانية المثالي الذي يتناسب مع خلفيتك الأكاديمية وأهدافك وتفضيلاتك. ابدأ رحلتك إلى التعليم عالمي المستوى اليوم.",
+    "startJourney": "ابدأ رحلتك",
+    "browsePrograms": "تصفح البرامج",
+    "readyToMatch": "مستعد للعثور على مطابقتك المثالية؟",
+    "joinThousands": "انضم إلى آلاف الطلاب الذين وجدوا بنجاح برنامج الجامعة الألمانية المثالي",
+    "startMatching": "ابدأ المطابقة الآن"
+  },
+  "features": {
+    "howItWorks": "كيف يعمل",
+    "howItWorksSubtitle": "منصتنا الذكية تبسط عملية التقديم للجامعات الألمانية",
+    "profileBuilding": "بناء الملف الشخصي",
+    "profileBuildingDesc": "إنشاء ملفك الأكاديمي الشامل مع المعدل التراكمي والخبرة والأهداف",
+    "smartSearch": "البحث الذكي",
+    "smartSearchDesc": "استكشف أكثر من 400 برنامج جامعي ألماني مع متطلبات ومواعيد نهائية مفصلة",
+    "intelligentMatching": "المطابقة الذكية",
+    "intelligentMatchingDesc": "احصل على توصيات برامج مخصصة بناءً على ملفك الشخصي وتفضيلاتك"
+  },
+  "stats": {
+    "programs": "برامج جامعية",
+    "universities": "جامعات ألمانية",
+    "accuracy": "دقة المطابقة",
+    "support": "دعم متاح"
+  },
+  "popularPrograms": {
+    "title": "البرامج الشائعة",
+    "subtitle": "استكشف بعض البرامج الأكثر طلباً في الجامعات الألمانية",
+    "learnMore": "اعرف المزيد",
+    "computerScience": "علوم الحاسوب",
+    "mechanicalEngineering": "الهندسة الميكانيكية",
+    "medicine": "الطب",
+    "masters": "ماجستير",
+    "bachelors": "بكالوريوس",
+    "semesters": "فصول دراسية",
+    "free": "مجاني"
+  },
   "footer": {
-    "disclaimer": "University Assist غير تابع لـ uni-assist e.V. أو DAAD أو الجامعات الألمانية. جميع العلامات التجارية تنتمي لأصحابها."
+    "disclaimer": "University Assist غير تابع لـ uni-assist e.V. أو DAAD أو الجامعات الألمانية. جميع العلامات التجارية تنتمي لأصحابها.",
+    "platform": "المنصة",
+    "resources": "الموارد",
+    "support": "الدعم",
+    "searchPrograms": "البحث عن البرامج",
+    "profileBuilder": "منشئ الملف الشخصي",
+    "matchAlgorithm": "خوارزمية المطابقة",
+    "studyGuide": "دليل الدراسة",
+    "applicationTips": "نصائح التقديم",
+    "visaInformation": "معلومات التأشيرة",
+    "helpCenter": "مركز المساعدة",
+    "contactUs": "اتصل بنا",
+    "faq": "الأسئلة الشائعة",
+    "copyright": "© 2024 University Assist. جميع الحقوق محفوظة.",
+    "tagline": "طريقك إلى ألمانيا - شريكك الموثوق لقبولات الجامعات الألمانية"
   }
 }
