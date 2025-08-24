@@ -28,29 +28,21 @@ export const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [
-          citiesResult,
-          universitiesResult,
-          programsResult,
-          usersResult,
-          applicationsResult,
-          packagesResult
-        ] = await Promise.all([
-          supabase.from('cities').select('*', { count: 'exact', head: true }),
-          supabase.from('universities').select('*', { count: 'exact', head: true }),
-          supabase.from('programs').select('*', { count: 'exact', head: true }),
-          supabase.from('profiles').select('*', { count: 'exact', head: true }),
-          supabase.from('user_applications').select('*', { count: 'exact', head: true }),
-          supabase.from('service_packages').select('*', { count: 'exact', head: true })
-        ]);
+        // Use secure function instead of direct table queries
+        const { data, error } = await supabase.rpc('get_admin_dashboard_stats');
+        
+        if (error) {
+          console.error('Error fetching dashboard stats:', error);
+          return;
+        }
 
         setStats({
-          cities: citiesResult.count || 0,
-          universities: universitiesResult.count || 0,
-          programs: programsResult.count || 0,
-          users: usersResult.count || 0,
-          applications: applicationsResult.count || 0,
-          packages: packagesResult.count || 0
+          cities: (data as any).cities || 0,
+          universities: (data as any).universities || 0,
+          programs: (data as any).programs || 0,
+          users: (data as any).users || 0,
+          applications: (data as any).applications || 0,
+          packages: (data as any).packages || 0
         });
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);

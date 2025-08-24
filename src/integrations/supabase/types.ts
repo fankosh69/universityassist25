@@ -841,6 +841,10 @@ export type Database = {
         Args: { profile_uuid: string }
         Returns: Json
       }
+      get_admin_dashboard_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_current_application_period: {
         Args: { program_uuid: string }
         Returns: {
