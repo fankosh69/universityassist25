@@ -26,6 +26,7 @@ import NotFound from "./pages/NotFound";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { AdminPrograms } from "./pages/admin/AdminPrograms";
+import AdminSecurity from "./pages/admin/AdminSecurity";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,7 @@ const App = () => {
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
             <Route path="/admin/programs" element={<AdminLayout><AdminPrograms /></AdminLayout>} />
+            <Route path="/admin/security" element={<AdminLayout><AdminSecurity /></AdminLayout>} />
             <Route path="/admin/cities" element={<AdminLayout><div>Cities Management</div></AdminLayout>} />
             <Route path="/admin/universities" element={<AdminLayout><div>Universities Management</div></AdminLayout>} />
             <Route path="/admin/periods" element={<AdminLayout><div>Application Periods</div></AdminLayout>} />
