@@ -62,23 +62,37 @@ export function AdminSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <NavLink to="/" className={getNavCls}>
+                  <NavLink 
+                    to="/" 
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                  >
                     <Home className="h-4 w-4" />
                     {state === "expanded" && <span>Back to Site</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
-              {adminMenuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} end className={getNavCls}>
-                      <item.icon className="h-4 w-4" />
-                      {state === "expanded" && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {adminMenuItems.map((item) => {
+                const isActiveItem = isActive(item.url);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        end 
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                          isActiveItem 
+                            ? "bg-primary text-primary-foreground font-medium shadow-sm" 
+                            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {state === "expanded" && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
