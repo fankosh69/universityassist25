@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "clear": "Clear",
+    "apply": "Apply",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "nav": {
+    "home": "Home",
+    "cities": "Cities",
+    "universities": "Universities",
+    "programs": "Programs",
+    "ambassadors": "Ambassadors",
+    "profile": "Profile",
+    "search": "Search",
+    "saved": "Saved Programs",
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout"
+  },
+  "eligibility": {
+    "title": "Eligibility Check",
+    "complete_profile": "Complete Your Profile",
+    "complete_profile_desc": "Complete your academic profile to see your eligibility for this program.",
+    "match_score": "Match Score",
+    "overall_match": "Overall Match",
+    "gpa": "GPA",
+    "language": "Language",
+    "ects": "ECTS",
+    "timing": "Timing",
+    "requirements_needed": "Requirements Needed",
+    "algorithm_note": "Based on our matching algorithm (35% GPA, 25% Language, 30% ECTS, 10% Timing)",
+    "status": {
+      "eligible": "Eligible",
+      "borderline": "Borderline", 
+      "missing": "Requirements Missing"
+    }
+  },
+  "watchlist": {
+    "save": "Save Program",
+    "saved": "Saved",
+    "added": "Program Saved",
+    "added_desc": "Program has been added to your watchlist.",
+    "removed": "Program Removed",
+    "removed_desc": "Program has been removed from your watchlist.",
+    "login_required": "Login Required",
+    "login_required_desc": "Please login to save programs to your watchlist.",
+    "error": "Unable to update watchlist. Please try again."
+  },
+  "gaps": {
+    "title": "Gap Analysis",
+    "description": "Areas where you can improve your application strength.",
+    "all_requirements_met": "All Requirements Met!",
+    "all_requirements_met_desc": "You meet all the basic requirements for this program.",
+    "improvement_tips": "💡 Improvement Tips",
+    "tip_1": "Focus on your strongest gap areas first",
+    "tip_2": "Consider taking preparatory courses",
+    "tip_3": "Connect with our ambassadors for guidance",
+    "severity": {
+      "critical": "Critical",
+      "important": "Important",
+      "minor": "Minor"
+    },
+    "gpa": {
+      "title": "Academic Performance",
+      "critical_desc": "Your GPA is below the minimum requirement. Consider retaking courses or alternative pathways.",
+      "improve_desc": "Your GPA meets requirements but could be stronger for competitive programs.",
+      "action": "Update GPA Information"
+    },
+    "language": {
+      "title": "Language Requirements",
+      "critical_desc": "You need to meet the minimum language requirements for this program.",
+      "improve_desc": "Your language skills are good but improving them will strengthen your application.",
+      "action": "Find Language Courses"
+    },
+    "ects": {
+      "title": "ECTS Credits",
+      "critical_desc": "You need significantly more ECTS credits in relevant subjects.",
+      "improve_desc": "Additional ECTS credits would strengthen your application.",
+      "action": "Update Academic Record"
+    },
+    "intake": {
+      "title": "Intake Timing",
+      "desc": "Consider if the intake timing aligns with your plans.",
+      "action": "Review Intake Options"
+    }
+  },
+  "map": {
+    "loading": "Loading map...",
+    "token_missing": "Map unavailable - configuration needed",
+    "load_error": "Failed to load map",
+    "init_error": "Map initialization failed",
+    "no_locations": "No locations to display"
+  },
+  "program": {
+    "overview": "Overview",
+    "requirements": "Requirements",
+    "deadlines": "Deadlines",
+    "eligibility": "Eligibility",
+    "uni_assist_required": "Uni-Assist Required",
+    "uni_assist_desc": "This program requires application through uni-assist e.V.",
+    "tuition": "Tuition Fees",
+    "duration": "Duration",
+    "language": "Language of Instruction",
+    "degree_level": "Degree Level",
+    "delivery_mode": "Delivery Mode",
+    "semester_start": "Semester Start",
+    "application_deadline": "Application Deadline",
+    "days_remaining": "days remaining",
+    "deadline_passed": "Deadline passed",
+    "export_calendar": "Export to Calendar"
+  },
+  "footer": {
+    "disclaimer": "University Assist is not affiliated with uni-assist e.V., DAAD, or German universities. All trademarks belong to their respective owners."
+  }
+}

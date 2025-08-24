@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "Wird geladen...",
+    "error": "Fehler",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "view": "Ansehen",
+    "search": "Suchen",
+    "filter": "Filter",
+    "clear": "Löschen",
+    "apply": "Anwenden",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Vorheriges",
+    "close": "Schließen",
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "nav": {
+    "home": "Startseite",
+    "cities": "Städte",
+    "universities": "Universitäten",
+    "programs": "Studiengänge",
+    "ambassadors": "Botschafter",
+    "profile": "Profil",
+    "search": "Suche",
+    "saved": "Gespeicherte Programme",
+    "login": "Anmelden",
+    "signup": "Registrieren",
+    "logout": "Abmelden"
+  },
+  "eligibility": {
+    "title": "Zulassungsprüfung",
+    "complete_profile": "Vervollständigen Sie Ihr Profil",
+    "complete_profile_desc": "Vervollständigen Sie Ihr akademisches Profil, um Ihre Berechtigung für dieses Programm zu sehen.",
+    "match_score": "Übereinstimmung",
+    "overall_match": "Gesamtübereinstimmung",
+    "gpa": "Notendurchschnitt",
+    "language": "Sprache",
+    "ects": "ECTS-Punkte",
+    "timing": "Timing",
+    "requirements_needed": "Erforderliche Anforderungen",
+    "algorithm_note": "Basierend auf unserem Matching-Algorithmus (35% Note, 25% Sprache, 30% ECTS, 10% Timing)",
+    "status": {
+      "eligible": "Berechtigt",
+      "borderline": "Grenzfall",
+      "missing": "Anforderungen fehlen"
+    }
+  },
+  "watchlist": {
+    "save": "Programm speichern",
+    "saved": "Gespeichert",
+    "added": "Programm gespeichert",
+    "added_desc": "Das Programm wurde zu Ihrer Merkliste hinzugefügt.",
+    "removed": "Programm entfernt",
+    "removed_desc": "Das Programm wurde von Ihrer Merkliste entfernt.",
+    "login_required": "Anmeldung erforderlich",
+    "login_required_desc": "Bitte melden Sie sich an, um Programme zu speichern.",
+    "error": "Merkliste konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+  },
+  "gaps": {
+    "title": "Lückenanalyse",
+    "description": "Bereiche, in denen Sie Ihre Bewerbung stärken können.",
+    "all_requirements_met": "Alle Anforderungen erfüllt!",
+    "all_requirements_met_desc": "Sie erfüllen alle Grundanforderungen für dieses Programm.",
+    "improvement_tips": "💡 Verbesserungstipps",
+    "tip_1": "Konzentrieren Sie sich zuerst auf Ihre stärksten Lückenbereiche",
+    "tip_2": "Erwägen Sie Vorbereitungskurse",
+    "tip_3": "Verbinden Sie sich mit unseren Botschaftern für Anleitung",
+    "severity": {
+      "critical": "Kritisch",
+      "important": "Wichtig",
+      "minor": "Geringfügig"
+    },
+    "gpa": {
+      "title": "Akademische Leistung",
+      "critical_desc": "Ihr Notendurchschnitt liegt unter der Mindestanforderung. Erwägen Sie Kurse zu wiederholen oder alternative Wege.",
+      "improve_desc": "Ihr Notendurchschnitt erfüllt die Anforderungen, könnte aber für konkurrierende Programme stärker sein.",
+      "action": "Noteninformationen aktualisieren"
+    },
+    "language": {
+      "title": "Sprachanforderungen",
+      "critical_desc": "Sie müssen die Mindestsprachanforderungen für dieses Programm erfüllen.",
+      "improve_desc": "Ihre Sprachkenntnisse sind gut, aber eine Verbesserung würde Ihre Bewerbung stärken.",
+      "action": "Sprachkurse finden"
+    },
+    "ects": {
+      "title": "ECTS-Punkte",
+      "critical_desc": "Sie benötigen deutlich mehr ECTS-Punkte in relevanten Fächern.",
+      "improve_desc": "Zusätzliche ECTS-Punkte würden Ihre Bewerbung stärken.",
+      "action": "Akademische Aufzeichnungen aktualisieren"
+    },
+    "intake": {
+      "title": "Aufnahme-Timing",
+      "desc": "Überlegen Sie, ob das Aufnahme-Timing mit Ihren Plänen übereinstimmt.",
+      "action": "Aufnahmeoptionen überprüfen"
+    }
+  },
+  "map": {
+    "loading": "Karte wird geladen...",
+    "token_missing": "Karte nicht verfügbar - Konfiguration erforderlich",
+    "load_error": "Karte konnte nicht geladen werden",
+    "init_error": "Karteninitialisierung fehlgeschlagen",
+    "no_locations": "Keine Standorte anzuzeigen"
+  },
+  "program": {
+    "overview": "Überblick",
+    "requirements": "Anforderungen",
+    "deadlines": "Fristen",
+    "eligibility": "Berechtigung",
+    "uni_assist_required": "Uni-Assist erforderlich",
+    "uni_assist_desc": "Dieses Programm erfordert eine Bewerbung über uni-assist e.V.",
+    "tuition": "Studiengebühren",
+    "duration": "Dauer",
+    "language": "Unterrichtssprache",
+    "degree_level": "Abschlussniveau",
+    "delivery_mode": "Unterrichtsmodus",
+    "semester_start": "Semesterbeginn",
+    "application_deadline": "Bewerbungsfrist",
+    "days_remaining": "Tage verbleibend",
+    "deadline_passed": "Frist verstrichen",
+    "export_calendar": "In Kalender exportieren"
+  },
+  "footer": {
+    "disclaimer": "University Assist ist nicht mit uni-assist e.V., DAAD oder deutschen Universitäten verbunden. Alle Markenzeichen gehören ihren jeweiligen Eigentümern."
+  }
+}

@@ -14,6 +14,82 @@ export type Database = {
   }
   public: {
     Tables: {
+      ambassadors: {
+        Row: {
+          city_id: string | null
+          created_at: string | null
+          full_name: string
+          id: string
+          is_published: boolean | null
+          languages: string[] | null
+          linkedin_url: string | null
+          photo_url: string | null
+          profile_id: string | null
+          slug: string
+          study_programs: string[] | null
+          testimonial: string | null
+          university_id: string | null
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          city_id?: string | null
+          created_at?: string | null
+          full_name: string
+          id?: string
+          is_published?: boolean | null
+          languages?: string[] | null
+          linkedin_url?: string | null
+          photo_url?: string | null
+          profile_id?: string | null
+          slug: string
+          study_programs?: string[] | null
+          testimonial?: string | null
+          university_id?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          city_id?: string | null
+          created_at?: string | null
+          full_name?: string
+          id?: string
+          is_published?: boolean | null
+          languages?: string[] | null
+          linkedin_url?: string | null
+          photo_url?: string | null
+          profile_id?: string | null
+          slug?: string
+          study_programs?: string[] | null
+          testimonial?: string | null
+          university_id?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ambassadors_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ambassadors_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ambassadors_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       application_periods: {
         Row: {
           application_end_date: string
@@ -246,6 +322,51 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "program_deadlines_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      program_matches: {
+        Row: {
+          components: Json | null
+          created_at: string | null
+          profile_id: string
+          program_id: string
+          score: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          components?: Json | null
+          created_at?: string | null
+          profile_id: string
+          program_id: string
+          score?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          components?: Json | null
+          created_at?: string | null
+          profile_id?: string
+          program_id?: string
+          score?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_matches_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_matches_program_id_fkey"
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "programs"
@@ -634,6 +755,39 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      watchlist: {
+        Row: {
+          created_at: string | null
+          profile_id: string
+          program_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          profile_id: string
+          program_id: string
+        }
+        Update: {
+          created_at?: string | null
+          profile_id?: string
+          program_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watchlist_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "watchlist_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
             referencedColumns: ["id"]
           },
         ]

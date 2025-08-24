@@ -1,0 +1,108 @@
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import UniMap from '@/components/maps/UniMap';
+import Navigation from '@/components/Navigation';
+import SEOHead from '@/components/SEOHead';
+import { type MapMarker } from '@/lib/mapbox';
+
+export default function CityPage() {
+  const { city } = useParams();
+  const [cityData, setCityData] = useState<any>(null);
+  const [universities, setUniversities] = useState<any[]>([]);
+  const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!city) return;
+      
+      // Fetch city data
+      const { data: cityInfo } = await supabase
+        .from('cities')
+        .select('*')
+        .eq('slug', city)
+        .single();
+      
+      setCityData(cityInfo);
+
+      // Fetch universities in this city
+      const { data: unis } = await supabase
+        .from('universities')
+        .select('*')
+        .eq('city', cityInfo?.name || '');
+      
+      setUniversities(unis || []);
+
+      // Create map markers
+      const markers: MapMarker[] = (unis || []).map(uni => ({
+        id: uni.id,
+        name: uni.name,
+        coordinates: [uni.lng || 0, uni.lat || 0],
+        type: 'university' as const,
+        data: { ...uni, slug: uni.slug }
+      }));
+      
+      setMapMarkers(markers);
+    }
+
+    fetchData();
+  }, [city]);
+
+  if (!cityData) return <div>Loading...</div>;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <SEOHead 
+        title={`Study in ${cityData.name} | University Assist`}
+        description={`Discover universities and programs in ${cityData.name}, Germany. Find your perfect study destination.`}
+      />
+      <Navigation />
+      
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-4">Study in {cityData.name}</h1>
+          <p className="text-xl text-muted-foreground">
+            Explore {universities.length} universities and their programs
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <UniMap 
+              markers={mapMarkers}
+              center={cityData.lat && cityData.lng ? [cityData.lng, cityData.lat] : undefined}
+              zoom={11}
+              height="400px"
+              className="mb-8"
+            />
+          </div>
+          
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Universities ({universities.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {universities.map(uni => (
+                    <div key={uni.id} className="border-b pb-4 last:border-b-0">
+                      <h3 className="font-semibold">{uni.name}</h3>
+                      <p className="text-sm text-muted-foreground">{uni.type}</p>
+                      <a 
+                        href={`/universities/${uni.slug || uni.id}`}
+                        className="text-primary text-sm hover:underline"
+                      >
+                        View Programs →
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
