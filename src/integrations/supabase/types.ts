@@ -973,6 +973,15 @@ export type Database = {
           status: string
         }[]
       }
+      get_masked_profile_display: {
+        Args: { profile_uuid: string }
+        Returns: {
+          display_name: string
+          education_level: string
+          field_of_study: string
+          id: string
+        }[]
+      }
       get_next_application_period: {
         Args: { program_uuid: string }
         Returns: {
@@ -984,47 +993,28 @@ export type Database = {
           semester_start_date: string
         }[]
       }
-      get_public_safe_profile: {
-        Args: { profile_uuid: string }
-        Returns: {
-          display_name: string
-          education_level: string
-          field_of_study: string
-          id: string
-          institution: string
-        }[]
-      }
       get_safe_profile_data: {
         Args: { profile_uuid: string }
         Returns: {
+          career_goals: string
           created_at: string
+          credits_taken: number
           current_education_level: string
           current_field_of_study: string
+          current_gpa: number
           current_institution: string
           date_of_birth: string
           email: string
           full_name: string
           gender: string
           id: string
+          language_certificates: string[]
           nationality: string
           phone: string
-          updated_at: string
-        }[]
-      }
-      get_ultra_secure_profile_data: {
-        Args: { profile_uuid: string }
-        Returns: {
-          created_at: string
-          current_education_level: string
-          current_field_of_study: string
-          current_institution: string
-          date_of_birth: string
-          email: string
-          full_name: string
-          gender: string
-          id: string
-          nationality: string
-          phone: string
+          preferred_cities: string[]
+          preferred_degree_type: string
+          preferred_fields: string[]
+          thesis_topic: string
           updated_at: string
         }[]
       }
@@ -1046,6 +1036,10 @@ export type Database = {
       ultra_secure_profile_update: {
         Args: { target_profile_id: string; update_data: Json }
         Returns: Json
+      }
+      validate_profile_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
     }
     Enums: {
