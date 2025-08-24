@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { LanguageFlags } from '@/components/LanguageFlags';
+import { formatProgramTitle } from '@/lib/degree-formatting';
 
 interface Program {
   id: string;
@@ -429,7 +430,9 @@ const EnhancedSearch: React.FC = () => {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-lg mb-2 line-clamp-2">{program.name}</CardTitle>
+                    <CardTitle className="text-lg mb-2 line-clamp-2">
+                      {formatProgramTitle(program.degree_type, program.name)}
+                    </CardTitle>
                     <div className="flex flex-wrap gap-2 mb-3">
                       <Badge variant="outline">
                         {program.degree_type.charAt(0).toUpperCase() + program.degree_type.slice(1).toLowerCase()}

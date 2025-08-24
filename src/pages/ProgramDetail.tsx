@@ -11,6 +11,7 @@ import Navigation from "@/components/Navigation";
 import { MapPin, Clock, Euro, GraduationCap, Calendar, FileText, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { LanguageFlags } from "@/components/LanguageFlags";
+import { formatProgramTitle } from "@/lib/degree-formatting";
 
 interface Program {
   id: string;
@@ -225,11 +226,11 @@ export default function ProgramDetail() {
                   rel="noopener noreferrer"
                   className="text-4xl font-bold mb-4 hover:text-primary transition-colors inline-block"
                 >
-                  {program.degree_type.toUpperCase()} in {program.name}
+                  {formatProgramTitle(program.degree_type, program.name)}
                 </a>
               ) : (
                 <h1 className="text-4xl font-bold mb-4">
-                  {program.degree_type.toUpperCase()} in {program.name}
+                  {formatProgramTitle(program.degree_type, program.name)}
                 </h1>
               )}
               <Link 

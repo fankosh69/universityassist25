@@ -11,6 +11,7 @@ import { getDaysUntilDeadline, createICSEvent, downloadICS } from '@/lib/tz';
 import { Calendar, Download, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageFlags } from '@/components/LanguageFlags';
+import { formatProgramTitle } from '@/lib/degree-formatting';
 
 export default function ProgramPage() {
   const { uni, program } = useParams();
@@ -111,10 +112,10 @@ export default function ProgramPage() {
                       rel="noopener noreferrer"
                       className="hover:text-primary transition-colors"
                     >
-                      {programData.degree_type?.toUpperCase()} in {programData.name}
+                      {formatProgramTitle(programData.degree_type, programData.name)}
                     </a>
                   ) : (
-                    `${programData.degree_type?.toUpperCase()} in ${programData.name}`
+                    formatProgramTitle(programData.degree_type, programData.name)
                   )}
                 </h1>
                 <a 
