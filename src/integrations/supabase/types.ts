@@ -445,6 +445,7 @@ export type Database = {
       programs: {
         Row: {
           application_deadline: string | null
+          application_method: string | null
           country_code: string | null
           created_at: string
           degree_level: Database["public"]["Enums"]["degree_level"] | null
@@ -461,16 +462,23 @@ export type Database = {
           minimum_gpa: number | null
           name: string
           prerequisites: string[] | null
+          program_url: string | null
           published: boolean | null
+          recognition_weeks_before: number | null
           search_doc: Json | null
           semester_start: string | null
           slug: string | null
+          summer_deadline: string | null
+          summer_intake: boolean | null
           tuition_fees: number | null
           uni_assist_required: boolean | null
           university_id: string
+          winter_deadline: string | null
+          winter_intake: boolean | null
         }
         Insert: {
           application_deadline?: string | null
+          application_method?: string | null
           country_code?: string | null
           created_at?: string
           degree_level?: Database["public"]["Enums"]["degree_level"] | null
@@ -487,16 +495,23 @@ export type Database = {
           minimum_gpa?: number | null
           name: string
           prerequisites?: string[] | null
+          program_url?: string | null
           published?: boolean | null
+          recognition_weeks_before?: number | null
           search_doc?: Json | null
           semester_start?: string | null
           slug?: string | null
+          summer_deadline?: string | null
+          summer_intake?: boolean | null
           tuition_fees?: number | null
           uni_assist_required?: boolean | null
           university_id: string
+          winter_deadline?: string | null
+          winter_intake?: boolean | null
         }
         Update: {
           application_deadline?: string | null
+          application_method?: string | null
           country_code?: string | null
           created_at?: string
           degree_level?: Database["public"]["Enums"]["degree_level"] | null
@@ -513,13 +528,19 @@ export type Database = {
           minimum_gpa?: number | null
           name?: string
           prerequisites?: string[] | null
+          program_url?: string | null
           published?: boolean | null
+          recognition_weeks_before?: number | null
           search_doc?: Json | null
           semester_start?: string | null
           slug?: string | null
+          summer_deadline?: string | null
+          summer_intake?: boolean | null
           tuition_fees?: number | null
           uni_assist_required?: boolean | null
           university_id?: string
+          winter_deadline?: string | null
+          winter_intake?: boolean | null
         }
         Relationships: [
           {
