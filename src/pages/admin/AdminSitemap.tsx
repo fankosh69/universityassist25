@@ -60,7 +60,14 @@ export default function AdminSitemap() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open('/docs/sitemap.svg', '_blank')}
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = '/docs/sitemap.svg';
+                      link.download = 'sitemap.svg';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
                   >
                     <ExternalLink className="h-4 w-4 mr-1" />
                     Download SVG
@@ -91,7 +98,14 @@ export default function AdminSitemap() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open('/docs/flows-onboarding.svg', '_blank')}
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = '/docs/flows-onboarding.svg';
+                        link.download = 'flows-onboarding.svg';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       Download SVG
@@ -119,7 +133,14 @@ export default function AdminSitemap() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open('/docs/flows-ambassador.svg', '_blank')}
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = '/docs/flows-ambassador.svg';
+                        link.download = 'flows-ambassador.svg';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       Download SVG
@@ -155,10 +176,17 @@ export default function AdminSitemap() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open(file.url, '_blank')}
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = file.url;
+                          link.download = file.name;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
                       >
                         <ExternalLink className="h-4 w-4 mr-1" />
-                        View
+                        Download
                       </Button>
                     </div>
                   </div>
@@ -176,7 +204,14 @@ export default function AdminSitemap() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open('/docs/sitemap-data.json', '_blank')}
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = '/docs/sitemap-data.json';
+                          link.download = 'sitemap-data.json';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
                       >
                         <ExternalLink className="h-4 w-4 mr-1" />
                         Download
@@ -191,7 +226,14 @@ export default function AdminSitemap() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open('/docs/sitemap.svg', '_blank')}
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = '/docs/sitemap.svg';
+                          link.download = 'sitemap.svg';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
                       >
                         <ExternalLink className="h-4 w-4 mr-1" />
                         Download
@@ -206,7 +248,14 @@ export default function AdminSitemap() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open('/docs/flows-onboarding.svg', '_blank')}
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = '/docs/flows-onboarding.svg';
+                          link.download = 'flows-onboarding.svg';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
                       >
                         <ExternalLink className="h-4 w-4 mr-1" />
                         Download
@@ -221,7 +270,14 @@ export default function AdminSitemap() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open('/docs/flows-ambassador.svg', '_blank')}
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = '/docs/flows-ambassador.svg';
+                          link.download = 'flows-ambassador.svg';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
                       >
                         <ExternalLink className="h-4 w-4 mr-1" />
                         Download
@@ -241,7 +297,9 @@ export default function AdminSitemap() {
                             const link = document.createElement('a');
                             link.href = '/docs/flows-onboarding.mmd';
                             link.download = 'onboarding-flow.mmd';
+                            document.body.appendChild(link);
                             link.click();
+                            document.body.removeChild(link);
                           }}
                         >
                           Onboarding
@@ -253,7 +311,9 @@ export default function AdminSitemap() {
                             const link = document.createElement('a');
                             link.href = '/docs/flows-ambassador.mmd';
                             link.download = 'ambassador-flow.mmd';
+                            document.body.appendChild(link);
                             link.click();
+                            document.body.removeChild(link);
                           }}
                         >
                           Ambassador
