@@ -31,18 +31,19 @@ export default function UniMap({
   const markersRef = useRef<mapboxgl.Marker[]>([]);
 
   useEffect(() => {
-    const token = getMapboxToken();
-    
-    if (!token) {
-      setError(t('map.token_missing'));
-      return;
-    }
+    async function initializeMap() {
+      const token = await getMapboxToken();
+      
+      if (!token) {
+        setError(t('map.token_missing'));
+        return;
+      }
 
-    if (!mapContainer.current || map.current) return;
+      if (!mapContainer.current || map.current) return;
 
-    try {
-      mapboxgl.accessToken = token;
-      const config = getDefaultMapConfig();
+      try {
+        mapboxgl.accessToken = token;
+        const config = await getDefaultMapConfig();
       
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
@@ -68,10 +69,13 @@ export default function UniMap({
         setError(t('map.load_error'));
       });
 
-    } catch (err) {
-      console.error('Map initialization error:', err);
-      setError(t('map.init_error'));
+      } catch (err) {
+        console.error('Map initialization error:', err);
+        setError(t('map.init_error'));
+      }
     }
+
+    initializeMap();
 
     return () => {
       if (map.current) {

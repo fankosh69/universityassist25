@@ -7,24 +7,33 @@ export interface MapboxConfig {
   zoom: number;
 }
 
-export function getMapboxToken(): string {
-  // Check environment variables in order of preference
-  const token = 
+export async function getMapboxToken(): Promise<string> {
+  // Try environment variables first
+  const envToken = 
     import.meta.env.NEXT_PUBLIC_MAPBOX_TOKEN ||
     import.meta.env.VITE_MAPBOX_TOKEN ||
     import.meta.env.REACT_APP_MAPBOX_TOKEN;
     
-  if (!token) {
-    console.warn('Mapbox token not found in environment variables');
-    return '';
+  if (envToken) {
+    return envToken;
   }
   
-  return token;
+  // Fallback to Supabase edge function
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+    
+    if (error) throw error;
+    return data?.token || '';
+  } catch (error) {
+    console.warn('Failed to get Mapbox token:', error);
+    return '';
+  }
 }
 
-export function getDefaultMapConfig(): MapboxConfig {
+export async function getDefaultMapConfig(): Promise<MapboxConfig> {
   return {
-    accessToken: getMapboxToken(),
+    accessToken: await getMapboxToken(),
     style: 'mapbox://styles/mapbox/light-v11',
     center: [10.4515, 51.1657], // Center of Germany
     zoom: 6
