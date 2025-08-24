@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      application_periods: {
+        Row: {
+          application_end_date: string
+          application_start_date: string
+          created_at: string
+          id: string
+          intake_season: Database["public"]["Enums"]["intake_season"]
+          intake_year: number
+          is_active: boolean | null
+          notes: string | null
+          program_id: string
+          semester_start_date: string
+          updated_at: string
+        }
+        Insert: {
+          application_end_date: string
+          application_start_date: string
+          created_at?: string
+          id?: string
+          intake_season: Database["public"]["Enums"]["intake_season"]
+          intake_year: number
+          is_active?: boolean | null
+          notes?: string | null
+          program_id: string
+          semester_start_date: string
+          updated_at?: string
+        }
+        Update: {
+          application_end_date?: string
+          application_start_date?: string
+          created_at?: string
+          id?: string
+          intake_season?: Database["public"]["Enums"]["intake_season"]
+          intake_year?: number
+          is_active?: boolean | null
+          notes?: string | null
+          program_id?: string
+          semester_start_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cities: {
         Row: {
           country_code: string
@@ -368,6 +410,45 @@ export type Database = {
           },
         ]
       }
+      service_packages: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          package_type: Database["public"]["Enums"]["package_type"]
+          price_eur: number
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          package_type: Database["public"]["Enums"]["package_type"]
+          price_eur?: number
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          package_type?: Database["public"]["Enums"]["package_type"]
+          price_eur?: number
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       student_academics: {
         Row: {
           created_at: string | null
@@ -486,6 +567,48 @@ export type Database = {
           },
         ]
       }
+      user_applications: {
+        Row: {
+          application_period_id: string
+          applied_at: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          profile_id: string
+          program_id: string
+          service_package_id: string | null
+          status: Database["public"]["Enums"]["application_status"] | null
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          application_period_id: string
+          applied_at?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          profile_id: string
+          program_id: string
+          service_package_id?: string | null
+          status?: Database["public"]["Enums"]["application_status"] | null
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          application_period_id?: string
+          applied_at?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          profile_id?: string
+          program_id?: string
+          service_package_id?: string | null
+          status?: Database["public"]["Enums"]["application_status"] | null
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -520,6 +643,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_current_application_period: {
+        Args: { program_uuid: string }
+        Returns: {
+          application_end_date: string
+          application_start_date: string
+          id: string
+          intake_season: Database["public"]["Enums"]["intake_season"]
+          intake_year: number
+          semester_start_date: string
+          status: string
+        }[]
+      }
+      get_next_application_period: {
+        Args: { program_uuid: string }
+        Returns: {
+          application_end_date: string
+          application_start_date: string
+          id: string
+          intake_season: Database["public"]["Enums"]["intake_season"]
+          intake_year: number
+          semester_start_date: string
+        }[]
+      }
       has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
@@ -542,7 +688,17 @@ export type Database = {
         | "company_admissions"
         | "marketing"
         | "admin"
+      application_status:
+        | "not_started"
+        | "in_progress"
+        | "submitted"
+        | "under_review"
+        | "accepted"
+        | "rejected"
+        | "waitlisted"
       degree_level: "bachelor" | "master"
+      intake_season: "winter" | "summer" | "spring" | "fall"
+      package_type: "basic" | "standard" | "premium" | "vip"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -680,7 +836,18 @@ export const Constants = {
         "marketing",
         "admin",
       ],
+      application_status: [
+        "not_started",
+        "in_progress",
+        "submitted",
+        "under_review",
+        "accepted",
+        "rejected",
+        "waitlisted",
+      ],
       degree_level: ["bachelor", "master"],
+      intake_season: ["winter", "summer", "spring", "fall"],
+      package_type: ["basic", "standard", "premium", "vip"],
     },
   },
 } as const
