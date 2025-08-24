@@ -1,0 +1,95 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .node { fill: #e1f5fe; stroke: #2E57F6; stroke-width: 2; }
+      .decision { fill: #fff3e0; stroke: #ff9800; stroke-width: 2; }
+      .process { fill: #f3e5f5; stroke: #9c27b0; stroke-width: 2; }
+      .final { fill: #e8f5e8; stroke: #4caf50; stroke-width: 2; }
+      .text { font-family: 'Ubuntu', sans-serif; font-size: 11px; fill: #333; text-anchor: middle; }
+      .link { stroke: #666; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .label { font-size: 10px; fill: #666; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#666" />
+    </marker>
+  </defs>
+  
+  <!-- Start -->
+  <ellipse cx="80" cy="100" rx="60" ry="30" class="node"/>
+  <text x="80" y="95" class="text">Sign up /</text>
+  <text x="80" y="108" class="text">Sign in</text>
+  
+  <!-- Role Decision -->
+  <polygon points="200,70 260,100 200,130 140,100" class="decision"/>
+  <text x="200" y="95" class="text">Role</text>
+  <text x="200" y="108" class="text">selected?</text>
+  
+  <!-- Student Path -->
+  <rect x="300" y="40" width="120" height="50" class="process" rx="5"/>
+  <text x="360" y="60" class="text">Complete Profile:</text>
+  <text x="360" y="72" class="text">GPA, Language, ECTS</text>
+  
+  <rect x="460" y="40" width="120" height="50" class="process" rx="5"/>
+  <text x="520" y="60" class="text">Program Match &</text>
+  <text x="520" y="72" class="text">Gap Analysis</text>
+  
+  <rect x="620" y="40" width="120" height="50" class="process" rx="5"/>
+  <text x="680" y="60" class="text">Watchlist +</text>
+  <text x="680" y="72" class="text">Deadlines</text>
+  
+  <rect x="780" y="40" width="120" height="50" class="final" rx="5"/>
+  <text x="840" y="60" class="text">Start Application</text>
+  <text x="840" y="72" class="text">Prospect→Applicant</text>
+  
+  <!-- Parent Path -->
+  <rect x="300" y="140" width="120" height="50" class="process" rx="5"/>
+  <text x="360" y="160" class="text">Link to Student /</text>
+  <text x="360" y="172" class="text">Consent</text>
+  
+  <rect x="460" y="140" width="120" height="50" class="final" rx="5"/>
+  <text x="520" y="160" class="text">Parent Dashboard</text>
+  <text x="520" y="172" class="text">View Progress</text>
+  
+  <!-- Counselor Path -->
+  <rect x="300" y="240" width="120" height="50" class="process" rx="5"/>
+  <text x="360" y="260" class="text">Claim/Join School</text>
+  
+  <rect x="460" y="240" width="120" height="50" class="final" rx="5"/>
+  <text x="520" y="255" class="text">Cohort Tracking &</text>
+  <text x="520" y="267" class="text">Student Management</text>
+  
+  <!-- Document Flow -->
+  <rect x="940" y="40" width="100" height="40" class="process" rx="5"/>
+  <text x="990" y="57" class="text">Document Upload</text>
+  <text x="990" y="69" class="text">& OCR Processing</text>
+  
+  <rect x="940" y="100" width="100" height="40" class="process" rx="5"/>
+  <text x="990" y="117" class="text">Admin Review &</text>
+  <text x="990" y="129" class="text">Approval</text>
+  
+  <rect x="940" y="160" width="100" height="40" class="final" rx="5"/>
+  <text x="990" y="177" class="text">Application</text>
+  <text x="990" y="189" class="text">Submitted</text>
+  
+  <!-- Connection Lines -->
+  <line x1="140" y1="100" x2="140" y2="100" class="link"/>
+  <line x1="260" y1="100" x2="300" y2="65" class="link"/>
+  <line x1="260" y1="100" x2="300" y2="165" class="link"/>
+  <line x1="260" y1="100" x2="300" y2="265" class="link"/>
+  
+  <line x1="420" y1="65" x2="460" y2="65" class="link"/>
+  <line x1="580" y1="65" x2="620" y2="65" class="link"/>
+  <line x1="740" y1="65" x2="780" y2="65" class="link"/>
+  <line x1="900" y1="65" x2="940" y2="65" class="link"/>
+  
+  <line x1="420" y1="165" x2="460" y2="165" class="link"/>
+  <line x1="420" y1="265" x2="460" y2="265" class="link"/>
+  
+  <line x1="990" y1="80" x2="990" y2="100" class="link"/>
+  <line x1="990" y1="140" x2="990" y2="160" class="link"/>
+  
+  <!-- Labels -->
+  <text x="280" y="55" class="label">Student</text>
+  <text x="280" y="155" class="label">Parent</text>
+  <text x="280" y="255" class="label">Counselor</text>
+</svg>

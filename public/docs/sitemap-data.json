@@ -1,0 +1,81 @@
+{
+  "siteStructure": {
+    "root": "/",
+    "sections": {
+      "cities": {
+        "path": "/cities",
+        "description": "City pages with universities and ambassadors",
+        "examples": ["/cities/berlin", "/cities/munich", "/cities/hamburg"]
+      },
+      "universities": {
+        "path": "/universities",
+        "description": "University overview and program listings",
+        "examples": ["/universities/tu-berlin", "/universities/lmu-munich", "/universities/rwth-aachen"]
+      },
+      "programs": {
+        "path": "/universities/:uni/programs",
+        "description": "Individual program pages with requirements",
+        "examples": [
+          "/universities/tu-berlin/programs/computer-science",
+          "/universities/lmu-munich/programs/medicine",
+          "/universities/rwth-aachen/programs/engineering"
+        ]
+      },
+      "ambassadors": {
+        "path": "/ambassadors",
+        "description": "Student ambassador directory and profiles",
+        "examples": ["/ambassadors", "/ambassadors/john-smith"]
+      },
+      "user": {
+        "dashboard": "/dashboard",
+        "profile": "/profile",
+        "saved": "/saved",
+        "auth": "/auth"
+      },
+      "admin": {
+        "dashboard": "/admin",
+        "cities": "/admin/cities",
+        "universities": "/admin/universities",
+        "programs": "/admin/programs",
+        "users": "/admin/users",
+        "security": "/admin/security",
+        "sitemap": "/admin/sitemap"
+      }
+    }
+  },
+  "seoSitemaps": {
+    "index": "/sitemap-index.xml",
+    "cities": "/sitemap-cities.xml",
+    "universities": "/sitemap-universities.xml",
+    "programs": "/sitemap-programs.xml",
+    "ambassadors": "/sitemap-ambassadors.xml"
+  },
+  "localization": {
+    "supported": ["en", "ar", "de"],
+    "default": "en",
+    "structure": "/{locale}{path}"
+  },
+  "userFlows": {
+    "onboarding": {
+      "description": "User registration and profile completion",
+      "steps": [
+        "Sign up/Sign in",
+        "Role selection (Student/Parent/Counselor)",
+        "Profile completion",
+        "Program matching",
+        "Watchlist creation",
+        "Application process"
+      ]
+    },
+    "ambassador": {
+      "description": "Student ambassador recruitment and publishing",
+      "steps": [
+        "Germany location detection",
+        "Ambassador invitation",
+        "Consent and content upload",
+        "Admin review and approval",
+        "Publication on relevant pages"
+      ]
+    }
+  }
+}

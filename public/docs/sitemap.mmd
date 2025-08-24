@@ -1,0 +1,35 @@
+flowchart TD
+  A[Home /] --> L[/cities/]
+  A --> U[/universities/]
+  A --> P[/programs/]
+  A --> AMB[/ambassadors/]
+  A --> D[/dashboard/]
+  A --> PR[/profile/]
+
+  L --> L1[/cities/berlin/]
+  L --> L2[/cities/munich/]
+  L --> L3[/cities/hamburg/]
+  
+  U --> U1[/universities/tu-berlin/]
+  U --> U2[/universities/lmu-munich/]
+  U --> U3[/universities/rwth-aachen/]
+  
+  P --> P1[/universities/tu-berlin/programs/computer-science/]
+  P --> P2[/universities/lmu-munich/programs/medicine/]
+  P --> P3[/universities/rwth-aachen/programs/engineering/]
+  
+  AMB --> AMB1[/ambassadors/]
+  AMB --> AMB2[/ambassadors/john-smith/]
+  
+  D --> D1[/saved/]
+  D --> D2[/matches/]
+  
+  PR --> PR1[/profile/academic/]
+  PR --> PR2[/profile/personal/]
+
+  click L1 "/en/cities/berlin" "Berlin City page"
+  click U1 "/en/universities/tu-berlin" "TU Berlin University"
+  click P1 "/en/universities/tu-berlin/programs/computer-science" "Computer Science Program"
+  click AMB "/en/ambassadors" "Ambassadors Directory"
+  click D "/en/dashboard" "Student Dashboard"
+  click PR "/en/profile" "User Profile"

@@ -45,13 +45,27 @@ export default function AdminSitemap() {
             </CardHeader>
             <CardContent>
               <div className="bg-muted rounded-lg p-6">
-                <iframe 
-                  src="https://mermaid.live/view#pako:eNqFkk1uwjAQha8SzbotuAE7G1pVqlSpH6tWXRnHE_CqY49mHFEi790JpKJA1a48b967782M5wK0dQJK8FqNzZa0HmRF1mqSFcnr69t7LhJvP4lzIuUkn5PJPeX5guQ5yUoyG5N8QfKCFDdk9kBmM1IuyXxJZkty80hua3LbkNuO3PbkdiC3I7mLDhCzYjgNdBxG7xgOdDgcYT5vPVMHVYPxfq_0QEfVGhs0Gg_WB2U62tgG49paa7qgWu-17owK2rXOGOeDtbUzlbN9a7vBqsHWnfGDNb3TQbe2s96rrrGu7521QbfWmeB90HVrvLdBd021k7R1R5DbkfyE3E7kdyG3K_ndyO1Bbnfye5Dbk_w-5PYlvz-5A8gfSO4g8oeSO4T84eQOJX8EuRfJH0nu5eQPJ3cY-SPJHU7-KHJH_gOH2bQk" 
-                  width="100%" 
-                  height="600"
-                  style={{ border: 'none' }}
-                  title="Site Structure Diagram"
-                />
+                <div className="mb-4 text-center">
+                  <h4 className="font-medium mb-2">Interactive Site Structure</h4>
+                  <p className="text-sm text-muted-foreground">Complete navigation hierarchy</p>
+                </div>
+                <div className="flex justify-center">
+                  <img 
+                    src="/docs/sitemap.svg" 
+                    alt="Site Structure Diagram"
+                    className="max-w-full h-auto border rounded"
+                  />
+                </div>
+                <div className="mt-4 text-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open('/docs/sitemap.svg', '_blank')}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-1" />
+                    Download SVG
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -68,13 +82,21 @@ export default function AdminSitemap() {
               </CardHeader>
               <CardContent>
                 <div className="bg-muted rounded-lg p-4">
-                  <iframe 
-                    src="https://mermaid.live/view#pako:eNqFks1uwjAQhF8l8hkquAE7OdCqUpWqP0etemoVOd4EXHXt1Y5DCOLdd-OQQqHqyTvfzIxnvRdQglHQgld6bLek9SArslaTrihen97e8rHw9oM4J0pO8jmZ3FOeL0iek6wk8zHJFyQvyLwisweZzUi5JPMlmS3JzSO5rcltQ257cjuQ25HcRQeIWTGcBjoOo3cMBzocjjCft56pg6rBeL9XeqCjao0NGo0H64MiHW1sg3FtrdWdka13WndGBe1aZ4zzwdrakcrZvrXdYFVn6874wZreaadb281edc6rrmmt9zZo11rjvQ_6Z02z3uOX5Z7kp-R2Jr8LuV3J70ZuD3K7k9-D3J7k9yG3L_n9yR1A_kByB5E_lNwh5A8ndyj5I8i9SP4Ici8nfzi5w8gfSe5w8keROxJvP8gfSe7l5A8ndxj5I8kdTv4ockfiWJY_ktzLyR9O7jDyR5I7nPwR5I4gfyS5l5P_j-Q_1v_YQcYzaw" 
-                    width="100%" 
-                    height="400"
-                    style={{ border: 'none' }}
-                    title="Onboarding Flow"
+                  <img 
+                    src="/docs/flows-onboarding.svg" 
+                    alt="Onboarding Flow"
+                    className="w-full h-auto border rounded"
                   />
+                  <div className="mt-3 text-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open('/docs/flows-onboarding.svg', '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      Download SVG
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -88,13 +110,21 @@ export default function AdminSitemap() {
               </CardHeader>
               <CardContent>
                 <div className="bg-muted rounded-lg p-4">
-                  <iframe 
-                    src="https://mermaid.live/view#pako:eNqFktFuwjAMRX8l8jOd8Ads8wBppGnSNGniZdNeonQJHS7xSuw2wKj_fWkLBTaYX2zfe3Pt-F5ACUZBCdbo0O1I60FWZKOmLJO8vby853PhHQdxTpSc5HMyvac8X5A8J1lJ5mOSL0hekHlFZg8ym5FySWZLMluSmwdyW5PbhtxOyW1PbgdyO5G76AAxa4bTQMch_I7hQIfDEebzLjB1UE0w3h-VHmBUtcEGjcaj9UFRjra2wbi21poh6MY7rXujgnZd4BzqUbNgvj3mBMEHa3ung25tN3vVOa-6pl3fRed915rOex_0r3VNu41fl3uSn5LbmfwO5HYlvxu5Pcjtjujo_Mb1ILcn-X3I7Ut-f3IHyF1EznVduz4Agjc" 
-                    width="100%" 
-                    height="400"
-                    style={{ border: 'none' }}
-                    title="Ambassador Flow"
+                  <img 
+                    src="/docs/flows-ambassador.svg" 
+                    alt="Ambassador Flow"
+                    className="w-full h-auto border rounded"
                   />
+                  <div className="mt-3 text-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open('/docs/flows-ambassador.svg', '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      Download SVG
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -133,6 +163,105 @@ export default function AdminSitemap() {
                     </div>
                   </div>
                 ))}
+                
+                {/* Exportable Files */}
+                <div className="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <h4 className="font-medium mb-4 text-primary">📁 Exportable Files</h4>
+                  <div className="grid gap-3">
+                    <div className="flex items-center justify-between p-3 bg-background rounded border">
+                      <div>
+                        <span className="font-medium">Site Structure (JSON)</span>
+                        <span className="text-sm text-muted-foreground ml-2">Complete site architecture data</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open('/docs/sitemap-data.json', '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Download
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-background rounded border">
+                      <div>
+                        <span className="font-medium">Visual Sitemap (SVG)</span>
+                        <span className="text-sm text-muted-foreground ml-2">Interactive site structure diagram</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open('/docs/sitemap.svg', '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Download
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-background rounded border">
+                      <div>
+                        <span className="font-medium">Onboarding Flow (SVG)</span>
+                        <span className="text-sm text-muted-foreground ml-2">User registration flowchart</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open('/docs/flows-onboarding.svg', '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Download
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-background rounded border">
+                      <div>
+                        <span className="font-medium">Ambassador Flow (SVG)</span>
+                        <span className="text-sm text-muted-foreground ml-2">Ambassador recruitment flowchart</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open('/docs/flows-ambassador.svg', '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Download
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-background rounded border">
+                      <div>
+                        <span className="font-medium">Mermaid Sources (.mmd)</span>
+                        <span className="text-sm text-muted-foreground ml-2">Editable diagram source files</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = '/docs/flows-onboarding.mmd';
+                            link.download = 'onboarding-flow.mmd';
+                            link.click();
+                          }}
+                        >
+                          Onboarding
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = '/docs/flows-ambassador.mmd';
+                            link.download = 'ambassador-flow.mmd';
+                            link.click();
+                          }}
+                        >
+                          Ambassador
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
               
               <div className="mt-6 p-4 bg-muted rounded-lg">
