@@ -10,6 +10,7 @@ import WatchlistButton from '@/components/WatchlistButton';
 import { getDaysUntilDeadline, createICSEvent, downloadICS } from '@/lib/tz';
 import { Calendar, Download, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LanguageFlags } from '@/components/LanguageFlags';
 
 export default function ProgramPage() {
   const { uni, program } = useParams();
@@ -99,13 +100,29 @@ export default function ProgramPage() {
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">{programData.title}</h1>
-              <p className="text-xl text-muted-foreground mb-4">
-                {programData.degree_level} at {university?.name}
-              </p>
+          <div className="mb-8">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h1 className="text-4xl font-bold mb-2">
+                  {programData.program_url ? (
+                    <a 
+                      href={programData.program_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="hover:text-primary transition-colors"
+                    >
+                      {programData.degree_type?.toUpperCase()} in {programData.name}
+                    </a>
+                  ) : (
+                    `${programData.degree_type?.toUpperCase()} in ${programData.name}`
+                  )}
+                </h1>
+                <a 
+                  href={`/universities/${university?.slug}`}
+                  className="text-xl text-muted-foreground hover:text-primary transition-colors mb-4 inline-block"
+                >
+                  {university?.name}
+                </a>
               <div className="flex gap-2 flex-wrap">
                 <Badge variant="secondary">
                   {programData.degree_level?.charAt(0).toUpperCase() + programData.degree_level?.slice(1).toLowerCase()}
@@ -150,7 +167,9 @@ export default function ProgramPage() {
                   </div>
                   <div>
                     <span className="font-medium">Language:</span>
-                    <p>{programData.language_of_instruction?.join(', ') || 'German'}</p>
+                    <div className="mt-1">
+                      <LanguageFlags languages={programData.language_of_instruction || ['de']} size="md" />
+                    </div>
                   </div>
                   <div>
                     <span className="font-medium">Tuition:</span>
@@ -195,15 +214,31 @@ export default function ProgramPage() {
                     {programData.application_method === 'direct' && (
                       <Badge variant="outline">Direct Application</Badge>
                     )}
-                    {programData.application_method === 'uni_assist' && (
-                      <Badge variant="destructive">Uni-Assist Required</Badge>
+                    {programData.application_method === 'uni_assist_direct' && (
+                      <Badge variant="destructive">Uni-Assist Direct Application</Badge>
+                    )}
+                    {programData.application_method === 'uni_assist_vpd' && (
+                      <Badge variant="destructive">Uni-Assist VPD</Badge>
                     )}
                   </div>
                 </div>
 
-                {/* Application Deadlines */}
+                {/* Application Fee */}
                 <div>
-                  <h4 className="font-medium mb-2">Application Deadlines</h4>
+                  <h4 className="font-medium mb-2">Application Fee</h4>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={
+                      (programData.application_method === 'uni_assist_direct' || programData.application_method === 'uni_assist_vpd') 
+                        ? "destructive" : "default"
+                    }>
+                      {(programData.application_method === 'uni_assist_direct' || programData.application_method === 'uni_assist_vpd') ? 'Yes' : 'No'}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Application Periods */}
+                <div>
+                  <h4 className="font-medium mb-2">Application Periods</h4>
                   <div className="space-y-3">
                     {programData.winter_intake && programData.winter_deadline && (
                       <div className="flex items-center justify-between p-3 bg-muted rounded-lg">

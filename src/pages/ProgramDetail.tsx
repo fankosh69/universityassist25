@@ -28,6 +28,7 @@ interface Program {
   ects_credits: number;
   minimum_gpa: number;
   application_method: string;
+  program_url: string;
   winter_intake: boolean;
   summer_intake: boolean;
   winter_deadline: string;
@@ -217,9 +218,26 @@ export default function ProgramDetail() {
           
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div>
-              <h1 className="text-4xl font-bold mb-4">
-                {program.degree_type.toUpperCase()} {program.name} - {program.universities.name}
-              </h1>
+              {program.program_url ? (
+                <a 
+                  href={program.program_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-4xl font-bold mb-4 hover:text-primary transition-colors inline-block"
+                >
+                  {program.degree_type.toUpperCase()} in {program.name}
+                </a>
+              ) : (
+                <h1 className="text-4xl font-bold mb-4">
+                  {program.degree_type.toUpperCase()} in {program.name}
+                </h1>
+              )}
+              <Link 
+                to={`/universities/${universitySlug}`}
+                className="text-xl text-muted-foreground hover:text-primary transition-colors mb-4 inline-block"
+              >
+                {program.universities.name}
+              </Link>
               <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-4">
                 <div className="flex items-center gap-2">
                   <GraduationCap className="h-5 w-5" />
@@ -238,8 +256,11 @@ export default function ProgramDetail() {
                   {program.degree_level.charAt(0).toUpperCase() + program.degree_level.slice(1).toLowerCase()}
                 </Badge>
                 <Badge variant="outline">{program.field_of_study}</Badge>
-                {program.application_method === 'uni_assist' && (
-                  <Badge variant="destructive">Uni-Assist Required</Badge>
+                {program.application_method === 'uni_assist_direct' && (
+                  <Badge variant="destructive">Uni-Assist Direct Application</Badge>
+                )}
+                {program.application_method === 'uni_assist_vpd' && (
+                  <Badge variant="destructive">Uni-Assist VPD</Badge>
                 )}
                 {program.application_method === 'direct' && (
                   <Badge variant="default">Direct Application</Badge>
@@ -340,15 +361,31 @@ export default function ProgramDetail() {
                     {program.application_method === 'direct' && (
                       <Badge variant="outline">Direct Application</Badge>
                     )}
-                    {program.application_method === 'uni_assist' && (
-                      <Badge variant="destructive">Uni-Assist Required</Badge>
+                    {program.application_method === 'uni_assist_direct' && (
+                      <Badge variant="destructive">Uni-Assist Direct Application</Badge>
                     )}
+                    {program.application_method === 'uni_assist_vpd' && (
+                      <Badge variant="destructive">Uni-Assist VPD</Badge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Application Fee */}
+                <div>
+                  <h4 className="font-semibold mb-2">Application Fee</h4>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={
+                      (program.application_method === 'uni_assist_direct' || program.application_method === 'uni_assist_vpd') 
+                        ? "destructive" : "default"
+                    }>
+                      {(program.application_method === 'uni_assist_direct' || program.application_method === 'uni_assist_vpd') ? 'Yes' : 'No'}
+                    </Badge>
                   </div>
                 </div>
 
                 {/* Deadlines */}
                 <div>
-                  <h4 className="font-semibold mb-2">Application Deadlines</h4>
+                  <h4 className="font-semibold mb-2">Application Periods</h4>
                   <div className="space-y-3">
                     {program.winter_intake && program.winter_deadline && (
                       <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
@@ -448,7 +485,12 @@ export default function ProgramDetail() {
               <CardContent>
                 <div className="space-y-3">
                   <div>
-                    <p className="font-medium">{program.universities.name}</p>
+                   <Link 
+                     to={`/universities/${universitySlug}`}
+                     className="font-medium hover:text-primary transition-colors"
+                   >
+                     {program.universities.name}
+                   </Link>
                     <p className="text-sm text-muted-foreground">
                       {program.universities.type} in {program.universities.city}
                     </p>

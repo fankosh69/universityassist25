@@ -481,8 +481,8 @@ const EnhancedSearch: React.FC = () => {
                     {program.application_method === 'direct' && (
                       <Badge variant="outline" className="text-xs">Direct Application</Badge>
                     )}
-                    {program.application_method === 'uni_assist' && (
-                      <Badge variant="destructive" className="text-xs">Uni-Assist Required</Badge>
+                    {program.application_method === 'uni_assist_direct' && (
+                      <Badge variant="destructive" className="text-xs">Uni-Assist Direct Application</Badge>
                     )}
                     {program.application_method === 'uni_assist_vpd' && (
                       <Badge variant="destructive" className="text-xs">Uni-Assist VPD</Badge>
@@ -493,7 +493,7 @@ const EnhancedSearch: React.FC = () => {
                     <CreditCard className="h-4 w-4" />
                     <span>
                       Application Fee: {
-                        program.application_method === 'uni_assist' || 
+                        program.application_method === 'uni_assist_direct' || 
                         program.application_method === 'uni_assist_vpd' 
                           ? 'Yes' 
                           : 'No'
