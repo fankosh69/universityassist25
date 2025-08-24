@@ -26,6 +26,7 @@ import NotFound from "./pages/NotFound";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { AdminPrograms } from "./pages/admin/AdminPrograms";
+import { AdminUniversities } from "./pages/admin/AdminUniversities";
 import AdminSecurity from "./pages/admin/AdminSecurity";
 
 const queryClient = new QueryClient();
