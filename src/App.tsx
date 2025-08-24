@@ -30,6 +30,7 @@ import { AdminUniversities } from "./pages/admin/AdminUniversities";
 import { AdminCities } from "./pages/admin/AdminCities";
 import { AdminUsers } from "./pages/admin/AdminUsers";
 import { AdminServicePackages } from "./pages/admin/AdminServicePackages";
+import AdminSecurity from "./pages/admin/AdminSecurity";
 
 const queryClient = new QueryClient();
 

@@ -460,10 +460,21 @@ const EnhancedSearch: React.FC = () => {
                     <span>{program.universities?.name}</span>
                   </div>
                   
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>{program.universities?.city}, {program.universities?.type}</span>
-                  </div>
+                    <p className="text-sm text-muted-foreground">
+                      <Link 
+                        to={`/universities/${program.universities?.slug}`}
+                        className="hover:text-primary transition-colors"
+                      >
+                        {program.universities?.name}
+                      </Link>
+                      {' • '}
+                      <Link 
+                        to={`/cities/${program.universities?.city?.toLowerCase().replace(/\s+/g, '-')}`}
+                        className="hover:text-primary transition-colors"
+                      >
+                        {program.universities?.city}
+                      </Link>, {program.universities?.type}
+                    </p>
                   
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4" />
