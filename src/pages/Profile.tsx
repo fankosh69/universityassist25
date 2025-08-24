@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { User, GraduationCap, Target, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getCurrentUserProfile, secureUpdateProfile } from "@/lib/secure-profile-api";
 
 interface ProfileData {
   full_name: string;
@@ -58,18 +59,25 @@ const Profile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
+      // Use secure profile API
+      const profile = await getCurrentUserProfile();
       if (profile) {
         setProfileData({
-          ...profile,
+          full_name: profile.full_name || "",
+          email: profile.email || "",
+          phone: profile.phone || "",
+          nationality: profile.nationality || "",
+          current_education_level: profile.current_education_level || "",
+          current_institution: profile.current_institution || "",
+          current_gpa: profile.current_gpa || 0,
+          current_field_of_study: profile.current_field_of_study || "",
+          credits_taken: profile.credits_taken || 0,
+          thesis_topic: profile.thesis_topic || "",
           language_certificates: profile.language_certificates || [],
           preferred_fields: profile.preferred_fields || [],
+          preferred_degree_type: profile.preferred_degree_type || "",
           preferred_cities: profile.preferred_cities || [],
+          career_goals: profile.career_goals || "",
         });
       } else {
         // Initialize with user email
@@ -86,15 +94,17 @@ const Profile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          ...profileData,
-          updated_at: new Date().toISOString(),
-        });
+      // Use secure profile update API
+      const result = await secureUpdateProfile(user.id, profileData);
+      
+      if (!result || !result.success) {
+        throw new Error(result?.message || 'Failed to update profile');
+      }
 
-      if (error) throw error;
+      toast({
+        title: "Success",
+        description: result.message,
+      });
 
       // Generate matches after profile update
       try {

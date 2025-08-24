@@ -9,10 +9,11 @@ import { User, BookOpen, Target, Award, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { useAdmin } from "@/hooks/useAdmin";
+import { getCurrentUserProfile } from "@/lib/secure-profile-api";
 
 interface Profile {
-  full_name: string;
-  email: string;
+  full_name?: string;
+  email?: string;
   phone?: string;
   nationality?: string;
 }
@@ -48,13 +49,8 @@ const Dashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
+      // Fetch profile using secure API
+      const profileData = await getCurrentUserProfile();
       if (profileData) {
         setProfile(profileData);
       }

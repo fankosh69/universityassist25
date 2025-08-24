@@ -837,6 +837,10 @@ export type Database = {
         Args: { profile_id: string }
         Returns: boolean
       }
+      check_profile_access_rights: {
+        Args: { profile_uuid: string }
+        Returns: Json
+      }
       get_current_application_period: {
         Args: { program_uuid: string }
         Returns: {
@@ -860,6 +864,23 @@ export type Database = {
           semester_start_date: string
         }[]
       }
+      get_safe_profile_data: {
+        Args: { profile_uuid: string }
+        Returns: {
+          created_at: string
+          current_education_level: string
+          current_field_of_study: string
+          current_institution: string
+          date_of_birth: string
+          email: string
+          full_name: string
+          gender: string
+          id: string
+          nationality: string
+          phone: string
+          updated_at: string
+        }[]
+      }
       has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
@@ -873,6 +894,10 @@ export type Database = {
       }
       secure_update_profile: {
         Args: { new_data: Json; profile_id: string }
+        Returns: Json
+      }
+      ultra_secure_profile_update: {
+        Args: { target_profile_id: string; update_data: Json }
         Returns: Json
       }
     }
