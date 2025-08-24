@@ -14,30 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      cities: {
+        Row: {
+          country_code: string
+          created_at: string | null
+          id: string
+          lat: number | null
+          lng: number | null
+          metadata: Json | null
+          name: string
+          search_doc: Json | null
+          slug: string
+          state: string | null
+        }
+        Insert: {
+          country_code?: string
+          created_at?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          metadata?: Json | null
+          name: string
+          search_doc?: Json | null
+          slug: string
+          state?: string | null
+        }
+        Update: {
+          country_code?: string
+          created_at?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          metadata?: Json | null
+          name?: string
+          search_doc?: Json | null
+          slug?: string
+          state?: string | null
+        }
+        Relationships: []
+      }
       matches: {
         Row: {
           compatibility_score: number
+          components: Json | null
           created_at: string
           id: string
           match_reasons: string[] | null
           profile_id: string
           program_id: string
+          status: string | null
+          updated_at: string | null
         }
         Insert: {
           compatibility_score: number
+          components?: Json | null
           created_at?: string
           id?: string
           match_reasons?: string[] | null
           profile_id: string
           program_id: string
+          status?: string | null
+          updated_at?: string | null
         }
         Update: {
           compatibility_score?: number
+          components?: Json | null
           created_at?: string
           id?: string
           match_reasons?: string[] | null
           profile_id?: string
           program_id?: string
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -128,56 +176,150 @@ export type Database = {
         }
         Relationships: []
       }
+      program_deadlines: {
+        Row: {
+          application_deadline: string
+          created_at: string | null
+          id: string
+          intake: string
+          notes: string | null
+          program_id: string
+        }
+        Insert: {
+          application_deadline: string
+          created_at?: string | null
+          id?: string
+          intake: string
+          notes?: string | null
+          program_id: string
+        }
+        Update: {
+          application_deadline?: string
+          created_at?: string | null
+          id?: string
+          intake?: string
+          notes?: string | null
+          program_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_deadlines_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      program_requirements: {
+        Row: {
+          created_at: string | null
+          details: Json
+          id: string
+          program_id: string
+          requirement_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json
+          id?: string
+          program_id: string
+          requirement_type: string
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json
+          id?: string
+          program_id?: string
+          requirement_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_requirements_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       programs: {
         Row: {
           application_deadline: string | null
+          country_code: string | null
           created_at: string
+          degree_level: Database["public"]["Enums"]["degree_level"] | null
           degree_type: string
+          delivery_mode: string | null
           description: string | null
           duration_semesters: number
           ects_credits: number | null
           field_of_study: string
           id: string
+          language_of_instruction: string[] | null
           language_requirements: string[] | null
+          metadata: Json | null
           minimum_gpa: number | null
           name: string
           prerequisites: string[] | null
+          published: boolean | null
+          search_doc: Json | null
           semester_start: string | null
+          slug: string | null
           tuition_fees: number | null
+          uni_assist_required: boolean | null
           university_id: string
         }
         Insert: {
           application_deadline?: string | null
+          country_code?: string | null
           created_at?: string
+          degree_level?: Database["public"]["Enums"]["degree_level"] | null
           degree_type: string
+          delivery_mode?: string | null
           description?: string | null
           duration_semesters: number
           ects_credits?: number | null
           field_of_study: string
           id?: string
+          language_of_instruction?: string[] | null
           language_requirements?: string[] | null
+          metadata?: Json | null
           minimum_gpa?: number | null
           name: string
           prerequisites?: string[] | null
+          published?: boolean | null
+          search_doc?: Json | null
           semester_start?: string | null
+          slug?: string | null
           tuition_fees?: number | null
+          uni_assist_required?: boolean | null
           university_id: string
         }
         Update: {
           application_deadline?: string | null
+          country_code?: string | null
           created_at?: string
+          degree_level?: Database["public"]["Enums"]["degree_level"] | null
           degree_type?: string
+          delivery_mode?: string | null
           description?: string | null
           duration_semesters?: number
           ects_credits?: number | null
           field_of_study?: string
           id?: string
+          language_of_instruction?: string[] | null
           language_requirements?: string[] | null
+          metadata?: Json | null
           minimum_gpa?: number | null
           name?: string
           prerequisites?: string[] | null
+          published?: boolean | null
+          search_doc?: Json | null
           semester_start?: string | null
+          slug?: string | null
           tuition_fees?: number | null
+          uni_assist_required?: boolean | null
           university_id?: string
         }
         Relationships: [
@@ -226,48 +368,181 @@ export type Database = {
           },
         ]
       }
+      student_academics: {
+        Row: {
+          created_at: string | null
+          curriculum: string | null
+          ects_total: number | null
+          extras: Json | null
+          gpa_de: number | null
+          gpa_min_pass: number | null
+          gpa_raw: number | null
+          gpa_scale_max: number | null
+          language_certificates: Json | null
+          prev_major: string | null
+          profile_id: string
+          target_intake: string | null
+          target_level: Database["public"]["Enums"]["degree_level"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          curriculum?: string | null
+          ects_total?: number | null
+          extras?: Json | null
+          gpa_de?: number | null
+          gpa_min_pass?: number | null
+          gpa_raw?: number | null
+          gpa_scale_max?: number | null
+          language_certificates?: Json | null
+          prev_major?: string | null
+          profile_id: string
+          target_intake?: string | null
+          target_level?: Database["public"]["Enums"]["degree_level"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          curriculum?: string | null
+          ects_total?: number | null
+          extras?: Json | null
+          gpa_de?: number | null
+          gpa_min_pass?: number | null
+          gpa_raw?: number | null
+          gpa_scale_max?: number | null
+          language_certificates?: Json | null
+          prev_major?: string | null
+          profile_id?: string
+          target_intake?: string | null
+          target_level?: Database["public"]["Enums"]["degree_level"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_academics_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       universities: {
         Row: {
           city: string
+          city_id: string | null
+          country_code: string | null
           created_at: string
+          external_refs: Json | null
           id: string
+          lat: number | null
+          lng: number | null
           logo_url: string | null
           name: string
           ranking: number | null
+          slug: string | null
           type: string | null
           website: string | null
         }
         Insert: {
           city: string
+          city_id?: string | null
+          country_code?: string | null
           created_at?: string
+          external_refs?: Json | null
           id?: string
+          lat?: number | null
+          lng?: number | null
           logo_url?: string | null
           name: string
           ranking?: number | null
+          slug?: string | null
           type?: string | null
           website?: string | null
         }
         Update: {
           city?: string
+          city_id?: string | null
+          country_code?: string | null
           created_at?: string
+          external_refs?: Json | null
           id?: string
+          lat?: number | null
+          lng?: number | null
           logo_url?: string | null
           name?: string
           ranking?: number | null
+          slug?: string | null
           type?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "universities_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          profile_id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          profile_id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          profile_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: boolean
+      }
+      has_role_by_profile: {
+        Args: {
+          _profile_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "student"
+        | "parent"
+        | "school_counselor"
+        | "university_staff"
+        | "company_sales"
+        | "company_admissions"
+        | "marketing"
+        | "admin"
+      degree_level: "bachelor" | "master"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -394,6 +669,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "student",
+        "parent",
+        "school_counselor",
+        "university_staff",
+        "company_sales",
+        "company_admissions",
+        "marketing",
+        "admin",
+      ],
+      degree_level: ["bachelor", "master"],
+    },
   },
 } as const
