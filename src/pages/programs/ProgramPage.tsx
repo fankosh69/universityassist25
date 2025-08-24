@@ -26,12 +26,21 @@ export default function ProgramPage() {
       // Fetch program
       const { data: prog } = await supabase
         .from('programs')
-        .select('*, universities(*)')
+        .select('*')
         .eq('slug', program)
         .single();
       
+      // Fetch university separately
+      if (prog?.university_id) {
+        const { data: universityData } = await supabase
+          .from('universities')
+          .select('*')
+          .eq('id', prog.university_id)
+          .single();
+        setUniversity(universityData);
+      }
+      
       setProgramData(prog);
-      setUniversity(prog?.universities);
 
       // Fetch deadlines and requirements
       if (prog?.id) {
@@ -98,10 +107,28 @@ export default function ProgramPage() {
                 {programData.degree_level} at {university?.name}
               </p>
               <div className="flex gap-2 flex-wrap">
-                <Badge variant="secondary">{programData.degree_level}</Badge>
-                <Badge variant="outline">{programData.major}</Badge>
-                {programData.uni_assist_required && (
+                <Badge variant="secondary">
+                  {programData.degree_level?.charAt(0).toUpperCase() + programData.degree_level?.slice(1).toLowerCase()}
+                </Badge>
+                <Badge variant="outline">
+                  {programData.degree_type?.charAt(0).toUpperCase() + programData.degree_type?.slice(1).toLowerCase()}
+                </Badge>
+                <Badge variant="outline">{programData.field_of_study}</Badge>
+                {programData.application_method === 'uni_assist' && (
                   <Badge variant="destructive">Uni-Assist Required</Badge>
+                )}
+                {programData.application_method === 'direct' && (
+                  <Badge variant="default">Direct Application</Badge>
+                )}
+                {/* Intake badges */}
+                {programData.winter_intake && programData.summer_intake && (
+                  <Badge variant="outline">Winter & Summer Intake</Badge>
+                )}
+                {programData.winter_intake && !programData.summer_intake && (
+                  <Badge variant="outline">Winter Intake Only</Badge>
+                )}
+                {!programData.winter_intake && programData.summer_intake && (
+                  <Badge variant="outline">Summer Intake Only</Badge>
                 )}
               </div>
             </div>
@@ -141,36 +168,117 @@ export default function ProgramPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Application Deadlines
+                  Application Information
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {deadlines.map(deadline => {
-                    const daysRemaining = getDaysUntilDeadline(deadline.application_deadline);
-                    return (
-                      <div key={deadline.id} className="flex items-center justify-between p-4 border rounded-lg">
+              <CardContent className="space-y-4">
+                {/* Available Intakes */}
+                <div>
+                  <h4 className="font-medium mb-2">Available Intakes</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {programData.winter_intake && programData.summer_intake && (
+                      <Badge variant="default">Winter and Summer Intake</Badge>
+                    )}
+                    {programData.winter_intake && !programData.summer_intake && (
+                      <Badge variant="default">Winter Intake Only</Badge>
+                    )}
+                    {!programData.winter_intake && programData.summer_intake && (
+                      <Badge variant="default">Summer Intake Only</Badge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Application Method */}
+                <div>
+                  <h4 className="font-medium mb-2">Application Method</h4>
+                  <div className="flex items-center gap-2">
+                    {programData.application_method === 'direct' && (
+                      <Badge variant="outline">Direct Application</Badge>
+                    )}
+                    {programData.application_method === 'uni_assist' && (
+                      <Badge variant="destructive">Uni-Assist Required</Badge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Application Deadlines */}
+                <div>
+                  <h4 className="font-medium mb-2">Application Deadlines</h4>
+                  <div className="space-y-3">
+                    {programData.winter_intake && programData.winter_deadline && (
+                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div>
-                          <h4 className="font-medium capitalize">{deadline.intake} Semester</h4>
+                          <h5 className="font-medium">Winter Intake</h5>
                           <p className="text-sm text-muted-foreground">
-                            Deadline: {new Date(deadline.application_deadline).toLocaleDateString()}
+                            Deadline: {new Date(programData.winter_deadline).toLocaleDateString()}
                           </p>
                           <p className="text-sm">
-                            {daysRemaining > 0 ? `${daysRemaining} days remaining` : 'Deadline passed'}
+                            {getDaysUntilDeadline(programData.winter_deadline) > 0 
+                              ? `${getDaysUntilDeadline(programData.winter_deadline)} days remaining` 
+                              : 'Deadline passed'}
                           </p>
                         </div>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleExportDeadline(deadline)}
+                          onClick={() => handleExportDeadline({ application_deadline: programData.winter_deadline, intake: 'winter' })}
                           className="gap-2"
                         >
                           <Download className="h-4 w-4" />
                           Export
                         </Button>
                       </div>
-                    );
-                  })}
+                    )}
+                    {programData.summer_intake && programData.summer_deadline && (
+                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                        <div>
+                          <h5 className="font-medium">Summer Intake</h5>
+                          <p className="text-sm text-muted-foreground">
+                            Deadline: {new Date(programData.summer_deadline).toLocaleDateString()}
+                          </p>
+                          <p className="text-sm">
+                            {getDaysUntilDeadline(programData.summer_deadline) > 0 
+                              ? `${getDaysUntilDeadline(programData.summer_deadline)} days remaining` 
+                              : 'Deadline passed'}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleExportDeadline({ application_deadline: programData.summer_deadline, intake: 'summer' })}
+                          className="gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Export
+                        </Button>
+                      </div>
+                    )}
+                    {deadlines.map(deadline => {
+                      const daysRemaining = getDaysUntilDeadline(deadline.application_deadline);
+                      return (
+                        <div key={deadline.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                          <div>
+                            <h5 className="font-medium capitalize">{deadline.intake} Intake</h5>
+                            <p className="text-sm text-muted-foreground">
+                              Deadline: {new Date(deadline.application_deadline).toLocaleDateString()}
+                            </p>
+                            <p className="text-sm">
+                              {daysRemaining > 0 ? `${daysRemaining} days remaining` : 'Deadline passed'}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleExportDeadline(deadline)}
+                            className="gap-2"
+                          >
+                            <Download className="h-4 w-4" />
+                            Export
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </CardContent>
             </Card>

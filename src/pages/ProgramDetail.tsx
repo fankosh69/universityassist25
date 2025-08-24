@@ -26,6 +26,11 @@ interface Program {
   description: string;
   ects_credits: number;
   minimum_gpa: number;
+  application_method: string;
+  winter_intake: boolean;
+  summer_intake: boolean;
+  winter_deadline: string;
+  summer_deadline: string;
   universities: {
     name: string;
     city: string;
@@ -223,11 +228,18 @@ export default function ProgramDetail() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">{program.degree_type}</Badge>
-                <Badge variant="outline">{program.degree_level}</Badge>
+                <Badge variant="secondary">
+                  {program.degree_type.charAt(0).toUpperCase() + program.degree_type.slice(1).toLowerCase()}
+                </Badge>
+                <Badge variant="outline">
+                  {program.degree_level.charAt(0).toUpperCase() + program.degree_level.slice(1).toLowerCase()}
+                </Badge>
                 <Badge variant="outline">{program.field_of_study}</Badge>
-                {program.uni_assist_required && (
+                {program.application_method === 'uni_assist' && (
                   <Badge variant="destructive">Uni-Assist Required</Badge>
+                )}
+                {program.application_method === 'direct' && (
+                  <Badge variant="default">Direct Application</Badge>
                 )}
               </div>
             </div>
@@ -296,19 +308,74 @@ export default function ProgramDetail() {
               </CardContent>
             </Card>
 
-            {/* Application Deadlines */}
-            {program.program_deadlines?.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Application Deadlines</CardTitle>
-                </CardHeader>
-                <CardContent>
+            {/* Application Deadlines & Intake Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Application Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Intake Availability */}
+                <div>
+                  <h4 className="font-semibold mb-2">Available Intakes</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {program.winter_intake && program.summer_intake && (
+                      <Badge variant="default">Winter and Summer Intake</Badge>
+                    )}
+                    {program.winter_intake && !program.summer_intake && (
+                      <Badge variant="default">Winter Intake Only</Badge>
+                    )}
+                    {!program.winter_intake && program.summer_intake && (
+                      <Badge variant="default">Summer Intake Only</Badge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Application Method */}
+                <div>
+                  <h4 className="font-semibold mb-2">Application Method</h4>
+                  <div className="flex items-center gap-2">
+                    {program.application_method === 'direct' && (
+                      <Badge variant="outline">Direct Application</Badge>
+                    )}
+                    {program.application_method === 'uni_assist' && (
+                      <Badge variant="destructive">Uni-Assist Required</Badge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Deadlines */}
+                <div>
+                  <h4 className="font-semibold mb-2">Application Deadlines</h4>
                   <div className="space-y-3">
-                    {program.program_deadlines.map((deadline, index) => (
+                    {program.winter_intake && program.winter_deadline && (
+                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          <span className="font-medium">Winter Intake</span>
+                        </div>
+                        <span className="text-muted-foreground">
+                          {new Date(program.winter_deadline).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+                    {program.summer_intake && program.summer_deadline && (
+                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          <span className="font-medium">Summer Intake</span>
+                        </div>
+                        <span className="text-muted-foreground">
+                          {new Date(program.summer_deadline).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+                    {program.program_deadlines?.length > 0 && program.program_deadlines.map((deadline, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
-                          <span className="font-medium">{deadline.intake} Intake</span>
+                          <span className="font-medium">
+                            {deadline.intake.charAt(0).toUpperCase() + deadline.intake.slice(1)} Intake
+                          </span>
                         </div>
                         <span className="text-muted-foreground">
                           {new Date(deadline.application_deadline).toLocaleDateString()}
@@ -316,9 +383,9 @@ export default function ProgramDetail() {
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sidebar */}
