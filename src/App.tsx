@@ -16,6 +16,12 @@ import CityDetail from "./pages/CityDetail";
 import Universities from "./pages/Universities";
 import UniversityDetail from "./pages/UniversityDetail";
 import ProgramDetail from "./pages/ProgramDetail";
+import CityPage from "./pages/cities/CityPage";
+import UniversityPage from "./pages/universities/UniversityPage";
+import ProgramPage from "./pages/programs/ProgramPage";
+import AmbassadorsList from "./pages/ambassadors/AmbassadorsList";
+import AmbassadorProfile from "./pages/ambassadors/AmbassadorProfile";
+import ProfilePage from "./pages/profile/ProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,19 +73,22 @@ const App = () => {
               element={user ? <Dashboard /> : <Navigate to="/auth" />} 
             />
             <Route 
-              path="/profile" 
-              element={user ? <Profile /> : <Navigate to="/auth" />} 
-            />
-            <Route 
               path="/saved" 
               element={user ? <SavedPrograms /> : <Navigate to="/auth" />} 
             />
             <Route path="/cities" element={<Cities />} />
-            <Route path="/cities/:citySlug" element={<CityDetail />} />
+            <Route path="/cities/:city" element={<CityPage />} />
             <Route path="/universities" element={<Universities />} />
-            <Route path="/universities/:universitySlug" element={<UniversityDetail />} />
-            <Route path="/universities/:universitySlug/programs/:programSlug" element={<ProgramDetail />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/universities/:uni" element={<UniversityPage />} />
+            <Route path="/universities/:uni/programs/:program" element={<ProgramPage />} />
+            <Route path="/ambassadors" element={<AmbassadorsList />} />
+            <Route path="/ambassadors/:slug" element={<AmbassadorProfile />} />
+            <Route 
+              path="/profile" 
+              element={user ? <ProfilePage /> : <Navigate to="/auth" />} 
+            />
+            {/* Legacy routes */}
+            <Route path="/cities/:citySlug" element={<CityDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
