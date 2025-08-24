@@ -17,7 +17,7 @@ const Logo = ({ className = "", showText = false, variant = "default" }: LogoPro
       <img 
         src={logoImage} 
         alt="University Assist Logo" 
-        className="h-12 w-auto object-contain"
+        className="h-16 w-auto object-contain max-w-[200px]"
       />
       {showText && (
         <span className={`text-xl font-bold ${
