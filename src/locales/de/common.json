@@ -1,0 +1,135 @@
+{
+  "navigation": {
+    "home": "Startseite",
+    "search": "Programme suchen",
+    "cities": "Städte",
+    "universities": "Universitäten",
+    "saved": "Gespeicherte Programme",
+    "dashboard": "Dashboard",
+    "profile": "Profil",
+    "signin": "Anmelden",
+    "signup": "Loslegen",
+    "signout": "Abmelden"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Vorherige",
+    "search": "Suchen",
+    "filter": "Filter",
+    "apply": "Anwenden",
+    "reset": "Zurücksetzen",
+    "viewAll": "Alle anzeigen",
+    "showMore": "Mehr anzeigen",
+    "showLess": "Weniger anzeigen"
+  },
+  "programs": {
+    "title": "Deutsche Universitätsprogramme",
+    "searchPlaceholder": "Programme, Universitäten oder Bereiche suchen...",
+    "noResults": "Keine Programme gefunden",
+    "saveProgram": "Programm speichern",
+    "programSaved": "Programm gespeichert",
+    "removeSaved": "Aus gespeicherten entfernen",
+    "applyNow": "Jetzt bewerben",
+    "visitUniversity": "Universität besuchen",
+    "applicationDeadline": "Bewerbungsfrist",
+    "semesterStart": "Semesterbeginn",
+    "tuitionFees": "Studiengebühren",
+    "duration": "Dauer",
+    "semesters": "Semester",
+    "free": "Kostenlos",
+    "perYear": "/Jahr",
+    "availableToApply": "Bewerbung möglich",
+    "applicationClosed": "Bewerbung geschlossen",
+    "nextIntake": "Nächste Aufnahme"
+  },
+  "cities": {
+    "title": "Deutsche Städte",
+    "subtitle": "Universitäten in ganz Deutschland entdecken",
+    "universitiesCount": "Universitäten",
+    "exploreCity": "Stadt erkunden",
+    "mapView": "Kartenansicht",
+    "listView": "Listenansicht"
+  },
+  "universities": {
+    "title": "Deutsche Universitäten",
+    "subtitle": "Top-Universitäten in Deutschland entdecken",
+    "programsCount": "Programme",
+    "exploreUniversity": "Universität erkunden",
+    "visitWebsite": "Website besuchen",
+    "location": "Standort",
+    "established": "Gegründet",
+    "type": "Art",
+    "ranking": "Ranking"
+  },
+  "profile": {
+    "title": "Mein Profil",
+    "personalInfo": "Persönliche Informationen",
+    "academicBackground": "Akademischer Hintergrund",
+    "studyPreferences": "Studienvorlieben",
+    "languageCertificates": "Sprachzertifikate",
+    "preferredFields": "Bevorzugte Studienbereiche",
+    "preferredCities": "Bevorzugte Städte",
+    "saveProfile": "Profil speichern",
+    "profileSaved": "Profil erfolgreich gespeichert",
+    "completionRate": "Profilvollständigkeit"
+  },
+  "auth": {
+    "signin": "Anmelden",
+    "signup": "Registrieren",
+    "signout": "Abmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "fullName": "Vollständiger Name",
+    "dateOfBirth": "Geburtsdatum",
+    "phone": "Telefonnummer",
+    "gender": "Geschlecht",
+    "male": "Männlich",
+    "female": "Weiblich",
+    "other": "Andere",
+    "createAccount": "Konto erstellen",
+    "signInToAccount": "Bei Ihrem Konto anmelden",
+    "welcomeBack": "Willkommen zurück!",
+    "getStarted": "Loslegen mit University Assist",
+    "alreadyHaveAccount": "Haben Sie bereits ein Konto?",
+    "dontHaveAccount": "Haben Sie noch kein Konto?",
+    "forgotPassword": "Passwort vergessen?",
+    "rememberMe": "Angemeldet bleiben"
+  },
+  "applications": {
+    "status": {
+      "not_started": "Nicht begonnen",
+      "in_progress": "In Bearbeitung",
+      "submitted": "Eingereicht",
+      "under_review": "In Prüfung",
+      "accepted": "Angenommen",
+      "rejected": "Abgelehnt",
+      "waitlisted": "Warteliste"
+    },
+    "intake": {
+      "winter": "Winter",
+      "summer": "Sommer",
+      "spring": "Frühling",
+      "fall": "Herbst"
+    }
+  },
+  "packages": {
+    "title": "Service-Pakete",
+    "subtitle": "Wählen Sie das richtige Unterstützungsniveau für Ihre Bewerbungsreise",
+    "features": "Funktionen",
+    "selectPackage": "Paket auswählen",
+    "popular": "Am beliebtesten",
+    "recommended": "Empfohlen"
+  },
+  "footer": {
+    "disclaimer": "Nicht verbunden mit uni-assist e.V., DAAD oder deutschen Universitäten. Alle Markenzeichen gehören ihren Eigentümern."
+  }
+}

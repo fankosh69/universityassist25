@@ -1,0 +1,135 @@
+{
+  "navigation": {
+    "home": "الرئيسية",
+    "search": "البحث عن البرامج",
+    "cities": "المدن",
+    "universities": "الجامعات",
+    "saved": "البرامج المحفوظة",
+    "dashboard": "لوحة التحكم",
+    "profile": "الملف الشخصي",
+    "signin": "تسجيل الدخول",
+    "signup": "ابدأ الآن",
+    "signout": "تسجيل الخروج"
+  },
+  "common": {
+    "loading": "جارٍ التحميل...",
+    "error": "خطأ",
+    "success": "نجح",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "search": "بحث",
+    "filter": "تصفية",
+    "apply": "تطبيق",
+    "reset": "إعادة تعيين",
+    "viewAll": "عرض الكل",
+    "showMore": "عرض المزيد",
+    "showLess": "عرض أقل"
+  },
+  "programs": {
+    "title": "برامج الجامعات الألمانية",
+    "searchPlaceholder": "البحث في البرامج أو الجامعات أو المجالات...",
+    "noResults": "لا توجد برامج",
+    "saveProgram": "حفظ البرنامج",
+    "programSaved": "تم حفظ البرنامج",
+    "removeSaved": "إزالة من المحفوظات",
+    "applyNow": "قدم الآن",
+    "visitUniversity": "زيارة الجامعة",
+    "applicationDeadline": "موعد التقديم الأخير",
+    "semesterStart": "بداية الفصل الدراسي",
+    "tuitionFees": "الرسوم الدراسية",
+    "duration": "المدة",
+    "semesters": "فصول دراسية",
+    "free": "مجاني",
+    "perYear": "/سنة",
+    "availableToApply": "متاح للتقديم",
+    "applicationClosed": "التقديم مغلق",
+    "nextIntake": "القبول التالي"
+  },
+  "cities": {
+    "title": "المدن الألمانية",
+    "subtitle": "استكشف الجامعات في جميع أنحاء ألمانيا",
+    "universitiesCount": "جامعات",
+    "exploreCity": "استكشف المدينة",
+    "mapView": "عرض الخريطة",
+    "listView": "عرض القائمة"
+  },
+  "universities": {
+    "title": "الجامعات الألمانية",
+    "subtitle": "اكتشف أفضل الجامعات في ألمانيا",
+    "programsCount": "برامج",
+    "exploreUniversity": "استكشف الجامعة",
+    "visitWebsite": "زيارة الموقع",
+    "location": "الموقع",
+    "established": "تأسست",
+    "type": "النوع",
+    "ranking": "التصنيف"
+  },
+  "profile": {
+    "title": "ملفي الشخصي",
+    "personalInfo": "المعلومات الشخصية",
+    "academicBackground": "الخلفية الأكاديمية",
+    "studyPreferences": "تفضيلات الدراسة",
+    "languageCertificates": "شهادات اللغة",
+    "preferredFields": "المجالات المفضلة للدراسة",
+    "preferredCities": "المدن المفضلة",
+    "saveProfile": "حفظ الملف الشخصي",
+    "profileSaved": "تم حفظ الملف الشخصي بنجاح",
+    "completionRate": "معدل اكتمال الملف الشخصي"
+  },
+  "auth": {
+    "signin": "تسجيل الدخول",
+    "signup": "إنشاء حساب",
+    "signout": "تسجيل الخروج",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "fullName": "الاسم الكامل",
+    "dateOfBirth": "تاريخ الميلاد",
+    "phone": "رقم الهاتف",
+    "gender": "الجنس",
+    "male": "ذكر",
+    "female": "أنثى",
+    "other": "آخر",
+    "createAccount": "إنشاء حساب",
+    "signInToAccount": "تسجيل الدخول إلى حسابك",
+    "welcomeBack": "مرحباً بعودتك!",
+    "getStarted": "ابدأ مع University Assist",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "dontHaveAccount": "ليس لديك حساب؟",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "rememberMe": "تذكرني"
+  },
+  "applications": {
+    "status": {
+      "not_started": "لم يبدأ",
+      "in_progress": "قيد التقدم",
+      "submitted": "تم التقديم",
+      "under_review": "قيد المراجعة",
+      "accepted": "مقبول",
+      "rejected": "مرفوض",
+      "waitlisted": "في قائمة الانتظار"
+    },
+    "intake": {
+      "winter": "الشتاء",
+      "summer": "الصيف",
+      "spring": "الربيع",
+      "fall": "الخريف"
+    }
+  },
+  "packages": {
+    "title": "باقات الخدمات",
+    "subtitle": "اختر المستوى المناسب من الدعم لرحلة تقديمك",
+    "features": "الميزات",
+    "selectPackage": "اختر الباقة",
+    "popular": "الأكثر شعبية",
+    "recommended": "موصى به"
+  },
+  "footer": {
+    "disclaimer": "غير تابع لـ uni-assist e.V. أو DAAD أو الجامعات الألمانية. جميع العلامات التجارية تنتمي لأصحابها."
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "navigation": {
+    "home": "Home",
+    "search": "Search Programs",
+    "cities": "Cities",
+    "universities": "Universities",
+    "saved": "Saved Programs",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "signin": "Sign In",
+    "signup": "Get Started",
+    "signout": "Sign Out"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "apply": "Apply",
+    "reset": "Reset",
+    "viewAll": "View All",
+    "showMore": "Show More",
+    "showLess": "Show Less"
+  },
+  "programs": {
+    "title": "German University Programs",
+    "searchPlaceholder": "Search programs, universities, or fields...",
+    "noResults": "No programs found",
+    "saveProgram": "Save Program",
+    "programSaved": "Program Saved",
+    "removeSaved": "Remove from Saved",
+    "applyNow": "Apply Now",
+    "visitUniversity": "Visit University",
+    "applicationDeadline": "Application Deadline",
+    "semesterStart": "Semester Start",
+    "tuitionFees": "Tuition Fees",
+    "duration": "Duration",
+    "semesters": "semesters",
+    "free": "Free",
+    "perYear": "/year",
+    "availableToApply": "Available to Apply",
+    "applicationClosed": "Application Closed",
+    "nextIntake": "Next Intake"
+  },
+  "cities": {
+    "title": "German Cities",
+    "subtitle": "Explore universities across Germany",
+    "universitiesCount": "universities",
+    "exploreCity": "Explore City",
+    "mapView": "Map View",
+    "listView": "List View"
+  },
+  "universities": {
+    "title": "German Universities",
+    "subtitle": "Discover top universities in Germany",
+    "programsCount": "programs",
+    "exploreUniversity": "Explore University",
+    "visitWebsite": "Visit Website",
+    "location": "Location",
+    "established": "Established",
+    "type": "Type",
+    "ranking": "Ranking"
+  },
+  "profile": {
+    "title": "My Profile",
+    "personalInfo": "Personal Information",
+    "academicBackground": "Academic Background",
+    "studyPreferences": "Study Preferences",
+    "languageCertificates": "Language Certificates",
+    "preferredFields": "Preferred Fields of Study",
+    "preferredCities": "Preferred Cities",
+    "saveProfile": "Save Profile",
+    "profileSaved": "Profile saved successfully",
+    "completionRate": "Profile Completion"
+  },
+  "auth": {
+    "signin": "Sign In",
+    "signup": "Sign Up",
+    "signout": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "fullName": "Full Name",
+    "dateOfBirth": "Date of Birth",
+    "phone": "Phone Number",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "createAccount": "Create Account",
+    "signInToAccount": "Sign in to your account",
+    "welcomeBack": "Welcome back!",
+    "getStarted": "Get started with University Assist",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "forgotPassword": "Forgot your password?",
+    "rememberMe": "Remember me"
+  },
+  "applications": {
+    "status": {
+      "not_started": "Not Started",
+      "in_progress": "In Progress", 
+      "submitted": "Submitted",
+      "under_review": "Under Review",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "waitlisted": "Waitlisted"
+    },
+    "intake": {
+      "winter": "Winter",
+      "summer": "Summer", 
+      "spring": "Spring",
+      "fall": "Fall"
+    }
+  },
+  "packages": {
+    "title": "Service Packages",
+    "subtitle": "Choose the right support level for your application journey",
+    "features": "Features",
+    "selectPackage": "Select Package",
+    "popular": "Most Popular",
+    "recommended": "Recommended"
+  },
+  "footer": {
+    "disclaimer": "Not affiliated with uni-assist e.V., DAAD or German universities. All trademarks belong to their owners."
+  }
+}
