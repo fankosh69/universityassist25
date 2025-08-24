@@ -49,12 +49,12 @@ const EnhancedSearch: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   
   const [filters, setFilters] = useState<SearchFilters>({
-    degreeLevel: '',
-    fieldOfStudy: '',
-    city: '',
-    maxTuitionFees: '',
+    degreeLevel: 'all',
+    fieldOfStudy: 'all',
+    city: 'all',
+    maxTuitionFees: 'all',
     uniAssistRequired: null,
-    duration: ''
+    duration: 'all'
   });
 
   // Get unique filter options
@@ -136,23 +136,23 @@ const EnhancedSearch: React.FC = () => {
     }
 
     // Apply filters
-    if (filters.degreeLevel) {
+    if (filters.degreeLevel && filters.degreeLevel !== 'all') {
       filtered = filtered.filter(p => p.degree_level === filters.degreeLevel);
     }
-    if (filters.fieldOfStudy) {
+    if (filters.fieldOfStudy && filters.fieldOfStudy !== 'all') {
       filtered = filtered.filter(p => p.field_of_study === filters.fieldOfStudy);
     }
-    if (filters.city) {
+    if (filters.city && filters.city !== 'all') {
       filtered = filtered.filter(p => p.universities?.city === filters.city);
     }
-    if (filters.maxTuitionFees) {
+    if (filters.maxTuitionFees && filters.maxTuitionFees !== 'all') {
       const maxFees = parseInt(filters.maxTuitionFees);
       filtered = filtered.filter(p => (p.tuition_fees || 0) <= maxFees);
     }
     if (filters.uniAssistRequired !== null) {
       filtered = filtered.filter(p => p.uni_assist_required === filters.uniAssistRequired);
     }
-    if (filters.duration) {
+    if (filters.duration && filters.duration !== 'all') {
       filtered = filtered.filter(p => p.duration_semesters === parseInt(filters.duration));
     }
 
@@ -202,18 +202,18 @@ const EnhancedSearch: React.FC = () => {
 
   const clearFilters = () => {
     setFilters({
-      degreeLevel: '',
-      fieldOfStudy: '',
-      city: '',
-      maxTuitionFees: '',
+      degreeLevel: 'all',
+      fieldOfStudy: 'all',
+      city: 'all',
+      maxTuitionFees: 'all',
       uniAssistRequired: null,
-      duration: ''
+      duration: 'all'
     });
     setSearchQuery('');
   };
 
   const hasActiveFilters = Object.values(filters).some(value => 
-    value !== '' && value !== null
+    value !== 'all' && value !== null && value !== ''
   ) || searchQuery.trim() !== '';
 
   if (loading) {
@@ -269,12 +269,13 @@ const EnhancedSearch: React.FC = () => {
             )}
             {Object.entries(filters).map(([key, value]) => {
               if (!value && value !== false) return null;
+              if (value === 'all') return null;
               return (
                 <Badge key={key} variant="secondary" className="flex items-center gap-1">
                   {key}: {value.toString()}
                   <X 
                     className="h-3 w-3 cursor-pointer" 
-                    onClick={() => setFilters(prev => ({ ...prev, [key]: key === 'uniAssistRequired' ? null : '' }))} 
+                    onClick={() => setFilters(prev => ({ ...prev, [key]: key === 'uniAssistRequired' ? null : 'all' }))} 
                   />
                 </Badge>
               );
@@ -300,7 +301,7 @@ const EnhancedSearch: React.FC = () => {
                       <SelectValue placeholder="Any level" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any level</SelectItem>
+                      <SelectItem value="all">Any level</SelectItem>
                       {filterOptions.degreeLevels.map(level => (
                         <SelectItem key={level} value={level}>{level}</SelectItem>
                       ))}
@@ -315,7 +316,7 @@ const EnhancedSearch: React.FC = () => {
                       <SelectValue placeholder="Any field" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any field</SelectItem>
+                      <SelectItem value="all">Any field</SelectItem>
                       {filterOptions.fieldsOfStudy.map(field => (
                         <SelectItem key={field} value={field}>{field}</SelectItem>
                       ))}
@@ -330,7 +331,7 @@ const EnhancedSearch: React.FC = () => {
                       <SelectValue placeholder="Any city" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any city</SelectItem>
+                      <SelectItem value="all">Any city</SelectItem>
                       {filterOptions.cities.map(city => (
                         <SelectItem key={city} value={city}>{city}</SelectItem>
                       ))}
@@ -345,7 +346,7 @@ const EnhancedSearch: React.FC = () => {
                       <SelectValue placeholder="Any amount" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any amount</SelectItem>
+                      <SelectItem value="all">Any amount</SelectItem>
                       <SelectItem value="0">Free only</SelectItem>
                       <SelectItem value="1000">Up to €1,000</SelectItem>
                       <SelectItem value="5000">Up to €5,000</SelectItem>
@@ -362,7 +363,7 @@ const EnhancedSearch: React.FC = () => {
                       <SelectValue placeholder="Any duration" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any duration</SelectItem>
+                      <SelectItem value="all">Any duration</SelectItem>
                       {filterOptions.durations.map(duration => (
                         <SelectItem key={duration} value={duration.toString()}>{duration} semesters</SelectItem>
                       ))}

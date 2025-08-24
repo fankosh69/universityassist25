@@ -29,8 +29,8 @@ export default function Universities() {
   const [filteredUniversities, setFilteredUniversities] = useState<University[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState<string>("");
-  const [selectedCity, setSelectedCity] = useState<string>("");
+  const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedCity, setSelectedCity] = useState<string>("all");
   const [cities, setCities] = useState<string[]>([]);
   const [types, setTypes] = useState<string[]>([]);
 
@@ -90,11 +90,11 @@ export default function Universities() {
       );
     }
 
-    if (selectedType) {
+    if (selectedType && selectedType !== 'all') {
       filtered = filtered.filter(university => university.type === selectedType);
     }
 
-    if (selectedCity) {
+    if (selectedCity && selectedCity !== 'all') {
       filtered = filtered.filter(university => university.city === selectedCity);
     }
 
@@ -177,7 +177,7 @@ export default function Universities() {
                   <SelectValue placeholder="University Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   {types.map((type) => (
                     <SelectItem key={type} value={type}>{type}</SelectItem>
                   ))}
@@ -189,7 +189,7 @@ export default function Universities() {
                   <SelectValue placeholder="City" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Cities</SelectItem>
+                  <SelectItem value="all">All Cities</SelectItem>
                   {cities.map((city) => (
                     <SelectItem key={city} value={city}>{city}</SelectItem>
                   ))}
@@ -200,8 +200,8 @@ export default function Universities() {
                 variant="outline" 
                 onClick={() => {
                   setSearchTerm("");
-                  setSelectedType("");
-                  setSelectedCity("");
+                  setSelectedType("all");
+                  setSelectedCity("all");
                 }}
               >
                 Clear Filters
@@ -300,8 +300,8 @@ export default function Universities() {
                 variant="outline"
                 onClick={() => {
                   setSearchTerm("");
-                  setSelectedType("");
-                  setSelectedCity("");
+                  setSelectedType("all");
+                  setSelectedCity("all");
                 }}
               >
                 Clear All Filters
