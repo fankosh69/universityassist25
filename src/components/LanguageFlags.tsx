@@ -60,3 +60,6 @@ export const LanguageFlags: React.FC<LanguageFlagsProps> = ({
     </div>
   );
 };
+
+// Default export for compatibility
+export default LanguageFlags;
