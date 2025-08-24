@@ -11,6 +11,11 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Search from "./pages/Search";
 import SavedPrograms from "./pages/SavedPrograms";
+import Cities from "./pages/Cities";
+import CityDetail from "./pages/CityDetail";
+import Universities from "./pages/Universities";
+import UniversityDetail from "./pages/UniversityDetail";
+import ProgramDetail from "./pages/ProgramDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -69,6 +74,11 @@ const App = () => {
               path="/saved" 
               element={user ? <SavedPrograms /> : <Navigate to="/auth" />} 
             />
+            <Route path="/cities" element={<Cities />} />
+            <Route path="/cities/:citySlug" element={<CityDetail />} />
+            <Route path="/universities" element={<Universities />} />
+            <Route path="/universities/:universitySlug" element={<UniversityDetail />} />
+            <Route path="/universities/:universitySlug/programs/:programSlug" element={<ProgramDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
