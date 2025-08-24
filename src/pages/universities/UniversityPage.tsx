@@ -66,10 +66,10 @@ export default function UniversityPage() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <h1 className="text-4xl font-bold mb-2">{university.name}</h1>
-              <div className="flex items-center gap-2 text-muted-foreground mb-4">
-                <MapPin className="h-4 w-4" />
-                <span>{university.city}</span>
-              </div>
+          <div className="flex items-center gap-2 text-muted-foreground mb-4">
+            <MapPin className="h-4 w-4" />
+            <span>{university.city}, {university.state || 'Germany'}</span>
+          </div>
               <div className="flex gap-2">
                 <Badge variant="outline">{university.type || 'Public University'}</Badge>
                 {university.ranking && (
@@ -195,7 +195,7 @@ export default function UniversityPage() {
                   <div>
                     <h3 className="font-semibold mb-2">Basic Information</h3>
                     <div className="space-y-2 text-sm">
-                      <p><span className="font-medium">Location:</span> {university.city}</p>
+                      <p><span className="font-medium">Location:</span> {university.city}, {university.state || 'Germany'}</p>
                       <p><span className="font-medium">Type:</span> {university.type || 'Public University'}</p>
                       {university.ranking && (
                         <p><span className="font-medium">Ranking:</span> #{university.ranking}</p>

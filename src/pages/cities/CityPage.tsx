@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import UniMap from '@/components/maps/UniMap';
@@ -86,16 +86,15 @@ export default function CityPage() {
               <CardContent>
                 <div className="space-y-4">
                   {universities.map(uni => (
-                    <div key={uni.id} className="border-b pb-4 last:border-b-0">
-                      <h3 className="font-semibold">{uni.name}</h3>
+                  <div className="border-b pb-4 last:border-b-0">
+                    <Link 
+                      to={`/universities/${uni.slug || uni.id}`}
+                      className="block hover:bg-muted/50 rounded p-2 transition-colors"
+                    >
+                      <h3 className="font-semibold hover:text-primary transition-colors">{uni.name}</h3>
                       <p className="text-sm text-muted-foreground">{uni.type}</p>
-                      <a 
-                        href={`/universities/${uni.slug || uni.id}`}
-                        className="text-primary text-sm hover:underline"
-                      >
-                        View Programs →
-                      </a>
-                    </div>
+                    </Link>
+                  </div>
                   ))}
                 </div>
               </CardContent>

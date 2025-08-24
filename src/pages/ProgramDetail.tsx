@@ -37,6 +37,7 @@ interface Program {
   universities: {
     name: string;
     city: string;
+    state?: string;
     type: string;
     slug: string;
   };
@@ -239,16 +240,29 @@ export default function ProgramDetail() {
               >
                 {program.universities.name}
               </Link>
-              <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-4">
-                <div className="flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5" />
-                  <span>{program.universities.name}</span>
+                <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-4">
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5" />
+                    <Link 
+                      to={`/universities/${universitySlug}`}
+                      className="hover:text-primary transition-colors"
+                    >
+                      {program.universities.name}
+                    </Link>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    <Link 
+                      to={`/cities/${program.universities.city.toLowerCase().replace(/\s+/g, '-')}`}
+                      className="hover:text-primary transition-colors"
+                    >
+                      {program.universities.city}
+                    </Link>
+                    {program.universities.state && (
+                      <span>, {program.universities.state}</span>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  <span>{program.universities.city}</span>
-                </div>
-              </div>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary">
                   {program.degree_type.charAt(0).toUpperCase() + program.degree_type.slice(1).toLowerCase()}
@@ -333,10 +347,10 @@ export default function ProgramDetail() {
               </CardContent>
             </Card>
 
-            {/* Application Deadlines & Intake Information */}
+            {/* Application Periods & Intake Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Application Information</CardTitle>
+                <CardTitle>Application Periods</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Intake Availability */}
@@ -384,7 +398,7 @@ export default function ProgramDetail() {
                   </div>
                 </div>
 
-                {/* Deadlines */}
+                {/* Application Periods */}
                 <div>
                   <h4 className="font-semibold mb-2">Application Periods</h4>
                   <div className="space-y-3">
@@ -394,9 +408,12 @@ export default function ProgramDetail() {
                           <Calendar className="h-4 w-4" />
                           <span className="font-medium">Winter Intake</span>
                         </div>
-                        <span className="text-muted-foreground">
-                          {new Date(program.winter_deadline).toLocaleDateString()}
-                        </span>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">Application Deadline</p>
+                          <span className="text-muted-foreground">
+                            {new Date(program.winter_deadline).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
                     )}
                     {program.summer_intake && program.summer_deadline && (
@@ -405,9 +422,12 @@ export default function ProgramDetail() {
                           <Calendar className="h-4 w-4" />
                           <span className="font-medium">Summer Intake</span>
                         </div>
-                        <span className="text-muted-foreground">
-                          {new Date(program.summer_deadline).toLocaleDateString()}
-                        </span>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">Application Deadline</p>
+                          <span className="text-muted-foreground">
+                            {new Date(program.summer_deadline).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
                     )}
                     {program.program_deadlines?.length > 0 && program.program_deadlines.map((deadline, index) => (
@@ -418,9 +438,12 @@ export default function ProgramDetail() {
                             {deadline.intake.charAt(0).toUpperCase() + deadline.intake.slice(1)} Intake
                           </span>
                         </div>
-                        <span className="text-muted-foreground">
-                          {new Date(deadline.application_deadline).toLocaleDateString()}
-                        </span>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">Application Deadline</p>
+                          <span className="text-muted-foreground">
+                            {new Date(deadline.application_deadline).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -484,24 +507,24 @@ export default function ProgramDetail() {
                 <CardTitle>University</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  <div>
-                   <Link 
-                     to={`/universities/${universitySlug}`}
-                     className="font-medium hover:text-primary transition-colors"
-                   >
-                     {program.universities.name}
-                   </Link>
-                    <p className="text-sm text-muted-foreground">
-                      {program.universities.type} in {program.universities.city}
-                    </p>
-                  </div>
-                  <Link to={`/universities/${universitySlug}`}>
-                    <Button variant="outline" size="sm" className="w-full">
-                      View University Details
-                    </Button>
-                  </Link>
-                </div>
+                    <div className="space-y-3">
+                      <div>
+                        <Link 
+                          to={`/universities/${universitySlug}`}
+                          className="font-medium hover:text-primary transition-colors"
+                        >
+                          {program.universities.name}
+                        </Link>
+                        <p className="text-sm text-muted-foreground">
+                          {program.universities.type} in {program.universities.city}
+                        </p>
+                      </div>
+                      <Link to={`/universities/${universitySlug}`}>
+                        <Button variant="outline" size="sm" className="w-full">
+                          View University Details
+                        </Button>
+                      </Link>
+                    </div>
               </CardContent>
             </Card>
 

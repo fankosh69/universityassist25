@@ -27,7 +27,9 @@ import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { AdminPrograms } from "./pages/admin/AdminPrograms";
 import { AdminUniversities } from "./pages/admin/AdminUniversities";
-import AdminSecurity from "./pages/admin/AdminSecurity";
+import { AdminCities } from "./pages/admin/AdminCities";
+import { AdminUsers } from "./pages/admin/AdminUsers";
+import { AdminServicePackages } from "./pages/admin/AdminServicePackages";
 
 const queryClient = new QueryClient();
 
@@ -97,11 +99,10 @@ const App = () => {
             <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
             <Route path="/admin/programs" element={<AdminLayout><AdminPrograms /></AdminLayout>} />
             <Route path="/admin/security" element={<AdminLayout><AdminSecurity /></AdminLayout>} />
-            <Route path="/admin/cities" element={<AdminLayout><div>Cities Management</div></AdminLayout>} />
+            <Route path="/admin/cities" element={<AdminLayout><AdminCities /></AdminLayout>} />
             <Route path="/admin/universities" element={<AdminLayout><AdminUniversities /></AdminLayout>} />
-            <Route path="/admin/periods" element={<AdminLayout><div>Application Periods</div></AdminLayout>} />
-            <Route path="/admin/packages" element={<AdminLayout><div>Service Packages</div></AdminLayout>} />
-            <Route path="/admin/users" element={<AdminLayout><div>User Management</div></AdminLayout>} />
+            <Route path="/admin/packages" element={<AdminLayout><AdminServicePackages /></AdminLayout>} />
+            <Route path="/admin/users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
             
             {/* Legacy routes */}
             <Route path="/cities/:citySlug" element={<CityDetail />} />

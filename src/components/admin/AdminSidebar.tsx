@@ -33,7 +33,6 @@ const adminMenuItems = [
   { title: "Cities", url: "/admin/cities", icon: MapPin },
   { title: "Universities", url: "/admin/universities", icon: Building },
   { title: "Programs", url: "/admin/programs", icon: GraduationCap },
-  { title: "Application Periods", url: "/admin/periods", icon: Calendar },
   { title: "Service Packages", url: "/admin/packages", icon: Package },
   { title: "User Management", url: "/admin/users", icon: Users },
   { title: "Security", url: "/admin/security", icon: Shield },
