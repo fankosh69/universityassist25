@@ -1,22 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, User, Search as SearchIcon, Bookmark } from "lucide-react";
+import { LogOut, User, Search as SearchIcon, Bookmark, Settings } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Logo from "@/components/Logo";
 import LanguageSelector from "@/components/LanguageSelector";
+import { useAdmin } from "@/hooks/useAdmin";
 
 const Navigation = () => {
   const [user, setUser] = useState<any>(null);
+  const [session, setSession] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useTranslation('common');
+  const { isAdmin, loading: adminLoading } = useAdmin();
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
       setUser(session?.user ?? null);
     });
 
@@ -24,6 +28,7 @@ const Navigation = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
       setUser(session?.user ?? null);
     });
 
@@ -75,6 +80,12 @@ const Navigation = () => {
                 <Bookmark className="h-4 w-4" />
                 {t('navigation.saved')}
               </Link>
+              {isAdmin && !adminLoading && (
+                <Link to="/admin" className="text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+                  <Settings className="h-4 w-4" />
+                  Admin
+                </Link>
+              )}
               <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
                 <User className="h-4 w-4" />
                 {t('navigation.profile')}

@@ -5,8 +5,10 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { User, BookOpen, Target, Award, GraduationCap } from "lucide-react";
+import { User, BookOpen, Target, Award, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Navigation from "@/components/Navigation";
+import { useAdmin } from "@/hooks/useAdmin";
 
 interface Profile {
   full_name: string;
@@ -35,6 +37,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { isAdmin, loading: adminLoading } = useAdmin();
 
   useEffect(() => {
     fetchDashboardData();
@@ -124,29 +127,29 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="bg-white/95 backdrop-blur-sm border-b shadow-soft sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-foreground">UniMatch Germany</span>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" onClick={() => navigate("/search")}>
-              Browse Programs
-            </Button>
-            <Button variant="ghost" onClick={() => navigate("/profile")}>
-              My Profile
-            </Button>
-            <Button variant="outline" onClick={async () => {
-              await supabase.auth.signOut();
-              navigate("/");
-            }}>
-              Sign Out
-            </Button>
+      <Navigation />
+      
+      {/* Admin Quick Access */}
+      {isAdmin && !adminLoading && (
+        <div className="bg-primary/10 border-b">
+          <div className="container mx-auto px-4 py-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">Admin Dashboard</span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate("/admin")}
+                className="border-primary text-primary hover:bg-primary hover:text-white"
+              >
+                Go to Admin Panel
+              </Button>
+            </div>
           </div>
         </div>
-      </nav>
+      )}
 
       <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Header */}
