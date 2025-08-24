@@ -67,6 +67,10 @@ const Index = () => {
             src={heroImage}
             alt="German University Campus"
             className="w-full h-full object-cover opacity-20"
+            width="1920"
+            height="749"
+            loading="eager"
+            decoding="async"
           />
         </div>
         <div className="relative container mx-auto px-4 py-24 text-center text-white">
@@ -239,7 +243,15 @@ const Index = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <Link to="/">
-                <img src="/university-assist-logo.png" alt="University Assist" className="h-8" />
+                <img 
+                  src="/university-assist-logo.png" 
+                  alt="University Assist" 
+                  className="h-8"
+                  width="200"
+                  height="32"
+                  loading="lazy"
+                  decoding="async"
+                />
               </Link>
               <p className="text-white/70">
                 {t('footer.tagline')}

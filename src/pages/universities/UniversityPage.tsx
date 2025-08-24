@@ -143,6 +143,10 @@ export default function UniversityPage() {
                           src={ambassador.photo_url}
                           alt={ambassador.full_name}
                           className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
+                          width="80"
+                          height="80"
+                          loading="lazy"
+                          decoding="async"
                         />
                       )}
                       <h3 className="font-semibold text-lg mb-2">{ambassador.full_name}</h3>

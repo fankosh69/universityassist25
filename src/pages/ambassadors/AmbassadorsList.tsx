@@ -139,6 +139,10 @@ export default function AmbassadorsList() {
                       src={ambassador.photo_url}
                       alt={ambassador.full_name}
                       className="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-4 border-primary/10"
+                      width="96"
+                      height="96"
+                      loading="lazy"
+                      decoding="async"
                     />
                   )}
                   

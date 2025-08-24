@@ -54,6 +54,10 @@ export default function AmbassadorProfile() {
                     src={ambassador.photo_url}
                     alt={ambassador.full_name}
                     className="w-32 h-32 rounded-full object-cover border-4 border-primary/10"
+                    width="128"
+                    height="128"
+                    loading="lazy"
+                    decoding="async"
                   />
                 )}
                 

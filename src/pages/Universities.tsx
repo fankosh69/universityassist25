@@ -225,11 +225,15 @@ export default function Universities() {
                 <div className="flex items-start gap-4">
                   {university.logo_url && (
                     <div className="flex-shrink-0">
-                      <img 
-                        src={university.logo_url} 
-                        alt={`${university.name} logo`}
-                        className="w-16 h-16 object-contain rounded-lg bg-white p-2"
-                      />
+                       <img 
+                         src={university.logo_url} 
+                         alt={`${university.name} logo`}
+                         className="w-16 h-16 object-contain rounded-lg bg-white p-2"
+                         width="64"
+                         height="64"
+                         loading="lazy"
+                         decoding="async"
+                       />
                     </div>
                   )}
                   <div className="flex-1">

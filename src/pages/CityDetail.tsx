@@ -221,6 +221,10 @@ export default function CityDetail() {
                             src={university.logo_url} 
                             alt={`${university.name} logo`}
                             className="w-12 h-12 object-contain rounded-lg bg-white p-1"
+                            width="48"
+                            height="48"
+                            loading="lazy"
+                            decoding="async"
                           />
                         </div>
                       )}

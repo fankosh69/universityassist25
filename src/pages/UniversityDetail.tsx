@@ -153,6 +153,10 @@ export default function UniversityDetail() {
                     src={university.logo_url} 
                     alt={`${university.name} logo`}
                     className="w-20 h-20 object-contain rounded-lg bg-white p-2"
+                    width="80"
+                    height="80"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
               )}
