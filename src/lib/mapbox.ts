@@ -75,16 +75,15 @@ export function createMarkerPopupHTML(marker: MapMarker): string {
   } else {
     return `
       <div class="p-3">
-        <h3 class="font-semibold text-lg mb-2">${marker.name}</h3>
+        <h3 class="font-semibold text-lg mb-2">
+          <a href="/universities/${marker.data.slug || marker.data.id}" class="text-primary hover:underline cursor-pointer">
+            ${marker.name}
+          </a>
+        </h3>
         <p class="text-sm text-muted-foreground mb-2">${marker.data.city}</p>
-        <div class="space-y-2">
-          <button onclick="window.location.href='/universities/${marker.data.slug || marker.data.id}'" class="block w-full text-left text-primary text-sm hover:underline font-medium">
-            🏛️ View University Profile
-          </button>
-          <button onclick="window.location.href='/universities/${marker.data.slug || marker.data.id}#programs'" class="block w-full text-left text-primary text-sm hover:underline">
-            📚 View Programs (${marker.data.program_count || 0} available)
-          </button>
-        </div>
+        <button onclick="window.location.href='/universities/${marker.data.slug || marker.data.id}#programs'" class="block w-full text-left text-primary text-sm hover:underline">
+          📚 View Programs (${marker.data.program_count || 0} available)
+        </button>
       </div>
     `;
   }
