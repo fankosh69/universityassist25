@@ -12,7 +12,7 @@ import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
-import { getInstitutionTypeLabel } from '@/lib/institution-types';
+import { INSTITUTION_TYPES } from '@/lib/institution-types';
 import { MapPin, Building, Trophy, Globe, Search, GraduationCap } from "lucide-react";
 
 interface University {
@@ -192,7 +192,7 @@ export default function Universities() {
                   <SelectItem value="all">All Institution Types</SelectItem>
                   {types.map((type) => (
                     <SelectItem key={type} value={type}>
-                      {getInstitutionTypeLabel(type, 'en', false)}
+                      {INSTITUTION_TYPES.find(t => t.value === type)?.labelEn || type}
                     </SelectItem>
                   ))}
                 </SelectContent>
