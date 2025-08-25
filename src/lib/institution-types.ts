@@ -153,34 +153,46 @@ export function getControlTypeBadgeProps(value: string) {
 
 // Legacy support for existing data
 export function normalizeInstitutionType(rawType: string): string {
-  const normalized = rawType?.toLowerCase().trim();
+  if (!rawType) return 'university';
   
-  switch (normalized) {
-    case 'universität':
-    case 'university':
-      return 'university';
-    case 'technical':
-    case 'technische universität':
-    case 'technical university':
-    case 'tu':
-      return 'technical_university';
-    case 'fachhochschule':
-    case 'fh':
-    case 'university of applied sciences':
-    case 'uas':
-    case 'universities of applied sciences/haw':
-      return 'university_of_applied_sciences';
-    case 'art':
-    case 'music':
-    case 'kunst':
-    case 'musikhochschule':
-    case 'art university':
-    case 'music university':
-    case 'colleges of the arts':
-      return 'art_music_university';
-    default:
-      return normalized || 'university';
-  }
+  const normalized = rawType.toLowerCase().trim();
+  
+  // Handle various input formats
+  const mappings: Record<string, string> = {
+    'uni': 'university',
+    'university': 'university',
+    'universität': 'university',
+    'research university': 'university',
+    'classic university': 'university',
+    'comprehensive university': 'university',
+    
+    'uas': 'university_applied_sciences',
+    'fh': 'university_applied_sciences',
+    'fachhochschule': 'university_applied_sciences',
+    'university of applied sciences': 'university_applied_sciences',
+    'university_of_applied_sciences': 'university_applied_sciences',
+    'applied sciences': 'university_applied_sciences',
+    'polytechnic': 'university_applied_sciences',
+    
+    'tu': 'technical_university',
+    'technical university': 'technical_university',
+    'technische universität': 'technical_university',
+    'tech university': 'technical_university',
+    'institute of technology': 'technical_university',
+    'technology university': 'technical_university',
+    
+    'art': 'art_music_university',
+    'music': 'art_music_university',
+    'art university': 'art_music_university',
+    'music university': 'art_music_university',
+    'art/music university': 'art_music_university',
+    'kunsthochschule': 'art_music_university',
+    'musikhochschule': 'art_music_university',
+    'kunst-/musikhochschule': 'art_music_university',
+    'creative university': 'art_music_university'
+  };
+  
+  return mappings[normalized] || 'university';
 }
 
 export function normalizeControlType(rawType: string): string {

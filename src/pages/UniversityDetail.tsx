@@ -40,7 +40,7 @@ interface Program {
 }
 
 export default function UniversityDetail() {
-  const { universitySlug } = useParams();
+  const { uni } = useParams();
   const [university, setUniversity] = useState<University | null>(null);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +51,7 @@ export default function UniversityDetail() {
         const { data: universityData, error: universityError } = await supabase
           .from('universities')
           .select('*')
-          .eq('slug', universitySlug)
+          .eq('slug', uni)
           .single();
 
         if (universityError) throw universityError;
@@ -76,10 +76,10 @@ export default function UniversityDetail() {
       }
     };
 
-    if (universitySlug) {
+    if (uni) {
       fetchUniversity();
     }
-  }, [universitySlug]);
+  }, [uni]);
 
   if (loading) {
     return (
@@ -255,7 +255,7 @@ export default function UniversityDetail() {
                       )}
                       
                       <div className="pt-3">
-                        <Link to={`/universities/${universitySlug}/programs/${program.slug}`}>
+                        <Link to={`/universities/${uni}/programs/${program.slug}`}>
                           <Button className="w-full">View Details</Button>
                         </Link>
                       </div>

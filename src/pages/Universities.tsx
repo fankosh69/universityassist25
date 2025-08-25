@@ -12,6 +12,7 @@ import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
+import { getInstitutionTypeLabel } from '@/lib/institution-types';
 import { MapPin, Building, Trophy, Globe, Search, GraduationCap } from "lucide-react";
 
 interface University {
