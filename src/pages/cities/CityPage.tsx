@@ -26,26 +26,33 @@ export default function CityPage() {
       
       setCityData(cityInfo);
 
-      // Fetch universities in this city
-      const { data: unis } = await supabase
+      // Fetch ALL universities in this city
+      const { data: allUnis } = await supabase
         .from('universities')
         .select('*')
-        .eq('city_id', cityInfo?.id || '')
-        .not('lat', 'is', null)
-        .not('lng', 'is', null);
+        .eq('city_id', cityInfo?.id || '');
       
-      setUniversities(unis || []);
+      setUniversities(allUnis || []);
 
       // Create map markers - only include universities with valid coordinates
-      const markers: MapMarker[] = (unis || [])
-        .filter(uni => uni.lat && uni.lng && uni.lat !== 0 && uni.lng !== 0)
-        .map(uni => ({
+      // Add small random offsets to avoid overlapping pins
+      const validUnis = (allUnis || []).filter(uni => 
+        uni.lat && uni.lng && uni.lat !== 0 && uni.lng !== 0
+      );
+
+      const markers: MapMarker[] = validUnis.map((uni, index) => {
+        // Add small offset to avoid overlapping markers (0.001 degrees ≈ 100m)
+        const latOffset = (index % 3 - 1) * 0.001;
+        const lngOffset = (Math.floor(index / 3) % 3 - 1) * 0.001;
+        
+        return {
           id: uni.id,
           name: uni.name,
-          coordinates: [uni.lng, uni.lat],
+          coordinates: [uni.lng + lngOffset, uni.lat + latOffset],
           type: 'university' as const,
           data: { ...uni, slug: uni.slug, city: cityInfo?.name, program_count: 0 }
-        }));
+        };
+      });
       
       setMapMarkers(markers);
     }
