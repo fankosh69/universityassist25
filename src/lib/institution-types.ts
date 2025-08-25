@@ -24,8 +24,8 @@ interface ControlType {
 export const INSTITUTION_TYPES: InstitutionType[] = [
   {
     value: 'university',
-    labelEn: 'University',
-    labelDe: 'Universität',
+    labelEn: 'Universities',
+    labelDe: 'Universitäten',
     shortEn: 'Uni',
     shortDe: 'Uni',
     description: 'Traditional universities focusing on academic research and theory',
@@ -34,9 +34,9 @@ export const INSTITUTION_TYPES: InstitutionType[] = [
     category: 'institution'
   },
   {
-    value: 'university_of_applied_sciences',
-    labelEn: 'University of Applied Sciences',
-    labelDe: 'Fachhochschule',
+    value: 'university_applied_sciences',
+    labelEn: 'Universities of Applied Sciences',
+    labelDe: 'Fachhochschulen',
     shortEn: 'UAS',
     shortDe: 'FH',
     description: 'Universities focusing on practical, application-oriented education',
@@ -46,8 +46,8 @@ export const INSTITUTION_TYPES: InstitutionType[] = [
   },
   {
     value: 'technical_university',
-    labelEn: 'Technical University',
-    labelDe: 'Technische Universität',
+    labelEn: 'Technical Universities',
+    labelDe: 'Technische Universitäten',
     shortEn: 'TU',
     shortDe: 'TU',
     description: 'Universities specializing in engineering, technology, and applied sciences',
@@ -57,8 +57,8 @@ export const INSTITUTION_TYPES: InstitutionType[] = [
   },
   {
     value: 'art_music_university',
-    labelEn: 'Art/Music University',
-    labelDe: 'Kunst-/Musikhochschule',
+    labelEn: 'Art/Music Universities',
+    labelDe: 'Kunst-/Musikhochschulen',
     shortEn: 'Art/Music',
     shortDe: 'Kunst/Musik',
     description: 'Specialized universities for arts, music, and creative disciplines',

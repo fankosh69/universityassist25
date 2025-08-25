@@ -190,7 +190,9 @@ export default function Universities() {
                 <SelectContent>
                   <SelectItem value="all">All Institution Types</SelectItem>
                   {types.map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                    <SelectItem key={type} value={type}>
+                      {getInstitutionTypeLabel(type, 'en', false)}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
