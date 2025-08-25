@@ -690,6 +690,7 @@ export type Database = {
         Row: {
           city: string
           city_id: string | null
+          control_type: string | null
           country_code: string | null
           created_at: string
           external_refs: Json | null
@@ -706,6 +707,7 @@ export type Database = {
         Insert: {
           city: string
           city_id?: string | null
+          control_type?: string | null
           country_code?: string | null
           created_at?: string
           external_refs?: Json | null
@@ -722,6 +724,7 @@ export type Database = {
         Update: {
           city?: string
           city_id?: string | null
+          control_type?: string | null
           country_code?: string | null
           created_at?: string
           external_refs?: Json | null

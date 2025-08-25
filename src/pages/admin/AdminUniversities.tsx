@@ -18,7 +18,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InstitutionTypeBadge } from "@/components/InstitutionTypeBadge";
-import { INSTITUTION_TYPES } from "@/lib/institution-types";
+import { ControlTypeBadge } from "@/components/ControlTypeBadge";
+import { INSTITUTION_TYPES, CONTROL_TYPES } from "@/lib/institution-types";
 
 interface University {
   id: string;
@@ -27,6 +28,7 @@ interface University {
   website?: string;
   logo_url?: string;
   type?: string;
+  control_type?: string;
   ranking?: number;
   lat?: number;
   lng?: number;
@@ -54,6 +56,7 @@ export const AdminUniversities = () => {
     website: string;
     logo_url: string;
     type: string;
+    control_type: string;
     ranking: number | null;
     lat: number | null;
     lng: number | null;
@@ -63,6 +66,7 @@ export const AdminUniversities = () => {
     website: "",
     logo_url: "",
     type: "",
+    control_type: "public",
     ranking: null,
     lat: null,
     lng: null,
@@ -182,6 +186,7 @@ export const AdminUniversities = () => {
       website: university.website || "",
       logo_url: university.logo_url || "",
       type: university.type || "",
+      control_type: university.control_type || "public",
       ranking: university.ranking || null,
       lat: university.lat || null,
       lng: university.lng || null,
@@ -197,6 +202,7 @@ export const AdminUniversities = () => {
       website: "",
       logo_url: "",
       type: "",
+      control_type: "public",
       ranking: null,
       lat: null,
       lng: null,
@@ -283,7 +289,12 @@ export const AdminUniversities = () => {
                 )}
                 
                 {university.type && (
-                  <InstitutionTypeBadge type={university.type} />
+                  <div className="flex gap-2 flex-wrap">
+                    <InstitutionTypeBadge type={university.type} />
+                    {university.control_type && (
+                      <ControlTypeBadge type={university.control_type} />
+                    )}
+                  </div>
                 )}
                 
                 {university.ranking && (
@@ -381,9 +392,9 @@ export const AdminUniversities = () => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="type">University Type</Label>
+                <Label htmlFor="type">Institution Type</Label>
                 <Select 
                   value={formData.type} 
                   onValueChange={(value) => setFormData({ ...formData, type: value })}
@@ -393,6 +404,27 @@ export const AdminUniversities = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {INSTITUTION_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        <div className="flex items-center gap-2">
+                          <span>{type.labelEn} ({type.labelDe})</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="control_type">Control Type</Label>
+                <Select 
+                  value={formData.control_type} 
+                  onValueChange={(value) => setFormData({ ...formData, control_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select control type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CONTROL_TYPES.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
                         <div className="flex items-center gap-2">
                           <span>{type.labelEn} ({type.labelDe})</span>

@@ -10,6 +10,8 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
+import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
+import { ControlTypeBadge } from '@/components/ControlTypeBadge';
 import { MapPin, Building, Trophy, Globe, Search, GraduationCap } from "lucide-react";
 
 interface University {
@@ -17,6 +19,7 @@ interface University {
   name: string;
   city: string;
   type: string;
+  control_type?: string;
   ranking: number;
   website: string;
   logo_url: string;
@@ -30,9 +33,11 @@ export default function Universities() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedControlType, setSelectedControlType] = useState<string>("all");
   const [selectedCity, setSelectedCity] = useState<string>("all");
   const [cities, setCities] = useState<string[]>([]);
   const [types, setTypes] = useState<string[]>([]);
+  const [controlTypes, setControlTypes] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchUniversities = async () => {
@@ -63,12 +68,14 @@ export default function Universities() {
         setUniversities(universitiesWithCount);
         setFilteredUniversities(universitiesWithCount);
 
-        // Extract unique cities and types for filters
+        // Extract unique cities, types, and control types for filters
         const uniqueCities = [...new Set(universitiesWithCount.map(u => u.city))].sort();
-        const uniqueTypes = [...new Set(universitiesWithCount.map(u => u.type))].sort();
+        const uniqueTypes = [...new Set(universitiesWithCount.map(u => u.type))].filter(Boolean).sort();
+        const uniqueControlTypes = [...new Set(universitiesWithCount.map(u => u.control_type))].filter(Boolean).sort();
         
         setCities(uniqueCities);
         setTypes(uniqueTypes);
+        setControlTypes(uniqueControlTypes);
       } catch (error) {
         console.error('Error fetching universities:', error);
       } finally {
@@ -80,7 +87,7 @@ export default function Universities() {
   }, []);
 
   useEffect(() => {
-    // Filter universities based on search term, type, and city
+    // Filter universities based on search term, type, control type, and city
     let filtered = universities;
 
     if (searchTerm) {
@@ -94,12 +101,16 @@ export default function Universities() {
       filtered = filtered.filter(university => university.type === selectedType);
     }
 
+    if (selectedControlType && selectedControlType !== 'all') {
+      filtered = filtered.filter(university => university.control_type === selectedControlType);
+    }
+
     if (selectedCity && selectedCity !== 'all') {
       filtered = filtered.filter(university => university.city === selectedCity);
     }
 
     setFilteredUniversities(filtered);
-  }, [searchTerm, selectedType, selectedCity, universities]);
+  }, [searchTerm, selectedType, selectedControlType, selectedCity, universities]);
 
   if (loading) {
     return (
@@ -161,7 +172,7 @@ export default function Universities() {
         {/* Search and Filters */}
         <Card className="mb-8">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -174,12 +185,26 @@ export default function Universities() {
               
               <Select value={selectedType} onValueChange={setSelectedType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="University Type" />
+                  <SelectValue placeholder="Institution Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="all">All Institution Types</SelectItem>
                   {types.map((type) => (
                     <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedControlType} onValueChange={setSelectedControlType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Control Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Control Types</SelectItem>
+                  {controlTypes.map((controlType) => (
+                    <SelectItem key={controlType} value={controlType}>
+                      {controlType.charAt(0).toUpperCase() + controlType.slice(1)}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -201,6 +226,7 @@ export default function Universities() {
                 onClick={() => {
                   setSearchTerm("");
                   setSelectedType("all");
+                  setSelectedControlType("all");
                   setSelectedCity("all");
                 }}
               >
@@ -245,7 +271,12 @@ export default function Universities() {
                       <span className="text-sm">{university.city}</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary">{university.type}</Badge>
+                      {university.type && (
+                        <InstitutionTypeBadge type={university.type} useShort />
+                      )}
+                      {university.control_type && (
+                        <ControlTypeBadge type={university.control_type} useShort />
+                      )}
                       {university.ranking && (
                         <Badge variant="outline" className="flex items-center gap-1">
                           <Trophy className="h-3 w-3" />
@@ -305,6 +336,7 @@ export default function Universities() {
                 onClick={() => {
                   setSearchTerm("");
                   setSelectedType("all");
+                  setSelectedControlType("all");
                   setSelectedCity("all");
                 }}
               >
