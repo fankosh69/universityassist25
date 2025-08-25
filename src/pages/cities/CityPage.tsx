@@ -30,18 +30,22 @@ export default function CityPage() {
       const { data: unis } = await supabase
         .from('universities')
         .select('*')
-        .eq('city', cityInfo?.name || '');
+        .eq('city_id', cityInfo?.id || '')
+        .not('lat', 'is', null)
+        .not('lng', 'is', null);
       
       setUniversities(unis || []);
 
-      // Create map markers
-      const markers: MapMarker[] = (unis || []).map(uni => ({
-        id: uni.id,
-        name: uni.name,
-        coordinates: [uni.lng || 0, uni.lat || 0],
-        type: 'university' as const,
-        data: { ...uni, slug: uni.slug }
-      }));
+      // Create map markers - only include universities with valid coordinates
+      const markers: MapMarker[] = (unis || [])
+        .filter(uni => uni.lat && uni.lng && uni.lat !== 0 && uni.lng !== 0)
+        .map(uni => ({
+          id: uni.id,
+          name: uni.name,
+          coordinates: [uni.lng, uni.lat],
+          type: 'university' as const,
+          data: { ...uni, slug: uni.slug, city: cityInfo?.name, program_count: 0 }
+        }));
       
       setMapMarkers(markers);
     }
