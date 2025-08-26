@@ -8,11 +8,8 @@ export async function getGoogleMapsToken(): Promise<string> {
     return cachedToken;
   }
 
-  // Try environment variables first (for development)
-  const envToken = 
-    (import.meta as any)?.env?.VITE_GOOGLE_MAPS_API_KEY ||
-    (process as any)?.env?.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
-    (process as any)?.env?.REACT_APP_GOOGLE_MAPS_API_KEY;
+  // Try Vite environment variables (browser-safe)
+  const envToken = (import.meta as any)?.env?.VITE_GOOGLE_MAPS_API_KEY;
     
   if (envToken) {
     cachedToken = envToken;
