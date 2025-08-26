@@ -2,15 +2,16 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import UniMap, { type MapFeature } from '@/components/maps/UniMap';
+import UniMap from '@/components/maps/UniMap';
 import Navigation from '@/components/Navigation';
 import SEOHead from '@/components/SEOHead';
+import { type MapMarker } from '@/lib/mapbox';
 
 export default function CityPage() {
   const { city } = useParams();
   const [cityData, setCityData] = useState<any>(null);
   const [universities, setUniversities] = useState<any[]>([]);
-  const [mapFeatures, setMapFeatures] = useState<MapFeature[]>([]);
+  const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -33,12 +34,13 @@ export default function CityPage() {
       
       setUniversities(allUnis || []);
 
-      // Create map features for Google Maps - only include universities with valid coordinates
+      // Create map markers - only include universities with valid coordinates
+      // Add small random offsets to avoid overlapping pins
       const validUnis = (allUnis || []).filter(uni => 
         uni.lat && uni.lng && uni.lat !== 0 && uni.lng !== 0
       );
 
-      const features: MapFeature[] = validUnis.map((uni, index) => {
+      const markers: MapMarker[] = validUnis.map((uni, index) => {
         // Add small offset to avoid overlapping markers (0.001 degrees ≈ 100m)
         const latOffset = (index % 3 - 1) * 0.001;
         const lngOffset = (Math.floor(index / 3) % 3 - 1) * 0.001;
@@ -46,15 +48,13 @@ export default function CityPage() {
         return {
           id: uni.id,
           name: uni.name,
-          slug: uni.slug || uni.id,
-          lat: uni.lat + latOffset,
-          lng: uni.lng + lngOffset,
-          kind: 'university' as const,
-          data: { ...uni, city: cityInfo?.name, program_count: 0 }
+          coordinates: [uni.lng + lngOffset, uni.lat + latOffset],
+          type: 'university' as const,
+          data: { ...uni, slug: uni.slug, city: cityInfo?.name, program_count: 0 }
         };
       });
       
-      setMapFeatures(features);
+      setMapMarkers(markers);
     }
 
     fetchData();
@@ -81,8 +81,8 @@ export default function CityPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <UniMap 
-              features={mapFeatures}
-              center={cityData?.lat && cityData?.lng ? { lat: cityData.lat, lng: cityData.lng } : undefined}
+              markers={mapMarkers}
+              center={cityData.lat && cityData.lng ? [cityData.lng, cityData.lat] : undefined}
               zoom={11}
               height="400px"
               className="mb-8"
