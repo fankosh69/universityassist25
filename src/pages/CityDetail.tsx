@@ -8,7 +8,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
-import CityMap from "@/components/CityMap";
+import UniMap, { type MapFeature } from "@/components/maps/UniMap";
 import { MapPin, Building, Users, Trophy, Globe, Map } from "lucide-react";
 
 interface City {
@@ -36,6 +36,7 @@ export default function CityDetail() {
   const { citySlug } = useParams();
   const [city, setCity] = useState<City | null>(null);
   const [universities, setUniversities] = useState<University[]>([]);
+  const [mapFeatures, setMapFeatures] = useState<MapFeature[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -77,6 +78,28 @@ export default function CityDetail() {
         );
 
         setUniversities(universitiesWithCount);
+        
+        // Create map features for Google Maps
+        const validUnis = universitiesWithCount.filter(uni => 
+          uni.lat && uni.lng && uni.lat !== 0 && uni.lng !== 0
+        );
+
+        const features: MapFeature[] = validUnis.map((uni, index) => {
+          const latOffset = (index % 3 - 1) * 0.001;
+          const lngOffset = (Math.floor(index / 3) % 3 - 1) * 0.001;
+          
+          return {
+            id: uni.id,
+            name: uni.name,
+            slug: uni.slug || uni.id,
+            lat: (uni.lat || 0) + latOffset,
+            lng: (uni.lng || 0) + lngOffset,
+            kind: 'university' as const,
+            data: { ...uni, city: cityData.name }
+          };
+        });
+        
+        setMapFeatures(features);
       } catch (error) {
         console.error('Error fetching city data:', error);
       } finally {
@@ -195,11 +218,11 @@ export default function CityDetail() {
                 <span>Interactive Map</span>
               </div>
             </div>
-            <CityMap
-              cityId={city.id}
-              cityName={city.name}
-              cityLat={city.lat}
-              cityLng={city.lng}
+            <UniMap
+              features={mapFeatures}
+              center={city.lat && city.lng ? { lat: city.lat, lng: city.lng } : undefined}
+              zoom={11}
+              height="400px"
               className="w-full"
             />
           </div>
