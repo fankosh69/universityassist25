@@ -61,8 +61,14 @@ const Navigation = () => {
           <Link to="/cities" className="text-muted-foreground hover:text-foreground transition-colors">
             {t('navigation.cities')}
           </Link>
+          <Link to="/cities/map" className="text-muted-foreground hover:text-foreground transition-colors">
+            City Maps
+          </Link>
           <Link to="/universities" className="text-muted-foreground hover:text-foreground transition-colors">
             {t('navigation.universities')}
+          </Link>
+          <Link to="/universities/map" className="text-muted-foreground hover:text-foreground transition-colors">
+            University Maps
           </Link>
           <Link to="/search" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
             <SearchIcon className="h-4 w-4" />

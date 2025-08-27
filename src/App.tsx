@@ -32,6 +32,10 @@ import { AdminUsers } from "./pages/admin/AdminUsers";
 import { AdminServicePackages } from "./pages/admin/AdminServicePackages";
 import AdminSecurity from "./pages/admin/AdminSecurity";
 import AdminSitemap from "./pages/admin/AdminSitemap";
+import CitiesIndex from "./pages/CitiesIndex";
+import CityMapPage from "./pages/CityMapPage";
+import UniversitiesIndex from "./pages/UniversitiesIndex";
+import UniversityMapPage from "./pages/UniversityMapPage";
 
 const queryClient = new QueryClient();
 
@@ -86,9 +90,13 @@ const App = () => {
               element={user ? <SavedPrograms /> : <Navigate to="/auth" />} 
             />
             <Route path="/cities" element={<Cities />} />
+            <Route path="/cities/map" element={<CitiesIndex />} />
             <Route path="/cities/:city" element={<CityPage />} />
+            <Route path="/cities/map/:city" element={<CityMapPage />} />
             <Route path="/universities" element={<Universities />} />
+            <Route path="/universities/map" element={<UniversitiesIndex />} />
             <Route path="/universities/:uni" element={<UniversityPage />} />
+            <Route path="/universities/map/:slug" element={<UniversityMapPage />} />
             <Route path="/universities/:uni/programs/:program" element={<ProgramPage />} />
             <Route path="/ambassadors" element={<AmbassadorsList />} />
             <Route path="/ambassadors/:slug" element={<AmbassadorProfile />} />
