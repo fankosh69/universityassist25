@@ -97,11 +97,18 @@ const CityMap: React.FC<CityMapProps> = ({
       'top-right'
     );
 
-    // Add city marker
-    new mapboxgl.Marker({
-      color: '#2E57F6',
-      scale: 1.2
-    })
+    // Add city marker with custom DOM element
+    const cityMarkerEl = document.createElement('div');
+    cityMarkerEl.className = 'city-marker';
+    cityMarkerEl.innerHTML = `
+      <div class="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg border-2 border-white cursor-pointer transition-transform hover:scale-110">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+        </svg>
+      </div>
+    `;
+
+    new mapboxgl.Marker(cityMarkerEl)
       .setLngLat([cityLng, cityLat])
       .setPopup(
         new mapboxgl.Popup().setHTML(`
@@ -113,13 +120,20 @@ const CityMap: React.FC<CityMapProps> = ({
       )
       .addTo(map.current);
 
-    // Add university markers
+    // Add university markers with custom DOM elements
     universities.forEach((university) => {
       if (university.lat && university.lng) {
-        new mapboxgl.Marker({
-          color: '#5DC6C5',
-          scale: 0.8
-        })
+        const universityMarkerEl = document.createElement('div');
+        universityMarkerEl.className = 'university-marker';
+        universityMarkerEl.innerHTML = `
+          <div class="w-8 h-8 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center shadow-lg border-2 border-white cursor-pointer transition-transform hover:scale-110">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+            </svg>
+          </div>
+        `;
+
+        new mapboxgl.Marker(universityMarkerEl)
           .setLngLat([university.lng, university.lat])
           .setPopup(
             new mapboxgl.Popup().setHTML(`
