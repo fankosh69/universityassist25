@@ -30,12 +30,22 @@ interface City {
 interface University {
   id: string;
   name: string;
-  city: string;
-  lat: number;
-  lng: number;
-  type: string;
-  ranking: number;
-  external_refs: any;
+  city?: string;
+  lat?: number;
+  lng?: number;
+  type?: string;
+  ranking?: number;
+  external_refs?: any;
+  city_id?: string;
+  control_type?: string;
+  created_at?: string;
+  logo_url?: string;
+  region?: string;
+  slug?: string;
+  website?: string;
+  keywords?: string[];
+  search_doc?: any;
+  fts?: unknown;
 }
 
 export function UniversityMap({ focusCity, height = 'h-96', showControls = true }: UniversityMapProps) {
@@ -80,8 +90,7 @@ export function UniversityMap({ focusCity, height = 'h-96', showControls = true 
         const { data: universitiesData, error: universitiesError } = await supabase
           .from('universities')
           .select('*')
-          .eq('country_code', 'DE')
-          .order('ranking');
+          .order('ranking', { nullsFirst: false });
 
         if (universitiesError) throw universitiesError;
 

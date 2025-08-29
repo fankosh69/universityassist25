@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`Completed: ${upsertedCities} cities, ${uniUnis} universities`);
+    console.log(`Completed: ${upsertedCities} cities, ${upsertedUnis} universities`);
 
     return new Response(JSON.stringify({ 
       success: true,

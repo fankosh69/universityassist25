@@ -8,6 +8,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
+import SEOCityPage from "@/components/SEOCityPage";
 import CityMap from "@/components/CityMap";
 import { MapPin, Building, Users, Trophy, Globe, Map } from "lucide-react";
 
@@ -24,12 +25,23 @@ interface City {
 interface University {
   id: string;
   name: string;
-  type: string;
-  ranking: number;
-  website: string;
-  logo_url: string;
+  type?: string;
+  ranking?: number;
+  website?: string;
+  logo_url?: string;
   slug: string;
   program_count?: number;
+  city?: string;
+  city_id?: string;
+  control_type?: string;
+  created_at?: string;
+  lat?: number;
+  lng?: number;
+  region?: string;
+  keywords?: string[];
+  search_doc?: any;
+  fts?: unknown;
+  external_refs?: any;
 }
 
 export default function CityDetail() {

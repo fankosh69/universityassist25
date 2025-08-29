@@ -9,18 +9,29 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
+import SEOUniversityPage from "@/components/SEOUniversityPage";
 import { InstitutionTypeBadge } from "@/components/InstitutionTypeBadge";
 import { MapPin, Globe, Users, Trophy, GraduationCap, Calendar, Euro, Clock } from "lucide-react";
 
 interface University {
   id: string;
   name: string;
-  city: string;
-  type: string;
-  ranking: number;
-  website: string;
-  logo_url: string;
+  city?: string;
+  type?: string;
+  ranking?: number;
+  website?: string;
+  logo_url?: string;
   slug: string;
+  city_id?: string;
+  control_type?: string;
+  created_at?: string;
+  lat?: number;
+  lng?: number;
+  region?: string;
+  keywords?: string[];
+  search_doc?: any;
+  fts?: unknown;
+  external_refs?: any;
 }
 
 interface Program {

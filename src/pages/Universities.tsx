@@ -19,13 +19,22 @@ interface University {
   id: string;
   name: string;
   city: string;
-  type: string;
+  type?: string;
   control_type?: string;
-  ranking: number;
-  website: string;
-  logo_url: string;
+  ranking?: number;
+  website?: string;
+  logo_url?: string;
   slug: string;
   program_count?: number;
+  city_id?: string;
+  created_at?: string;
+  lat?: number;
+  lng?: number;
+  region?: string;
+  keywords?: string[];
+  search_doc?: any;
+  fts?: unknown;
+  external_refs?: any;
 }
 
 export default function Universities() {

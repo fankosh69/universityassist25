@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CSVIngestion } from "@/components/admin/CSVIngestion";
 import { 
   MapPin, 
   Building, 
@@ -130,6 +131,8 @@ export const AdminDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CSVIngestion />
+        
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

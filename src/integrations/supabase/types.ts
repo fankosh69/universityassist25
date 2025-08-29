@@ -698,6 +698,7 @@ export type Database = {
           city_id: string | null
           control_type: string | null
           created_at: string
+          external_refs: Json | null
           fts: unknown | null
           id: string
           keywords: string[] | null
@@ -705,6 +706,7 @@ export type Database = {
           lng: number | null
           logo_url: string | null
           name: string
+          ranking: number | null
           region: string | null
           search_doc: Json | null
           slug: string | null
@@ -716,6 +718,7 @@ export type Database = {
           city_id?: string | null
           control_type?: string | null
           created_at?: string
+          external_refs?: Json | null
           fts?: unknown | null
           id?: string
           keywords?: string[] | null
@@ -723,6 +726,7 @@ export type Database = {
           lng?: number | null
           logo_url?: string | null
           name: string
+          ranking?: number | null
           region?: string | null
           search_doc?: Json | null
           slug?: string | null
@@ -734,6 +738,7 @@ export type Database = {
           city_id?: string | null
           control_type?: string | null
           created_at?: string
+          external_refs?: Json | null
           fts?: unknown | null
           id?: string
           keywords?: string[] | null
@@ -741,6 +746,7 @@ export type Database = {
           lng?: number | null
           logo_url?: string | null
           name?: string
+          ranking?: number | null
           region?: string | null
           search_doc?: Json | null
           slug?: string | null
