@@ -172,7 +172,9 @@ export type Database = {
         Row: {
           country_code: string
           created_at: string | null
+          fts: unknown | null
           id: string
+          keywords: string[] | null
           lat: number | null
           lng: number | null
           metadata: Json | null
@@ -184,7 +186,9 @@ export type Database = {
         Insert: {
           country_code?: string
           created_at?: string | null
+          fts?: unknown | null
           id?: string
+          keywords?: string[] | null
           lat?: number | null
           lng?: number | null
           metadata?: Json | null
@@ -196,7 +200,9 @@ export type Database = {
         Update: {
           country_code?: string
           created_at?: string | null
+          fts?: unknown | null
           id?: string
+          keywords?: string[] | null
           lat?: number | null
           lng?: number | null
           metadata?: Json | null
@@ -691,15 +697,16 @@ export type Database = {
           city: string
           city_id: string | null
           control_type: string | null
-          country_code: string | null
           created_at: string
-          external_refs: Json | null
+          fts: unknown | null
           id: string
+          keywords: string[] | null
           lat: number | null
           lng: number | null
           logo_url: string | null
           name: string
-          ranking: number | null
+          region: string | null
+          search_doc: Json | null
           slug: string | null
           type: string | null
           website: string | null
@@ -708,15 +715,16 @@ export type Database = {
           city: string
           city_id?: string | null
           control_type?: string | null
-          country_code?: string | null
           created_at?: string
-          external_refs?: Json | null
+          fts?: unknown | null
           id?: string
+          keywords?: string[] | null
           lat?: number | null
           lng?: number | null
           logo_url?: string | null
           name: string
-          ranking?: number | null
+          region?: string | null
+          search_doc?: Json | null
           slug?: string | null
           type?: string | null
           website?: string | null
@@ -725,15 +733,16 @@ export type Database = {
           city?: string
           city_id?: string | null
           control_type?: string | null
-          country_code?: string | null
           created_at?: string
-          external_refs?: Json | null
+          fts?: unknown | null
           id?: string
+          keywords?: string[] | null
           lat?: number | null
           lng?: number | null
           logo_url?: string | null
           name?: string
-          ranking?: number | null
+          region?: string | null
+          search_doc?: Json | null
           slug?: string | null
           type?: string | null
           website?: string | null
@@ -945,9 +954,21 @@ export type Database = {
         Args: { new_data: Json; profile_id: string }
         Returns: Json
       }
+      slugify: {
+        Args: { txt: string }
+        Returns: string
+      }
       ultra_secure_profile_update: {
         Args: { target_profile_id: string; update_data: Json }
         Returns: Json
+      }
+      unaccent: {
+        Args: { "": string }
+        Returns: string
+      }
+      unaccent_init: {
+        Args: { "": unknown }
+        Returns: unknown
       }
       validate_profile_access: {
         Args: Record<PropertyKey, never>
