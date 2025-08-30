@@ -23,11 +23,19 @@ interface City {
 
 export default function Cities() {
   const [cities, setCities] = useState<City[]>([]);
+  const [totalUniversities, setTotalUniversities] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCities = async () => {
       try {
+        // First get total university count
+        const { count: totalCount } = await supabase
+          .from('universities')
+          .select('*', { count: 'exact', head: true });
+
+        setTotalUniversities(totalCount || 0);
+
         // Fetch cities with university count
         const { data: citiesData, error: citiesError } = await supabase
           .from('cities')
@@ -116,6 +124,11 @@ export default function Cities() {
               Discover the vibrant German cities where you can pursue your higher education. 
               Each city offers unique opportunities, culture, and academic excellence.
             </p>
+            <div className="mt-4">
+              <Badge variant="secondary" className="text-lg px-4 py-2">
+                Total: {totalUniversities} universities across Germany
+              </Badge>
+            </div>
           </div>
         </div>
 
@@ -126,9 +139,9 @@ export default function Cities() {
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-xl mb-2 group-hover:text-primary transition-colors">
-                      {city.name}
-                    </CardTitle>
+                     <CardTitle className="text-xl mb-2 group-hover:text-primary transition-colors">
+                       {city.name}
+                     </CardTitle>
                     <div className="flex items-center gap-2 text-muted-foreground mb-3">
                       <MapPin className="h-4 w-4" />
                       <span className="text-sm">{city.state}</span>
@@ -138,14 +151,14 @@ export default function Cities() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {city.university_count && city.university_count > 0 && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Building className="h-4 w-4 text-primary" />
-                      <span>
-                        {city.university_count} {city.university_count === 1 ? 'University' : 'Universities'}
-                      </span>
-                    </div>
-                  )}
+                   {city.university_count !== undefined && city.university_count >= 0 && (
+                     <div className="flex items-center gap-2 text-sm">
+                       <Building className="h-4 w-4 text-primary" />
+                       <span>
+                         {city.university_count} {city.university_count === 1 ? 'University' : 'Universities'}
+                       </span>
+                     </div>
+                   )}
                   
                   {city.metadata?.population && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -55,7 +55,7 @@ export default function Universities() {
         const { data: universitiesData, error: universitiesError } = await supabase
           .from('universities')
           .select('*')
-          .order('ranking', { ascending: true });
+          .order('name', { ascending: true });
 
         if (universitiesError) throw universitiesError;
 
@@ -79,7 +79,7 @@ export default function Universities() {
         setFilteredUniversities(universitiesWithCount);
 
         // Extract unique cities, types, and control types for filters
-        const uniqueCities = [...new Set(universitiesWithCount.map(u => u.city))].sort();
+        const uniqueCities = [...new Set(universitiesWithCount.map(u => u.city))].filter(Boolean).sort();
         const uniqueTypes = [...new Set(universitiesWithCount.map(u => u.type))].filter(Boolean).sort();
         const uniqueControlTypes = [...new Set(universitiesWithCount.map(u => u.control_type))].filter(Boolean).sort();
         
@@ -101,10 +101,13 @@ export default function Universities() {
     let filtered = universities;
 
     if (searchTerm) {
-      filtered = filtered.filter(university =>
-        university.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        university.city.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      filtered = filtered.filter(university => {
+        const nameClean = university.name?.replace(/[^\x00-\x7F]/g, "").toLowerCase() || university.name?.toLowerCase() || '';
+        const cityClean = university.city?.replace(/[^\x00-\x7F]/g, "").toLowerCase() || university.city?.toLowerCase() || '';
+        const searchClean = searchTerm.toLowerCase();
+        
+        return nameClean.includes(searchClean) || cityClean.includes(searchClean);
+      });
     }
 
     if (selectedType && selectedType !== 'all') {
@@ -249,9 +252,12 @@ export default function Universities() {
         </Card>
 
         {/* Results Counter */}
-        <div className="mb-6">
+        <div className="mb-6 flex justify-between items-center">
           <p className="text-muted-foreground">
-            Showing {filteredUniversities.length} of {universities.length} universities
+            Showing {filteredUniversities.length} of {universities.length} universities in Germany
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Total: {universities.length} universities on platform
           </p>
         </div>
 
@@ -261,27 +267,31 @@ export default function Universities() {
             <Card key={university.id} className="hover:shadow-lg transition-shadow group">
               <CardHeader>
                 <div className="flex items-start gap-4">
-                  {university.logo_url && (
-                    <div className="flex-shrink-0">
-                       <img 
-                         src={university.logo_url} 
-                         alt={`${university.name} logo`}
-                         className="w-16 h-16 object-contain rounded-lg bg-white p-2"
-                         width="64"
-                         height="64"
-                         loading="lazy"
-                         decoding="async"
-                       />
-                    </div>
-                  )}
+                   {university.logo_url && (
+                     <div className="flex-shrink-0">
+                        <img 
+                          src={university.logo_url} 
+                          alt={`${university.name} logo`}
+                          className="w-16 h-16 object-contain rounded-lg bg-white p-2 shadow-sm border"
+                          width="64"
+                          height="64"
+                          loading="lazy"
+                          decoding="async"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                     </div>
+                   )}
                   <div className="flex-1">
-                    <CardTitle className="text-lg mb-2 group-hover:text-primary transition-colors">
-                      {university.name}
-                    </CardTitle>
-                    <div className="flex items-center gap-2 text-muted-foreground mb-3">
-                      <MapPin className="h-4 w-4" />
-                      <span className="text-sm">{university.city}</span>
-                    </div>
+                     <CardTitle className="text-lg mb-2 group-hover:text-primary transition-colors">
+                       {university.name?.replace(/[^\x00-\x7F]/g, "") || university.name}
+                     </CardTitle>
+                     <div className="flex items-center gap-2 text-muted-foreground mb-3">
+                       <MapPin className="h-4 w-4" />
+                       <span className="text-sm">{university.city?.replace(/[^\x00-\x7F]/g, "") || university.city}</span>
+                     </div>
                     <div className="flex flex-wrap gap-2">
                       {university.type && (
                         <InstitutionTypeBadge type={university.type} useShort />
