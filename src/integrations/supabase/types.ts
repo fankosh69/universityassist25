@@ -1087,6 +1087,7 @@ export type Database = {
         | "company_admissions"
         | "marketing"
         | "admin"
+        | "counselor"
       application_status:
         | "not_started"
         | "in_progress"
@@ -1234,6 +1235,7 @@ export const Constants = {
         "company_admissions",
         "marketing",
         "admin",
+        "counselor",
       ],
       application_status: [
         "not_started",
