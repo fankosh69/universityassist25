@@ -3,13 +3,6 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 
-// Set the access token from environment variable
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-
-if (MAPBOX_TOKEN) {
-  mapboxgl.accessToken = MAPBOX_TOKEN;
-}
-
 interface University {
   id: string;
   name: string;
@@ -33,6 +26,34 @@ export default function CityMap({ city, className = '' }: CityMapProps) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [universities, setUniversities] = useState<University[]>([]);
+  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+
+  // Fetch Mapbox token
+  useEffect(() => {
+    async function fetchMapboxToken() {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+        
+        if (error) {
+          console.error('Error fetching Mapbox token:', error);
+          setMapError('Failed to load map token');
+          return;
+        }
+        
+        if (data?.token) {
+          setMapboxToken(data.token);
+          mapboxgl.accessToken = data.token;
+        } else {
+          setMapError('Mapbox token not available');
+        }
+      } catch (error) {
+        console.error('Error calling get-mapbox-token function:', error);
+        setMapError('Failed to configure map');
+      }
+    }
+
+    fetchMapboxToken();
+  }, []);
 
   // Fetch universities for this city
   useEffect(() => {
@@ -61,12 +82,7 @@ export default function CityMap({ city, className = '' }: CityMapProps) {
   }, [city.slug]);
 
   useEffect(() => {
-    if (!ref.current || mapRef.current) return;
-
-    if (!MAPBOX_TOKEN) {
-      setMapError('Mapbox token not configured');
-      return;
-    }
+    if (!ref.current || mapRef.current || !mapboxToken) return;
 
     try {
       const hasCoords = typeof city.lat === 'number' && typeof city.lng === 'number';
@@ -147,7 +163,7 @@ export default function CityMap({ city, className = '' }: CityMapProps) {
         mapRef.current = null;
       }
     };
-  }, [city.lat, city.lng, universities]);
+  }, [city.lat, city.lng, universities, mapboxToken]);
 
   if (mapError) {
     return (
