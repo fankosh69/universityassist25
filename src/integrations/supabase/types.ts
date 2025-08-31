@@ -1057,14 +1057,6 @@ export type Database = {
         Args: { target_profile_id: string; update_data: Json }
         Returns: Json
       }
-      unaccent: {
-        Args: { "": string }
-        Returns: string
-      }
-      unaccent_init: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
       validate_profile_access: {
         Args: Record<PropertyKey, never>
         Returns: boolean
