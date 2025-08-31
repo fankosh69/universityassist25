@@ -1188,6 +1188,30 @@ export type Database = {
         Args: { target_profile_id: string }
         Returns: Json
       }
+      get_secure_complete_profile: {
+        Args: { profile_uuid: string }
+        Returns: {
+          bio: string
+          career_goals: string
+          created_at: string
+          date_of_birth: string
+          display_name: string
+          education_level: string
+          email: string
+          field_of_study: string
+          full_name: string
+          gender: string
+          id: string
+          institution_name: string
+          is_profile_complete: boolean
+          nationality: string
+          phone: string
+          preferred_cities: string[]
+          preferred_degree_type: string
+          preferred_fields: string[]
+          updated_at: string
+        }[]
+      }
       has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
@@ -1209,6 +1233,15 @@ export type Database = {
       }
       secure_update_profile: {
         Args: { new_data: Json; profile_id: string }
+        Returns: Json
+      }
+      secure_update_separated_profile: {
+        Args: {
+          academic_data?: Json
+          private_data?: Json
+          profile_uuid: string
+          public_data?: Json
+        }
         Returns: Json
       }
       slugify: {

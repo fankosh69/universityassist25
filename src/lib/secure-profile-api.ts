@@ -46,11 +46,11 @@ export interface AccessRights {
 }
 
 /**
- * Safely get profile data using security-hardened function
+ * Safely get profile data using security-hardened function with separated data structure
  */
 export const getSecureProfileData = async (profileId: string): Promise<SecureProfileData | null> => {
   try {
-    const { data, error } = await supabase.rpc('get_safe_profile_data', {
+    const { data, error } = await supabase.rpc('get_secure_complete_profile', {
       profile_uuid: profileId
     });
 
@@ -88,26 +88,62 @@ export const checkProfileAccessRights = async (profileId: string): Promise<Acces
 };
 
 /**
- * Securely update profile data with comprehensive validation
+ * Securely update profile data with enhanced data separation and validation
  */
 export const secureUpdateProfile = async (
   profileId: string, 
   updateData: Record<string, any>
 ): Promise<ProfileUpdateResult | null> => {
   try {
-    const { data, error } = await supabase.rpc('ultra_secure_profile_update', {
-      target_profile_id: profileId,
-      update_data: updateData
+    // Categorize update data into public, private, and academic data
+    const publicFields = ['display_name', 'education_level', 'field_of_study', 'institution_name', 'bio'];
+    const privateFields = ['full_name', 'email', 'phone', 'nationality', 'gender', 'date_of_birth'];
+    const academicFields = ['preferred_fields', 'preferred_degree_type', 'preferred_cities', 'career_goals'];
+    
+    const publicData: Record<string, any> = {};
+    const privateData: Record<string, any> = {};
+    const academicData: Record<string, any> = {};
+    
+    // Categorize the update data based on field type
+    Object.entries(updateData).forEach(([key, value]) => {
+      if (publicFields.includes(key)) {
+        publicData[key] = value;
+      } else if (privateFields.includes(key)) {
+        privateData[key] = value;
+      } else if (academicFields.includes(key)) {
+        academicData[key] = value;
+      }
+      // Legacy fields mapping for backward compatibility
+      else if (key === 'current_education_level') {
+        publicData['education_level'] = value;
+      } else if (key === 'current_field_of_study') {
+        publicData['field_of_study'] = value;
+      } else if (key === 'current_institution') {
+        publicData['institution_name'] = value;
+      }
+    });
+
+    const { data, error } = await supabase.rpc('secure_update_separated_profile', {
+      profile_uuid: profileId,
+      public_data: Object.keys(publicData).length > 0 ? publicData : null,
+      private_data: Object.keys(privateData).length > 0 ? privateData : null,
+      academic_data: Object.keys(academicData).length > 0 ? academicData : null
     });
 
     if (error) {
-      console.error('Error updating profile securely:', error);
+      console.error('Error updating profile with enhanced security:', error);
       throw error;
     }
 
-    return data as unknown as ProfileUpdateResult;
+    return {
+      success: (data as any)?.success || false,
+      message: (data as any)?.message || 'Profile updated with enhanced security',
+      fields_updated: Object.keys(updateData).length,
+      access_level: 'owner',
+      timestamp: (data as any)?.timestamp || new Date().toISOString()
+    };
   } catch (error) {
-    console.error('Failed to update profile securely:', error);
+    console.error('Failed to update profile with enhanced security:', error);
     return null;
   }
 };
