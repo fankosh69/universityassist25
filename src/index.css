@@ -55,10 +55,10 @@
     --shadow-strong: 0 8px 32px -8px hsl(var(--primary) / 0.2);
     --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.3);
     
-    /* Typography */
-    --font-heading: 'Poppins', system-ui, sans-serif;
-    --font-body: 'Ubuntu', system-ui, sans-serif;
-    --font-arabic: 'Noto Kufi Arabic', system-ui, sans-serif;
+    /* Typography with layout-shift-safe fallbacks */
+    --font-heading: 'Poppins', 'PoppinsFallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Ubuntu', 'UbuntuFallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-arabic: 'Noto Kufi Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     
     --radius: 0.75rem;
     
@@ -132,9 +132,21 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    text-rendering: optimizeSpeed;
+    font-synthesis: none;
   }
   
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+    text-rendering: optimizeSpeed;
+    font-synthesis: none;
+  }
+  
+  /* Prevent layout shifts in critical elements */
+  .hero-title {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 1.1;
+    min-height: clamp(2.75rem, 6.6vw, 4.4rem);
+    contain: layout style;
   }
 }

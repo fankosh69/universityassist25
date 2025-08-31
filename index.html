@@ -35,18 +35,19 @@
     <!-- Preload main JavaScript bundle for faster execution -->
     <link rel="modulepreload" href="/src/main.tsx">
     
-    <!-- Load fonts with optimized display strategy -->
+    <!-- Load fonts with optimized display strategy for zero layout shift -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Critical CSS for immediate content rendering -->
+    <!-- Critical CSS for zero layout shift -->
     <style>
-      /* Prevent flash of unstyled content */
+      /* Prevent flash of unstyled content and layout shifts */
       #root { 
         min-height: 100vh; 
-        font-family: system-ui, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
         background: linear-gradient(135deg, hsl(231 87% 58%), hsl(184 58% 59%));
+        contain: layout style;
       }
       
       /* Loading indicator for immediate FCP */
@@ -61,17 +62,20 @@
         z-index: 1000;
         opacity: 1;
         transition: opacity 0.3s ease;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       }
       
-      /* Critical hero section styles for immediate LCP */
+      /* Critical hero section styles for immediate LCP with reserved space */
       .hero-section {
         position: relative;
         background: linear-gradient(135deg, hsl(231 87% 58%), hsl(184 58% 59%));
         overflow: hidden;
         min-height: 100vh;
+        height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
+        contain: layout style;
       }
       
       .hero-content {
@@ -80,6 +84,8 @@
         color: white;
         padding: 2rem;
         max-width: 1200px;
+        width: 100%;
+        contain: layout style;
       }
       
       .hero-title {
@@ -87,7 +93,11 @@
         font-weight: 700;
         margin-bottom: 1.5rem;
         line-height: 1.1;
-        font-family: 'Poppins', system-ui, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeSpeed;
+        height: auto;
+        min-height: clamp(2.75rem, 6.6vw, 4.4rem);
       }
       
       /* Hide loading indicator once app loads */
@@ -96,21 +106,38 @@
         pointer-events: none;
       }
       
-      /* Critical font face declarations for immediate rendering */
+      /* Optimized font loading to prevent layout shifts */
       @font-face {
-        font-family: 'Poppins';
+        font-family: 'PoppinsFallback';
         font-style: normal;
-        font-weight: 400;
+        font-weight: 100 900;
         font-display: swap;
-        src: local('Poppins Regular'), local('Poppins-Regular');
+        src: local('Arial'), local('Helvetica Neue'), local('Helvetica'), local(sans-serif);
+        ascent-override: 105%;
+        descent-override: 35%;
+        line-gap-override: 10%;
+        size-adjust: 107%;
       }
       
       @font-face {
-        font-family: 'Ubuntu';
+        font-family: 'UbuntuFallback'; 
         font-style: normal;
-        font-weight: 400;
+        font-weight: 100 900;
         font-display: swap;
-        src: local('Ubuntu Regular'), local('Ubuntu-Regular');
+        src: local('Arial'), local('Helvetica Neue'), local('Helvetica'), local(sans-serif);
+        ascent-override: 100%;
+        descent-override: 25%;
+        line-gap-override: 0%;
+        size-adjust: 95%;
+      }
+      
+      /* Font family with proper fallbacks to prevent shifts */
+      .font-heading-safe {
+        font-family: 'Poppins', 'PoppinsFallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      }
+      
+      .font-body-safe {
+        font-family: 'Ubuntu', 'UbuntuFallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       }
     </style>
   </head>
