@@ -9,6 +9,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
+import { CityTypeBadge } from "@/components/CityTypeBadge";
 import { MapPin, Building, Users, Search } from "lucide-react";
 
 interface CityCard {
@@ -19,6 +20,7 @@ interface CityCard {
   uni_count: number;
   population_total: number | null;
   population_asof: string | null;
+  city_type: string | null;
 }
 
 export default function Cities() {
@@ -39,9 +41,12 @@ export default function Cities() {
         if (error) throw error;
         setCities(data || []);
       } else {
-        // Nonempty query → call search_cities RPC
+        // Nonempty query → search using city_stats with textSearch
         const { data, error } = await supabase
-          .rpc("search_cities", { q: query });
+          .from("city_stats")
+          .select("*")
+          .textSearch('name', query)
+          .order("name");
         if (error) throw error;
         setCities(data || []);
       }
@@ -172,6 +177,13 @@ export default function Cities() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CityTypeBadge type={city.city_type || 'City'} />
+                      <Badge variant="outline" className="text-xs">
+                        {city.region || 'Germany'}
+                      </Badge>
+                    </div>
+                    
                     <div className="flex items-center gap-2 text-sm">
                       <Building className="h-4 w-4 text-primary" />
                       <span>

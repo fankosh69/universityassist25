@@ -222,6 +222,7 @@ export type Database = {
       }
       cities: {
         Row: {
+          city_type: string | null
           country_code: string
           created_at: string | null
           fts: unknown | null
@@ -242,6 +243,7 @@ export type Database = {
           wikidata_qid: string | null
         }
         Insert: {
+          city_type?: string | null
           country_code?: string
           created_at?: string | null
           fts?: unknown | null
@@ -262,6 +264,7 @@ export type Database = {
           wikidata_qid?: string | null
         }
         Update: {
+          city_type?: string | null
           country_code?: string
           created_at?: string | null
           fts?: unknown | null
@@ -1134,6 +1137,7 @@ export type Database = {
     Views: {
       city_stats: {
         Row: {
+          city_type: string | null
           country_code: string | null
           id: string | null
           name: string | null
