@@ -919,6 +919,15 @@ export type Database = {
         Args: { profile_uuid: string }
         Returns: Json
       }
+      check_qa_users_setup: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          email: string
+          profile_exists: boolean
+          roles: string[]
+          user_exists: boolean
+        }[]
+      }
       get_admin_dashboard_stats: {
         Args: Record<PropertyKey, never>
         Returns: Json
