@@ -14,8 +14,12 @@ import {
   Loader2, 
   AlertTriangle,
   FileText,
-  Play
+  Play,
+  RefreshCw,
+  Download,
+  ExternalLink
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface SetupStep {
   id: string;
@@ -27,6 +31,7 @@ interface SetupStep {
 }
 
 const AdminQASetup = () => {
+  const { toast } = useToast();
   const [steps, setSteps] = useState<SetupStep[]>([
     {
       id: 'create-users',
@@ -56,6 +61,8 @@ const AdminQASetup = () => {
 
   const [isRunning, setIsRunning] = useState(false);
   const [testPacket, setTestPacket] = useState<string>('');
+  const [isRecreatingUsers, setIsRecreatingUsers] = useState(false);
+  const [isRunningIngest, setIsRunningIngest] = useState(false);
 
   const updateStep = (stepId: string, updates: Partial<SetupStep>) => {
     setSteps(prev => prev.map(step => 
@@ -161,6 +168,106 @@ const AdminQASetup = () => {
       console.error('💥 Setup failed:', error);
     } finally {
       setIsRunning(false);
+    }
+  };
+
+  const recreateQAUsers = async () => {
+    setIsRecreatingUsers(true);
+    try {
+      console.log('🔄 Recreating QA users...');
+      
+      const { data, error } = await supabase.functions.invoke('setup-qa-users');
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      console.log('✅ QA users recreated:', data);
+      
+      toast({
+        title: "Success!",
+        description: "QA users and roles have been recreated successfully",
+      });
+      
+      // Log to audit
+      await supabase.from('audit_logs').insert({
+        table_name: 'qa_setup',
+        operation: 'RECREATE_USERS',
+        new_data: { success: true, timestamp: new Date().toISOString() }
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to recreate QA users:', error);
+      
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to recreate QA users",
+        variant: "destructive"
+      });
+      
+      // Log error to audit
+      await supabase.from('audit_logs').insert({
+        table_name: 'qa_setup',
+        operation: 'RECREATE_USERS_ERROR',
+        new_data: { 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toISOString() 
+        }
+      });
+    } finally {
+      setIsRecreatingUsers(false);
+    }
+  };
+
+  const runCSVIngest = async () => {
+    setIsRunningIngest(true);
+    try {
+      console.log('🔄 Running CSV ingest...');
+      
+      const { data, error } = await supabase.functions.invoke('ingest-universities');
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      console.log('✅ CSV ingest completed:', data);
+      
+      toast({
+        title: "Ingest Complete!",
+        description: `Upserted ${data?.upsertedCities || 0} cities and ${data?.upsertedUnis || 0} universities`,
+      });
+      
+      // Log to audit
+      await supabase.from('audit_logs').insert({
+        table_name: 'qa_setup',
+        operation: 'CSV_INGEST',
+        new_data: { 
+          success: true, 
+          counts: data,
+          timestamp: new Date().toISOString() 
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to run CSV ingest:', error);
+      
+      toast({
+        title: "Ingest Error",
+        description: error instanceof Error ? error.message : "Failed to run CSV ingest",
+        variant: "destructive"
+      });
+      
+      // Log error to audit
+      await supabase.from('audit_logs').insert({
+        table_name: 'qa_setup',
+        operation: 'CSV_INGEST_ERROR',
+        new_data: { 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toISOString() 
+        }
+      });
+    } finally {
+      setIsRunningIngest(false);
     }
   };
 
@@ -313,6 +420,127 @@ const AdminQASetup = () => {
       )}
 
       <Separator />
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5" />
+              Quick Actions
+            </CardTitle>
+            <CardDescription>
+              Individual setup operations for troubleshooting
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={recreateQAUsers}
+              disabled={isRecreatingUsers}
+            >
+              {isRecreatingUsers ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Users className="h-4 w-4 mr-2" />
+              )}
+              Recreate QA Users & Roles
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={runCSVIngest}
+              disabled={isRunningIngest}
+            >
+              {isRunningIngest ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Database className="h-4 w-4 mr-2" />
+              )}
+              Re-run CSV Ingest
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ExternalLink className="h-5 w-5" />
+              Public Access
+            </CardTitle>
+            <CardDescription>
+              Share QA packet and documentation
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              asChild
+            >
+              <a href="/qa/packet" target="_blank" rel="noopener noreferrer">
+                <FileText className="h-4 w-4 mr-2" />
+                View Public QA Packet
+              </a>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={async () => {
+                try {
+                  const JSZip = (await import('jszip')).default;
+                  const zip = new JSZip();
+                  
+                  const [runbookRes, configRes] = await Promise.all([
+                    fetch('/testsprite/runbook.md'),
+                    fetch('/testsprite/config.json')
+                  ]);
+                  
+                  if (runbookRes.ok) {
+                    zip.file('runbook.md', await runbookRes.text());
+                  }
+                  if (configRes.ok) {
+                    zip.file('config.json', await configRes.text());
+                  }
+                  
+                  const readme = `# TestSprite QA Packet - University Assist
+Generated: ${new Date().toISOString()}
+Base URL: https://universityassist25.lovable.app
+Test accounts: student+qa, counselor+qa, admin+qa @universityassist.net
+Passwords provided separately for security.`;
+                  
+                  zip.file('README.txt', readme);
+                  
+                  const content = await zip.generateAsync({type: "blob"});
+                  const url = URL.createObjectURL(content);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'qa-packet.zip';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  
+                  toast({
+                    title: "ZIP Downloaded",
+                    description: "QA packet ZIP file generated and downloaded",
+                  });
+                } catch (error) {
+                  toast({
+                    title: "Download Failed",
+                    description: "Could not generate ZIP file",
+                    variant: "destructive"
+                  });
+                }
+              }}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download ZIP Package
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>

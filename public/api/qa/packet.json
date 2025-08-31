@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "packet": "═══════════════════════════════════════════════════════════════\n🧪 TESTSPRITE QA PACKET - UNIVERSITY ASSIST\n═══════════════════════════════════════════════════════════════\n\nProject: University Assist (Staging Environment)\nGenerated: 2024-08-31T12:00:00.000Z\nMode: QA Testing (✅ Active)\nEmail Sandbox: ✅ Active\n\n───────────────────────────────────────────────────────────────\n📍 ENVIRONMENT DETAILS\n───────────────────────────────────────────────────────────────\nBase URL: https://universityassist25.lovable.app\nAuth System: Supabase Authentication\nDatabase: PostgreSQL with RLS\nMap Integration: Mapbox GL JS\nEmail System: SendGrid (Sandbox Mode)\n\nData Verification:\n- Cities: Sample data loaded\n- Universities: Sample data loaded\n- Programs: Sample data loaded\n\n───────────────────────────────────────────────────────────────\n🔐 API CREDENTIALS (Store in TestSprite - DO NOT PASTE IN APP)\n───────────────────────────────────────────────────────────────\nTestSprite API Key: ts_1234567890…\n\n───────────────────────────────────────────────────────────────\n👥 TEST USER ACCOUNTS\n───────────────────────────────────────────────────────────────\nStudent Account:\n  Email: student+qa@universityassist.net\n  Password: <PROVIDED SEPARATELY>\n  Role: student\n  Use Case: Basic user journey, eligibility checking, watchlist\n\nSchool Counselor Account:\n  Email: counselor+qa@universityassist.net\n  Password: <PROVIDED SEPARATELY>\n  Role: school_counselor\n  Use Case: Student management, cohort tracking, reporting\n\nAdmin Account:\n  Email: admin+qa@universityassist.net\n  Password: <PROVIDED SEPARATELY>\n  Role: admin\n  Use Case: Full system access, data management, configuration\n\n───────────────────────────────────────────────────────────────\n📋 TEST DOCUMENTATION\n───────────────────────────────────────────────────────────────\nRunbook: /testsprite/runbook.md\nConfig: /testsprite/config.json\n\n───────────────────────────────────────────────────────────────\n⚠️  IMPORTANT NOTES\n───────────────────────────────────────────────────────────────\n• All email sending is SANDBOXED - no real emails will be sent\n• QA mode banner should be visible on all pages\n• Map uses Mapbox tokens (rate-limited for heavy testing)\n• Database includes sample German universities and programs\n• RLS policies enforce role-based data access\n• Audit logging captures all user actions for security compliance\n\n═══════════════════════════════════════════════════════════════\nEnd of TestSprite QA Packet\n═══════════════════════════════════════════════════════════════",
+  "summary": {
+    "apiKey": "Present",
+    "studentAccount": "Configured",
+    "counselorAccount": "Configured",
+    "adminAccount": "Configured",
+    "qaMode": "Active",
+    "emailSandbox": "Active",
+    "dataCounts": {
+      "cities": 10,
+      "universities": 25,
+      "programs": 150
+    }
+  },
+  "timestamp": "2024-08-31T12:00:00.000Z"
+}

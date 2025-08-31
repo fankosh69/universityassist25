@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.generate-test-packet]
 verify_jwt = false
+
+[functions.qa-packet-api]
+verify_jwt = false

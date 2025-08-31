@@ -1,0 +1,109 @@
+{
+  "baseUrl": "/",
+  "stagingUrl": "https://universityassist25.lovable.app",
+  "testMode": true,
+  "emailSandbox": true,
+  "roles": [
+    "student",
+    "school_counselor", 
+    "admin"
+  ],
+  "testPages": [
+    "/",
+    "/cities",
+    "/cities/berlin",
+    "/cities/munich",
+    "/cities/hamburg",
+    "/universities",
+    "/search",
+    "/ambassadors",
+    "/admin",
+    "/profile"
+  ],
+  "criticalPaths": [
+    {
+      "name": "student_journey",
+      "description": "Complete student onboarding and program matching",
+      "steps": [
+        "/auth",
+        "/profile", 
+        "/search",
+        "/saved-programs"
+      ]
+    },
+    {
+      "name": "city_university_navigation",
+      "description": "Navigate from city to university to program",
+      "steps": [
+        "/cities/berlin",
+        "/universities/[university-slug]",
+        "/universities/[university-slug]/programs/[program-slug]"
+      ]
+    },
+    {
+      "name": "multilingual_experience", 
+      "description": "Test i18n functionality across languages",
+      "steps": [
+        "/?lang=en",
+        "/?lang=ar", 
+        "/?lang=de"
+      ]
+    }
+  ],
+  "assertions": {
+    "mapLoads": {
+      "description": "Mapbox GL map loads successfully",
+      "selector": ".mapboxgl-map",
+      "timeout": 5000
+    },
+    "markersClickable": {
+      "description": "University markers are clickable",
+      "selector": ".mapboxgl-marker",
+      "action": "click"
+    },
+    "eligibilityPanelVisible": {
+      "description": "Eligibility panel shows on program pages",
+      "selector": "[data-testid='eligibility-panel']",
+      "timeout": 3000
+    },
+    "i18nSwitchWorks": {
+      "description": "Language switcher changes content",
+      "selector": "[data-testid='language-selector']",
+      "action": "change"
+    },
+    "searchResults": {
+      "description": "Search returns results within performance threshold",
+      "selector": "[data-testid='search-results']",
+      "maxResponseTime": 300
+    },
+    "watchlistFunctional": {
+      "description": "Add/remove from watchlist works",
+      "selector": "[data-testid='watchlist-button']",
+      "action": "click"
+    }
+  },
+  "performance": {
+    "pageLoadThreshold": 2000,
+    "searchThreshold": 300,
+    "mapLoadThreshold": 3000
+  },
+  "compatibility": {
+    "browsers": ["chrome", "firefox", "safari", "edge"],
+    "mobile": true,
+    "desktop": true
+  },
+  "integrations": {
+    "mapbox": {
+      "enabled": true,
+      "tokenRequired": true
+    },
+    "supabase": {
+      "enabled": true,
+      "authRequired": true
+    },
+    "sendgrid": {
+      "enabled": true,
+      "sandboxMode": true
+    }
+  }
+}

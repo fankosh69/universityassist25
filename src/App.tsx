@@ -35,6 +35,7 @@ import AdminSecurity from "./pages/admin/AdminSecurity";
 import AdminSitemap from "./pages/admin/AdminSitemap";
 import AdminTestSprite from "./pages/admin/AdminTestSprite";
 import AdminQASetup from "./pages/admin/AdminQASetup";
+import QAPacket from "./pages/QAPacket";
 
 const queryClient = new QueryClient();
 
@@ -112,6 +113,9 @@ const App = () => {
             <Route path="/admin/sitemap" element={<AdminLayout><AdminSitemap /></AdminLayout>} />
             <Route path="/admin/testsprite" element={<AdminLayout><AdminTestSprite /></AdminLayout>} />
             <Route path="/admin/qa-setup" element={<AdminLayout><AdminQASetup /></AdminLayout>} />
+            
+            {/* Public QA Routes */}
+            <Route path="/qa/packet" element={<QAPacket />} />
             
             {/* Legacy routes */}
             <Route path="/cities/:citySlug" element={<CityDetail />} />
