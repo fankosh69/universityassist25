@@ -235,6 +235,7 @@ export type Database = {
           population_total: number | null
           region: string | null
           region_code: string | null
+          region_id: string | null
           search_doc: Json | null
           slug: string
           state: string | null
@@ -254,6 +255,7 @@ export type Database = {
           population_total?: number | null
           region?: string | null
           region_code?: string | null
+          region_id?: string | null
           search_doc?: Json | null
           slug: string
           state?: string | null
@@ -273,12 +275,21 @@ export type Database = {
           population_total?: number | null
           region?: string | null
           region_code?: string | null
+          region_id?: string | null
           search_doc?: Json | null
           slug?: string
           state?: string | null
           wikidata_qid?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cities_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       matches: {
         Row: {
@@ -727,6 +738,33 @@ export type Database = {
         }
         Relationships: []
       }
+      regions: {
+        Row: {
+          country_code: string
+          created_at: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          country_code?: string
+          created_at?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          country_code?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       saved_programs: {
         Row: {
           created_at: string
@@ -916,6 +954,7 @@ export type Database = {
           name: string
           ranking: number | null
           region: string | null
+          region_id: string | null
           search_doc: Json | null
           slug: string | null
           type: string | null
@@ -936,6 +975,7 @@ export type Database = {
           name: string
           ranking?: number | null
           region?: string | null
+          region_id?: string | null
           search_doc?: Json | null
           slug?: string | null
           type?: string | null
@@ -956,6 +996,7 @@ export type Database = {
           name?: string
           ranking?: number | null
           region?: string | null
+          region_id?: string | null
           search_doc?: Json | null
           slug?: string | null
           type?: string | null
@@ -974,6 +1015,13 @@ export type Database = {
             columns: ["city_id"]
             isOneToOne: false
             referencedRelation: "city_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "universities_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
             referencedColumns: ["id"]
           },
         ]
@@ -1289,16 +1337,16 @@ export type Database = {
         Returns: Json
       }
       search_cities: {
-        Args: { q?: string }
+        Args: { q: string }
         Returns: {
-          country_code: string | null
-          id: string | null
-          name: string | null
-          population_asof: string | null
-          population_total: number | null
-          region: string | null
-          slug: string | null
-          uni_count: number | null
+          country_code: string
+          id: string
+          name: string
+          population_asof: string
+          population_total: number
+          region: string
+          slug: string
+          uni_count: number
         }[]
       }
       secure_update_academic_data: {

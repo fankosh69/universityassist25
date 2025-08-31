@@ -126,38 +126,87 @@ export class CityPopulationService {
    * Get known population data for major German cities
    */
   private static getKnownCityData(cityName: string): PopulationData | null {
+    // Updated population data for major German cities (2024 data from citypopulation.de)
     const knownCities: Record<string, PopulationData> = {
+      // Major cities with universities
       'Aachen': { population: 262670, year: 2024, source: 'citypopulation.de' },
-      'Dortmund': { population: 603462, year: 2024, source: 'citypopulation.de' },
+      'Augsburg': { population: 301033, year: 2024, source: 'citypopulation.de' },
+      'Bayreuth': { population: 74657, year: 2024, source: 'citypopulation.de' },
       'Berlin': { population: 3677472, year: 2024, source: 'citypopulation.de' },
-      'Hamburg': { population: 1945229, year: 2024, source: 'citypopulation.de' },
-      'Munich': { population: 1512491, year: 2024, source: 'citypopulation.de' },
-      'München': { population: 1512491, year: 2024, source: 'citypopulation.de' },
-      'Cologne': { population: 1073096, year: 2024, source: 'citypopulation.de' },
-      'Köln': { population: 1073096, year: 2024, source: 'citypopulation.de' },
-      'Frankfurt am Main': { population: 753056, year: 2024, source: 'citypopulation.de' },
-      'Stuttgart': { population: 632743, year: 2024, source: 'citypopulation.de' },
-      'Düsseldorf': { population: 629047, year: 2024, source: 'citypopulation.de' },
-      'Leipzig': { population: 597493, year: 2024, source: 'citypopulation.de' },
-      'Essen': { population: 579432, year: 2024, source: 'citypopulation.de' },
-      'Bremen': { population: 567559, year: 2024, source: 'citypopulation.de' },
-      'Dresden': { population: 563311, year: 2024, source: 'citypopulation.de' },
-      'Hannover': { population: 545045, year: 2024, source: 'citypopulation.de' },
-      'Nuremberg': { population: 545068, year: 2024, source: 'citypopulation.de' },
-      'Nürnberg': { population: 545068, year: 2024, source: 'citypopulation.de' },
-      'Duisburg': { population: 504358, year: 2024, source: 'citypopulation.de' },
+      'Bielefeld': { population: 334002, year: 2024, source: 'citypopulation.de' },
       'Bochum': { population: 364454, year: 2024, source: 'citypopulation.de' },
       'Bonn': { population: 336465, year: 2024, source: 'citypopulation.de' },
-      'Bielefeld': { population: 334002, year: 2024, source: 'citypopulation.de' },
-      'Mannheim': { population: 309817, year: 2024, source: 'citypopulation.de' },
+      'Braunschweig': { population: 249406, year: 2024, source: 'citypopulation.de' },
+      'Bremen': { population: 567559, year: 2024, source: 'citypopulation.de' },
+      'Chemnitz': { population: 243248, year: 2024, source: 'citypopulation.de' },
+      'Cologne': { population: 1073096, year: 2024, source: 'citypopulation.de' },
+      'Köln': { population: 1073096, year: 2024, source: 'citypopulation.de' },
+      'Darmstadt': { population: 159631, year: 2024, source: 'citypopulation.de' },
+      'Dortmund': { population: 603462, year: 2024, source: 'citypopulation.de' },
+      'Dresden': { population: 563311, year: 2024, source: 'citypopulation.de' },
+      'Duisburg': { population: 504358, year: 2024, source: 'citypopulation.de' },
+      'Düsseldorf': { population: 629047, year: 2024, source: 'citypopulation.de' },
+      'Erlangen': { population: 113292, year: 2024, source: 'citypopulation.de' },
+      'Essen': { population: 579432, year: 2024, source: 'citypopulation.de' },
+      'Frankfurt': { population: 753056, year: 2024, source: 'citypopulation.de' },
+      'Frankfurt am Main': { population: 753056, year: 2024, source: 'citypopulation.de' },
+      'Freiburg': { population: 235960, year: 2024, source: 'citypopulation.de' },
+      'Gelsenkirchen': { population: 262528, year: 2024, source: 'citypopulation.de' },
+      'Göttingen': { population: 118911, year: 2024, source: 'citypopulation.de' },
+      'Halle': { population: 240056, year: 2024, source: 'citypopulation.de' },
+      'Hamburg': { population: 1945229, year: 2024, source: 'citypopulation.de' },
+      'Hannover': { population: 545045, year: 2024, source: 'citypopulation.de' },
+      'Heidelberg': { population: 162273, year: 2024, source: 'citypopulation.de' },
+      'Jena': { population: 111343, year: 2024, source: 'citypopulation.de' },
+      'Kaiserslautern': { population: 99684, year: 2024, source: 'citypopulation.de' },
       'Karlsruhe': { population: 308436, year: 2024, source: 'citypopulation.de' },
-      'Augsburg': { population: 301033, year: 2024, source: 'citypopulation.de' },
-      'Wiesbaden': { population: 278474, year: 2024, source: 'citypopulation.de' },
+      'Kassel': { population: 201048, year: 2024, source: 'citypopulation.de' },
+      'Kiel': { population: 247717, year: 2024, source: 'citypopulation.de' },
+      'Konstanz': { population: 85838, year: 2024, source: 'citypopulation.de' },
+      'Leipzig': { population: 597493, year: 2024, source: 'citypopulation.de' },
+      'Lübeck': { population: 217198, year: 2024, source: 'citypopulation.de' },
+      'Magdeburg': { population: 237565, year: 2024, source: 'citypopulation.de' },
+      'Mainz': { population: 218578, year: 2024, source: 'citypopulation.de' },
+      'Mannheim': { population: 309817, year: 2024, source: 'citypopulation.de' },
+      'Marburg': { population: 76851, year: 2024, source: 'citypopulation.de' },
+      'Munich': { population: 1512491, year: 2024, source: 'citypopulation.de' },
+      'München': { population: 1512491, year: 2024, source: 'citypopulation.de' },
       'Münster': { population: 317713, year: 2024, source: 'citypopulation.de' },
-      'Gelsenkirchen': { population: 262528, year: 2024, source: 'citypopulation.de' }
+      'Nuremberg': { population: 545068, year: 2024, source: 'citypopulation.de' },
+      'Nürnberg': { population: 545068, year: 2024, source: 'citypopulation.de' },
+      'Oldenburg': { population: 169605, year: 2024, source: 'citypopulation.de' },
+      'Osnabrück': { population: 165034, year: 2024, source: 'citypopulation.de' },
+      'Paderborn': { population: 153231, year: 2024, source: 'citypopulation.de' },
+      'Passau': { population: 52748, year: 2024, source: 'citypopulation.de' },
+      'Potsdam': { population: 183154, year: 2024, source: 'citypopulation.de' },
+      'Regensburg': { population: 153094, year: 2024, source: 'citypopulation.de' },
+      'Rostock': { population: 209920, year: 2024, source: 'citypopulation.de' },
+      'Saarbrücken': { population: 180374, year: 2024, source: 'citypopulation.de' },
+      'Stuttgart': { population: 632743, year: 2024, source: 'citypopulation.de' },
+      'Trier': { population: 111528, year: 2024, source: 'citypopulation.de' },
+      'Tübingen': { population: 91506, year: 2024, source: 'citypopulation.de' },
+      'Ulm': { population: 127329, year: 2024, source: 'citypopulation.de' },
+      'Wiesbaden': { population: 278474, year: 2024, source: 'citypopulation.de' },
+      'Würzburg': { population: 127934, year: 2024, source: 'citypopulation.de' },
     };
 
-    return knownCities[cityName] || null;
+    const normalizedName = cityName.toLowerCase();
+    
+    // Try exact match first
+    for (const [key, value] of Object.entries(knownCities)) {
+      if (key.toLowerCase() === normalizedName) {
+        return value;
+      }
+    }
+    
+    // Try partial matches for common variations
+    for (const [key, value] of Object.entries(knownCities)) {
+      if (key.toLowerCase().includes(normalizedName) || normalizedName.includes(key.toLowerCase())) {
+        return value;
+      }
+    }
+
+    return null;
   }
 
   /**
