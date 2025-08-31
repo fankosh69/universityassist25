@@ -15,23 +15,37 @@ interface City {
   name: string;
   state: string;
   slug: string;
-  lat: number;
-  lng: number;
-  metadata: any;
+  lat?: number;
+  lng?: number;
   university_count?: number;
+  region?: string;
+  population_total?: number;
+  population_asof?: string;
 }
 
 export default function Cities() {
   const [cities, setCities] = useState<City[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<'name' | 'population'>('name');
 
   useEffect(() => {
     const fetchCities = async () => {
       try {
-        // Fetch cities with university count
+        // Fetch cities with university counts and population data
         const { data: citiesData, error: citiesError } = await supabase
           .from('cities')
-          .select('*')
+          .select(`
+            id, 
+            name, 
+            state, 
+            slug,
+            lat,
+            lng,
+            region,
+            population_total,
+            population_asof
+          `)
+          .eq('country_code', 'DE')
           .order('name');
 
         if (citiesError) throw citiesError;
@@ -51,7 +65,15 @@ export default function Cities() {
           })
         );
 
-        setCities(citiesWithCount);
+        // Sort cities based on user preference
+        const sortedCities = citiesWithCount.sort((a, b) => {
+          if (sortBy === 'population') {
+            return (b.population_total || 0) - (a.population_total || 0);
+          }
+          return a.name.localeCompare(b.name);
+        });
+
+        setCities(sortedCities);
       } catch (error) {
         console.error('Error fetching cities:', error);
       } finally {
@@ -60,7 +82,7 @@ export default function Cities() {
     };
 
     fetchCities();
-  }, []);
+  }, [sortBy]);
 
   if (loading) {
     return (
@@ -110,12 +132,39 @@ export default function Cities() {
             <span>Cities</span>
           </nav>
           
-          <div className="text-center mb-8">
+          <div className="flex flex-col items-center justify-center text-center py-16">
             <h1 className="text-4xl font-bold mb-4">Study Cities in Germany</h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
               Discover the vibrant German cities where you can pursue your higher education. 
               Each city offers unique opportunities, culture, and academic excellence.
             </p>
+            
+            {/* Sort Toggle */}
+            <div className="flex items-center gap-4 mb-8">
+              <span className="text-sm text-muted-foreground">Sort by:</span>
+              <div className="flex rounded-lg border border-border overflow-hidden">
+                <button
+                  onClick={() => setSortBy('name')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    sortBy === 'name' 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-background text-foreground hover:bg-muted'
+                  }`}
+                >
+                  Name
+                </button>
+                <button
+                  onClick={() => setSortBy('population')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    sortBy === 'population' 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-background text-foreground hover:bg-muted'
+                  }`}
+                >
+                  Population
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -129,31 +178,34 @@ export default function Cities() {
                      <CardTitle className="text-xl mb-2 group-hover:text-primary transition-colors">
                        {city.name}
                      </CardTitle>
-                    <div className="flex items-center gap-2 text-muted-foreground mb-3">
-                      <MapPin className="h-4 w-4" />
-                      <span className="text-sm">{city.state}</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <MapPin className="h-4 w-4" />
+                        <span className="text-sm">{city.region || city.state}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Building className="h-4 w-4 text-primary" />
+                        <span>
+                          {city.university_count || 0} {(city.university_count || 0) === 1 ? 'University' : 'Universities'}
+                        </span>
+                      </div>
+                      {city.population_total && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Users className="h-4 w-4" />
+                          <span>
+                            {city.population_total.toLocaleString()} residents
+                            {city.population_asof && (
+                              <span className="text-xs ml-1">(as of {new Date(city.population_asof).getFullYear()})</span>
+                            )}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+               <CardContent>
                 <div className="space-y-3">
-                   {city.university_count !== undefined && city.university_count >= 0 && (
-                     <div className="flex items-center gap-2 text-sm">
-                       <Building className="h-4 w-4 text-primary" />
-                       <span>
-                         {city.university_count} {city.university_count === 1 ? 'University' : 'Universities'}
-                       </span>
-                     </div>
-                   )}
-                  
-                  {city.metadata?.population && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Users className="h-4 w-4" />
-                      <span>{city.metadata.population.toLocaleString()} residents</span>
-                    </div>
-                  )}
-                  
                   <div className="pt-3">
                     <Link to={`/cities/${city.slug}`}>
                       <Button className="w-full">

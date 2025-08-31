@@ -179,9 +179,14 @@ export type Database = {
           lng: number | null
           metadata: Json | null
           name: string
+          population_asof: string | null
+          population_total: number | null
+          region: string | null
+          region_code: string | null
           search_doc: Json | null
           slug: string
           state: string | null
+          wikidata_qid: string | null
         }
         Insert: {
           country_code?: string
@@ -193,9 +198,14 @@ export type Database = {
           lng?: number | null
           metadata?: Json | null
           name: string
+          population_asof?: string | null
+          population_total?: number | null
+          region?: string | null
+          region_code?: string | null
           search_doc?: Json | null
           slug: string
           state?: string | null
+          wikidata_qid?: string | null
         }
         Update: {
           country_code?: string
@@ -207,9 +217,14 @@ export type Database = {
           lng?: number | null
           metadata?: Json | null
           name?: string
+          population_asof?: string | null
+          population_total?: number | null
+          region?: string | null
+          region_code?: string | null
           search_doc?: Json | null
           slug?: string
           state?: string | null
+          wikidata_qid?: string | null
         }
         Relationships: []
       }

@@ -2,13 +2,14 @@ import { Helmet } from "react-helmet-async";
 import JsonLd from "@/components/JsonLd";
 
 interface City {
-  id: string;
   name: string;
-  state?: string;
   slug: string;
   lat?: number;
   lng?: number;
   keywords?: string[];
+  region?: string;
+  population_total?: number;
+  population_asof?: string;
 }
 
 interface University {
@@ -23,27 +24,35 @@ interface SEOCityPageProps {
 }
 
 export default function SEOCityPage({ city, universities }: SEOCityPageProps) {
-  const title = `${city.name} Universities in Germany | University Assist`;
-  const description = `Discover all universities in ${city.name}, Germany. Browse ${universities.length} institutions, programs, student ambassadors, and application deadlines.`;
-  const keywords = city.keywords?.join(', ') || `${city.name}, Germany, universities, study abroad, German universities`;
+  const populationText = city.population_total ? ` with ${city.population_total.toLocaleString()} residents` : '';
+  const regionText = city.region ? ` in ${city.region}` : '';
+  
+  const title = `Study in ${city.name}${regionText} | University Assist`;
+  const description = `Discover ${universities.length} universities in ${city.name}${regionText}, Germany${populationText}. Find your perfect study destination with detailed program information.`;
+  const keywords = city.keywords ? city.keywords.join(', ') : `${city.name}, Germany, universities, study abroad${city.region ? `, ${city.region}` : ''}`;
   
   // JSON-LD structured data for City + ItemList
   const citySchema = {
     "@context": "https://schema.org",
-    "@type": ["Place", "City"],
+    "@type": "Place",
     "name": city.name,
-    "address": {
+    "url": `https://universityassist.net/cities/${city.slug}`,
+    "address": city.region ? {
       "@type": "PostalAddress",
-      "addressLocality": city.name,
-      "addressRegion": city.state,
+      "addressRegion": city.region,
       "addressCountry": "Germany"
-    },
+    } : undefined,
+    "population": city.population_total || undefined,
     "geo": city.lat && city.lng ? {
       "@type": "GeoCoordinates",
       "latitude": city.lat,
       "longitude": city.lng
     } : undefined,
-    "url": `https://universityassist.com/cities/${city.slug}`
+    "containsPlace": universities.map(uni => ({
+      "@type": "CollegeOrUniversity",
+      "name": uni.name,
+      "url": `https://universityassist.net/universities/${uni.slug}`
+    }))
   };
 
   const universitiesListSchema = {

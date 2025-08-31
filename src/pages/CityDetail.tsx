@@ -208,10 +208,12 @@ export default function CityDetail() {
               </div>
             </div>
             <CityMap
-              cityId={city.id}
-              cityName={city.name}
-              cityLat={city.lat}
-              cityLng={city.lng}
+              city={{
+                name: city.name,
+                slug: city.slug,
+                lat: city.lat,
+                lng: city.lng
+              }}
               className="w-full"
             />
           </div>
