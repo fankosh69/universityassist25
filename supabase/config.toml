@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.testsprite-api]
 verify_jwt = true
+
+[functions.setup-qa-users]
+verify_jwt = true
+
+[functions.generate-test-packet]
+verify_jwt = false

@@ -1,86 +1,84 @@
-#!/usr/bin/env node
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
 
-/**
- * TestSprite QA Packet Generator
- * 
- * This script generates a test packet for TestSprite containing all necessary
- * information for QA testing, while keeping sensitive data secure.
- *
- * Usage: node scripts/emit-testsprite-packet.mjs
- * 
- * Environment: Server/CI only - DO NOT bundle client-side
- */
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
-// Load environment variables from secrets (if available)
-const testspriteApiKey = process.env.TESTSPRITE_API_KEY || 'sk-user-qgBHMAldBunHNQeiXC9JNm8zUe9QM11ctt3Vu7u3DsZ0oxRJwAKyNAK0VqF7gVhZAeENVCXKh1S0DP8R6bOWdCUwF8Eg8VTBaB5mZH4Oo0Z1MRnJcs7-27NKvP8VGyrTuho';
-const qaMode = process.env.QA_MODE || 'true';
-const sendgridSandbox = process.env.SENDGRID_SANDBOX || 'true';
+serve(async (req: Request) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
 
-const studentEmail = process.env.TESTSPRITE_STUDENT_EMAIL || 'student+qa@universityassist.net';
-const studentPassword = process.env.TESTSPRITE_STUDENT_PASSWORD || '<GENERATE_STRONG_PASSWORD>';
-const counselorEmail = process.env.TESTSPRITE_COUNSELOR_EMAIL || 'counselor+qa@universityassist.net';
-const counselorPassword = process.env.TESTSPRITE_COUNSELOR_PASSWORD || '<GENERATE_STRONG_PASSWORD>';
-const adminEmail = process.env.TESTSPRITE_ADMIN_EMAIL || 'admin+qa@universityassist.net';
-const adminPassword = process.env.TESTSPRITE_ADMIN_PASSWORD || '<GENERATE_STRONG_PASSWORD>';
+  try {
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-/**
- * Mask sensitive keys for logging (show first 10 chars + ellipsis)
- */
-function maskKey(key) {
-  if (!key) return "<MISSING - CHECK SECRETS>";
-  return key.slice(0, 10) + "…";
-}
+    // Get environment variables
+    const testspriteApiKey = Deno.env.get('TESTSPRITE_API_KEY');
+    const qaMode = Deno.env.get('QA_MODE');
+    const sendgridSandbox = Deno.env.get('SENDGRID_SANDBOX');
+    
+    const studentEmail = Deno.env.get('TESTSPRITE_STUDENT_EMAIL');
+    const counselorEmail = Deno.env.get('TESTSPRITE_COUNSELOR_EMAIL');
+    const adminEmail = Deno.env.get('TESTSPRITE_ADMIN_EMAIL');
 
-/**
- * Check if a credential pair exists
- */
-function credentialStatus(email, password) {
-  if (!email || !password || password.includes('GENERATE')) return "<MISSING - CHECK SECRETS>";
-  return "<PROVIDED SEPARATELY>";
-}
+    // Mask API key for security
+    function maskKey(key: string | undefined): string {
+      if (!key) return "<MISSING - CHECK SECRETS>";
+      return key.slice(0, 10) + "…";
+    }
 
-/**
- * Generate timestamp for packet
- */
-function getTimestamp() {
-  return new Date().toISOString();
-}
+    // Check credential status
+    function credentialStatus(email: string | undefined, password: string | undefined): string {
+      if (!email || !password) return "<MISSING - CHECK SECRETS>";
+      return "<PROVIDED SEPARATELY>";
+    }
 
-// Validate required environment variables
-const missingVars = [];
-if (!testspriteApiKey || testspriteApiKey.includes('undefined')) missingVars.push('TESTSPRITE_API_KEY');
-if (!studentEmail) missingVars.push('TESTSPRITE_STUDENT_EMAIL');
-if (!studentPassword || studentPassword.includes('GENERATE')) missingVars.push('TESTSPRITE_STUDENT_PASSWORD');
-if (!counselorEmail) missingVars.push('TESTSPRITE_COUNSELOR_EMAIL');
-if (!counselorPassword || counselorPassword.includes('GENERATE')) missingVars.push('TESTSPRITE_COUNSELOR_PASSWORD');
-if (!adminEmail) missingVars.push('TESTSPRITE_ADMIN_EMAIL');
-if (!adminPassword || adminPassword.includes('GENERATE')) missingVars.push('TESTSPRITE_ADMIN_PASSWORD');
+    // Get data counts for verification
+    const { count: citiesCount } = await supabase
+      .from('cities')
+      .select('*', { count: 'exact', head: true });
 
-if (missingVars.length > 0) {
-  console.error('❌ Missing required environment variables:');
-  missingVars.forEach(v => console.error(`  - ${v}`));
-  console.error('\n⚠️  Note: Run QA Setup via /admin/qa-setup to generate proper credentials');
-}
+    const { count: universitiesCount } = await supabase
+      .from('universities')
+      .select('*', { count: 'exact', head: true });
 
-// Generate the test packet
-const packet = `
+    const { count: programsCount } = await supabase
+      .from('programs')
+      .select('*', { count: 'exact', head: true });
+
+    // Generate timestamp
+    const timestamp = new Date().toISOString();
+
+    // Generate the test packet
+    const packet = `
 ═══════════════════════════════════════════════════════════════
 🧪 TESTSPRITE QA PACKET - UNIVERSITY ASSIST
 ═══════════════════════════════════════════════════════════════
 
 Project: University Assist (Staging Environment)
-Generated: ${getTimestamp()}
+Generated: ${timestamp}
 Mode: QA Testing (${qaMode === 'true' ? '✅ Active' : '❌ Inactive'})
-Email Sandbox: ${sendgridSandbox === 'true' ? '✅ Active' : '❌ Inactive'})
+Email Sandbox: ${sendgridSandbox === 'true' ? '✅ Active' : '❌ Inactive'}
 
 ───────────────────────────────────────────────────────────────
 📍 ENVIRONMENT DETAILS
 ───────────────────────────────────────────────────────────────
 Base URL: https://universityassist25.lovable.app
-Auth System: Supabase Authentication  
+Auth System: Supabase Authentication
 Database: PostgreSQL with RLS
 Map Integration: Mapbox GL JS
 Email System: SendGrid (Sandbox Mode)
+
+Data Verification:
+- Cities: ${citiesCount || 0}
+- Universities: ${universitiesCount || 0} 
+- Programs: ${programsCount || 0}
 
 ───────────────────────────────────────────────────────────────
 🔐 API CREDENTIALS (Store in TestSprite - DO NOT PASTE IN APP)
@@ -91,20 +89,20 @@ TestSprite API Key: ${maskKey(testspriteApiKey)}
 👥 TEST USER ACCOUNTS
 ───────────────────────────────────────────────────────────────
 Student Account:
-  Email: ${studentEmail}
-  Password: ${credentialStatus(studentEmail, studentPassword)}
+  Email: ${studentEmail || '<MISSING>'}
+  Password: ${credentialStatus(studentEmail, Deno.env.get('TESTSPRITE_STUDENT_PASSWORD'))}
   Role: student
   Use Case: Basic user journey, eligibility checking, watchlist
 
 School Counselor Account:
-  Email: ${counselorEmail}
-  Password: ${credentialStatus(counselorEmail, counselorPassword)}
+  Email: ${counselorEmail || '<MISSING>'}
+  Password: ${credentialStatus(counselorEmail, Deno.env.get('TESTSPRITE_COUNSELOR_PASSWORD'))}
   Role: school_counselor  
   Use Case: Student management, cohort tracking, reporting
 
 Admin Account:
-  Email: ${adminEmail}
-  Password: ${credentialStatus(adminEmail, adminPassword)}
+  Email: ${adminEmail || '<MISSING>'}
+  Password: ${credentialStatus(adminEmail, Deno.env.get('TESTSPRITE_ADMIN_PASSWORD'))}
   Role: admin
   Use Case: Full system access, data management, configuration
 
@@ -113,7 +111,6 @@ Admin Account:
 ───────────────────────────────────────────────────────────────
 Runbook: /testsprite/runbook.md
 Config: /testsprite/config.json
-QA Setup: /admin/qa-setup (automated setup interface)
 
 ───────────────────────────────────────────────────────────────
 🎯 KEY TEST SCENARIOS
@@ -162,42 +159,46 @@ QA Setup: /admin/qa-setup (automated setup interface)
 • Screen resolution: 1024x768 minimum
 • Network: Stable internet for map tiles and API calls
 
-───────────────────────────────────────────────────────────────
-🚀 SETUP INSTRUCTIONS
-───────────────────────────────────────────────────────────────
-1. Access staging environment: https://universityassist25.lovable.app
-2. Verify QA banner is visible at top of all pages
-3. Login with any of the test accounts listed above
-4. Navigate through test scenarios listed in runbook
-5. Verify role-based access controls work correctly
-6. Test i18n functionality with language switcher
-7. Confirm all emails are sandboxed (no real sends)
-
 ═══════════════════════════════════════════════════════════════
 End of TestSprite QA Packet
 ═══════════════════════════════════════════════════════════════
 `;
 
-console.log(packet);
+    return new Response(JSON.stringify({
+      success: true,
+      packet: packet,
+      summary: {
+        apiKey: testspriteApiKey ? 'Present' : 'Missing',
+        studentAccount: studentEmail ? 'Configured' : 'Missing',
+        counselorAccount: counselorEmail ? 'Configured' : 'Missing',
+        adminAccount: adminEmail ? 'Configured' : 'Missing',
+        qaMode: qaMode === 'true' ? 'Active' : 'Inactive',
+        emailSandbox: sendgridSandbox === 'true' ? 'Active' : 'Inactive',
+        dataCounts: {
+          cities: citiesCount || 0,
+          universities: universitiesCount || 0,
+          programs: programsCount || 0
+        }
+      }
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders,
+      },
+    });
 
-// Summary for build logs
-console.log('\n📊 PACKET SUMMARY:');
-console.log(`✅ API Key: ${testspriteApiKey ? 'Present' : 'Missing'}`);
-console.log(`✅ Student Account: ${studentEmail ? 'Configured' : 'Missing'}`);
-console.log(`✅ Counselor Account: ${counselorEmail ? 'Configured' : 'Missing'}`);
-console.log(`✅ Admin Account: ${adminEmail ? 'Configured' : 'Missing'}`);
-console.log(`✅ QA Mode: ${qaMode === 'true' ? 'Active' : 'Inactive'}`);
-console.log(`✅ Email Sandbox: ${sendgridSandbox === 'true' ? 'Active' : 'Inactive'}`);
-
-if (missingVars.length === 0) {
-  console.log('\n🎉 QA Environment Ready for TestSprite!');
-  console.log('Next Steps:');
-  console.log('1. Visit /admin/qa-setup to run automated setup');
-  console.log('2. Verify data ingestion completed successfully');
-  console.log('3. Forward this packet to TestSprite team');
-} else {
-  console.log('\n⚠️  Complete setup required:');
-  console.log('1. Visit /admin/qa-setup to configure missing components');
-  console.log('2. Generate secure passwords for test accounts');
-  console.log('3. Re-run this script after setup completion');
-}
+  } catch (error) {
+    console.error('Error in generate-test-packet function:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: error.message
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders,
+      },
+    });
+  }
+});

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import QABanner from "@/components/QABanner";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -33,6 +34,7 @@ import { AdminServicePackages } from "./pages/admin/AdminServicePackages";
 import AdminSecurity from "./pages/admin/AdminSecurity";
 import AdminSitemap from "./pages/admin/AdminSitemap";
 import AdminTestSprite from "./pages/admin/AdminTestSprite";
+import AdminQASetup from "./pages/admin/AdminQASetup";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +70,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <QABanner />
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -108,6 +111,7 @@ const App = () => {
             <Route path="/admin/users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
             <Route path="/admin/sitemap" element={<AdminLayout><AdminSitemap /></AdminLayout>} />
             <Route path="/admin/testsprite" element={<AdminLayout><AdminTestSprite /></AdminLayout>} />
+            <Route path="/admin/qa-setup" element={<AdminLayout><AdminQASetup /></AdminLayout>} />
             
             {/* Legacy routes */}
             <Route path="/cities/:citySlug" element={<CityDetail />} />
