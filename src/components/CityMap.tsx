@@ -28,6 +28,7 @@ export default function CityMap({ city, className }: { city: City; className?: s
   const fetchUniversities = async () => {
     try {
       setLoading(true);
+      console.log('CityMap: Fetching universities for city:', city);
       
       // Fetch universities in this city
       const { data, error: fetchError } = await supabase
@@ -37,12 +38,15 @@ export default function CityMap({ city, className }: { city: City; className?: s
         .not('lat', 'is', null)
         .not('lng', 'is', null);
 
+      console.log('CityMap: Universities query result:', { data, error: fetchError });
+
       if (fetchError) {
         console.error('Error fetching universities:', fetchError);
         setError('Failed to load universities');
         return;
       }
 
+      console.log('CityMap: Found universities:', data?.length || 0);
       setUniversities(data || []);
     } catch (err) {
       console.error('Error in fetchUniversities:', err);

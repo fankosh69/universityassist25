@@ -44,65 +44,153 @@ const UniversalMap: React.FC<UniversalMapProps> = ({
   }, [centerLat, centerLng, markers]);
 
   const initializeMap = async () => {
-    if (typeof window === 'undefined' || !mapRef.current) return;
+    if (typeof window === 'undefined' || !mapRef.current) {
+      console.log('UniversalMap: Skipping map init - window or mapRef not available');
+      return;
+    }
 
-    // Load Leaflet dynamically
+    console.log('UniversalMap: Starting map initialization', {
+      centerLat,
+      centerLng,
+      markers: markers.length,
+      locationName
+    });
+
     try {
-      // Load Leaflet CSS and JS
-      if (!document.querySelector('link[href*="leaflet"]')) {
+      // Ensure Leaflet CSS is loaded first and wait for it
+      await new Promise((resolve) => {
+        if (document.querySelector('link[href*="leaflet"]')) {
+          resolve(true);
+          return;
+        }
+        
+        console.log('UniversalMap: Loading Leaflet CSS');
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        link.onload = () => {
+          console.log('UniversalMap: Leaflet CSS loaded');
+          resolve(true);
+        };
+        link.onerror = () => {
+          console.error('UniversalMap: Failed to load Leaflet CSS');
+          resolve(false);
+        };
         document.head.appendChild(link);
-      }
-
-      const L = await import('leaflet');
-      const leaflet = L.default;
-
-      // Fix default markers
-      delete (leaflet.Icon.Default.prototype as any)._getIconUrl;
-      leaflet.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
       });
 
-      // Initialize Leaflet map
-      const map = leaflet.map(mapRef.current).setView([centerLat, centerLng], zoom);
+      console.log('UniversalMap: Importing Leaflet module');
       
-      leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);
+      // Try to import Leaflet with better error handling
+      const leafletModule = await import('leaflet');
+      console.log('UniversalMap: Leaflet module imported:', !!leafletModule);
+      
+      const leaflet = leafletModule.default || leafletModule;
+      
+      if (!leaflet || typeof leaflet.map !== 'function') {
+        throw new Error('Leaflet library not properly loaded - map function not available');
+      }
+
+      console.log('UniversalMap: Leaflet loaded successfully, version:', leaflet.version || 'unknown');
+
+      // Configure default markers
+      if (leaflet.Icon && leaflet.Icon.Default) {
+        try {
+          delete (leaflet.Icon.Default.prototype as any)._getIconUrl;
+          leaflet.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+          });
+          console.log('UniversalMap: Marker icons configured');
+        } catch (iconError) {
+          console.warn('UniversalMap: Failed to configure marker icons:', iconError);
+        }
+      }
+
+      console.log('UniversalMap: Creating map instance on container:', mapRef.current);
+      
+      // Validate coordinates
+      if (!Number.isFinite(centerLat) || !Number.isFinite(centerLng)) {
+        throw new Error(`Invalid coordinates: lat=${centerLat}, lng=${centerLng}`);
+      }
+      
+      // Initialize Leaflet map
+      const map = leaflet.map(mapRef.current, {
+        center: [centerLat, centerLng],
+        zoom: zoom,
+        zoomControl: true
+      });
+      
+      console.log('UniversalMap: Map instance created, adding tile layer');
+      
+      // Add tile layer with error handling
+      const tileLayer = leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+      });
+      
+      tileLayer.on('tileerror', (e: any) => {
+        console.warn('UniversalMap: Tile loading error:', e);
+      });
+      
+      tileLayer.addTo(map);
+      
+      console.log('UniversalMap: Adding markers', { markerCount: markers.length });
       
       // Add markers for universities or single location
       if (markers.length > 0) {
-        markers.forEach(marker => {
-          const leafletMarker = leaflet.marker([marker.lat, marker.lng])
-            .addTo(map)
-            .bindPopup(`<b>${marker.name}</b>${marker.description ? `<br/>${marker.description}` : ''}`);
+        const addedMarkers: any[] = [];
+        
+        markers.forEach((marker, index) => {
+          try {
+            if (!Number.isFinite(marker.lat) || !Number.isFinite(marker.lng)) {
+              console.warn(`UniversalMap: Invalid marker coordinates for ${marker.name}:`, marker.lat, marker.lng);
+              return;
+            }
+            
+            console.log(`UniversalMap: Adding marker ${index + 1}:`, marker.name, marker.lat, marker.lng);
+            
+            const leafletMarker = leaflet.marker([marker.lat, marker.lng])
+              .addTo(map)
+              .bindPopup(`<b>${marker.name}</b>${marker.description ? `<br/>${marker.description}` : ''}`);
+            
+            addedMarkers.push(leafletMarker);
+          } catch (markerError) {
+            console.error(`UniversalMap: Failed to add marker ${marker.name}:`, markerError);
+          }
         });
 
         // Fit map to show all markers if multiple
-        if (markers.length > 1) {
-          const group = new leaflet.FeatureGroup(
-            markers.map(marker => leaflet.marker([marker.lat, marker.lng]))
-          );
-          map.fitBounds(group.getBounds().pad(0.1));
+        if (addedMarkers.length > 1) {
+          try {
+            console.log('UniversalMap: Fitting bounds for multiple markers');
+            const group = new leaflet.FeatureGroup(addedMarkers);
+            map.fitBounds(group.getBounds().pad(0.1));
+          } catch (boundsError) {
+            console.error('UniversalMap: Failed to fit bounds:', boundsError);
+          }
         }
       } else if (latitude && longitude) {
-        // Single marker for city center
-        leaflet.marker([centerLat, centerLng])
-          .addTo(map)
-          .bindPopup(locationName)
-          .openPopup();
+        try {
+          console.log('UniversalMap: Adding single location marker');
+          leaflet.marker([centerLat, centerLng])
+            .addTo(map)
+            .bindPopup(locationName)
+            .openPopup();
+        } catch (singleMarkerError) {
+          console.error('UniversalMap: Failed to add single marker:', singleMarkerError);
+        }
       }
       
+      console.log('UniversalMap: Map initialization completed successfully');
       setMapType('interactive');
       setIsLoaded(true);
+      
     } catch (error) {
-      console.error('Leaflet map failed:', error);
-      setMapType('static');
-      setMapError('Interactive map not available');
+      console.error('UniversalMap: Map initialization failed:', error);
+      setMapType('fallback');
+      setMapError(`Map initialization failed: ${(error as Error).message}`);
     }
   };
 
