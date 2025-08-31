@@ -20,17 +20,84 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
+    <!-- Preload critical fonts for faster FCP -->
+    <link rel="preload" as="font" href="https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2" type="font/woff2" crossorigin>
+    <link rel="preload" as="font" href="https://fonts.gstatic.com/s/ubuntu/v20/4iCs6KVjbNBYlgoKfw72.woff2" type="font/woff2" crossorigin>
+    
     <!-- Preload LCP hero image for immediate discovery -->
     <link rel="preload" as="image" href="/assets/hero-image-DAFR7Wqp.jpg" fetchpriority="high">
     
-    <!-- Load fonts with display=swap to prevent render blocking -->
+    <!-- Load fonts with optimized display strategy -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Critical CSS for immediate content rendering -->
+    <style>
+      /* Prevent flash of unstyled content */
+      #root { 
+        min-height: 100vh; 
+        font-family: system-ui, sans-serif;
+        background: linear-gradient(135deg, hsl(231 87% 58%), hsl(184 58% 59%));
+      }
+      
+      /* Loading indicator for immediate FCP */
+      .loading-indicator {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 18px;
+        font-weight: 500;
+        z-index: 1000;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+      }
+      
+      /* Hide loading indicator once app loads */
+      .app-loaded .loading-indicator {
+        opacity: 0;
+        pointer-events: none;
+      }
+      
+      /* Critical font face declarations for immediate rendering */
+      @font-face {
+        font-family: 'Poppins';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: local('Poppins Regular'), local('Poppins-Regular');
+      }
+      
+      @font-face {
+        font-family: 'Ubuntu';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: local('Ubuntu Regular'), local('Ubuntu-Regular');
+      }
+    </style>
   </head>
 
   <body>
+    <!-- Immediate content for FCP -->
+    <div class="loading-indicator">
+      University Assist
+    </div>
+    
     <div id="root"></div>
+    
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Hide loading indicator once React starts rendering
+      const observer = new MutationObserver(() => {
+        if (document.getElementById('root').children.length > 0) {
+          document.body.classList.add('app-loaded');
+          observer.disconnect();
+        }
+      });
+      observer.observe(document.getElementById('root'), { childList: true });
+    </script>
   </body>
 </html>
