@@ -1,4 +1,5 @@
 // Mapbox integration utilities
+import { getMapboxToken as getToken } from '@/lib/env';
 
 export interface MapboxConfig {
   accessToken: string;
@@ -8,26 +9,20 @@ export interface MapboxConfig {
 }
 
 export async function getMapboxToken(): Promise<string> {
-  // Try environment variables first
-  const envToken = 
-    import.meta.env.NEXT_PUBLIC_MAPBOX_TOKEN ||
-    import.meta.env.VITE_MAPBOX_TOKEN ||
-    import.meta.env.REACT_APP_MAPBOX_TOKEN;
-    
-  if (envToken) {
-    return envToken;
-  }
-  
-  // Fallback to Supabase edge function
   try {
-    const { supabase } = await import('@/integrations/supabase/client');
-    const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-    
-    if (error) throw error;
-    return data?.token || '';
-  } catch (error) {
-    console.warn('Failed to get Mapbox token:', error);
-    return '';
+    return getToken();
+  } catch {
+    // Fallback to Supabase edge function if env token fails
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+      
+      if (error) throw error;
+      return data?.token || '';
+    } catch (error) {
+      console.warn('Failed to get Mapbox token:', error);
+      return '';
+    }
   }
 }
 
