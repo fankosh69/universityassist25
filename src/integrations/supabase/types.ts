@@ -1159,6 +1159,17 @@ export type Database = {
         Args: { profile_uuid: string }
         Returns: Json
       }
+      get_public_profile_display: {
+        Args: { profile_uuid: string }
+        Returns: {
+          display_name: string
+          education_level: string
+          field_of_study: string
+          id: string
+          institution_name: string
+          is_profile_complete: boolean
+        }[]
+      }
       get_safe_profile_data: {
         Args: { profile_uuid: string }
         Returns: {
@@ -1226,6 +1237,10 @@ export type Database = {
       profile_access_guide: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      request_emergency_admin_access: {
+        Args: { reason: string; target_profile_id?: string }
+        Returns: Json
       }
       secure_update_academic_data: {
         Args: { target_profile_id: string; update_data: Json }
