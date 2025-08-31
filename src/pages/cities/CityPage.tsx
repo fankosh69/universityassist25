@@ -5,7 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import CityMap from '@/components/CityMap';
 import Navigation from '@/components/Navigation';
 import SEOHead from '@/components/SEOHead';
-import { type MapMarker } from '@/lib/mapbox';
+
+interface MapMarker {
+  id: string;
+  name: string;
+  coordinates: [number, number];
+  type: 'university' | 'city';
+  data?: any;
+}
 
 export default function CityPage() {
   const { city } = useParams();
