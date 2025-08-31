@@ -120,6 +120,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ambassadors_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "city_stats"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ambassadors_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
@@ -962,6 +969,13 @@ export type Database = {
             referencedRelation: "cities"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "universities_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "city_stats"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_applications: {
@@ -1070,7 +1084,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      city_stats: {
+        Row: {
+          country_code: string | null
+          id: string | null
+          name: string | null
+          population_asof: string | null
+          population_total: number | null
+          region: string | null
+          slug: string | null
+          uni_count: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_access_profile: {
@@ -1223,6 +1249,26 @@ export type Database = {
           updated_at: string
         }[]
       }
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
       has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
@@ -1242,6 +1288,19 @@ export type Database = {
         Args: { reason: string; target_profile_id?: string }
         Returns: Json
       }
+      search_cities: {
+        Args: { q?: string }
+        Returns: {
+          country_code: string | null
+          id: string | null
+          name: string | null
+          population_asof: string | null
+          population_total: number | null
+          region: string | null
+          slug: string | null
+          uni_count: number | null
+        }[]
+      }
       secure_update_academic_data: {
         Args: { target_profile_id: string; update_data: Json }
         Returns: Json
@@ -1258,6 +1317,18 @@ export type Database = {
           public_data?: Json
         }
         Returns: Json
+      }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
+        Returns: string[]
       }
       slugify: {
         Args: { txt: string }
