@@ -12,8 +12,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import heroImageOptimized from "@/assets/hero-image-optimized.jpg";
-import heroImageSmall from "@/assets/hero-image-small.jpg";
+import heroImage from "@/assets/hero-image.jpg";
 import SEOHead from "@/components/SEOHead";
 import JsonLd, { organizationSchema, websiteSchema } from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
@@ -54,7 +53,7 @@ const Index = () => {
         keywords="German universities, study in Germany, university programs, bachelor, master, PhD, Germany education, university admission, University Assist"
         ogTitle="University Assist - Your Way to Germany | Find German University Programs"
         ogDescription="Your way to Germany - Join thousands of students who found their ideal German university program with our intelligent matching system."
-        ogImage={heroImageOptimized}
+        ogImage={heroImage}
       />
       <JsonLd data={organizationSchema} />
       <JsonLd data={websiteSchema} />
@@ -64,23 +63,15 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative bg-gradient-hero overflow-hidden">
         <div className="absolute inset-0">
-          <picture>
-            <source 
-              media="(max-width: 1024px)" 
-              srcSet={heroImageSmall}
-              type="image/jpeg"
-            />
-            <img 
-              src={heroImageOptimized}
-              alt="German University Campus"
-              className="w-full h-full object-cover opacity-20"
-              width="1920"
-              height="1080"
-              loading="eager"
-              decoding="async"
-              fetchPriority="high"
-            />
-          </picture>
+          <img 
+            src={heroImage}
+            alt="German University Campus"
+            className="w-full h-full object-cover opacity-20"
+            width="1920"
+            height="749"
+            loading="eager"
+            decoding="async"
+          />
         </div>
         <div className="relative container mx-auto px-4 py-24 text-center text-white">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">

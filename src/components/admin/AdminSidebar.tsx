@@ -13,9 +13,7 @@ import {
   Home,
   Menu,
   Shield,
-  FileText,
-  TestTube,
-  Wrench
+  FileText
 } from "lucide-react";
 
 import {
@@ -40,8 +38,6 @@ const adminMenuItems = [
   { title: "User Management", url: "/admin/users", icon: Users },
   { title: "Security", url: "/admin/security", icon: Shield },
   { title: "Sitemap", url: "/admin/sitemap", icon: FileText },
-  { title: "TestSprite", url: "/admin/testsprite", icon: TestTube },
-  { title: "QA Setup", url: "/admin/qa-setup", icon: Wrench },
 ];
 
 export function AdminSidebar() {

@@ -10,12 +10,8 @@ import WatchlistButton from '@/components/WatchlistButton';
 import { getDaysUntilDeadline, createICSEvent, downloadICS } from '@/lib/tz';
 import { Calendar, Download, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getCurrentUserAcademicData } from '@/lib/secure-academic-api';
-
-// Simple formatting functions for program display
-const formatDegreeDisplay = (degreeType: string, name: string) => {
-  return `${degreeType ? degreeType + ' in ' : ''}${name}`;
-};
+import { LanguageFlags } from '@/components/LanguageFlags';
+import { formatProgramTitle } from '@/lib/degree-formatting';
 
 export default function ProgramPage() {
   const { uni, program } = useParams();
@@ -62,13 +58,12 @@ export default function ProgramPage() {
       // Fetch student profile if logged in
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        try {
-          const profile = await getCurrentUserAcademicData();
-          setStudentProfile(profile);
-        } catch (error) {
-          console.error('Error fetching student profile:', error);
-          // Continue without profile data if there's an error
-        }
+        const { data: profile } = await supabase
+          .from('student_academics')
+          .select('*')
+          .eq('profile_id', user.id)
+          .single();
+        setStudentProfile(profile);
       }
     }
 
@@ -117,10 +112,10 @@ export default function ProgramPage() {
                       rel="noopener noreferrer"
                       className="hover:text-primary transition-colors"
                     >
-                      {formatDegreeDisplay(programData.degree_type, programData.name)}
+                      {formatProgramTitle(programData.degree_type, programData.name)}
                     </a>
                   ) : (
-                    formatDegreeDisplay(programData.degree_type, programData.name)
+                    formatProgramTitle(programData.degree_type, programData.name)
                   )}
                 </h1>
                 <a 
@@ -174,13 +169,7 @@ export default function ProgramPage() {
                   <div>
                     <span className="font-medium">Language:</span>
                     <div className="mt-1">
-                    <div className="flex gap-1">
-                      {(programData.language_of_instruction || ['de']).map((lang: string, idx: number) => (
-                        <Badge key={idx} variant="outline" className="text-xs">
-                          {lang.toUpperCase()}
-                        </Badge>
-                      ))}
-                    </div>
+                      <LanguageFlags languages={programData.language_of_instruction || ['de']} size="md" />
                     </div>
                   </div>
                   <div>

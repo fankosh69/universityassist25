@@ -11,9 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import Navigation from '@/components/Navigation';
 import SEOHead from '@/components/SEOHead';
 import { useToast } from '@/hooks/use-toast';
-import { useTranslation } from 'react-i18next';
 import { Plus, X, Save } from 'lucide-react';
-import { getCurrentUserAcademicData, secureUpdateAcademicData } from '@/lib/secure-academic-api';
+import { useTranslation } from 'react-i18next';
 
 interface LanguageCertificate {
   language: string;
@@ -44,35 +43,31 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function loadProfile() {
-      setIsLoading(true);
-      try {
-        const academicData = await getCurrentUserAcademicData();
-        
-        if (academicData) {
-          Object.entries(academicData).forEach(([key, value]) => {
-            if (value !== null && key !== 'profile_id' && key !== 'created_at' && key !== 'updated_at') {
-              setValue(key as any, value?.toString() || '');
-            }
-          });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-          if (academicData.language_certificates) {
-            setLanguageCerts(academicData.language_certificates as LanguageCertificate[]);
+      const { data: academics } = await supabase
+        .from('student_academics')
+        .select('*')
+        .eq('profile_id', user.id)
+        .single();
+
+      if (academics) {
+        Object.entries(academics).forEach(([key, value]) => {
+          if (value !== null) {
+            setValue(key as any, value?.toString() || '');
           }
-        }
-      } catch (error) {
-        console.error('Error loading academic profile:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load your academic profile. Please try again.",
-          variant: "destructive",
         });
-      } finally {
-        setIsLoading(false);
+        setLanguageCerts(
+          Array.isArray(academics.language_certificates) 
+            ? (academics.language_certificates as unknown as LanguageCertificate[])
+            : []
+        );
       }
     }
 
     loadProfile();
-  }, [setValue, toast]);
+  }, [setValue]);
 
   const addLanguageCert = () => {
     if (newCert.language && newCert.level && newCert.certificate_type) {
@@ -90,37 +85,34 @@ export default function ProfilePage() {
       setIsLoading(true);
       
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-      
+      if (!user) throw new Error('Not authenticated');
+
       const academicsData = {
-        curriculum: data.curriculum || null,
-        prev_major: data.prev_major || null,
+        profile_id: user.id,
+        ...data,
+        language_certificates: languageCerts,
         gpa_raw: data.gpa_raw ? parseFloat(data.gpa_raw) : null,
         gpa_scale_max: data.gpa_scale_max ? parseFloat(data.gpa_scale_max) : null,
         gpa_min_pass: data.gpa_min_pass ? parseFloat(data.gpa_min_pass) : null,
         ects_total: data.ects_total ? parseFloat(data.ects_total) : null,
-        target_level: data.target_level || null,
-        target_intake: data.target_intake || null,
-        language_certificates: languageCerts,
-        extras: data.extras || {}
       };
 
-      const result = await secureUpdateAcademicData(user.id, academicsData);
-      
-      if (!result?.success) {
-        throw new Error(result?.message || 'Failed to update academic data');
-      }
+      const { error } = await supabase
+        .from('student_academics')
+        .upsert(academicsData);
+
+      if (error) throw error;
 
       toast({
         title: t('common.save') + 'd!',
-        description: result.message || 'Your academic profile has been updated securely.',
+        description: 'Your academic profile has been updated.',
       });
     } catch (error) {
       console.error('Error saving profile:', error);
       toast({
         title: t('common.error'),
-        description: error instanceof Error ? error.message : 'Failed to save your profile. Please try again.',
-        variant: 'destructive',
+        description: 'Failed to save profile. Please try again.',
+        variant: 'destructive'
       });
     } finally {
       setIsLoading(false);

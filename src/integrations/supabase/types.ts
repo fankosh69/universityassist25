@@ -692,45 +692,6 @@ export type Database = {
           },
         ]
       }
-      testsprite_tests: {
-        Row: {
-          created_at: string
-          description: string | null
-          duration: number | null
-          id: string
-          last_run: string | null
-          name: string
-          status: string
-          testsprite_id: string
-          updated_at: string
-          url: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          duration?: number | null
-          id?: string
-          last_run?: string | null
-          name: string
-          status?: string
-          testsprite_id: string
-          updated_at?: string
-          url: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          duration?: number | null
-          id?: string
-          last_run?: string | null
-          name?: string
-          status?: string
-          testsprite_id?: string
-          updated_at?: string
-          url?: string
-        }
-        Relationships: []
-      }
       universities: {
         Row: {
           city: string
@@ -915,29 +876,8 @@ export type Database = {
         Args: { profile_id: string }
         Returns: boolean
       }
-      check_profile_access_rate_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
       check_profile_access_rights: {
         Args: { profile_uuid: string }
-        Returns: Json
-      }
-      check_qa_users_setup: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          email: string
-          profile_exists: boolean
-          roles: string[]
-          user_exists: boolean
-        }[]
-      }
-      enhanced_validate_profile_access: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      export_my_profile_data: {
-        Args: Record<PropertyKey, never>
         Returns: Json
       }
       get_admin_dashboard_stats: {
@@ -954,23 +894,6 @@ export type Database = {
           intake_year: number
           semester_start_date: string
           status: string
-        }[]
-      }
-      get_masked_academic_summary: {
-        Args: { target_profile_id: string }
-        Returns: Json
-      }
-      get_masked_profile_data: {
-        Args: { profile_uuid?: string }
-        Returns: {
-          created_at: string
-          display_name: string
-          education_level: string
-          field_of_study: string
-          id: string
-          masked_email: string
-          masked_phone: string
-          nationality: string
         }[]
       }
       get_masked_profile_display: {
@@ -992,10 +915,6 @@ export type Database = {
           intake_year: number
           semester_start_date: string
         }[]
-      }
-      get_profile_summary: {
-        Args: { profile_uuid: string }
-        Returns: Json
       }
       get_safe_profile_data: {
         Args: { profile_uuid: string }
@@ -1022,10 +941,6 @@ export type Database = {
           updated_at: string
         }[]
       }
-      get_secure_academic_data: {
-        Args: { target_profile_id: string }
-        Returns: Json
-      }
       has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
@@ -1040,10 +955,6 @@ export type Database = {
       profile_access_guide: {
         Args: Record<PropertyKey, never>
         Returns: string
-      }
-      secure_update_academic_data: {
-        Args: { target_profile_id: string; update_data: Json }
-        Returns: Json
       }
       secure_update_profile: {
         Args: { new_data: Json; profile_id: string }

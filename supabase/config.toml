@@ -2,24 +2,3 @@ project_id = "zfiexgjcuojodmnsinsz"
 
 [functions.email-domain-check]
 verify_jwt = false
-
-[functions.get-mapbox-token] 
-verify_jwt = false
-
-[functions.ingest-universities]
-verify_jwt = true
-
-[functions.university-info-enricher]
-verify_jwt = false
-
-[functions.testsprite-api]
-verify_jwt = true
-
-[functions.setup-qa-users]
-verify_jwt = true
-
-[functions.generate-test-packet]
-verify_jwt = false
-
-[functions.qa-packet-api]
-verify_jwt = false
