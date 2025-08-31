@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import heroImage from "@/assets/hero-image.jpg";
 import heroImageOptimized from "@/assets/hero-image-optimized.jpg";
 import heroImageSmall from "@/assets/hero-image-small.jpg";
 import SEOHead from "@/components/SEOHead";
@@ -65,21 +64,23 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative bg-gradient-hero overflow-hidden">
         <div className="absolute inset-0">
-          <img 
-            src={heroImageOptimized}
-            srcSet={`
-              ${heroImageSmall} 1024w,
-              ${heroImageOptimized} 1920w
-            `}
-            sizes="100vw"
-            alt="German University Campus"
-            className="w-full h-full object-cover opacity-20"
-            width="1920"
-            height="1080"
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-          />
+          <picture>
+            <source 
+              media="(max-width: 1024px)" 
+              srcSet={heroImageSmall}
+              type="image/jpeg"
+            />
+            <img 
+              src={heroImageOptimized}
+              alt="German University Campus"
+              className="w-full h-full object-cover opacity-20"
+              width="1920"
+              height="1080"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+            />
+          </picture>
         </div>
         <div className="relative container mx-auto px-4 py-24 text-center text-white">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
