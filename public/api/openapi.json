@@ -1,0 +1,984 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "University Assist API",
+    "version": "1.0.0",
+    "description": "Complete API documentation for University Assist platform - your way to German universities. This API provides access to university programs, cities, requirements, and application management.",
+    "contact": {
+      "name": "University Assist",
+      "url": "https://universityassist25.lovable.app"
+    },
+    "license": {
+      "name": "Private"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1",
+      "description": "Supabase REST API (PostgREST)"
+    },
+    {
+      "url": "https://zfiexgjcuojodmnsinsz.functions.supabase.co",
+      "description": "Supabase Edge Functions"
+    },
+    {
+      "url": "https://universityassist25.lovable.app/api",
+      "description": "Application API"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    },
+    {
+      "BearerAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "apikey",
+        "description": "Supabase anonymous key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token for authenticated requests"
+      }
+    },
+    "parameters": {
+      "select": {
+        "name": "select",
+        "in": "query",
+        "description": "Select specific columns (comma-separated)",
+        "schema": {
+          "type": "string",
+          "example": "id,name,slug"
+        }
+      },
+      "order": {
+        "name": "order",
+        "in": "query",
+        "description": "Order results by column(s)",
+        "schema": {
+          "type": "string",
+          "example": "name.asc,created_at.desc"
+        }
+      },
+      "limit": {
+        "name": "limit",
+        "in": "query",
+        "description": "Limit number of results",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "example": 10
+        }
+      },
+      "offset": {
+        "name": "offset",
+        "in": "query",
+        "description": "Offset for pagination",
+        "schema": {
+          "type": "integer",
+          "minimum": 0,
+          "example": 0
+        }
+      }
+    },
+    "schemas": {
+      "City": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Berlin"
+          },
+          "slug": {
+            "type": "string",
+            "example": "berlin"
+          },
+          "country_code": {
+            "type": "string",
+            "example": "DE"
+          },
+          "lat": {
+            "type": "number",
+            "format": "double"
+          },
+          "lng": {
+            "type": "number",
+            "format": "double"
+          },
+          "state": {
+            "type": "string"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "University": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Technical University of Berlin"
+          },
+          "slug": {
+            "type": "string",
+            "example": "tu-berlin"
+          },
+          "city": {
+            "type": "string",
+            "example": "Berlin"
+          },
+          "city_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "website": {
+            "type": "string",
+            "format": "uri"
+          },
+          "logo_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "type": {
+            "type": "string"
+          },
+          "control_type": {
+            "type": "string",
+            "example": "public"
+          },
+          "lat": {
+            "type": "number",
+            "format": "double"
+          },
+          "lng": {
+            "type": "number",
+            "format": "double"
+          },
+          "ranking": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Program": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Computer Science"
+          },
+          "slug": {
+            "type": "string",
+            "example": "computer-science"
+          },
+          "university_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "field_of_study": {
+            "type": "string",
+            "example": "Engineering"
+          },
+          "degree_level": {
+            "type": "string",
+            "enum": ["bachelor", "master", "phd"]
+          },
+          "degree_type": {
+            "type": "string",
+            "example": "Bachelor of Science"
+          },
+          "duration_semesters": {
+            "type": "integer",
+            "example": 6
+          },
+          "ects_credits": {
+            "type": "integer",
+            "example": 180
+          },
+          "tuition_fees": {
+            "type": "integer",
+            "example": 0
+          },
+          "minimum_gpa": {
+            "type": "number",
+            "format": "double"
+          },
+          "language_requirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "language_of_instruction": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "winter_intake": {
+            "type": "boolean"
+          },
+          "summer_intake": {
+            "type": "boolean"
+          },
+          "winter_deadline": {
+            "type": "string",
+            "format": "date"
+          },
+          "summer_deadline": {
+            "type": "string",
+            "format": "date"
+          },
+          "uni_assist_required": {
+            "type": "boolean"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProgramDeadline": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "program_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "intake": {
+            "type": "string",
+            "enum": ["winter", "summer"]
+          },
+          "application_deadline": {
+            "type": "string",
+            "format": "date"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProgramRequirement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "program_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requirement_type": {
+            "type": "string",
+            "example": "academic"
+          },
+          "details": {
+            "type": "object"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Ambassador": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "full_name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "city_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "university_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "profile_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "is_published": {
+            "type": "boolean"
+          },
+          "linkedin_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "photo_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "video_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "testimonial": {
+            "type": "string"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "study_programs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "hint": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/cities": {
+      "get": {
+        "summary": "List cities",
+        "description": "Retrieve all cities in Germany where universities are located",
+        "tags": ["Cities"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/select"
+          },
+          {
+            "$ref": "#/components/parameters/order"
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/offset"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Filter by city name",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of cities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/City"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/universities": {
+      "get": {
+        "summary": "List universities",
+        "description": "Retrieve all universities",
+        "tags": ["Universities"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/select"
+          },
+          {
+            "$ref": "#/components/parameters/order"
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/offset"
+          },
+          {
+            "name": "city_id",
+            "in": "query",
+            "description": "Filter by city ID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Filter by university name (case-insensitive)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of universities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/University"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/programs": {
+      "get": {
+        "summary": "List programs",
+        "description": "Search and filter university programs",
+        "tags": ["Programs"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/select"
+          },
+          {
+            "$ref": "#/components/parameters/order"
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/offset"
+          },
+          {
+            "name": "university_id",
+            "in": "query",
+            "description": "Filter by university ID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "degree_level",
+            "in": "query",
+            "description": "Filter by degree level",
+            "schema": {
+              "type": "string",
+              "enum": ["bachelor", "master", "phd"]
+            }
+          },
+          {
+            "name": "field_of_study",
+            "in": "query",
+            "description": "Filter by field of study",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "published",
+            "in": "query",
+            "description": "Filter by published status",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of programs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Program"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/program_deadlines": {
+      "get": {
+        "summary": "List program deadlines",
+        "description": "Get application deadlines for programs",
+        "tags": ["Programs"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/select"
+          },
+          {
+            "name": "program_id",
+            "in": "query",
+            "description": "Filter by program ID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of program deadlines",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProgramDeadline"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/program_requirements": {
+      "get": {
+        "summary": "List program requirements",
+        "description": "Get admission requirements for programs",
+        "tags": ["Programs"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/select"
+          },
+          {
+            "name": "program_id",
+            "in": "query",
+            "description": "Filter by program ID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of program requirements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProgramRequirement"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ambassadors": {
+      "get": {
+        "summary": "List ambassadors",
+        "description": "Get published student ambassadors",
+        "tags": ["Ambassadors"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/select"
+          },
+          {
+            "name": "city_id",
+            "in": "query",
+            "description": "Filter by city ID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "university_id",
+            "in": "query",
+            "description": "Filter by university ID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "is_published",
+            "in": "query",
+            "description": "Filter by published status",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of ambassadors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Ambassador"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/get_safe_profile_data": {
+      "post": {
+        "summary": "Get secure profile data",
+        "description": "Retrieve profile data with security validation",
+        "tags": ["RPC"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "profile_uuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile data"
+          }
+        }
+      }
+    },
+    "/rpc/get_admin_dashboard_stats": {
+      "post": {
+        "summary": "Get admin dashboard statistics",
+        "description": "Get aggregated statistics for admin dashboard",
+        "tags": ["RPC", "Admin"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cities": {
+                      "type": "integer"
+                    },
+                    "universities": {
+                      "type": "integer"
+                    },
+                    "programs": {
+                      "type": "integer"
+                    },
+                    "users": {
+                      "type": "integer"
+                    },
+                    "applications": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/functions/v1/ingest-universities": {
+      "post": {
+        "summary": "Ingest universities data",
+        "description": "Import universities and cities data from CSV",
+        "tags": ["Edge Functions", "Admin"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ingest completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "upsertedCities": {
+                      "type": "integer"
+                    },
+                    "upsertedUnis": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/functions/v1/generate-test-packet": {
+      "post": {
+        "summary": "Generate QA test packet",
+        "description": "Generate TestSprite QA packet for testing",
+        "tags": ["Edge Functions", "QA"],
+        "responses": {
+          "200": {
+            "description": "Test packet generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "packet": {
+                      "type": "string"
+                    },
+                    "summary": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/functions/v1/qa-packet-api": {
+      "get": {
+        "summary": "Get QA packet via API",
+        "description": "Get QA packet data in JSON format",
+        "tags": ["Edge Functions", "QA"],
+        "responses": {
+          "200": {
+            "description": "QA packet data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "packet": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/functions/v1/get-mapbox-token": {
+      "get": {
+        "summary": "Get Mapbox token",
+        "description": "Retrieve Mapbox public token for map rendering",
+        "tags": ["Edge Functions"],
+        "responses": {
+          "200": {
+            "description": "Mapbox token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Cities",
+      "description": "German cities with universities"
+    },
+    {
+      "name": "Universities", 
+      "description": "German universities and institutions"
+    },
+    {
+      "name": "Programs",
+      "description": "University programs and requirements"
+    },
+    {
+      "name": "Ambassadors",
+      "description": "Student ambassadors and testimonials"
+    },
+    {
+      "name": "RPC",
+      "description": "Database stored procedures"
+    },
+    {
+      "name": "Edge Functions",
+      "description": "Serverless functions"
+    },
+    {
+      "name": "Admin",
+      "description": "Administrative functions"
+    },
+    {
+      "name": "QA",
+      "description": "Quality assurance and testing"
+    }
+  ]
+}

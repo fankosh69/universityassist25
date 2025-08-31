@@ -1,0 +1,58 @@
+###
+# University Assist API Examples - Cities
+# 
+# Base URL: https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1
+# 
+# Replace {SUPABASE_ANON_KEY} with your actual key
+# Replace {JWT_TOKEN} with valid JWT for authenticated requests
+###
+
+### List all cities
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/cities
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### List cities with specific columns
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/cities?select=id,name,slug,lat,lng,state
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Search cities by name (case-insensitive)
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/cities?name=ilike.*berlin*
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Get cities ordered by name
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/cities?select=id,name,slug&order=name.asc
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Get cities with pagination
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/cities?select=id,name,slug&limit=5&offset=0
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Get cities with universities count (if supported)
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/cities?select=id,name,slug,universities(count)
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Get specific city by slug
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/cities?select=*&slug=eq.berlin
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Get cities in specific state
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/cities?select=id,name,slug,state&state=eq.Berlin
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Get cities with coordinates for mapping
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/cities?select=id,name,slug,lat,lng&lat=not.is.null&lng=not.is.null
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Full text search in city keywords (if FTS is available)
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/cities?select=id,name,slug,keywords&keywords=cs.{Munich}
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json

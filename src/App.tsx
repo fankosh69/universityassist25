@@ -117,6 +117,9 @@ const App = () => {
             {/* Public QA Routes */}
             <Route path="/qa/packet" element={<QAPacket />} />
             
+            {/* API Documentation Routes */}
+            <Route path="/docs/api" element={<Navigate to="/docs/api/index.html" />} />
+            
             {/* Legacy routes */}
             <Route path="/cities/:citySlug" element={<CityDetail />} />
             <Route path="*" element={<NotFound />} />

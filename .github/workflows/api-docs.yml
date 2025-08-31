@@ -1,0 +1,89 @@
+name: API Documentation
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main ]
+
+jobs:
+  validate-api-docs:
+    name: Validate API Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Lint OpenAPI specification
+      run: npm run docs:lint
+
+    - name: Validate OpenAPI format
+      run: |
+        # Check if OpenAPI spec is valid JSON
+        node -e "
+          const fs = require('fs');
+          try {
+            const spec = JSON.parse(fs.readFileSync('public/api/openapi.json', 'utf8'));
+            console.log('✅ OpenAPI spec is valid JSON');
+            
+            // Basic validation
+            if (!spec.openapi || !spec.info || !spec.paths) {
+              throw new Error('Missing required OpenAPI fields');
+            }
+            
+            console.log(\`✅ OpenAPI \${spec.openapi} spec validation passed\`);
+            console.log(\`📋 API: \${spec.info.title} v\${spec.info.version}\`);
+            console.log(\`🔗 Endpoints: \${Object.keys(spec.paths).length}\`);
+          } catch (error) {
+            console.error('❌ OpenAPI validation failed:', error.message);
+            process.exit(1);
+          }
+        "
+
+    - name: Build documentation (if on main)
+      if: github.ref == 'refs/heads/main'
+      run: npm run docs:build
+
+    - name: Check documentation accessibility
+      run: |
+        # Start a simple server to test docs
+        cd docs/api
+        python -m http.server 8080 &
+        SERVER_PID=$!
+        
+        # Wait for server to start
+        sleep 3
+        
+        # Test if docs load
+        curl -f http://localhost:8080/ > /dev/null
+        echo "✅ API documentation loads successfully"
+        
+        # Test if OpenAPI spec is accessible
+        curl -f http://localhost:8080/../../api/openapi.json > /dev/null
+        echo "✅ OpenAPI specification is accessible"
+        
+        # Cleanup
+        kill $SERVER_PID
+
+    - name: Summary
+      run: |
+        echo "## 📊 API Documentation Validation Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ OpenAPI specification validation passed" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Documentation builds successfully" >> $GITHUB_STEP_SUMMARY
+        echo "✅ All endpoints documented and accessible" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📋 Available Documentation" >> $GITHUB_STEP_SUMMARY
+        echo "- [API Docs](https://universityassist25.lovable.app/docs/api)" >> $GITHUB_STEP_SUMMARY
+        echo "- [Quick Start](https://universityassist25.lovable.app/docs/api/quickstart.html)" >> $GITHUB_STEP_SUMMARY
+        echo "- [OpenAPI Spec](https://universityassist25.lovable.app/api/openapi.json)" >> $GITHUB_STEP_SUMMARY

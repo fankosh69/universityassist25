@@ -1,0 +1,106 @@
+###
+# University Assist API Examples - Programs Search
+# 
+# Base URL: https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1
+# 
+# Replace {SUPABASE_ANON_KEY} with your actual key
+# Replace {JWT_TOKEN} with valid JWT for authenticated requests
+###
+
+### List all published programs
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=*&published=eq.true
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Programs with university information
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=id,name,slug,degree_level,field_of_study,universities(name,city)&published=eq.true
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Master's programs only
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=id,name,slug,field_of_study,universities(name,city)&degree_level=eq.master&published=eq.true
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Computer Science programs
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=*,universities(name,city)&field_of_study=ilike.*Computer*&published=eq.true
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Programs at specific university
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=*&university_id=eq.{university-uuid-here}&published=eq.true
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Programs with deadlines and requirements
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=*,program_deadlines(*),program_requirements(*),universities(name,city)&published=eq.true&limit=5
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Programs with winter intake
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=id,name,degree_level,winter_intake,winter_deadline,universities(name)&winter_intake=eq.true&published=eq.true
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Free programs (no tuition fees)
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=id,name,degree_level,tuition_fees,universities(name,city)&tuition_fees=eq.0&published=eq.true
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Programs requiring Uni-Assist
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=id,name,degree_level,uni_assist_required,universities(name)&uni_assist_required=eq.true&published=eq.true
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Programs by ECTS credits range
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=id,name,degree_level,ects_credits,universities(name)&ects_credits=gte.120&ects_credits=lte.240&published=eq.true
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Programs with English instruction
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=id,name,language_of_instruction,universities(name)&language_of_instruction=cs.{en}&published=eq.true
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Search programs by name
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=id,name,degree_level,field_of_study,universities(name)&name=ilike.*Engineering*&published=eq.true
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Programs with pagination and sorting
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=id,name,degree_level,field_of_study,universities(name,city)&published=eq.true&order=name.asc&limit=10&offset=0
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Complex search: Master's in Berlin, English-taught, free tuition
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=*,universities(name,city)&degree_level=eq.master&universities.city=eq.Berlin&tuition_fees=eq.0&language_of_instruction=cs.{en}&published=eq.true
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Programs with specific duration (3 years = 6 semesters)
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=id,name,degree_level,duration_semesters,universities(name)&duration_semesters=eq.6&published=eq.true
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Programs with minimum GPA requirement
+GET https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/programs?select=id,name,degree_level,minimum_gpa,universities(name)&minimum_gpa=not.is.null&published=eq.true&order=minimum_gpa.asc
+apikey: {SUPABASE_ANON_KEY}
+Content-Type: application/json
+
+### Add program to watchlist (requires authentication)
+POST https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/watchlist
+apikey: {SUPABASE_ANON_KEY}
+Authorization: Bearer {JWT_TOKEN}
+Content-Type: application/json
+Prefer: return=representation
+
+{
+  "program_id": "{program-uuid-here}",
+  "profile_id": "{user-profile-uuid-here}"
+}
+
+### Remove program from watchlist (requires authentication)
+DELETE https://zfiexgjcuojodmnsinsz.supabase.co/rest/v1/watchlist?program_id=eq.{program-uuid-here}&profile_id=eq.{user-profile-uuid-here}
+apikey: {SUPABASE_ANON_KEY}
+Authorization: Bearer {JWT_TOKEN}
+Content-Type: application/json
