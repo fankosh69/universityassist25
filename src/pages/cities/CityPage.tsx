@@ -18,24 +18,35 @@ export default function CityPage() {
       if (!city) return;
       
       // Fetch city data
-      const { data: cityInfo } = await supabase
+      const { data: cityInfo, error: cityError } = await supabase
         .from('cities')
         .select('*')
         .eq('slug', city)
-        .single();
+        .maybeSingle();
       
+      if (cityError) {
+        console.error('Error fetching city:', cityError);
+        return;
+      }
+
       setCityData(cityInfo);
 
-      // Fetch ALL universities in this city
-      const { data: allUnis } = await supabase
+      if (!cityInfo) return;
+
+      // Fetch ALL universities in this city using the proper city_id relationship
+      const { data: allUnis, error: unisError } = await supabase
         .from('universities')
         .select('*')
-        .eq('city_id', cityInfo?.id || '');
+        .eq('city_id', cityInfo.id);
       
+      if (unisError) {
+        console.error('Error fetching universities:', unisError);
+        return;
+      }
+
       setUniversities(allUnis || []);
 
       // Create map markers - only include universities with valid coordinates
-      // Add small random offsets to avoid overlapping pins
       const validUnis = (allUnis || []).filter(uni => 
         uni.lat && uni.lng && uni.lat !== 0 && uni.lng !== 0
       );
@@ -50,7 +61,7 @@ export default function CityPage() {
           name: uni.name,
           coordinates: [uni.lng + lngOffset, uni.lat + latOffset],
           type: 'university' as const,
-          data: { ...uni, slug: uni.slug, city: cityInfo?.name, program_count: 0 }
+          data: { ...uni, slug: uni.slug, city: cityInfo.name, program_count: 0 }
         };
       });
       

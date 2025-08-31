@@ -23,19 +23,11 @@ interface City {
 
 export default function Cities() {
   const [cities, setCities] = useState<City[]>([]);
-  const [totalUniversities, setTotalUniversities] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCities = async () => {
       try {
-        // First get total university count
-        const { count: totalCount } = await supabase
-          .from('universities')
-          .select('*', { count: 'exact', head: true });
-
-        setTotalUniversities(totalCount || 0);
-
         // Fetch cities with university count
         const { data: citiesData, error: citiesError } = await supabase
           .from('cities')
@@ -124,11 +116,6 @@ export default function Cities() {
               Discover the vibrant German cities where you can pursue your higher education. 
               Each city offers unique opportunities, culture, and academic excellence.
             </p>
-            <div className="mt-4">
-              <Badge variant="secondary" className="text-lg px-4 py-2">
-                Total: {totalUniversities} universities across Germany
-              </Badge>
-            </div>
           </div>
         </div>
 
