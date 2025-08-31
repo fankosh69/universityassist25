@@ -13,6 +13,8 @@ import {
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import heroImage from "@/assets/hero-image.jpg";
+import heroImageOptimized from "@/assets/hero-image-optimized.jpg";
+import heroImageSmall from "@/assets/hero-image-small.jpg";
 import SEOHead from "@/components/SEOHead";
 import JsonLd, { organizationSchema, websiteSchema } from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
@@ -53,7 +55,7 @@ const Index = () => {
         keywords="German universities, study in Germany, university programs, bachelor, master, PhD, Germany education, university admission, University Assist"
         ogTitle="University Assist - Your Way to Germany | Find German University Programs"
         ogDescription="Your way to Germany - Join thousands of students who found their ideal German university program with our intelligent matching system."
-        ogImage={heroImage}
+        ogImage={heroImageOptimized}
       />
       <JsonLd data={organizationSchema} />
       <JsonLd data={websiteSchema} />
@@ -64,11 +66,16 @@ const Index = () => {
       <section className="relative bg-gradient-hero overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src={heroImage}
+            src={heroImageOptimized}
+            srcSet={`
+              ${heroImageSmall} 1024w,
+              ${heroImageOptimized} 1920w
+            `}
+            sizes="100vw"
             alt="German University Campus"
             className="w-full h-full object-cover opacity-20"
             width="1920"
-            height="749"
+            height="1080"
             loading="eager"
             decoding="async"
           />

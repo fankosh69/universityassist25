@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import logoOptimized from "@/assets/logo-optimized.png";
 
 interface LogoProps {
   className?: string;
@@ -14,7 +15,7 @@ const Logo = ({ className = "", showText = false, variant = "default" }: LogoPro
       title="University Assist - Back to Home"
     >
       <img 
-        src="/lovable-uploads/fda0393f-0b68-4ef6-bd9a-3d02ac39e07b.png" 
+        src={logoOptimized}
         alt="University Assist Logo" 
         className="h-16 w-auto object-contain max-w-[200px]"
         width="200"
