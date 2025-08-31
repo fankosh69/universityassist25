@@ -46,7 +46,7 @@ export interface AccessRights {
 }
 
 /**
- * Safely get profile data using security-hardened function
+ * Safely get profile data using enhanced security-hardened function
  */
 export const getSecureProfileData = async (profileId: string): Promise<SecureProfileData | null> => {
   try {
@@ -63,6 +63,48 @@ export const getSecureProfileData = async (profileId: string): Promise<SecurePro
   } catch (error) {
     console.error('Failed to fetch secure profile data:', error);
     return null;
+  }
+};
+
+/**
+ * Get profile summary with automatic data masking based on access level
+ */
+export const getProfileSummary = async (profileId: string): Promise<any> => {
+  try {
+    const { data, error } = await supabase.rpc('get_profile_summary', {
+      profile_uuid: profileId
+    });
+
+    if (error) {
+      console.error('Error fetching profile summary:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch profile summary:', error);
+    return null;
+  }
+};
+
+/**
+ * Get masked profile data for display purposes
+ */
+export const getMaskedProfileData = async (profileId?: string): Promise<any[]> => {
+  try {
+    const { data, error } = await supabase.rpc('get_masked_profile_data', {
+      profile_uuid: profileId || null
+    });
+
+    if (error) {
+      console.error('Error fetching masked profile data:', error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Failed to fetch masked profile data:', error);
+    return [];
   }
 };
 
@@ -144,3 +186,56 @@ export const updateProfileData = async (profileId: string, updateData: Record<st
   console.warn('updateProfileData is deprecated. Use secureUpdateProfile instead.');
   return await secureUpdateProfile(profileId, updateData);
 };
+
+/**
+ * Export user's own profile data (GDPR compliance)
+ */
+export const exportMyProfileData = async (): Promise<any> => {
+  try {
+    const { data, error } = await supabase.rpc('export_my_profile_data');
+
+    if (error) {
+      console.error('Error exporting profile data:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to export profile data:', error);
+    return null;
+  }
+};
+
+/**
+ * Security Guidelines for Profile Data Access
+ * 
+ * IMPORTANT SECURITY MEASURES:
+ * 1. All profile access goes through secure RPC functions with audit logging
+ * 2. Rate limiting prevents abuse (10 accesses per minute, 1 export per hour)
+ * 3. Data masking automatically applied based on access level
+ * 4. No direct table access - always use these API functions
+ * 5. All access attempts are logged for security monitoring
+ * 
+ * ACCESS LEVELS:
+ * - Owner: Full access to their own data
+ * - Admin: Controlled access with some data masking
+ * - Public: Minimal anonymized data only
+ * 
+ * BEST PRACTICES:
+ * - Use getMaskedProfileData() for public displays
+ * - Use getProfileSummary() for user interfaces
+ * - Use getSecureProfileData() only when full data is needed
+ * - Always handle errors gracefully
+ * - Never cache sensitive profile data in client storage
+ */
+export const SECURITY_GUIDELINES = {
+  RATE_LIMITS: {
+    PROFILE_ACCESS: '10 requests per minute',
+    DATA_EXPORT: '1 request per hour'
+  },
+  DATA_PROTECTION: {
+    MASKING: 'Automatic based on access level',
+    AUDIT_LOGGING: 'All access attempts logged',
+    ENCRYPTION: 'Sensitive data encrypted at rest'
+  }
+} as const;

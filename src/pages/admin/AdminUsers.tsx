@@ -3,18 +3,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Users, Mail, Calendar, Shield } from "lucide-react";
+import { Search, Users, Mail, Calendar, Shield, Eye, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { getMaskedProfileData } from "@/lib/secure-profile-api";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface UserProfile {
   id: string;
-  full_name?: string;
-  email?: string;
-  created_at: string;
+  display_name: string;
+  masked_email: string;
+  masked_phone: string;
+  education_level?: string;
+  field_of_study?: string;
   nationality?: string;
-  current_education_level?: string;
+  created_at: string;
   user_roles?: {
     role: string;
   }[];
@@ -32,26 +36,60 @@ export const AdminUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      // First get all user IDs and roles
+      const { data: profileData, error } = await supabase
         .from('profiles')
         .select(`
           id,
-          full_name,
-          email,
           created_at,
           nationality,
-          current_education_level,
           user_roles (role)
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setUsers(data || []);
+
+      // Then get masked profile data for each user using our secure function
+      const usersWithMaskedData = await Promise.all(
+        (profileData || []).map(async (profile) => {
+          try {
+            const maskedData = await getMaskedProfileData(profile.id);
+            const userData = maskedData?.[0];
+            
+            return {
+              id: profile.id,
+              display_name: userData?.display_name || 'Anonymous User',
+              masked_email: userData?.masked_email || 'Hidden',
+              masked_phone: userData?.masked_phone || 'Hidden',
+              education_level: userData?.education_level,
+              field_of_study: userData?.field_of_study,
+              nationality: userData?.nationality || profile.nationality,
+              created_at: profile.created_at,
+              user_roles: profile.user_roles
+            };
+          } catch (err) {
+            console.warn(`Failed to get masked data for user ${profile.id}:`, err);
+            return {
+              id: profile.id,
+              display_name: 'Protected User',
+              masked_email: 'Access Restricted',
+              masked_phone: 'Access Restricted',
+              education_level: undefined,
+              field_of_study: undefined,
+              nationality: undefined,
+              created_at: profile.created_at,
+              user_roles: profile.user_roles
+            };
+          }
+        })
+      );
+
+      setUsers(usersWithMaskedData);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch users",
+        description: "Failed to fetch users. Enhanced security may be limiting access.",
         variant: "destructive",
       });
     } finally {
@@ -60,8 +98,8 @@ export const AdminUsers = () => {
   };
 
   const filteredUsers = users.filter(user =>
-    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.masked_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.nationality?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -117,20 +155,29 @@ export const AdminUsers = () => {
         </div>
       </div>
 
+      <Alert className="mb-6">
+        <Lock className="h-4 w-4" />
+        <AlertDescription>
+          Enhanced Security: User data is now protected by multiple security layers. 
+          Sensitive information is automatically masked based on access levels.
+        </AlertDescription>
+      </Alert>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredUsers.map((user) => (
           <Card key={user.id} className="hover:shadow-medium transition-shadow">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-semibold">
-                  {user.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
+                  {user.display_name?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold">
-                    {user.full_name || 'Unnamed User'}
+                  <div className="font-semibold flex items-center gap-2">
+                    {user.display_name}
+                    <Eye className="h-3 w-3 text-muted-foreground" />
                   </div>
                   <div className="text-sm text-muted-foreground font-normal">
-                    {user.email || 'No email'}
+                    {user.masked_email}
                   </div>
                 </div>
               </CardTitle>
@@ -149,10 +196,17 @@ export const AdminUsers = () => {
                   </div>
                 )}
 
-                {user.current_education_level && (
+                {user.education_level && (
                   <div className="flex items-center gap-2 text-sm">
                     <span className="font-medium">Education:</span>
-                    <Badge variant="secondary">{user.current_education_level}</Badge>
+                    <Badge variant="secondary">{user.education_level}</Badge>
+                  </div>
+                )}
+
+                {user.field_of_study && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium">Field:</span>
+                    <Badge variant="outline">{user.field_of_study}</Badge>
                   </div>
                 )}
 
@@ -174,10 +228,17 @@ export const AdminUsers = () => {
                     variant="outline" 
                     className="flex items-center gap-1"
                     onClick={() => {
-                      if (user.email) {
-                        window.location.href = `mailto:${user.email}`;
+                      if (user.masked_email && !user.masked_email.includes('***')) {
+                        window.location.href = `mailto:${user.masked_email}`;
+                      } else {
+                        toast({
+                          title: "Contact Restricted",
+                          description: "Email is masked for security. Use admin functions for direct contact.",
+                          variant: "destructive"
+                        });
                       }
                     }}
+                    disabled={user.masked_email.includes('***') || user.masked_email === 'Hidden'}
                   >
                     <Mail className="h-3 w-3" />
                     Contact

@@ -82,13 +82,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ambassadors_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_safe_view"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "ambassadors_university_id_fkey"
             columns: ["university_id"]
             isOneToOne: false
@@ -263,13 +256,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "matches_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_safe_view"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "matches_program_id_fkey"
             columns: ["program_id"]
             isOneToOne: false
@@ -419,13 +405,6 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "program_matches_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_safe_view"
             referencedColumns: ["id"]
           },
           {
@@ -607,13 +586,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "saved_programs_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_safe_view"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "saved_programs_program_id_fkey"
             columns: ["program_id"]
             isOneToOne: false
@@ -716,13 +688,6 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: true
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "student_academics_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: true
-            referencedRelation: "profiles_safe_view"
             referencedColumns: ["id"]
           },
         ]
@@ -906,13 +871,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "user_roles_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_safe_view"
-            referencedColumns: ["id"]
-          },
         ]
       }
       watchlist: {
@@ -940,13 +898,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "watchlist_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_safe_view"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "watchlist_program_id_fkey"
             columns: ["program_id"]
             isOneToOne: false
@@ -957,39 +908,7 @@ export type Database = {
       }
     }
     Views: {
-      profiles_safe_view: {
-        Row: {
-          created_at: string | null
-          current_education_level: string | null
-          current_field_of_study: string | null
-          display_name: string | null
-          id: string | null
-          masked_email: string | null
-          masked_phone: string | null
-          nationality: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          current_education_level?: string | null
-          current_field_of_study?: string | null
-          display_name?: never
-          id?: string | null
-          masked_email?: never
-          masked_phone?: never
-          nationality?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          current_education_level?: string | null
-          current_field_of_study?: string | null
-          display_name?: never
-          id?: string | null
-          masked_email?: never
-          masked_phone?: never
-          nationality?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       can_access_profile: {
@@ -1035,6 +954,19 @@ export type Database = {
           intake_year: number
           semester_start_date: string
           status: string
+        }[]
+      }
+      get_masked_profile_data: {
+        Args: { profile_uuid?: string }
+        Returns: {
+          created_at: string
+          display_name: string
+          education_level: string
+          field_of_study: string
+          id: string
+          masked_email: string
+          masked_phone: string
+          nationality: string
         }[]
       }
       get_masked_profile_display: {
