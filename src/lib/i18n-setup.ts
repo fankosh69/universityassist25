@@ -31,15 +31,13 @@ i18n
   .init({
     resources,
     fallbackLng: 'en',
+    lng: 'en', // Force English only
     debug: false,
     
-    // Language detection configuration
+    // Language detection configuration - disabled to keep English only
     detection: {
-      order: ['querystring', 'cookie', 'localStorage', 'navigator', 'htmlTag'],
-      lookupQuerystring: 'lng',
-      lookupCookie: 'i18next',
-      lookupLocalStorage: 'i18nextLng',
-      caches: ['localStorage', 'cookie']
+      order: [], // Disable detection
+      caches: [] // Don't cache language preference
     },
 
     interpolation: {
@@ -50,17 +48,14 @@ i18n
     ns: ['common']
   });
 
-// Set document direction based on language
+// Set document direction - always LTR for English only
 i18n.on('languageChanged', (lng) => {
-  const dir = RTL_LANGUAGES.includes(lng) ? 'rtl' : 'ltr';
-  document.documentElement.dir = dir;
-  document.documentElement.lang = lng;
+  document.documentElement.dir = 'ltr';
+  document.documentElement.lang = 'en';
 });
 
-// Initialize direction on load
-const initialLang = i18n.language || 'en';
-const initialDir = RTL_LANGUAGES.includes(initialLang) ? 'rtl' : 'ltr';
-document.documentElement.dir = initialDir;
-document.documentElement.lang = initialLang;
+// Initialize direction on load - force English
+document.documentElement.dir = 'ltr';
+document.documentElement.lang = 'en';
 
 export default i18n;

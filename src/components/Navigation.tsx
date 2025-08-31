@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Logo from "@/components/Logo";
-import LanguageSelector from "@/components/LanguageSelector";
 import { useAdmin } from "@/hooks/useAdmin";
 
 const Navigation = () => {
@@ -68,8 +67,6 @@ const Navigation = () => {
             <SearchIcon className="h-4 w-4" />
             {t('navigation.search')}
           </Link>
-          
-          <LanguageSelector />
           
           {user ? (
             <>
