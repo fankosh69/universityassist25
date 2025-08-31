@@ -27,28 +27,35 @@ export default function CityMap({ city, className = '' }: CityMapProps) {
   const [mapError, setMapError] = useState<string | null>(null);
   const [universities, setUniversities] = useState<University[]>([]);
   const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // Fetch Mapbox token
   useEffect(() => {
     async function fetchMapboxToken() {
       try {
+        console.log('Fetching Mapbox token...');
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
         
         if (error) {
           console.error('Error fetching Mapbox token:', error);
           setMapError('Failed to load map token');
+          setLoading(false);
           return;
         }
         
         if (data?.token) {
+          console.log('Mapbox token received successfully');
           setMapboxToken(data.token);
           mapboxgl.accessToken = data.token;
         } else {
+          console.error('No token in response:', data);
           setMapError('Mapbox token not available');
         }
       } catch (error) {
         console.error('Error calling get-mapbox-token function:', error);
         setMapError('Failed to configure map');
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -84,9 +91,13 @@ export default function CityMap({ city, className = '' }: CityMapProps) {
   useEffect(() => {
     if (!ref.current || mapRef.current || !mapboxToken) return;
 
+    console.log('Initializing map with token:', mapboxToken ? 'token available' : 'no token');
+
     try {
       const hasCoords = typeof city.lat === 'number' && typeof city.lng === 'number';
       const center: [number, number] = hasCoords ? [city.lng!, city.lat!] : [10.4515, 51.1657];
+
+      console.log('Creating map with center:', center, 'hasCoords:', hasCoords);
 
       const map = new mapboxgl.Map({
         container: ref.current,
@@ -100,8 +111,11 @@ export default function CityMap({ city, className = '' }: CityMapProps) {
       map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
       map.on('load', () => {
+        console.log('Map loaded successfully');
+        
         // Add city marker if coordinates exist
         if (hasCoords) {
+          console.log('Adding city marker at:', [city.lng!, city.lat!]);
           const cityMarker = new mapboxgl.Marker({ color: '#2E57F6' })
             .setLngLat([city.lng!, city.lat!])
             .setPopup(
@@ -112,6 +126,7 @@ export default function CityMap({ city, className = '' }: CityMapProps) {
         }
 
         // Add university markers
+        console.log('Adding university markers:', universities.length);
         universities.forEach(uni => {
           if (uni.lat && uni.lng) {
             new mapboxgl.Marker({ color: '#5DC6C5' })
@@ -164,6 +179,17 @@ export default function CityMap({ city, className = '' }: CityMapProps) {
       }
     };
   }, [city.lat, city.lng, universities, mapboxToken]);
+
+  if (loading) {
+    return (
+      <div className={`w-full rounded-xl border border-border bg-muted/50 flex items-center justify-center ${className}`} style={{ height: 380 }}>
+        <div className="text-center p-6">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-muted-foreground">Loading map...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (mapError) {
     return (
