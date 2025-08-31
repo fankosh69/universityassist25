@@ -956,6 +956,10 @@ export type Database = {
           status: string
         }[]
       }
+      get_masked_academic_summary: {
+        Args: { target_profile_id: string }
+        Returns: Json
+      }
       get_masked_profile_data: {
         Args: { profile_uuid?: string }
         Returns: {
@@ -1018,6 +1022,10 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_secure_academic_data: {
+        Args: { target_profile_id: string }
+        Returns: Json
+      }
       has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
@@ -1032,6 +1040,10 @@ export type Database = {
       profile_access_guide: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      secure_update_academic_data: {
+        Args: { target_profile_id: string; update_data: Json }
+        Returns: Json
       }
       secure_update_profile: {
         Args: { new_data: Json; profile_id: string }
