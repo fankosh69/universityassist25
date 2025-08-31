@@ -692,6 +692,45 @@ export type Database = {
           },
         ]
       }
+      testsprite_tests: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration: number | null
+          id: string
+          last_run: string | null
+          name: string
+          status: string
+          testsprite_id: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration?: number | null
+          id?: string
+          last_run?: string | null
+          name: string
+          status?: string
+          testsprite_id: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration?: number | null
+          id?: string
+          last_run?: string | null
+          name?: string
+          status?: string
+          testsprite_id?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       universities: {
         Row: {
           city: string
