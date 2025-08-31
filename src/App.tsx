@@ -36,6 +36,8 @@ import AdminSitemap from "./pages/admin/AdminSitemap";
 import AdminTestSprite from "./pages/admin/AdminTestSprite";
 import AdminQASetup from "./pages/admin/AdminQASetup";
 import QAPacket from "./pages/QAPacket";
+import ApiDocs from "./pages/docs/ApiDocs";
+import ApiQuickstart from "./pages/docs/ApiQuickstart";
 
 const queryClient = new QueryClient();
 
@@ -118,7 +120,10 @@ const App = () => {
             <Route path="/qa/packet" element={<QAPacket />} />
             
             {/* API Documentation Routes */}
-            <Route path="/docs/api" element={<Navigate to="/docs/api/index.html" />} />
+            <Route path="/docs/api" element={<ApiDocs />} />
+            <Route path="/docs/api/index.html" element={<ApiDocs />} />
+            <Route path="/docs/api/quickstart.html" element={<ApiQuickstart />} />
+            <Route path="/docs/api/quickstart" element={<ApiQuickstart />} />
             
             {/* Legacy routes */}
             <Route path="/cities/:citySlug" element={<CityDetail />} />
