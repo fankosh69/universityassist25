@@ -4,10 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 
 // Set the access token from environment variable
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 
-                    (import.meta as any)?.env?.VITE_MAPBOX_TOKEN ||
-                    (process as any)?.env?.NEXT_PUBLIC_MAPBOX_TOKEN ||
-                    (process as any)?.env?.REACT_APP_MAPBOX_TOKEN;
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 if (MAPBOX_TOKEN) {
   mapboxgl.accessToken = MAPBOX_TOKEN;
