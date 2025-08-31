@@ -1,14 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { isLeafletSupported, generateStaticMapUrl, getMapProviderLinks } from '@/lib/mapSupport';
 
+interface MapMarker {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  description?: string;
+}
+
 interface UniversalMapProps {
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   zoom?: number;
   locationName: string;
   height?: number;
   width?: number;
   className?: string;
+  markers?: MapMarker[];
 }
 
 const UniversalMap: React.FC<UniversalMapProps> = ({
@@ -18,16 +27,21 @@ const UniversalMap: React.FC<UniversalMapProps> = ({
   locationName,
   height = 400,
   width = 1200,
-  className = ""
+  className = "",
+  markers = []
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [mapType, setMapType] = useState<'interactive' | 'static' | 'fallback'>('interactive');
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // Determine center coordinates
+  const centerLat = latitude || (markers.length > 0 ? markers[0].lat : 51.1657);
+  const centerLng = longitude || (markers.length > 0 ? markers[0].lng : 10.4515);
+
   useEffect(() => {
     initializeMap();
-  }, [latitude, longitude]);
+  }, [centerLat, centerLng, markers]);
 
   const initializeMap = async () => {
     if (typeof window === 'undefined' || !mapRef.current) return;
@@ -54,16 +68,34 @@ const UniversalMap: React.FC<UniversalMapProps> = ({
       });
 
       // Initialize Leaflet map
-      const map = leaflet.map(mapRef.current).setView([latitude, longitude], zoom);
+      const map = leaflet.map(mapRef.current).setView([centerLat, centerLng], zoom);
       
       leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);
       
-      leaflet.marker([latitude, longitude])
-        .addTo(map)
-        .bindPopup(locationName)
-        .openPopup();
+      // Add markers for universities or single location
+      if (markers.length > 0) {
+        markers.forEach(marker => {
+          const leafletMarker = leaflet.marker([marker.lat, marker.lng])
+            .addTo(map)
+            .bindPopup(`<b>${marker.name}</b>${marker.description ? `<br/>${marker.description}` : ''}`);
+        });
+
+        // Fit map to show all markers if multiple
+        if (markers.length > 1) {
+          const group = new leaflet.FeatureGroup(
+            markers.map(marker => leaflet.marker([marker.lat, marker.lng]))
+          );
+          map.fitBounds(group.getBounds().pad(0.1));
+        }
+      } else if (latitude && longitude) {
+        // Single marker for city center
+        leaflet.marker([centerLat, centerLng])
+          .addTo(map)
+          .bindPopup(locationName)
+          .openPopup();
+      }
       
       setMapType('interactive');
       setIsLoaded(true);
@@ -74,13 +106,13 @@ const UniversalMap: React.FC<UniversalMapProps> = ({
     }
   };
 
-  const mapLinks = getMapProviderLinks(latitude, longitude, locationName);
+  const mapLinks = getMapProviderLinks(centerLat, centerLng, locationName);
 
   if (mapType === 'static') {
     return (
       <div className={`w-full ${className}`} style={{ height: `${height}px` }}>
         <img 
-          src={generateStaticMapUrl(latitude, longitude, zoom, width, height)} 
+          src={generateStaticMapUrl(centerLat, centerLng, zoom, width, height)} 
           alt={`Map of ${locationName}`}
           className="w-full h-full object-cover rounded-xl border"
           onError={() => setMapType('fallback')}
