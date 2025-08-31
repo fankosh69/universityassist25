@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      academic_preferences: {
+        Row: {
+          accommodation_preferences: Json | null
+          budget_range: string | null
+          career_goals: string | null
+          created_at: string
+          id: string
+          preferred_cities: string[] | null
+          preferred_degree_type: string | null
+          preferred_fields: string[] | null
+          preferred_language_of_instruction: string[] | null
+          preferred_start_date: string | null
+          study_motivations: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          accommodation_preferences?: Json | null
+          budget_range?: string | null
+          career_goals?: string | null
+          created_at?: string
+          id: string
+          preferred_cities?: string[] | null
+          preferred_degree_type?: string | null
+          preferred_fields?: string[] | null
+          preferred_language_of_instruction?: string[] | null
+          preferred_start_date?: string | null
+          study_motivations?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          accommodation_preferences?: Json | null
+          budget_range?: string | null
+          career_goals?: string | null
+          created_at?: string
+          id?: string
+          preferred_cities?: string[] | null
+          preferred_degree_type?: string | null
+          preferred_fields?: string[] | null
+          preferred_language_of_instruction?: string[] | null
+          preferred_start_date?: string | null
+          study_motivations?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ambassadors: {
         Row: {
           city_id: string | null
@@ -278,6 +323,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      private_profile_data: {
+        Row: {
+          country_code: string | null
+          created_at: string
+          data_processing_consent: boolean | null
+          date_of_birth: string | null
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          full_name: string | null
+          gender: string | null
+          id: string
+          last_security_audit: string | null
+          marketing_consent: boolean | null
+          nationality: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          country_code?: string | null
+          created_at?: string
+          data_processing_consent?: boolean | null
+          date_of_birth?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id: string
+          last_security_audit?: string | null
+          marketing_consent?: boolean | null
+          nationality?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          country_code?: string | null
+          created_at?: string
+          data_processing_consent?: boolean | null
+          date_of_birth?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string
+          last_security_audit?: string | null
+          marketing_consent?: boolean | null
+          nationality?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -572,6 +674,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      public_profiles: {
+        Row: {
+          academic_year: string | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          education_level: string | null
+          field_of_study: string | null
+          id: string
+          institution_name: string | null
+          is_profile_complete: boolean | null
+          updated_at: string
+          visibility_settings: Json | null
+        }
+        Insert: {
+          academic_year?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          education_level?: string | null
+          field_of_study?: string | null
+          id: string
+          institution_name?: string | null
+          is_profile_complete?: boolean | null
+          updated_at?: string
+          visibility_settings?: Json | null
+        }
+        Update: {
+          academic_year?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          education_level?: string | null
+          field_of_study?: string | null
+          id?: string
+          institution_name?: string | null
+          is_profile_complete?: boolean | null
+          updated_at?: string
+          visibility_settings?: Json | null
+        }
+        Relationships: []
       }
       saved_programs: {
         Row: {
