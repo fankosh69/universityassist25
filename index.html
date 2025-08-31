@@ -27,6 +27,9 @@
     <!-- Preload LCP hero image for immediate discovery -->
     <link rel="preload" as="image" href="/assets/hero-image-DAFR7Wqp.jpg" fetchpriority="high">
     
+    <!-- Preload main JavaScript bundle for faster execution -->
+    <link rel="modulepreload" href="/src/main.tsx">
+    
     <!-- Load fonts with optimized display strategy -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -55,6 +58,33 @@
         transition: opacity 0.3s ease;
       }
       
+      /* Critical hero section styles for immediate LCP */
+      .hero-section {
+        position: relative;
+        background: linear-gradient(135deg, hsl(231 87% 58%), hsl(184 58% 59%));
+        overflow: hidden;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .hero-content {
+        position: relative;
+        text-align: center;
+        color: white;
+        padding: 2rem;
+        max-width: 1200px;
+      }
+      
+      .hero-title {
+        font-size: clamp(2.5rem, 6vw, 4rem);
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        line-height: 1.1;
+        font-family: 'Poppins', system-ui, sans-serif;
+      }
+      
       /* Hide loading indicator once app loads */
       .app-loaded .loading-indicator {
         opacity: 0;
@@ -81,19 +111,43 @@
   </head>
 
   <body>
-    <!-- Immediate content for FCP -->
+    <!-- Immediate content for FCP and LCP optimization -->
     <div class="loading-indicator">
       University Assist
+    </div>
+    
+    <!-- Critical above-the-fold content for LCP -->
+    <div class="hero-section" style="display: none;">
+      <div class="hero-content">
+        <h1 class="hero-title">Find Your Path to German Universities</h1>
+        <p style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">
+          Your way to Germany - Discover 400+ German university programs
+        </p>
+      </div>
     </div>
     
     <div id="root"></div>
     
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Hide loading indicator once React starts rendering
+      // Hide loading indicator and show hero content for better LCP
+      const heroSection = document.querySelector('.hero-section');
+      let appLoaded = false;
+      
+      // Show critical content immediately for better LCP
+      setTimeout(() => {
+        if (!appLoaded) {
+          document.querySelector('.loading-indicator').style.display = 'none';
+          heroSection.style.display = 'flex';
+        }
+      }, 100);
+      
+      // Hide fallback content once React starts rendering
       const observer = new MutationObserver(() => {
         if (document.getElementById('root').children.length > 0) {
+          appLoaded = true;
           document.body.classList.add('app-loaded');
+          heroSection.style.display = 'none';
           observer.disconnect();
         }
       });
