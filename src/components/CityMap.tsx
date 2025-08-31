@@ -94,7 +94,7 @@ export default function CityMap({ city, className }: { city: City; className?: s
 
   // Create markers for universities
   const universityMarkers = universities.map(uni => ({
-    id: uni.id,
+    id: uni.slug || uni.id, // Use slug for better URL generation
     name: uni.name,
     lat: uni.lat,
     lng: uni.lng,

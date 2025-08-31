@@ -2,87 +2,57 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
-import { MapPin, Building, Users } from "lucide-react";
+import { MapPin, Building, Users, Search } from "lucide-react";
 
-interface City {
+interface CityCard {
   id: string;
-  name: string;
-  state: string;
   slug: string;
-  lat?: number;
-  lng?: number;
-  university_count?: number;
-  region?: string;
-  population_total?: number;
-  population_asof?: string;
+  name: string;
+  region: string | null;
+  uni_count: number;
+  population_total: number | null;
+  population_asof: string | null;
 }
 
 export default function Cities() {
-  const [cities, setCities] = useState<City[]>([]);
+  const [q, setQ] = useState("");
+  const [cities, setCities] = useState<CityCard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<'name' | 'population'>('name');
 
   useEffect(() => {
-    const fetchCities = async () => {
+    const timeoutId = setTimeout(async () => {
+      setLoading(true);
       try {
-        // Fetch cities with university counts and population data
-        const { data: citiesData, error: citiesError } = await supabase
-          .from('cities')
-          .select(`
-            id, 
-            name, 
-            state, 
-            slug,
-            lat,
-            lng,
-            region,
-            population_total,
-            population_asof
-          `)
-          .eq('country_code', 'DE')
-          .order('name');
-
-        if (citiesError) throw citiesError;
-
-        // Count universities for each city
-        const citiesWithCount = await Promise.all(
-          citiesData.map(async (city) => {
-            const { count } = await supabase
-              .from('universities')
-              .select('*', { count: 'exact', head: true })
-              .eq('city_id', city.id);
-
-            return {
-              ...city,
-              university_count: count || 0
-            };
-          })
-        );
-
-        // Sort cities based on user preference
-        const sortedCities = citiesWithCount.sort((a, b) => {
-          if (sortBy === 'population') {
-            return (b.population_total || 0) - (a.population_total || 0);
-          }
-          return a.name.localeCompare(b.name);
-        });
-
-        setCities(sortedCities);
+        if (!q.trim()) {
+          // Empty query → fetch city_stats
+          const { data, error } = await supabase
+            .from("city_stats")
+            .select("*");
+          if (error) throw error;
+          setCities(data || []);
+        } else {
+          // Nonempty query → call search_cities RPC
+          const { data, error } = await supabase
+            .rpc("search_cities", { q });
+          if (error) throw error;
+          setCities(data || []);
+        }
       } catch (error) {
         console.error('Error fetching cities:', error);
+        setCities([]);
       } finally {
         setLoading(false);
       }
-    };
+    }, 250);
 
-    fetchCities();
-  }, [sortBy]);
+    return () => clearTimeout(timeoutId);
+  }, [q]);
 
   if (loading) {
     return (
@@ -108,7 +78,7 @@ export default function Cities() {
       "address": {
         "@type": "PostalAddress",
         "addressLocality": city.name,
-        "addressRegion": city.state,
+        "addressRegion": city.region,
         "addressCountry": "DE"
       }
     }))
@@ -132,91 +102,57 @@ export default function Cities() {
             <span>Cities</span>
           </nav>
           
-          <div className="flex flex-col items-center justify-center text-center py-16">
-            <h1 className="text-4xl font-bold mb-4">Study Cities in Germany</h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
-              Discover the vibrant German cities where you can pursue your higher education. 
-              Each city offers unique opportunities, culture, and academic excellence.
+          <div className="flex flex-col items-center justify-center text-center py-12">
+            <h1 className="text-4xl font-bold mb-4">Cities in Germany</h1>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
+              Discover German cities with universities. Search by city name or university name to find your perfect study destination.
             </p>
             
-            {/* Sort Toggle */}
-            <div className="flex items-center gap-4 mb-8">
-              <span className="text-sm text-muted-foreground">Sort by:</span>
-              <div className="flex rounded-lg border border-border overflow-hidden">
-                <button
-                  onClick={() => setSortBy('name')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    sortBy === 'name' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-background text-foreground hover:bg-muted'
-                  }`}
-                >
-                  Name
-                </button>
-                <button
-                  onClick={() => setSortBy('population')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    sortBy === 'population' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-background text-foreground hover:bg-muted'
-                  }`}
-                >
-                  Population
-                </button>
-              </div>
+            {/* Search Input */}
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search city or university… (e.g., Dortmund or TU Dortmund)"
+                className="pl-10"
+              />
             </div>
           </div>
         </div>
 
         {/* Cities Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {cities.map((city) => (
-            <Card key={city.id} className="hover:shadow-lg transition-shadow group">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                     <CardTitle className="text-xl mb-2 group-hover:text-primary transition-colors">
-                       {city.name}
-                     </CardTitle>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                        <span className="text-sm">{city.region || city.state}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Building className="h-4 w-4 text-primary" />
-                        <span>
-                          {city.university_count || 0} {(city.university_count || 0) === 1 ? 'University' : 'Universities'}
-                        </span>
-                      </div>
-                      {city.population_total && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Users className="h-4 w-4" />
-                          <span>
-                            {city.population_total.toLocaleString()} residents
-                            {city.population_asof && (
-                              <span className="text-xs ml-1">(as of {new Date(city.population_asof).getFullYear()})</span>
-                            )}
-                          </span>
-                        </div>
-                      )}
+          {cities.map((city) => {
+            const populationText = typeof city.population_total === "number" 
+              ? city.population_total.toLocaleString() 
+              : "—";
+            const yearText = city.population_asof 
+              ? ` (as of ${new Date(city.population_asof).getFullYear()})`
+              : "";
+
+            return (
+              <Link key={city.id} to={`/cities/${city.slug}`} className="block">
+                <Card className="hover:shadow-lg transition-shadow group h-full">
+                  <CardContent className="p-6">
+                    <div className="text-lg font-medium mb-2 group-hover:text-primary transition-colors">
+                      {city.name}
                     </div>
-                  </div>
-                </div>
-              </CardHeader>
-               <CardContent>
-                <div className="space-y-3">
-                  <div className="pt-3">
-                    <Link to={`/cities/${city.slug}`}>
-                      <Button className="w-full">
-                        Explore {city.name}
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    <div className="text-sm text-muted-foreground mb-3">
+                      {city.region || "—"}
+                    </div>
+                    <div className="text-sm mb-2">
+                      Number of Universities: <span className="font-medium">{city.uni_count}</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Number of residents: <span className="font-medium">{populationText}</span>
+                      {yearText && <span className="text-muted-foreground">{yearText}</span>}
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
 
         {cities.length === 0 && (

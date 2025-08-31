@@ -151,9 +151,30 @@ const UniversalMap: React.FC<UniversalMapProps> = ({
             
             console.log(`UniversalMap: Adding marker ${index + 1}:`, marker.name, marker.lat, marker.lng);
             
+            const universitySlug = marker.id.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+            
             const leafletMarker = leaflet.marker([marker.lat, marker.lng])
-              .addTo(map)
-              .bindPopup(`<b>${marker.name}</b>${marker.description ? `<br/>${marker.description}` : ''}`);
+              .addTo(map);
+            
+            // Create hover popup with clickable link
+            const popupContent = `<a href="/universities/${universitySlug}" class="underline hover:text-primary">${marker.name}</a>`;
+            const popup = leaflet.popup({ 
+              closeButton: false, 
+              closeOnClick: false, 
+              offset: [0, -8] 
+            }).setContent(popupContent);
+            
+            // Add hover events
+            leafletMarker.on('mouseover', function(e) {
+              popup.setLatLng(e.latlng).openOn(map);
+            });
+            
+            leafletMarker.on('mouseout', function() {
+              map.closePopup(popup);
+            });
+            
+            // Also keep click popup for mobile
+            leafletMarker.bindPopup(`<b>${marker.name}</b>${marker.description ? `<br/>${marker.description}` : ''}`);
             
             addedMarkers.push(leafletMarker);
           } catch (markerError) {
