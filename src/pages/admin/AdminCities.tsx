@@ -14,16 +14,19 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
 interface City {
   id: string;
   name: string;
-  state?: string;
+  region?: string;
   country_code: string;
   lat?: number;
   lng?: number;
   slug: string;
+  population_total?: number;
+  city_type?: string;
   created_at: string;
   metadata?: any;
 }
@@ -38,18 +41,22 @@ export const AdminCities = () => {
 
   const [formData, setFormData] = useState<{
     name: string;
-    state: string;
+    region: string;
     country_code: string;
     slug: string;
     lat: number | null;
     lng: number | null;
+    population_total: number | null;
+    city_type: string;
   }>({
     name: "",
-    state: "",
+    region: "",
     country_code: "DE",
     slug: "",
     lat: null,
     lng: null,
+    population_total: null,
+    city_type: "City",
   });
 
   useEffect(() => {
@@ -164,11 +171,13 @@ export const AdminCities = () => {
     setEditingCity(city);
     setFormData({
       name: city.name,
-      state: city.state || "",
+      region: city.region || "",
       country_code: city.country_code,
       slug: city.slug,
       lat: city.lat || null,
       lng: city.lng || null,
+      population_total: city.population_total || null,
+      city_type: city.city_type || "City",
     });
     setIsDialogOpen(true);
   };
@@ -177,18 +186,20 @@ export const AdminCities = () => {
     setEditingCity(null);
     setFormData({
       name: "",
-      state: "",
+      region: "",
       country_code: "DE",
       slug: "",
       lat: null,
       lng: null,
+      population_total: null,
+      city_type: "City",
     });
     setIsDialogOpen(false);
   };
 
   const filteredCities = cities.filter(city =>
     city.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    city.state?.toLowerCase().includes(searchTerm.toLowerCase())
+    city.region?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -234,8 +245,18 @@ export const AdminCities = () => {
                 <MapPin className="h-5 w-5" />
                 {city.name}
               </CardTitle>
-              {city.state && (
-                <p className="text-sm text-muted-foreground">{city.state}</p>
+              {city.region && (
+                <p className="text-sm text-muted-foreground">{city.region}</p>
+              )}
+              {city.city_type && (
+                <Badge variant="outline" className="text-xs mt-1">
+                  {city.city_type}
+                </Badge>
+              )}
+              {city.population_total && (
+                <p className="text-sm text-muted-foreground">
+                  Population: {city.population_total.toLocaleString()}
+                </p>
               )}
             </CardHeader>
             <CardContent>
@@ -297,12 +318,71 @@ export const AdminCities = () => {
               </div>
               
               <div>
-                <Label htmlFor="state">State/Region</Label>
+                <Label htmlFor="slug">URL Slug</Label>
                 <Input
-                  id="state"
-                  value={formData.state}
-                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  placeholder="e.g., Baden-Württemberg"
+                  id="slug"
+                  value={formData.slug}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  placeholder="Auto-generated from name"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="region">State/Region</Label>
+                <Select 
+                  value={formData.region} 
+                  onValueChange={(value) => setFormData({ ...formData, region: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Baden-Württemberg">Baden-Württemberg</SelectItem>
+                    <SelectItem value="Bayern">Bayern (Bavaria)</SelectItem>
+                    <SelectItem value="Berlin">Berlin</SelectItem>
+                    <SelectItem value="Brandenburg">Brandenburg</SelectItem>
+                    <SelectItem value="Bremen">Bremen</SelectItem>
+                    <SelectItem value="Hamburg">Hamburg</SelectItem>
+                    <SelectItem value="Hessen">Hessen (Hesse)</SelectItem>
+                    <SelectItem value="Mecklenburg-Vorpommern">Mecklenburg-Vorpommern</SelectItem>
+                    <SelectItem value="Niedersachsen">Niedersachsen (Lower Saxony)</SelectItem>
+                    <SelectItem value="Nordrhein-Westfalen">Nordrhein-Westfalen (North Rhine-Westphalia)</SelectItem>
+                    <SelectItem value="Rheinland-Pfalz">Rheinland-Pfalz (Rhineland-Palatinate)</SelectItem>
+                    <SelectItem value="Saarland">Saarland</SelectItem>
+                    <SelectItem value="Sachsen">Sachsen (Saxony)</SelectItem>
+                    <SelectItem value="Sachsen-Anhalt">Sachsen-Anhalt (Saxony-Anhalt)</SelectItem>
+                    <SelectItem value="Schleswig-Holstein">Schleswig-Holstein</SelectItem>
+                    <SelectItem value="Thüringen">Thüringen (Thuringia)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="city_type">City Type</Label>
+                <Select 
+                  value={formData.city_type} 
+                  onValueChange={(value) => setFormData({ ...formData, city_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="City">City</SelectItem>
+                    <SelectItem value="County">County</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="population_total">Population</Label>
+                <Input
+                  id="population_total"
+                  type="number"
+                  value={formData.population_total || ""}
+                  onChange={(e) => setFormData({ ...formData, population_total: e.target.value ? parseInt(e.target.value) : null })}
+                  placeholder="Enter population"
                 />
               </div>
             </div>
@@ -320,18 +400,6 @@ export const AdminCities = () => {
               </div>
               
               <div>
-                <Label htmlFor="slug">URL Slug</Label>
-                <Input
-                  id="slug"
-                  value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                  placeholder="Auto-generated from name"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
                 <Label htmlFor="lat">Latitude (Optional)</Label>
                 <Input
                   id="lat"
@@ -341,7 +409,9 @@ export const AdminCities = () => {
                   onChange={(e) => setFormData({ ...formData, lat: e.target.value ? parseFloat(e.target.value) : null })}
                 />
               </div>
-              
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <Label htmlFor="lng">Longitude (Optional)</Label>
                 <Input
