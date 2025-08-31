@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -26,14 +27,17 @@ export default function Cities() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timeoutId = setTimeout(async () => {
+    let timeoutId: NodeJS.Timeout;
+    
+    const fetchCities = async () => {
       setLoading(true);
       try {
         if (!q.trim()) {
           // Empty query → fetch city_stats
           const { data, error } = await supabase
             .from("city_stats")
-            .select("*");
+            .select("*")
+            .order("name");
           if (error) throw error;
           setCities(data || []);
         } else {
@@ -49,9 +53,18 @@ export default function Cities() {
       } finally {
         setLoading(false);
       }
-    }, 250);
+    };
 
-    return () => clearTimeout(timeoutId);
+    // Debounce search queries, but fetch immediately for empty search
+    if (!q.trim()) {
+      fetchCities();
+    } else {
+      timeoutId = setTimeout(fetchCities, 300);
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [q]);
 
   if (loading) {
@@ -122,31 +135,62 @@ export default function Cities() {
         </div>
 
         {/* Cities Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {cities.map((city) => {
             const populationText = typeof city.population_total === "number" 
               ? city.population_total.toLocaleString() 
-              : "—";
+              : "Loading...";
             const yearText = city.population_asof 
-              ? ` (as of ${new Date(city.population_asof).getFullYear()})`
+              ? ` (${new Date(city.population_asof).getFullYear()})`
               : "";
 
             return (
               <Link key={city.id} to={`/cities/${city.slug}`} className="block">
                 <Card className="hover:shadow-lg transition-shadow group h-full">
-                  <CardContent className="p-6">
-                    <div className="text-lg font-medium mb-2 group-hover:text-primary transition-colors">
-                      {city.name}
+                  <CardHeader>
+                    <div className="flex items-start gap-4">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg mb-2 group-hover:text-primary transition-colors">
+                          {city.name}
+                        </CardTitle>
+                        <div className="flex items-center gap-2 text-muted-foreground mb-3">
+                          <MapPin className="h-4 w-4" />
+                          <span className="text-sm">{city.region || "Germany"}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="secondary" className="flex items-center gap-1">
+                            <Building className="h-3 w-3" />
+                            {city.uni_count} {city.uni_count === 1 ? 'University' : 'Universities'}
+                          </Badge>
+                          {city.population_total && (
+                            <Badge variant="outline" className="flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              {populationText}{yearText}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground mb-3">
-                      {city.region || "—"}
-                    </div>
-                    <div className="text-sm mb-2">
-                      Number of Universities: <span className="font-medium">{city.uni_count}</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Number of residents: <span className="font-medium">{populationText}</span>
-                      {yearText && <span className="text-muted-foreground">{yearText}</span>}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Building className="h-4 w-4 text-primary" />
+                        <span>
+                          {city.uni_count} available {city.uni_count === 1 ? 'university' : 'universities'}
+                        </span>
+                      </div>
+                      
+                      {city.population_total && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Users className="h-4 w-4" />
+                          <span>Population: {populationText}{yearText}</span>
+                        </div>
+                      )}
+                      
+                      <div className="pt-3">
+                        <Button className="w-full" size="sm">Explore City</Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

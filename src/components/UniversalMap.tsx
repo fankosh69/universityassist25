@@ -157,10 +157,20 @@ const UniversalMap: React.FC<UniversalMapProps> = ({
               .addTo(map);
             
             // Create hover popup with clickable link
-            const popupContent = `<a href="/universities/${universitySlug}" class="underline hover:text-primary">${marker.name}</a>`;
+            const popupContent = `
+              <div class="p-2">
+                <a href="/universities/${universitySlug}" 
+                   class="text-sm font-semibold text-primary hover:underline" 
+                   onclick="window.open('/universities/${universitySlug}', '_blank')">
+                  ${marker.name}
+                </a>
+                ${marker.description ? `<p class="text-xs text-muted-foreground mt-1">${marker.description}</p>` : ''}
+              </div>
+            `;
             const popup = leaflet.popup({ 
-              closeButton: false, 
-              closeOnClick: false, 
+              closeButton: true, 
+              closeOnClick: true,
+              autoPan: false,
               offset: [0, -8] 
             }).setContent(popupContent);
             
@@ -170,11 +180,19 @@ const UniversalMap: React.FC<UniversalMapProps> = ({
             });
             
             leafletMarker.on('mouseout', function() {
-              map.closePopup(popup);
+              setTimeout(() => {
+                if (!popup.isOpen()) return;
+                const popupElement = popup.getElement();
+                if (popupElement && !popupElement.matches(':hover')) {
+                  map.closePopup(popup);
+                }
+              }, 200);
             });
             
-            // Also keep click popup for mobile
-            leafletMarker.bindPopup(`<b>${marker.name}</b>${marker.description ? `<br/>${marker.description}` : ''}`);
+            // Click event to show university details
+            leafletMarker.on('click', function(e) {
+              popup.setLatLng(e.latlng).openOn(map);
+            });
             
             addedMarkers.push(leafletMarker);
           } catch (markerError) {
