@@ -253,7 +253,7 @@ const Index = () => {
             <div className="space-y-4">
               <Link to="/">
                 <img 
-                  src="/university-assist-logo.png" 
+                  src="/lovable-uploads/fda0393f-0b68-4ef6-bd9a-3d02ac39e07b.png" 
                   alt="University Assist" 
                   className="h-8"
                   width="200"
