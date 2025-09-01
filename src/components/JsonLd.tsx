@@ -17,8 +17,8 @@ export const organizationSchema = {
   "@type": "Organization",
   "name": "University Assist",
   "description": "Your way to Germany - Find your perfect German university program with intelligent matching",
-  "url": "https://universityassist.com",
-  "logo": "https://universityassist.com/logo.png",
+  "url": "https://universityassist25.lovable.app",
+  "logo": "https://universityassist25.lovable.app/lovable-uploads/fda0393f-0b68-4ef6-bd9a-3d02ac39e07b.png",
   "sameAs": [
     "https://twitter.com/universityassist",
     "https://facebook.com/universityassist"
@@ -30,10 +30,10 @@ export const websiteSchema = {
   "@type": "WebSite",
   "name": "University Assist",
   "description": "Your way to Germany - German University Admissions Platform",
-  "url": "https://universityassist.com",
+  "url": "https://universityassist25.lovable.app",
   "potentialAction": {
     "@type": "SearchAction",
-    "target": "https://universityassist.com/search?q={search_term_string}",
+    "target": "https://universityassist25.lovable.app/search?q={search_term_string}",
     "query-input": "required name=search_term_string"
   }
 };
