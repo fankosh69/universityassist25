@@ -170,7 +170,7 @@ export default function Cities() {
                       </CardTitle>
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <MapPin className="h-4 w-4" />
-                        <span className="text-sm">{city.region || "Germany"}</span>
+                        <span className="text-sm">{city.region || "Region not specified"}</span>
                       </div>
                     </div>
                   </div>
