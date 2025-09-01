@@ -65,18 +65,21 @@ export const AdminCities = () => {
 
   const fetchCities = async () => {
     try {
-      const { data, error } = await supabase
-        .from('cities')
-        .select('*')
-        .order('name');
+      const { data, error } = await supabase.functions.invoke('admin-secure-operations', {
+        method: 'GET',
+        body: null,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       if (error) throw error;
-      setCities(data || []);
+      setCities(data.cities || []);
     } catch (error) {
       console.error('Error fetching cities:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch cities",
+        description: "Failed to fetch cities securely",
         variant: "destructive",
       });
     } finally {
@@ -107,10 +110,10 @@ export const AdminCities = () => {
       };
 
       if (editingCity) {
-        const { error } = await supabase
-          .from('cities')
-          .update(submitData)
-          .eq('id', editingCity.id);
+        const { data, error } = await supabase.functions.invoke('admin-secure-operations', {
+          method: 'POST',
+          body: { operation: 'update_city', id: editingCity.id, ...submitData },
+        });
 
         if (error) throw error;
         toast({
@@ -118,9 +121,10 @@ export const AdminCities = () => {
           description: "City updated successfully",
         });
       } else {
-        const { error } = await supabase
-          .from('cities')
-          .insert(submitData);
+        const { data, error } = await supabase.functions.invoke('admin-secure-operations', {
+          method: 'POST',
+          body: { operation: 'create_city', ...submitData },
+        });
 
         if (error) throw error;
         toast({
@@ -145,10 +149,10 @@ export const AdminCities = () => {
     if (!confirm('Are you sure you want to delete this city? This may affect related universities.')) return;
 
     try {
-      const { error } = await supabase
-        .from('cities')
-        .delete()
-        .eq('id', id);
+      const { data, error } = await supabase.functions.invoke('admin-secure-operations', {
+        method: 'POST',
+        body: { operation: 'delete_city', id },
+      });
 
       if (error) throw error;
       

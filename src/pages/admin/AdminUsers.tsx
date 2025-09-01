@@ -32,26 +32,51 @@ export const AdminUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
+      // First get all user IDs from auth users (admin only access)
+      const { data: authUsers, error: authError } = await supabase
+        .from('user_roles')
         .select(`
-          id,
-          full_name,
-          email,
-          created_at,
-          nationality,
-          current_education_level,
-          user_roles (role)
+          profile_id,
+          role,
+          profiles!inner(created_at)
         `)
-        .order('created_at', { ascending: false });
+        .order('profiles.created_at', { ascending: false });
 
-      if (error) throw error;
-      setUsers(data || []);
+      if (authError) throw authError;
+
+      // Get secure masked profile data for each user
+      const userProfiles = [];
+      for (const authUser of authUsers || []) {
+        const { data: profileData, error: profileError } = await supabase
+          .rpc('get_masked_profile_data', { profile_uuid: authUser.profile_id });
+        
+        if (profileError) {
+          console.warn(`Failed to fetch profile for ${authUser.profile_id}:`, profileError);
+          continue;
+        }
+
+        if (profileData && profileData.length > 0) {
+          const profile = profileData[0];
+          userProfiles.push({
+            id: profile.id,
+            full_name: profile.display_name,
+            email: profile.masked_email,
+            created_at: profile.created_at,
+            nationality: profile.nationality,
+            current_education_level: profile.education_level,
+            user_roles: authUsers
+              .filter(ur => ur.profile_id === profile.id)
+              .map(ur => ({ role: ur.role }))
+          });
+        }
+      }
+
+      setUsers(userProfiles);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch users",
+        description: "Failed to fetch users securely",
         variant: "destructive",
       });
     } finally {
