@@ -67,14 +67,30 @@ export const AdminCities = () => {
     try {
       const { data, error } = await supabase.functions.invoke('admin-secure-operations', {
         method: 'GET',
-        body: null,
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
       if (error) throw error;
-      setCities(data.cities || []);
+      
+      const url = new URL(`${supabase.supabaseUrl}/functions/v1/admin-secure-operations`);
+      url.searchParams.set('operation', 'get_cities');
+      
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch cities');
+      }
+
+      const result = await response.json();
+      setCities(result.cities || []);
     } catch (error) {
       console.error('Error fetching cities:', error);
       toast({
@@ -110,23 +126,41 @@ export const AdminCities = () => {
       };
 
       if (editingCity) {
-        const { data, error } = await supabase.functions.invoke('admin-secure-operations', {
+        const url = new URL(`${supabase.supabaseUrl}/functions/v1/admin-secure-operations`);
+        url.searchParams.set('operation', 'update_city');
+        
+        const response = await fetch(url.toString(), {
           method: 'POST',
-          body: { operation: 'update_city', id: editingCity.id, ...submitData },
+          headers: {
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id: editingCity.id, ...submitData }),
         });
 
-        if (error) throw error;
+        if (!response.ok) {
+          throw new Error('Failed to update city');
+        }
         toast({
           title: "Success",
           description: "City updated successfully",
         });
       } else {
-        const { data, error } = await supabase.functions.invoke('admin-secure-operations', {
+        const url = new URL(`${supabase.supabaseUrl}/functions/v1/admin-secure-operations`);
+        url.searchParams.set('operation', 'create_city');
+        
+        const response = await fetch(url.toString(), {
           method: 'POST',
-          body: { operation: 'create_city', ...submitData },
+          headers: {
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(submitData),
         });
 
-        if (error) throw error;
+        if (!response.ok) {
+          throw new Error('Failed to create city');
+        }
         toast({
           title: "Success",
           description: "City created successfully",
@@ -149,12 +183,21 @@ export const AdminCities = () => {
     if (!confirm('Are you sure you want to delete this city? This may affect related universities.')) return;
 
     try {
-      const { data, error } = await supabase.functions.invoke('admin-secure-operations', {
+      const url = new URL(`${supabase.supabaseUrl}/functions/v1/admin-secure-operations`);
+      url.searchParams.set('operation', 'delete_city');
+      
+      const response = await fetch(url.toString(), {
         method: 'POST',
-        body: { operation: 'delete_city', id },
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Failed to delete city');
+      }
       
       toast({
         title: "Success",

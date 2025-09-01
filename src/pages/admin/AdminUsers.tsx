@@ -32,46 +32,23 @@ export const AdminUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      // First get all user IDs from auth users (admin only access)
-      const { data: authUsers, error: authError } = await supabase
-        .from('user_roles')
-        .select(`
-          profile_id,
-          role,
-          profiles!inner(created_at)
-        `)
-        .order('profiles.created_at', { ascending: false });
+      const url = new URL(`${supabase.supabaseUrl}/functions/v1/admin-secure-operations`);
+      url.searchParams.set('operation', 'get_users');
+      
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (authError) throw authError;
-
-      // Get secure masked profile data for each user
-      const userProfiles = [];
-      for (const authUser of authUsers || []) {
-        const { data: profileData, error: profileError } = await supabase
-          .rpc('get_masked_profile_data', { profile_uuid: authUser.profile_id });
-        
-        if (profileError) {
-          console.warn(`Failed to fetch profile for ${authUser.profile_id}:`, profileError);
-          continue;
-        }
-
-        if (profileData && profileData.length > 0) {
-          const profile = profileData[0];
-          userProfiles.push({
-            id: profile.id,
-            full_name: profile.display_name,
-            email: profile.masked_email,
-            created_at: profile.created_at,
-            nationality: profile.nationality,
-            current_education_level: profile.education_level,
-            user_roles: authUsers
-              .filter(ur => ur.profile_id === profile.id)
-              .map(ur => ({ role: ur.role }))
-          });
-        }
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
       }
 
-      setUsers(userProfiles);
+      const result = await response.json();
+      setUsers(result.users || []);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
