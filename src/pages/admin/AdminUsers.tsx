@@ -32,7 +32,7 @@ export const AdminUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const url = new URL(`${supabase.supabaseUrl}/functions/v1/admin-secure-operations`);
+      const url = new URL(`https://zfiexgjcuojodmnsinsz.supabase.co/functions/v1/admin-secure-operations`);
       url.searchParams.set('operation', 'get_users');
       
       const response = await fetch(url.toString(), {

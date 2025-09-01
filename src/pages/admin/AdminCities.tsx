@@ -65,16 +65,7 @@ export const AdminCities = () => {
 
   const fetchCities = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-secure-operations', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (error) throw error;
-      
-      const url = new URL(`${supabase.supabaseUrl}/functions/v1/admin-secure-operations`);
+      const url = new URL(`https://zfiexgjcuojodmnsinsz.supabase.co/functions/v1/admin-secure-operations`);
       url.searchParams.set('operation', 'get_cities');
       
       const response = await fetch(url.toString(), {
@@ -126,7 +117,7 @@ export const AdminCities = () => {
       };
 
       if (editingCity) {
-        const url = new URL(`${supabase.supabaseUrl}/functions/v1/admin-secure-operations`);
+        const url = new URL(`https://zfiexgjcuojodmnsinsz.supabase.co/functions/v1/admin-secure-operations`);
         url.searchParams.set('operation', 'update_city');
         
         const response = await fetch(url.toString(), {
@@ -146,7 +137,7 @@ export const AdminCities = () => {
           description: "City updated successfully",
         });
       } else {
-        const url = new URL(`${supabase.supabaseUrl}/functions/v1/admin-secure-operations`);
+        const url = new URL(`https://zfiexgjcuojodmnsinsz.supabase.co/functions/v1/admin-secure-operations`);
         url.searchParams.set('operation', 'create_city');
         
         const response = await fetch(url.toString(), {
@@ -183,7 +174,7 @@ export const AdminCities = () => {
     if (!confirm('Are you sure you want to delete this city? This may affect related universities.')) return;
 
     try {
-      const url = new URL(`${supabase.supabaseUrl}/functions/v1/admin-secure-operations`);
+      const url = new URL(`https://zfiexgjcuojodmnsinsz.supabase.co/functions/v1/admin-secure-operations`);
       url.searchParams.set('operation', 'delete_city');
       
       const response = await fetch(url.toString(), {

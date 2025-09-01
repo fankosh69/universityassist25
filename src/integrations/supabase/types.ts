@@ -1340,6 +1340,10 @@ export type Database = {
         Args: { reason: string; target_profile_id?: string }
         Returns: Json
       }
+      request_emergency_profile_access: {
+        Args: { justification: string; target_profile_id: string }
+        Returns: Json
+      }
       search_cities: {
         Args: { q: string }
         Returns: {
