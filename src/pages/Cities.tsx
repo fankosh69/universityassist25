@@ -33,22 +33,52 @@ export default function Cities() {
     setLoading(true);
     try {
       if (!query.trim()) {
-        // Empty query → fetch city_stats
+        // Empty query → fetch from cities table with proper region data
         const { data, error } = await supabase
-          .from("city_stats")
-          .select("*")
+          .from("cities")
+          .select(`
+            id,
+            slug,
+            name,
+            region,
+            population_total,
+            population_asof,
+            city_type,
+            universities!inner(count)
+          `)
           .order("name");
         if (error) throw error;
-        setCities(data || []);
+        
+        // Transform data to match CityCard interface
+        const citiesWithCount = data?.map(city => ({
+          ...city,
+          uni_count: city.universities?.[0]?.count || 0
+        })) || [];
+        setCities(citiesWithCount);
       } else {
-        // Nonempty query → search using city_stats with textSearch
+        // Search using cities table with text search
         const { data, error } = await supabase
-          .from("city_stats")
-          .select("*")
-          .textSearch('name', query)
+          .from("cities")
+          .select(`
+            id,
+            slug,
+            name,
+            region,
+            population_total,
+            population_asof,
+            city_type,
+            universities!inner(count)
+          `)
+          .ilike('name', `%${query}%`)
           .order("name");
         if (error) throw error;
-        setCities(data || []);
+        
+        // Transform data to match CityCard interface
+        const citiesWithCount = data?.map(city => ({
+          ...city,
+          uni_count: city.universities?.[0]?.count || 0
+        })) || [];
+        setCities(citiesWithCount);
       }
     } catch (error) {
       console.error('Error fetching cities:', error);
