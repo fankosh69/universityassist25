@@ -58,10 +58,15 @@ const App = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-hero">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div>
+      <div className="min-h-screen flex items-center justify-center bg-blue-500">
+        <div className="text-white text-2xl">Loading University Assist...</div>
       </div>
     );
+  }
+
+  // Debug check - add temporary test
+  if (process.env.NODE_ENV === 'development') {
+    console.log('App is loading in development mode');
   }
 
   return (
