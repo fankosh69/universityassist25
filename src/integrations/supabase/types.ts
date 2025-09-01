@@ -220,6 +220,63 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_private_profile_data: {
+        Row: {
+          country_code: string | null
+          created_at: string | null
+          data_processing_consent: boolean | null
+          date_of_birth: string | null
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          full_name: string | null
+          gender: string | null
+          id: string | null
+          last_security_audit: string | null
+          marketing_consent: boolean | null
+          nationality: string | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          country_code?: string | null
+          created_at?: string | null
+          data_processing_consent?: boolean | null
+          date_of_birth?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string | null
+          last_security_audit?: string | null
+          marketing_consent?: boolean | null
+          nationality?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          country_code?: string | null
+          created_at?: string | null
+          data_processing_consent?: boolean | null
+          date_of_birth?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string | null
+          last_security_audit?: string | null
+          marketing_consent?: boolean | null
+          nationality?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       cities: {
         Row: {
           city_type: string | null
@@ -344,63 +401,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      private_profile_data: {
-        Row: {
-          country_code: string | null
-          created_at: string
-          data_processing_consent: boolean | null
-          date_of_birth: string | null
-          email: string | null
-          emergency_contact_name: string | null
-          emergency_contact_phone: string | null
-          emergency_contact_relationship: string | null
-          full_name: string | null
-          gender: string | null
-          id: string
-          last_security_audit: string | null
-          marketing_consent: boolean | null
-          nationality: string | null
-          phone: string | null
-          updated_at: string
-        }
-        Insert: {
-          country_code?: string | null
-          created_at?: string
-          data_processing_consent?: boolean | null
-          date_of_birth?: string | null
-          email?: string | null
-          emergency_contact_name?: string | null
-          emergency_contact_phone?: string | null
-          emergency_contact_relationship?: string | null
-          full_name?: string | null
-          gender?: string | null
-          id: string
-          last_security_audit?: string | null
-          marketing_consent?: boolean | null
-          nationality?: string | null
-          phone?: string | null
-          updated_at?: string
-        }
-        Update: {
-          country_code?: string | null
-          created_at?: string
-          data_processing_consent?: boolean | null
-          date_of_birth?: string | null
-          email?: string | null
-          emergency_contact_name?: string | null
-          emergency_contact_phone?: string | null
-          emergency_contact_relationship?: string | null
-          full_name?: string | null
-          gender?: string | null
-          id?: string
-          last_security_audit?: string | null
-          marketing_consent?: boolean | null
-          nationality?: string | null
-          phone?: string | null
-          updated_at?: string
-        }
-        Relationships: []
       }
       profiles: {
         Row: {

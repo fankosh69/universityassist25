@@ -12,10 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    const mapboxToken = Deno.env.get('MAPBOX_PUBLIC_TOKEN') || 'pk.eyJ1IjoidW5pYXNzaXN0MjUiLCJhIjoiY21lb3VvbHRyMGM0dTJrczVkNnB5NW5vNyJ9.y6UKbiF3yoJifkIR8hXYcA';
+    const mapboxToken = Deno.env.get('MAPBOX_PUBLIC_TOKEN');
     
     if (!mapboxToken) {
-      return new Response(JSON.stringify({ error: 'Mapbox token not configured' }), {
+      console.error('MAPBOX_PUBLIC_TOKEN environment variable is not set');
+      return new Response(JSON.stringify({ 
+        error: 'Mapbox token not configured. Please set MAPBOX_PUBLIC_TOKEN environment variable.' 
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
