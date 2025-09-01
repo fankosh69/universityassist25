@@ -4,9 +4,9 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import Backend from 'i18next-http-backend';
 
 // Import translation files
-import enCommon from '@/locales/en/common.json';
-import arCommon from '@/locales/ar/common.json';
-import deCommon from '@/locales/de/common.json';
+import enCommon from '@/i18n/en.json';
+import arCommon from '@/i18n/ar.json';
+import deCommon from '@/i18n/de.json';
 
 const resources = {
   en: {
