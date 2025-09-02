@@ -27,6 +27,7 @@ interface City {
   slug: string;
   population_total?: number;
   city_type?: string;
+  description?: string;
   created_at: string;
   metadata?: any;
 }
@@ -48,6 +49,7 @@ export const AdminCities = () => {
     lng: number | null;
     population_total: number | null;
     city_type: string;
+    description: string;
   }>({
     name: "",
     region: "",
@@ -57,6 +59,7 @@ export const AdminCities = () => {
     lng: null,
     population_total: null,
     city_type: "City",
+    description: "",
   });
 
   useEffect(() => {
@@ -216,6 +219,7 @@ export const AdminCities = () => {
       lng: city.lng || null,
       population_total: city.population_total || null,
       city_type: city.city_type || "City",
+      description: city.description || "",
     });
     setIsDialogOpen(true);
   };
@@ -231,6 +235,7 @@ export const AdminCities = () => {
       lng: null,
       population_total: null,
       city_type: "City",
+      description: "",
     });
     setIsDialogOpen(false);
   };
@@ -291,12 +296,17 @@ export const AdminCities = () => {
                   {city.city_type}
                 </Badge>
               )}
-              {city.population_total && (
-                <p className="text-sm text-muted-foreground">
-                  Population: {city.population_total.toLocaleString()}
-                </p>
-              )}
-            </CardHeader>
+                {city.population_total && (
+                  <p className="text-sm text-muted-foreground">
+                    Population: {city.population_total.toLocaleString()}
+                  </p>
+                )}
+                {city.description && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {city.description.length > 80 ? `${city.description.substring(0, 80)}...` : city.description}
+                  </p>
+                )}
+              </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -460,6 +470,18 @@ export const AdminCities = () => {
                   onChange={(e) => setFormData({ ...formData, lng: e.target.value ? parseFloat(e.target.value) : null })}
                 />
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <textarea
+                id="description"
+                className="w-full min-h-[80px] p-3 border border-input bg-background rounded-md text-sm resize-vertical"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Brief description of the city for visitors..."
+                rows={3}
+              />
             </div>
 
             <DialogFooter>

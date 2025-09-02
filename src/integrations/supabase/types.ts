@@ -282,6 +282,7 @@ export type Database = {
           city_type: string | null
           country_code: string
           created_at: string | null
+          description: string | null
           fts: unknown | null
           id: string
           keywords: string[] | null
@@ -303,6 +304,7 @@ export type Database = {
           city_type?: string | null
           country_code?: string
           created_at?: string | null
+          description?: string | null
           fts?: unknown | null
           id?: string
           keywords?: string[] | null
@@ -324,6 +326,7 @@ export type Database = {
           city_type?: string | null
           country_code?: string
           created_at?: string | null
+          description?: string | null
           fts?: unknown | null
           id?: string
           keywords?: string[] | null

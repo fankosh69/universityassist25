@@ -21,6 +21,7 @@ interface CityCard {
   population_total: number | null;
   population_asof: string | null;
   city_type: string | null;
+  description: string | null;
 }
 
 export default function Cities() {
@@ -44,6 +45,7 @@ export default function Cities() {
             population_total,
             population_asof,
             city_type,
+            description,
             universities!inner(count)
           `)
           .order("name");
@@ -67,6 +69,7 @@ export default function Cities() {
             population_total,
             population_asof,
             city_type,
+            description,
             universities!inner(count)
           `)
           .ilike('name', `%${query}%`)
@@ -222,6 +225,12 @@ export default function Cities() {
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Users className="h-4 w-4" />
                         <span>Population: {populationText}</span>
+                      </div>
+                    )}
+
+                    {city.description && (
+                      <div className="text-sm text-muted-foreground mt-3 leading-relaxed">
+                        {city.description}
                       </div>
                     )}
                     
