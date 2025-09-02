@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +38,7 @@ interface University {
 }
 
 export default function Universities() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [universities, setUniversities] = useState<University[]>([]);
   const [filteredUniversities, setFilteredUniversities] = useState<University[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +46,9 @@ export default function Universities() {
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedControlType, setSelectedControlType] = useState<string>("all");
   const [selectedCity, setSelectedCity] = useState<string>("all");
+  const [selectedRegion, setSelectedRegion] = useState<string>("all");
   const [cities, setCities] = useState<string[]>([]);
+  const [regions, setRegions] = useState<string[]>([]);
   const [types, setTypes] = useState<string[]>([]);
   const [controlTypes, setControlTypes] = useState<string[]>([]);
 
@@ -78,14 +81,22 @@ export default function Universities() {
         setUniversities(universitiesWithCount);
         setFilteredUniversities(universitiesWithCount);
 
-        // Extract unique cities, types, and control types for filters
+        // Extract unique cities, regions, types, and control types for filters
         const uniqueCities = [...new Set(universitiesWithCount.map(u => u.city))].filter(Boolean).sort();
+        const uniqueRegions = [...new Set(universitiesWithCount.map(u => u.region))].filter(Boolean).sort();
         const uniqueTypes = [...new Set(universitiesWithCount.map(u => u.type))].filter(Boolean).sort();
         const uniqueControlTypes = [...new Set(universitiesWithCount.map(u => u.control_type))].filter(Boolean).sort();
         
         setCities(uniqueCities);
+        setRegions(uniqueRegions);
         setTypes(uniqueTypes);
         setControlTypes(uniqueControlTypes);
+        
+        // Handle URL parameters for initial filtering
+        const cityParam = searchParams.get('city');
+        if (cityParam && uniqueCities.includes(cityParam)) {
+          setSelectedCity(cityParam);
+        }
       } catch (error) {
         console.error('Error fetching universities:', error);
       } finally {
@@ -97,7 +108,7 @@ export default function Universities() {
   }, []);
 
   useEffect(() => {
-    // Filter universities based on search term, type, control type, and city
+    // Filter universities based on search term, type, control type, city, and region
     let filtered = universities;
 
     if (searchTerm) {
@@ -122,8 +133,12 @@ export default function Universities() {
       filtered = filtered.filter(university => university.city === selectedCity);
     }
 
+    if (selectedRegion && selectedRegion !== 'all') {
+      filtered = filtered.filter(university => university.region === selectedRegion);
+    }
+
     setFilteredUniversities(filtered);
-  }, [searchTerm, selectedType, selectedControlType, selectedCity, universities]);
+  }, [searchTerm, selectedType, selectedControlType, selectedCity, selectedRegion, universities]);
 
   if (loading) {
     return (
@@ -185,7 +200,7 @@ export default function Universities() {
         {/* Search and Filters */}
         <Card className="mb-8">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -235,6 +250,18 @@ export default function Universities() {
                   ))}
                 </SelectContent>
               </Select>
+
+              <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Region" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Regions</SelectItem>
+                  {regions.map((region) => (
+                    <SelectItem key={region} value={region}>{region}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               
               <Button 
                 variant="outline" 
@@ -243,6 +270,8 @@ export default function Universities() {
                   setSelectedType("all");
                   setSelectedControlType("all");
                   setSelectedCity("all");
+                  setSelectedRegion("all");
+                  setSearchParams({});
                 }}
               >
                 Clear Filters
@@ -360,6 +389,8 @@ export default function Universities() {
                   setSelectedType("all");
                   setSelectedControlType("all");
                   setSelectedCity("all");
+                  setSelectedRegion("all");
+                  setSearchParams({});
                 }}
               >
                 Clear All Filters

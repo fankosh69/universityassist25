@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
@@ -25,10 +26,14 @@ interface CityCard {
 }
 
 export default function Cities() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [q, setQ] = useState("");
   const [cities, setCities] = useState<CityCard[]>([]);
+  const [filteredCities, setFilteredCities] = useState<CityCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchActive, setSearchActive] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState<string>("all");
+  const [regions, setRegions] = useState<string[]>([]);
 
   const fetchCities = async (query: string = "") => {
     setLoading(true);
@@ -57,6 +62,10 @@ export default function Cities() {
           uni_count: city.universities?.[0]?.count || 0
         })) || [];
         setCities(citiesWithCount);
+        
+        // Extract unique regions for filter
+        const uniqueRegions = [...new Set(citiesWithCount.map(c => c.region))].filter(Boolean).sort();
+        setRegions(uniqueRegions);
       } else {
         // Search using cities table with text search
         const { data, error } = await supabase
@@ -82,6 +91,10 @@ export default function Cities() {
           uni_count: city.universities?.[0]?.count || 0
         })) || [];
         setCities(citiesWithCount);
+        
+        // Extract unique regions for filter
+        const uniqueRegions = [...new Set(citiesWithCount.map(c => c.region))].filter(Boolean).sort();
+        setRegions(uniqueRegions);
       }
     } catch (error) {
       console.error('Error fetching cities:', error);
@@ -107,6 +120,17 @@ export default function Cities() {
     fetchCities("");
   }, []);
 
+  useEffect(() => {
+    // Filter cities based on region selection
+    let filtered = cities;
+
+    if (selectedRegion && selectedRegion !== 'all') {
+      filtered = filtered.filter(city => city.region === selectedRegion);
+    }
+
+    setFilteredCities(filtered);
+  }, [selectedRegion, cities]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5">
@@ -123,8 +147,8 @@ export default function Cities() {
     "@type": "ItemList",
     "name": "German Cities with Universities",
     "description": "List of German cities with universities offering international programs",
-    "numberOfItems": cities.length,
-    "itemListElement": cities.map((city, index) => ({
+    "numberOfItems": filteredCities.length,
+    "itemListElement": filteredCities.map((city, index) => ({
       "@type": "Place",
       "position": index + 1,
       "name": city.name,
@@ -161,33 +185,61 @@ export default function Cities() {
               Discover German cities with universities. Search by city name or university name to find your perfect study destination.
             </p>
             
-            {/* Search Input */}
-            <div className="flex gap-2 w-full max-w-md">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  placeholder="Search city or university… (e.g., Dortmund or TU Dortmund)"
-                  className="pl-10"
-                />
-              </div>
-              <Button onClick={handleSearch} disabled={loading}>
-                Search
-              </Button>
-              {searchActive && (
-                <Button variant="outline" onClick={handleClearSearch}>
-                  Clear
+            {/* Search and Filter Controls */}
+            <div className="flex flex-col gap-4 w-full max-w-2xl">
+              <div className="flex gap-2 w-full">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    placeholder="Search city or university… (e.g., Dortmund or TU Dortmund)"
+                    className="pl-10"
+                  />
+                </div>
+                <Button onClick={handleSearch} disabled={loading}>
+                  Search
                 </Button>
-              )}
+                {searchActive && (
+                  <Button variant="outline" onClick={handleClearSearch}>
+                    Clear
+                  </Button>
+                )}
+              </div>
+              
+              {/* Region Filter */}
+              <div className="flex gap-2 justify-center">
+                <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filter by Region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Regions</SelectItem>
+                    {regions.map((region) => (
+                      <SelectItem key={region} value={region}>{region}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedRegion !== "all" && (
+                  <Button variant="outline" onClick={() => setSelectedRegion("all")}>
+                    Clear Filter
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Cities Grid */}
+        <div className="mb-6">
+          <p className="text-muted-foreground text-center">
+            Showing {filteredCities.length} of {cities.length} cities in Germany
+          </p>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {cities.map((city) => {
+        {filteredCities.map((city) => {
           const populationText = typeof city.population_total === "number" 
             ? city.population_total.toLocaleString() 
             : "Loading...";
@@ -214,12 +266,15 @@ export default function Cities() {
                       <CityTypeBadge type={city.city_type || 'City'} />
                     </div>
                     
-                    <div className="flex items-center gap-2 text-sm">
+                    <Link 
+                      to={`/universities?city=${encodeURIComponent(city.name)}`}
+                      className="flex items-center gap-2 text-sm hover:text-primary transition-colors cursor-pointer"
+                    >
                       <Building className="h-4 w-4 text-primary" />
                       <span>
                         {city.uni_count} available {city.uni_count === 1 ? 'university' : 'universities'}
                       </span>
-                    </div>
+                    </Link>
                     
                     {city.population_total && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -245,7 +300,7 @@ export default function Cities() {
           })}
         </div>
 
-        {cities.length === 0 && (
+        {filteredCities.length === 0 && (
           <Card className="max-w-md mx-auto">
             <CardContent className="p-8 text-center">
               <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
