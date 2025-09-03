@@ -24,7 +24,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
         setVisibleLetters(prev => {
           if (prev >= logoText.length) {
             clearInterval(letterTimer);
-            setTimeout(() => setPhase('arrow'), 500);
+            setTimeout(() => setPhase('arrow'), 800);
             return logoText.length;
           }
           return prev + 1;
@@ -110,15 +110,14 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
             {logoText.split('').map((letter, index) => (
               <span
                 key={index}
-                className={`inline-block transition-all duration-300 ${
+                className={`inline-block ${
                   index < visibleLetters 
-                    ? 'opacity-100 translate-y-0 scale-100 animate-letter-reveal' 
-                    : 'opacity-0 translate-y-5 scale-75'
+                    ? 'opacity-100 animate-letter-reveal' 
+                    : 'opacity-0'
                 } ${
                   index < 10 ? 'text-primary' : 'text-secondary'
                 }`}
                 style={{
-                  animationDelay: `${index * 120}ms`,
                   textShadow: phase === 'complete' ? '0 0 15px hsl(var(--primary) / 0.4)' : 'none'
                 }}
               >

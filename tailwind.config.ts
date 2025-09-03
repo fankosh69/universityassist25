@@ -155,7 +155,7 @@ export default {
         "bounce-in": "bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
         "fly-in": "fly-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
         "sparkle": "sparkle 0.8s ease-out",
-        "letter-reveal": "letter-reveal 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+        "letter-reveal": "letter-reveal 0.25s ease-out",
         "slide-up-fade": "slide-up-fade 0.8s ease-out",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
       },
