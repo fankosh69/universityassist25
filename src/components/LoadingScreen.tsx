@@ -88,10 +88,10 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
             {/* Arrow SVG */}
             <svg
               className={`w-12 h-12 relative z-10 transition-all duration-500 ${
-                arrowAnimated ? 'translate-x-0 translate-y-0 opacity-100' : '-translate-x-24 translate-y-24 opacity-0'
+                arrowAnimated ? 'animate-fly-in' : 'opacity-0'
               } ${
-                progress === 25 ? 'animate-pulse scale-125' : 
-                progress === 50 ? 'animate-bounce' : ''
+                progress >= 25 && progress < 30 ? 'animate-pulse scale-125' : 
+                progress >= 50 && progress < 55 ? 'animate-bounce' : ''
               }`}
               style={{
                 filter: showSparkles ? 'drop-shadow(0 0 12px hsl(var(--secondary)))' : 'none'
@@ -111,12 +111,11 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
                 {[...Array(6)].map((_, i) => (
                   <div
                     key={i}
-                    className="absolute w-2 h-2 bg-secondary rounded-full animate-ping"
+                    className="absolute w-2 h-2 bg-secondary rounded-full animate-sparkle"
                     style={{
                       left: `${24 + Math.cos(i * 60 * Math.PI / 180) * 30}px`,
                       top: `${24 + Math.sin(i * 60 * Math.PI / 180) * 30}px`,
                       animationDelay: `${i * 0.1}s`,
-                      animationDuration: '0.8s'
                     }}
                   />
                 ))}
