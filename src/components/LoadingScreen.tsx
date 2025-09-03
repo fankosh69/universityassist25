@@ -49,7 +49,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
           
           if (prev >= 100) {
             clearInterval(progressTimer);
-            setTimeout(() => setPhase('tagline'), 300);
+            setTimeout(() => setPhase('tagline'), 600);
             return 100;
           }
           return prev + 3;
@@ -70,7 +70,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
           textIndex++;
         } else {
           clearInterval(typeTimer);
-          setTimeout(() => setPhase('complete'), 500);
+          setTimeout(() => setPhase('complete'), 800);
         }
       }, 80);
 
@@ -81,7 +81,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
     if (phase === 'complete') {
       setIsComplete(true);
       if (onComplete) {
-        setTimeout(() => onComplete(), 800);
+        setTimeout(() => onComplete(), 1200);
       }
     }
   }, [phase, onComplete, logoText.length, taglineText, showSparkles]);
