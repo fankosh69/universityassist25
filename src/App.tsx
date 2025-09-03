@@ -23,6 +23,7 @@ import AmbassadorsList from "./pages/ambassadors/AmbassadorsList";
 import AmbassadorProfile from "./pages/ambassadors/AmbassadorProfile";
 import ProfilePage from "./pages/profile/ProfilePage";
 import NotFound from "./pages/NotFound";
+import LoadingScreen from "./components/LoadingScreen";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { AdminPrograms } from "./pages/admin/AdminPrograms";
