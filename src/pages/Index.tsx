@@ -255,9 +255,9 @@ const Index = () => {
                 <img 
                   src="/lovable-uploads/fda0393f-0b68-4ef6-bd9a-3d02ac39e07b.png" 
                   alt="University Assist" 
-                  className="h-8"
+                  className="h-12 w-auto object-contain"
                   width="200"
-                  height="32"
+                  height="48"
                   loading="lazy"
                   decoding="async"
                 />
