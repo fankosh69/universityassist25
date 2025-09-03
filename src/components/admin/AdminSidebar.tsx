@@ -13,7 +13,8 @@ import {
   Home,
   Menu,
   Shield,
-  FileText
+  FileText,
+  Palette
 } from "lucide-react";
 
 import {
@@ -36,6 +37,7 @@ const adminMenuItems = [
   { title: "Universities", url: "/admin/universities", icon: Building },
   { title: "Programs", url: "/admin/programs", icon: GraduationCap },
   { title: "Service Packages", url: "/admin/packages", icon: Package },
+  { title: "Design", url: "/admin/design", icon: Palette },
   { title: "User Management", url: "/admin/users", icon: Users },
   { title: "Security", url: "/admin/security", icon: Shield },
   { title: "Sitemap", url: "/admin/sitemap", icon: FileText },
