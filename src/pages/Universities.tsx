@@ -94,8 +94,14 @@ export default function Universities() {
         
         // Handle URL parameters for initial filtering
         const cityParam = searchParams.get('city');
+        const regionParam = searchParams.get('region');
+        
         if (cityParam && uniqueCities.includes(cityParam)) {
           setSelectedCity(cityParam);
+        }
+        
+        if (regionParam && uniqueRegions.includes(regionParam)) {
+          setSelectedRegion(regionParam);
         }
       } catch (error) {
         console.error('Error fetching universities:', error);
