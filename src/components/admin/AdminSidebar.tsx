@@ -32,6 +32,7 @@ import {
 const adminMenuItems = [
   { title: "Dashboard", url: "/admin", icon: BarChart3 },
   { title: "Cities", url: "/admin/cities", icon: MapPin },
+  { title: "Regions", url: "/admin/regions", icon: Settings },
   { title: "Universities", url: "/admin/universities", icon: Building },
   { title: "Programs", url: "/admin/programs", icon: GraduationCap },
   { title: "Service Packages", url: "/admin/packages", icon: Package },

@@ -29,6 +29,7 @@ import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { AdminPrograms } from "./pages/admin/AdminPrograms";
 import { AdminUniversities } from "./pages/admin/AdminUniversities";
 import { AdminCities } from "./pages/admin/AdminCities";
+import { AdminRegions } from "./pages/admin/AdminRegions";
 import { AdminUsers } from "./pages/admin/AdminUsers";
 import { AdminServicePackages } from "./pages/admin/AdminServicePackages";
 import AdminSecurity from "./pages/admin/AdminSecurity";
@@ -107,6 +108,7 @@ const App = () => {
             <Route path="/admin/programs" element={<AdminLayout><AdminPrograms /></AdminLayout>} />
             <Route path="/admin/security" element={<AdminLayout><AdminSecurity /></AdminLayout>} />
             <Route path="/admin/cities" element={<AdminLayout><AdminCities /></AdminLayout>} />
+            <Route path="/admin/regions" element={<AdminLayout><AdminRegions /></AdminLayout>} />
             <Route path="/admin/universities" element={<AdminLayout><AdminUniversities /></AdminLayout>} />
             <Route path="/admin/packages" element={<AdminLayout><AdminServicePackages /></AdminLayout>} />
             <Route path="/admin/users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
