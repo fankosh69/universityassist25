@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
@@ -245,29 +246,29 @@ export default function Universities() {
                 </SelectContent>
               </Select>
               
-              <Select value={selectedCity} onValueChange={setSelectedCity}>
-                <SelectTrigger>
-                  <SelectValue placeholder="City" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Cities</SelectItem>
-                  {cities.map((city) => (
-                    <SelectItem key={city} value={city}>{city}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect 
+                value={selectedCity}
+                onValueChange={setSelectedCity}
+                options={[
+                  { value: "all", label: "All Cities" },
+                  ...cities.map(city => ({ value: city, label: city }))
+                ]}
+                placeholder="Select City"
+                emptyText="No city found."
+                maxDisplayOptions={6}
+              />
 
-              <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Region" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Regions</SelectItem>
-                  {regions.map((region) => (
-                    <SelectItem key={region} value={region}>{region}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect 
+                value={selectedRegion}
+                onValueChange={setSelectedRegion}
+                options={[
+                  { value: "all", label: "All Regions" },
+                  ...regions.map(region => ({ value: region, label: region }))
+                ]}
+                placeholder="Select Region"
+                emptyText="No region found."
+                maxDisplayOptions={6}
+              />
               
               <Button 
                 variant="outline" 
