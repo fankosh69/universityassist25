@@ -47,9 +47,9 @@ const App = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       
-      // Ensure loading screen shows for at least 300ms
+      // Ensure loading screen shows for at least 1 second
       const elapsed = Date.now() - startTime;
-      const remainingTime = Math.max(0, 300 - elapsed);
+      const remainingTime = Math.max(0, 1000 - elapsed);
       
       setTimeout(() => {
         setLoading(false);
@@ -67,11 +67,7 @@ const App = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-blue-500">
-        <div className="text-white text-2xl">Loading University Assist...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   // Debug check - add temporary test

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 interface LoadingScreenProps {
-  onComplete: () => void;
+  onComplete?: () => void;
 }
 
 const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
@@ -23,7 +23,9 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
         if (prev >= 100) {
           clearInterval(progressTimer);
           setIsComplete(true);
-          setTimeout(() => onComplete(), 800);
+          if (onComplete) {
+            setTimeout(() => onComplete(), 800);
+          }
           return 100;
         }
         return prev + 2;
