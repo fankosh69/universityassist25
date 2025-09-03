@@ -41,10 +41,19 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const startTime = Date.now();
+    
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      setLoading(false);
+      
+      // Ensure loading screen shows for at least 300ms
+      const elapsed = Date.now() - startTime;
+      const remainingTime = Math.max(0, 300 - elapsed);
+      
+      setTimeout(() => {
+        setLoading(false);
+      }, remainingTime);
     });
 
     // Listen for auth changes
