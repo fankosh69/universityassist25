@@ -216,17 +216,6 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
             </p>
           </div>
         )}
-
-        {/* Progress percentage */}
-        {arrowVisible && (
-          <div 
-            className={`text-sm text-muted-foreground font-mono transition-all duration-300 ${
-              progress > 0 ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            {Math.round(progress)}%
-          </div>
-        )}
       </div>
     </div>
   );
