@@ -255,7 +255,12 @@ export default function Cities() {
                       </CardTitle>
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <MapPin className="h-4 w-4" />
-                        <span className="text-sm">{city.region || "Region not specified"}</span>
+                        <Link 
+                          to={`/universities?region=${encodeURIComponent(city.region || "")}`}
+                          className="text-sm hover:text-primary transition-colors cursor-pointer underline-offset-2 hover:underline"
+                        >
+                          {city.region || "Region not specified"}
+                        </Link>
                       </div>
                     </div>
                   </div>
