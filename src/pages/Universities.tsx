@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { slugify } from "@/lib/slug";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -326,7 +327,12 @@ export default function Universities() {
                      </CardTitle>
                      <div className="flex items-center gap-2 text-muted-foreground mb-3">
                        <MapPin className="h-4 w-4" />
-                       <span className="text-sm">{university.city?.replace(/[^\x00-\x7F]/g, "") || university.city}</span>
+                        <Link 
+                          to={`/cities/${slugify(university.city)}`}
+                          className="text-sm hover:text-primary transition-colors"
+                        >
+                          {university.city?.replace(/[^\x00-\x7F]/g, "") || university.city}
+                        </Link>
                      </div>
                     <div className="flex flex-wrap gap-2">
                       {university.type && (
