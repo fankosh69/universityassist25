@@ -6,58 +6,87 @@ interface LoadingScreenProps {
 
 const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
   const [progress, setProgress] = useState(0);
-  const [currentText, setCurrentText] = useState("");
-  const [isComplete, setIsComplete] = useState(false);
+  const [phase, setPhase] = useState<'logo' | 'arrow' | 'tagline' | 'complete'>('logo');
+  const [visibleLetters, setVisibleLetters] = useState(0);
+  const [arrowVisible, setArrowVisible] = useState(false);
+  const [taglineVisible, setTaglineVisible] = useState(false);
+  const [currentTaglineText, setCurrentTaglineText] = useState("");
   const [showSparkles, setShowSparkles] = useState(false);
-  const [arrowAnimated, setArrowAnimated] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
   
-  const fullText = "Loading… Your way to Germany";
+  const logoText = "University Assist";
+  const taglineText = "Your Way to Germany";
 
   useEffect(() => {
-    // Arrow fly-in animation
-    setTimeout(() => setArrowAnimated(true), 300);
-
-    // Progress animation
-    const progressTimer = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(progressTimer);
-          setIsComplete(true);
-          if (onComplete) {
-            setTimeout(() => onComplete(), 800);
+    // Phase 1: Letter-by-letter logo animation
+    if (phase === 'logo') {
+      const letterTimer = setInterval(() => {
+        setVisibleLetters(prev => {
+          if (prev >= logoText.length) {
+            clearInterval(letterTimer);
+            setTimeout(() => setPhase('arrow'), 500);
+            return logoText.length;
           }
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 80);
+          return prev + 1;
+        });
+      }, 120);
 
-    // Typing animation
-    let textIndex = 0;
-    const typeTimer = setInterval(() => {
-      if (textIndex <= fullText.length) {
-        setCurrentText(fullText.slice(0, textIndex));
-        textIndex++;
-      } else {
-        clearInterval(typeTimer);
-      }
-    }, 100);
-
-    return () => {
-      clearInterval(progressTimer);
-      clearInterval(typeTimer);
-    };
-  }, [onComplete, fullText]);
-
-  // Trigger sparkles at 75%
-  useEffect(() => {
-    if (progress >= 75 && !showSparkles) {
-      setShowSparkles(true);
-      setTimeout(() => setShowSparkles(false), 1200);
+      return () => clearInterval(letterTimer);
     }
-  }, [progress, showSparkles]);
 
-  const circumference = 2 * Math.PI * 26; // radius = 26
+    // Phase 2: Arrow animation with progress
+    if (phase === 'arrow') {
+      setArrowVisible(true);
+      
+      const progressTimer = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 75) {
+            if (!showSparkles) {
+              setShowSparkles(true);
+              setTimeout(() => setShowSparkles(false), 1200);
+            }
+          }
+          
+          if (prev >= 100) {
+            clearInterval(progressTimer);
+            setTimeout(() => setPhase('tagline'), 300);
+            return 100;
+          }
+          return prev + 3;
+        });
+      }, 50);
+
+      return () => clearInterval(progressTimer);
+    }
+
+    // Phase 3: Tagline typing animation
+    if (phase === 'tagline') {
+      setTaglineVisible(true);
+      let textIndex = 0;
+      
+      const typeTimer = setInterval(() => {
+        if (textIndex <= taglineText.length) {
+          setCurrentTaglineText(taglineText.slice(0, textIndex));
+          textIndex++;
+        } else {
+          clearInterval(typeTimer);
+          setTimeout(() => setPhase('complete'), 500);
+        }
+      }, 80);
+
+      return () => clearInterval(typeTimer);
+    }
+
+    // Phase 4: Complete and exit
+    if (phase === 'complete') {
+      setIsComplete(true);
+      if (onComplete) {
+        setTimeout(() => onComplete(), 800);
+      }
+    }
+  }, [phase, onComplete, logoText.length, taglineText, showSparkles]);
+
+  const circumference = 2 * Math.PI * 26;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
@@ -73,48 +102,67 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
       </div>
 
       {/* Main content */}
-      <div className="flex flex-col items-center space-y-8 animate-fade-in">
+      <div className="flex flex-col items-center space-y-8">
         
-        {/* Logo with animated arrow */}
-        <div className="relative flex items-center space-x-6">
-          <img 
-            src="/lovable-uploads/fda0393f-0b68-4ef6-bd9a-3d02ac39e07b.png" 
-            alt="University Assist Logo" 
-            className="h-20 w-auto object-contain animate-fade-in delay-200"
-          />
-          
-          {/* Animated Arrow with Progress Ring */}
-          <div className="relative">
+        {/* Logo Text Animation */}
+        <div className="text-center">
+          <div className="text-4xl md:text-5xl font-bold font-heading mb-6">
+            {logoText.split('').map((letter, index) => (
+              <span
+                key={index}
+                className={`inline-block transition-all duration-300 ${
+                  index < visibleLetters 
+                    ? 'opacity-100 translate-y-0 scale-100 animate-letter-reveal' 
+                    : 'opacity-0 translate-y-5 scale-75'
+                } ${
+                  index < 10 ? 'text-primary' : 'text-secondary'
+                }`}
+                style={{
+                  animationDelay: `${index * 120}ms`,
+                  textShadow: phase === 'complete' ? '0 0 15px hsl(var(--primary) / 0.4)' : 'none'
+                }}
+              >
+                {letter === ' ' ? '\u00A0' : letter}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Arrow with Progress Ring */}
+        {arrowVisible && (
+          <div 
+            className={`relative transition-all duration-700 ${
+              arrowVisible ? 'opacity-100 animate-fly-in' : 'opacity-0'
+            }`}
+          >
             {/* Arrow SVG */}
             <svg
-              className={`w-12 h-12 relative z-10 transition-all duration-500 ${
-                arrowAnimated ? 'animate-fly-in' : 'opacity-0'
-              } ${
-                progress >= 25 && progress < 30 ? 'animate-pulse scale-125' : 
-                progress >= 50 && progress < 55 ? 'animate-bounce' : ''
+              className={`w-16 h-16 relative z-10 transition-all duration-300 ${
+                progress >= 25 && progress < 35 ? 'animate-pulse scale-125' : 
+                progress >= 50 && progress < 60 ? 'animate-bounce' : ''
               }`}
               style={{
-                filter: showSparkles ? 'drop-shadow(0 0 12px hsl(var(--secondary)))' : 'none'
+                filter: showSparkles ? 'drop-shadow(0 0 15px hsl(var(--secondary)))' : 'none'
               }}
               viewBox="0 0 48 48"
             >
               <path
                 d="M24 8L36 20H28V32H20V20H12L24 8Z"
                 fill="hsl(var(--secondary))"
-                className="drop-shadow-sm"
+                className="drop-shadow-lg"
               />
             </svg>
 
             {/* Sparkles for 75% milestone */}
             {showSparkles && (
               <div className="absolute inset-0 pointer-events-none">
-                {[...Array(6)].map((_, i) => (
+                {[...Array(8)].map((_, i) => (
                   <div
                     key={i}
-                    className="absolute w-2 h-2 bg-secondary rounded-full animate-sparkle"
+                    className="absolute w-3 h-3 bg-secondary rounded-full animate-sparkle"
                     style={{
-                      left: `${24 + Math.cos(i * 60 * Math.PI / 180) * 30}px`,
-                      top: `${24 + Math.sin(i * 60 * Math.PI / 180) * 30}px`,
+                      left: `${32 + Math.cos(i * 45 * Math.PI / 180) * 40}px`,
+                      top: `${32 + Math.sin(i * 45 * Math.PI / 180) * 40}px`,
                       animationDelay: `${i * 0.1}s`,
                     }}
                   />
@@ -124,7 +172,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
 
             {/* Circular Progress Ring */}
             <svg
-              className="absolute inset-0 -m-4 w-20 h-20"
+              className="absolute inset-0 -m-6 w-28 h-28"
               viewBox="0 0 56 56"
             >
               {/* Background circle */}
@@ -154,20 +202,32 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
               />
             </svg>
           </div>
-        </div>
+        )}
 
-        {/* Loading text with typing animation */}
-        <div className="text-center animate-fade-in delay-1000">
-          <p className="text-lg font-medium text-foreground">
-            {currentText}
-            <span className="inline-block w-0.5 h-5 bg-primary ml-1 animate-pulse" />
-          </p>
-        </div>
+        {/* Tagline Animation */}
+        {taglineVisible && (
+          <div 
+            className={`text-center transition-all duration-500 ${
+              taglineVisible ? 'opacity-100 animate-slide-up-fade' : 'opacity-0'
+            }`}
+          >
+            <p className="text-xl md:text-2xl font-medium text-foreground animate-glow-pulse">
+              {currentTaglineText}
+              <span className="inline-block w-0.5 h-6 bg-accent ml-1 animate-pulse" />
+            </p>
+          </div>
+        )}
 
         {/* Progress percentage */}
-        <div className="text-sm text-muted-foreground font-mono animate-fade-in delay-1500">
-          {progress}%
-        </div>
+        {arrowVisible && (
+          <div 
+            className={`text-sm text-muted-foreground font-mono transition-all duration-300 ${
+              progress > 0 ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {Math.round(progress)}%
+          </div>
+        )}
       </div>
     </div>
   );
