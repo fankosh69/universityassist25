@@ -119,9 +119,7 @@ export const AdminCities = () => {
         slug: formData.slug || generateSlug(formData.name),
         lat: formData.lat || null,
         lng: formData.lng || null,
-        metadata: {
-          website: formData.website || null,
-        },
+        website: formData.website || null, // Send website separately, backend will handle metadata
       };
 
       if (editingCity) {

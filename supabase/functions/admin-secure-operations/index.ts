@@ -176,7 +176,15 @@ async function handleGetCities(supabase: any) {
 
 async function handleUpdateCity(req: Request, supabase: any) {
   try {
-    const { id, ...updateData } = await req.json();
+    const { id, website, ...updateData } = await req.json();
+    
+    // Handle website separately in metadata
+    if (website !== undefined) {
+      updateData.metadata = {
+        ...updateData.metadata,
+        website: website || null
+      };
+    }
     
     const { data, error } = await supabase
       .from('cities')
@@ -202,7 +210,15 @@ async function handleUpdateCity(req: Request, supabase: any) {
 
 async function handleCreateCity(req: Request, supabase: any) {
   try {
-    const cityData = await req.json();
+    const { website, ...cityData } = await req.json();
+    
+    // Handle website in metadata
+    if (website !== undefined) {
+      cityData.metadata = {
+        ...cityData.metadata,
+        website: website || null
+      };
+    }
     
     const { data, error } = await supabase
       .from('cities')
