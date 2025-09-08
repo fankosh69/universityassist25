@@ -50,6 +50,7 @@ export const AdminCities = () => {
     population_total: number | null;
     city_type: string;
     description: string;
+    website: string;
   }>({
     name: "",
     region: "",
@@ -60,6 +61,7 @@ export const AdminCities = () => {
     population_total: null,
     city_type: "City",
     description: "",
+    website: "",
   });
 
   useEffect(() => {
@@ -117,6 +119,9 @@ export const AdminCities = () => {
         slug: formData.slug || generateSlug(formData.name),
         lat: formData.lat || null,
         lng: formData.lng || null,
+        metadata: {
+          website: formData.website || null,
+        },
       };
 
       if (editingCity) {
@@ -220,6 +225,7 @@ export const AdminCities = () => {
       population_total: city.population_total || null,
       city_type: city.city_type || "City",
       description: city.description || "",
+      website: (city.metadata as any)?.website || "",
     });
     setIsDialogOpen(true);
   };
@@ -236,6 +242,7 @@ export const AdminCities = () => {
       population_total: null,
       city_type: "City",
       description: "",
+      website: "",
     });
     setIsDialogOpen(false);
   };
@@ -304,6 +311,11 @@ export const AdminCities = () => {
                 {city.description && (
                   <p className="text-sm text-muted-foreground mt-2">
                     {city.description.length > 80 ? `${city.description.substring(0, 80)}...` : city.description}
+                  </p>
+                )}
+                {(city.metadata as any)?.website && (
+                  <p className="text-sm text-primary mt-2">
+                    Website: {(city.metadata as any)?.website}
                   </p>
                 )}
               </CardHeader>
@@ -482,6 +494,20 @@ export const AdminCities = () => {
                 placeholder="Brief description of the city for visitors..."
                 rows={3}
               />
+            </div>
+
+            <div>
+              <Label htmlFor="website">City Website URL</Label>
+              <Input
+                id="website"
+                type="url"
+                value={formData.website}
+                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                placeholder="https://example.de"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                This website will appear as a clickable link on the city page
+              </p>
             </div>
 
             <DialogFooter>
