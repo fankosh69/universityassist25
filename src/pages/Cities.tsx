@@ -293,17 +293,24 @@ export default function Cities() {
                       </div>
                     )}
 
-                    {city.website && (
-                      <a 
-                        href={city.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        <span>City Website</span>
-                      </a>
-                    )}
+                    <div className="flex items-center gap-2 text-sm">
+                      {city.website ? (
+                        <a 
+                          href={city.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:text-primary/80 transition-colors"
+                        >
+                          <ExternalLink className="h-4 w-4 inline mr-1" />
+                          City Website
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          <ExternalLink className="h-4 w-4 inline mr-1" />
+                          City Website (Coming Soon)
+                        </span>
+                      )}
+                    </div>
 
                     {city.description && (
                       <div className="text-sm text-muted-foreground mt-3 leading-relaxed">
