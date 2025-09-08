@@ -11,7 +11,7 @@ import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
 import { CityTypeBadge } from "@/components/CityTypeBadge";
-import { MapPin, Building, Users, Search } from "lucide-react";
+import { MapPin, Building, Users, Search, ExternalLink } from "lucide-react";
 
 interface CityCard {
   id: string;
@@ -23,6 +23,7 @@ interface CityCard {
   population_asof: string | null;
   city_type: string | null;
   description: string | null;
+  website: string | null;
 }
 
 export default function Cities() {
@@ -51,6 +52,7 @@ export default function Cities() {
             population_asof,
             city_type,
             description,
+            metadata,
             universities!inner(count)
           `)
           .order("name");
@@ -59,7 +61,8 @@ export default function Cities() {
         // Transform data to match CityCard interface
         const citiesWithCount = data?.map(city => ({
           ...city,
-          uni_count: city.universities?.[0]?.count || 0
+          uni_count: city.universities?.[0]?.count || 0,
+          website: (city.metadata as any)?.website || null
         })) || [];
         setCities(citiesWithCount);
         
@@ -79,6 +82,7 @@ export default function Cities() {
             population_asof,
             city_type,
             description,
+            metadata,
             universities!inner(count)
           `)
           .ilike('name', `%${query}%`)
@@ -88,7 +92,8 @@ export default function Cities() {
         // Transform data to match CityCard interface
         const citiesWithCount = data?.map(city => ({
           ...city,
-          uni_count: city.universities?.[0]?.count || 0
+          uni_count: city.universities?.[0]?.count || 0,
+          website: (city.metadata as any)?.website || null
         })) || [];
         setCities(citiesWithCount);
         
@@ -286,6 +291,18 @@ export default function Cities() {
                         <Users className="h-4 w-4" />
                         <span>Population: {populationText}</span>
                       </div>
+                    )}
+
+                    {city.website && (
+                      <a 
+                        href={city.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        <span>City Website</span>
+                      </a>
                     )}
 
                     {city.description && (
