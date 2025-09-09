@@ -24,12 +24,12 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
         setVisibleLetters(prev => {
           if (prev >= logoText.length) {
             clearInterval(letterTimer);
-            setTimeout(() => setPhase('arrow'), 800);
+            setTimeout(() => setPhase('arrow'), 300);
             return logoText.length;
           }
           return prev + 1;
         });
-      }, 120);
+      }, 60);
 
       return () => clearInterval(letterTimer);
     }
@@ -49,12 +49,12 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
           
           if (prev >= 100) {
             clearInterval(progressTimer);
-            setTimeout(() => setPhase('tagline'), 600);
+            setTimeout(() => setPhase('tagline'), 200);
             return 100;
           }
-          return prev + 3;
+          return prev + 5;
         });
-      }, 50);
+      }, 30);
 
       return () => clearInterval(progressTimer);
     }
@@ -70,9 +70,9 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
           textIndex++;
         } else {
           clearInterval(typeTimer);
-          setTimeout(() => setPhase('complete'), 800);
+          setTimeout(() => setPhase('complete'), 300);
         }
-      }, 80);
+      }, 50);
 
       return () => clearInterval(typeTimer);
     }
@@ -81,7 +81,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
     if (phase === 'complete') {
       setIsComplete(true);
       if (onComplete) {
-        setTimeout(() => onComplete(), 1200);
+        setTimeout(() => onComplete(), 600);
       }
     }
   }, [phase, onComplete, logoText.length, taglineText, showSparkles]);
