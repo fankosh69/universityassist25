@@ -85,7 +85,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
         setTimeout(() => onComplete(), 600);
       }
     }
-  }, [phase, onComplete, logoText.length, taglineText, showSparkles]);
+  }, [phase, onComplete]);
 
   const circumference = 2 * Math.PI * 26;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
