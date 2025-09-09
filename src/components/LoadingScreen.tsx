@@ -62,6 +62,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
     // Phase 3: Tagline typing animation
     if (phase === 'tagline') {
       setTaglineVisible(true);
+      setCurrentTaglineText(""); // Reset text at start
       let textIndex = 0;
       
       const typeTimer = setInterval(() => {
