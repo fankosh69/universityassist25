@@ -42,6 +42,7 @@ interface Program {
   winter_deadline?: string;
   summer_deadline?: string;
   recognition_weeks_before: number;
+  slug?: string;
   universities?: {
     name: string;
     city: string;
@@ -261,6 +262,16 @@ export const AdminPrograms = () => {
   const importComprehensivePrograms = async () => {
     setLoading(true);
     try {
+      // First, delete existing programs to avoid duplicates
+      const { error: deleteError } = await supabase
+        .from('programs')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all programs
+      
+      if (deleteError) {
+        console.warn('Could not clear existing programs:', deleteError);
+      }
+
       const comprehensivePrograms = [
         // A. TH Aschaffenburg (004e52c6-5b0d-4ebe-9bd8-2a815057d4ed)
         {
@@ -333,7 +344,7 @@ export const AdminPrograms = () => {
         // B. Hochschule Fresenius (0050d04c-14b7-4020-8e67-a8af085f43a8)
         {
           name: "International Business Management",
-          field_of_study: "Business Management; Economics; Intercultural Management; Digital Transformation",
+          field_of_study: "Business Management; Economics",
           degree_type: "B.A.",
           degree_level: "bachelor" as const,
           duration_semesters: 6,
@@ -349,8 +360,8 @@ export const AdminPrograms = () => {
           university_id: "0050d04c-14b7-4020-8e67-a8af085f43a8"
         },
         {
-          name: "Computer Science",
-          field_of_study: "Computer Science; Cyber Security; Artificial Intelligence; Machine Learning",
+          name: "Computer Science (Fresenius)",
+          field_of_study: "Computer Science; Cyber Security",
           degree_type: "M.Sc.",
           degree_level: "master" as const,
           duration_semesters: 4,
@@ -540,8 +551,8 @@ export const AdminPrograms = () => {
           university_id: "05e44d0b-7409-4da6-8624-5c28c72aea70"
         },
         {
-          name: "Computer Science",
-          field_of_study: "Computer Science; Software Engineering; Algorithms; Programming; Systems",
+          name: "Computer Science (Würzburg)",
+          field_of_study: "Computer Science; Software Engineering",
           degree_type: "M.Sc.",
           degree_level: "master" as const,
           duration_semesters: 4,
@@ -576,8 +587,8 @@ export const AdminPrograms = () => {
         
         // G. TH Deggendorf (036ccf51-2c83-44c7-ad61-15a6af1a71ce) - Selection of key programs
         {
-          name: "International Management",
-          field_of_study: "Management; Marketing; Finance; Economics; International Business",
+          name: "International Management (Deggendorf)",
+          field_of_study: "Management; Marketing",
           degree_type: "B.A.",
           degree_level: "bachelor" as const,
           duration_semesters: 7,
@@ -746,9 +757,16 @@ export const AdminPrograms = () => {
 
       for (const program of comprehensivePrograms) {
         try {
+          // Generate slug for the program
+          const slug = program.name.toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+
           const programData = {
             name: program.name,
-            field_of_study: program.field_of_study,
+            field_of_study: program.field_of_study.split(';').slice(0, 2).map(f => f.trim()).join('; '), // Simplify to first 2 fields
             degree_type: program.degree_type,
             degree_level: program.degree_level,
             duration_semesters: program.duration_semesters,
@@ -765,7 +783,8 @@ export const AdminPrograms = () => {
             program_url: program.program_url || null,
             delivery_mode: program.delivery_mode || "on_campus",
             university_id: program.university_id,
-            recognition_weeks_before: 10
+            recognition_weeks_before: 10,
+            slug: slug
           };
 
           const { error } = await supabase

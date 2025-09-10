@@ -469,7 +469,10 @@ const EnhancedSearch: React.FC = () => {
                       <Badge variant="secondary">
                         {program.degree_level.charAt(0).toUpperCase() + program.degree_level.slice(1).toLowerCase()}
                       </Badge>
-                      <Badge variant="outline">{program.field_of_study}</Badge>
+                      <Badge variant="outline">
+                        {program.field_of_study.split(';')[0].trim()}
+                        {program.field_of_study.includes(';') && '...'}
+                      </Badge>
                     </div>
                   </div>
                   <Button
