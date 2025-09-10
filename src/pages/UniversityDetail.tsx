@@ -42,7 +42,7 @@ interface Program {
   degree_type: string;
   degree_level: string;
   duration_semesters: number;
-  tuition_fees: number;
+  semester_fees: number;
   uni_assist_required: boolean;
   slug: string;
   program_deadlines: {
@@ -376,8 +376,8 @@ export default function UniversityDetail() {
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Euro className="h-4 w-4" />
                           <span>
-                            {program.tuition_fees > 0 
-                              ? `€${program.tuition_fees.toLocaleString()} per semester`
+                            {program.semester_fees > 0 
+                              ? `€${program.semester_fees.toLocaleString()} per semester`
                               : 'Free'
                             }
                           </span>

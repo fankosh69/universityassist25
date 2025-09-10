@@ -116,8 +116,8 @@ export default function UniversityPage() {
                       <p>Field: {program.field_of_study}</p>
                       <p>Duration: {program.duration_semesters} semesters</p>
                       <p>Language: {program.language_requirements?.join(', ') || 'German'}</p>
-                      {program.tuition_fees > 0 && (
-                        <p>Tuition: €{program.tuition_fees}/semester</p>
+                      {program.semester_fees > 0 && (
+                        <p>Tuition: €{program.semester_fees}/semester</p>
                       )}
                     </div>
                     <a 

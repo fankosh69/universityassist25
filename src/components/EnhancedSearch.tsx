@@ -23,7 +23,7 @@ interface Program {
   degree_level: string;
   field_of_study: string;
   duration_semesters: number;
-  tuition_fees: number;
+  semester_fees: number;
   uni_assist_required: boolean;
   application_method: string;
   language_of_instruction: string[];
@@ -157,7 +157,7 @@ const EnhancedSearch: React.FC = () => {
     }
     if (filters.maxTuitionFees && filters.maxTuitionFees !== 'all') {
       const maxFees = parseInt(filters.maxTuitionFees);
-      filtered = filtered.filter(p => (p.tuition_fees || 0) <= maxFees);
+      filtered = filtered.filter(p => (p.semester_fees || 0) <= maxFees);
     }
     if (filters.uniAssistRequired !== null) {
       filtered = filtered.filter(p => p.uni_assist_required === filters.uniAssistRequired);
@@ -522,8 +522,8 @@ const EnhancedSearch: React.FC = () => {
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Euro className="h-4 w-4" />
                     <span>
-                      {program.tuition_fees > 0 
-                        ? `€${program.tuition_fees.toLocaleString()}/semester`
+                      {program.semester_fees > 0 
+                        ? `€${program.semester_fees.toLocaleString()}/semester`
                         : 'Free'
                       }
                     </span>

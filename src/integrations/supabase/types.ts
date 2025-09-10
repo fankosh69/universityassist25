@@ -613,11 +613,11 @@ export type Database = {
           published: boolean | null
           recognition_weeks_before: number | null
           search_doc: Json | null
+          semester_fees: number | null
           semester_start: string | null
           slug: string | null
           summer_deadline: string | null
           summer_intake: boolean | null
-          tuition_fees: number | null
           uni_assist_required: boolean | null
           university_id: string
           winter_deadline: string | null
@@ -646,11 +646,11 @@ export type Database = {
           published?: boolean | null
           recognition_weeks_before?: number | null
           search_doc?: Json | null
+          semester_fees?: number | null
           semester_start?: string | null
           slug?: string | null
           summer_deadline?: string | null
           summer_intake?: boolean | null
-          tuition_fees?: number | null
           uni_assist_required?: boolean | null
           university_id: string
           winter_deadline?: string | null
@@ -679,11 +679,11 @@ export type Database = {
           published?: boolean | null
           recognition_weeks_before?: number | null
           search_doc?: Json | null
+          semester_fees?: number | null
           semester_start?: string | null
           slug?: string | null
           summer_deadline?: string | null
           summer_intake?: boolean | null
-          tuition_fees?: number | null
           uni_assist_required?: boolean | null
           university_id?: string
           winter_deadline?: string | null

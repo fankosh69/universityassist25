@@ -18,7 +18,7 @@ interface SavedProgram {
     field_of_study: string;
     degree_type: string;
     duration_semesters: number;
-    tuition_fees: number;
+    semester_fees: number;
     application_deadline: string;
     semester_start: string;
     universities: {
@@ -54,7 +54,7 @@ const SavedPrograms = () => {
             field_of_study,
             degree_type,
             duration_semesters,
-            tuition_fees,
+            semester_fees,
             application_deadline,
             semester_start,
             universities (
@@ -178,8 +178,8 @@ const SavedPrograms = () => {
                             <Clock className="h-3 w-3 mr-1" />
                             {program.duration_semesters} semesters
                           </Badge>
-                          <Badge variant="outline" className={program.tuition_fees === 0 ? "text-success border-success" : ""}>
-                            {program.tuition_fees === 0 ? "Free" : `€${program.tuition_fees.toLocaleString()}/year`}
+                          <Badge variant="outline" className={program.semester_fees === 0 ? "text-success border-success" : ""}>
+                            {program.semester_fees === 0 ? "Free" : `€${program.semester_fees.toLocaleString()}/semester`}
                           </Badge>
                         </div>
 

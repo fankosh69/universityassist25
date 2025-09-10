@@ -21,7 +21,7 @@ interface Program {
   degree_type: string;
   degree_level: string;
   duration_semesters: number;
-  tuition_fees: number;
+  semester_fees: number;
   language_of_instruction: string[];
   language_requirements: string[];
   prerequisites: string[];
@@ -190,7 +190,7 @@ export default function ProgramDetail() {
     "timeRequired": `${program.duration_semesters} semesters`,
     "offers": {
       "@type": "Offer",
-      "price": program.tuition_fees,
+      "price": program.semester_fees,
       "priceCurrency": "EUR"
     }
   };
@@ -477,7 +477,7 @@ export default function ProgramDetail() {
                   <div>
                     <p className="font-medium">Tuition Fees</p>
                     <p className="text-sm text-muted-foreground">
-                      €{program.tuition_fees?.toLocaleString() || 'Free'} per semester
+                      €{program.semester_fees?.toLocaleString() || 'Free'} per semester
                     </p>
                   </div>
                 </div>

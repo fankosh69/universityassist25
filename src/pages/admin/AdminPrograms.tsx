@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LanguageFlags } from "@/components/LanguageFlags";
 import { getDeadlineStatus, getApplicationMethodInfo, getStatusColor } from "@/lib/deadline-utils";
+import { CSVProgramsUpload } from "@/components/admin/CSVProgramsUpload";
 import {
   Dialog,
   DialogContent,
@@ -36,7 +37,7 @@ interface Program {
   field_of_study: string;
   duration_semesters: number;
   ects_credits?: number;
-  tuition_fees: number;
+  semester_fees: number;
   language_of_instruction: string[];
   uni_assist_required: boolean;
   university_id: string;
@@ -77,7 +78,7 @@ export const AdminPrograms = () => {
     field_of_study: string;
     duration_semesters: number;
     ects_credits: number;
-    tuition_fees: number;
+    semester_fees: number;
     language_of_instruction: string[];
     uni_assist_required: boolean;
     university_id: string;
@@ -97,7 +98,7 @@ export const AdminPrograms = () => {
     field_of_study: "",
     duration_semesters: 6,
     ects_credits: 180,
-    tuition_fees: 0,
+    semester_fees: 0,
     language_of_instruction: ["de"],
     uni_assist_required: false,
     university_id: "",
@@ -243,7 +244,7 @@ export const AdminPrograms = () => {
       field_of_study: program.field_of_study,
       duration_semesters: program.duration_semesters,
       ects_credits: program.ects_credits || 180,
-      tuition_fees: program.tuition_fees,
+      semester_fees: program.semester_fees,
       language_of_instruction: program.language_of_instruction,
       uni_assist_required: program.uni_assist_required,
       university_id: program.university_id,
@@ -269,7 +270,7 @@ export const AdminPrograms = () => {
       field_of_study: "",
       duration_semesters: 6,
       ects_credits: 180,
-      tuition_fees: 0,
+      semester_fees: 0,
       language_of_instruction: ["de"],
       uni_assist_required: false,
       university_id: "",
@@ -325,7 +326,11 @@ export const AdminPrograms = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="space-y-6">
+        {/* CSV Upload Section */}
+        <CSVProgramsUpload />
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPrograms.map((program) => (
           <Card key={program.id} className="hover:shadow-medium transition-shadow">
             <CardHeader>
@@ -362,7 +367,7 @@ export const AdminPrograms = () => {
 
                 <div><strong>Duration:</strong> {program.duration_semesters} semesters</div>
                 <div><strong>ECTS:</strong> {program.ects_credits}</div>
-                <div><strong>Tuition:</strong> €{program.tuition_fees}/year</div>
+                <div><strong>Semester Fees:</strong> €{program.semester_fees}/semester</div>
                 
                 <div>
                   <strong>Intake:</strong> 
@@ -440,6 +445,7 @@ export const AdminPrograms = () => {
             </CardContent>
           </Card>
         ))}
+        </div>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -758,8 +764,8 @@ export const AdminPrograms = () => {
                   <Input
                     id="tuition_fees"
                     type="number"
-                    value={formData.tuition_fees}
-                    onChange={(e) => setFormData({ ...formData, tuition_fees: parseInt(e.target.value) })}
+                  value={formData.semester_fees}
+                  onChange={(e) => setFormData({ ...formData, semester_fees: parseInt(e.target.value) })}
                   />
                 </div>
               </div>

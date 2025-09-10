@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.admin-secure-operations]
 verify_jwt = false
+
+[functions.ingest-programs-bulk]
+verify_jwt = false

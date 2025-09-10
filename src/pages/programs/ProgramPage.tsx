@@ -174,7 +174,7 @@ export default function ProgramPage() {
                   </div>
                   <div>
                     <span className="font-medium">Tuition:</span>
-                    <p>{programData.tuition_fees ? `€${programData.tuition_fees}/semester` : 'Free'}</p>
+                    <p>{programData.semester_fees ? `€${programData.semester_fees}/semester` : 'Free'}</p>
                   </div>
                   <div>
                     <span className="font-medium">ECTS:</span>
