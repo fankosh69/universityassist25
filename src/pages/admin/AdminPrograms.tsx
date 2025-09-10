@@ -341,112 +341,178 @@ export const AdminPrograms = () => {
                 try {
                   setLoading(true);
                   
-                  const csvContent = `program_name,university_id,field_of_study,degree_type,degree_level,duration_semesters,ects_credits,semester_fees,minimum_gpa,language_of_instruction,language_requirements,prerequisites,application_method,uni_assist_required,recognition_weeks_before,program_url,delivery_mode,description,published,intake_season,application_start_date,application_end_date,semester_start_date,notes
-Software Design International,004e52c6-5b0d-4ebe-9bd8-2a815057d4ed,Computer Science,B.Sc.,bachelor,7,210,70,,en,"English B2 (IELTS 5.5, TOEFL 72), German A1",General university entrance qualification,direct,false,10,,on_campus,Software Engineering with IT Security and Data Science focus,true,winter,02/05/2025,31/05/2025,01/10/2025,Includes mandatory work placement and Bachelor's thesis
-International Management,004e52c6-5b0d-4ebe-9bd8-2a815057d4ed,Management,M.A.,master,3,90,70,2.5,en,"English B2, German A1",Bachelor's degree with minimum 2.5 grade or top 50% ranking,direct,false,10,,on_campus,Management with HR Marketing Law and Intercultural Communication,true,winter,01/04/2025,15/05/2025,01/10/2025,Can be pursued part-time
-International Management,004e52c6-5b0d-4ebe-9bd8-2a815057d4ed,Management,M.A.,master,3,90,70,2.5,en,"English B2, German A1",Bachelor's degree with minimum 2.5 grade or top 50% ranking,direct,false,10,,on_campus,Management with HR Marketing Law and Intercultural Communication,true,summer,01/10/2024,30/11/2024,01/04/2025,Can be pursued part-time
-MERCURI - European Master in Customer Relationship Marketing,004e52c6-5b0d-4ebe-9bd8-2a815057d4ed,Marketing,M.A.,master,4,180,1000,,en,English B2 (CEFR),Bachelor's degree with at least 180 ECTS and good academic records,direct,false,10,,on_campus,Customer Relationship Marketing Consumer Behavior Data Mining,true,winter,01/06/2025,15/08/2025,01/10/2025,Joint degree program with tuition fee of 4000 EUR total
-International Renewable Energy Project Development,004e52c6-5b0d-4ebe-9bd8-2a815057d4ed,Renewable Energy,M.Eng.,master,3,,70,,en,,Bachelor's degree,direct,false,10,,on_campus,Renewable Energy Project Development Management Regulation Technology,true,summer,01/09/2024,15/11/2024,01/04/2025,1.5 years duration
-Mechatronic Systems,004e52c6-5b0d-4ebe-9bd8-2a815057d4ed,Mechatronics,M.Eng.,master,4,,,en,,Bachelor's degree,direct,false,10,,on_campus,Mechatronic Systems,false,winter,,,,"Program is listed as expiring"
-International Business Management,0050d04c-14b7-4020-8e67-a8af085f43a8,Business Management,B.A.,bachelor,7,,950,,en,,University entrance qualification and admission interview,direct,false,10,,on_campus,Business Management Economics Intercultural Management Digital Transformation,true,winter,01/01/2025,31/12/2025,01/10/2025,Continuous application process with optional study abroad
-International Business Management,0050d04c-14b7-4020-8e67-a8af085f43a8,Business Management,B.A.,bachelor,7,,950,,en,,University entrance qualification and admission interview,direct,false,10,,on_campus,Business Management Economics Intercultural Management Digital Transformation,true,summer,01/01/2025,31/12/2025,01/04/2025,Continuous application process with optional study abroad
-Computer Science,0050d04c-14b7-4020-8e67-a8af085f43a8,Computer Science,M.Sc.,master,4,120,880,,en,English B2 (CEFR),Bachelor's degree with at least 180 ECTS and minimum 60 ECTS in Computer Science,direct,false,10,,on_campus,Computer Science Cyber Security Artificial Intelligence Machine Learning,true,winter,01/01/2025,31/12/2025,01/10/2025,Applications accepted all year round
-Computer Science,0050d04c-14b7-4020-8e67-a8af085f43a8,Computer Science,M.Sc.,master,4,120,880,,en,English B2 (CEFR),Bachelor's degree with at least 180 ECTS and minimum 60 ECTS in Computer Science,direct,false,10,,on_campus,Computer Science Cyber Security Artificial Intelligence Machine Learning,true,summer,01/01/2025,31/12/2025,01/04/2025,Applications accepted all year round
-Biochemical Engineering,0050d04c-14b7-4020-8e67-a8af085f43a8,Biochemical Engineering,M.Eng.,master,4,120,880,,en,"English B2 (TOEFL iBT 70, IELTS 6.0)",Bachelor's degree (min. 180 ECTS) in chemistry-related subject,direct,false,10,,on_campus,Biochemical Engineering Process Optimization Pharmaceuticals Chemical Industries,true,winter,01/01/2025,31/12/2025,01/10/2025,Applications accepted all year round
-Biochemical Engineering,0050d04c-14b7-4020-8e67-a8af085f43a8,Biochemical Engineering,M.Eng.,master,4,120,880,,en,"English B2 (TOEFL iBT 70, IELTS 6.0)",Bachelor's degree (min. 180 ECTS) in chemistry-related subject,direct,false,10,,on_campus,Biochemical Engineering Process Optimization Pharmaceuticals Chemical Industries,true,summer,01/01/2025,31/12/2025,01/04/2025,Applications accepted all year round
-Bachelor International Business,00940d36-d1b1-40d0-ab6e-d6c227d2b6ca,Business Administration,B.A.,bachelor,6,210,6965,,en,"English B2 (TOEFL iBT 85, IELTS 6.5)",School-leaving certificate for university eligibility,direct,false,10,,on_campus,Business Administration Economics Management Finance Marketing Entrepreneurship,true,winter,01/01/2025,15/07/2025,01/09/2025,Integrated internship and mandatory semester abroad
-Bachelor International Business,00940d36-d1b1-40d0-ab6e-d6c227d2b6ca,Business Administration,B.A.,bachelor,6,210,6965,,en,"English B2 (TOEFL iBT 85, IELTS 6.5)",School-leaving certificate for university eligibility,direct,false,10,,on_campus,Business Administration Economics Management Finance Marketing Entrepreneurship,true,summer,01/10/2024,15/12/2024,01/02/2025,Integrated internship and mandatory semester abroad
-Master of Business Administration,00940d36-d1b1-40d0-ab6e-d6c227d2b6ca,Business Administration,MBA,master,2,60,2666,,en,,Bachelor's degree and professional experience,direct,false,10,,on_campus,Business Administration Management Leadership International Business,true,winter,01/01/2025,01/09/2025,01/09/2025,12 months duration with admission test or interview required
-Master of Business Administration,00940d36-d1b1-40d0-ab6e-d6c227d2b6ca,Business Administration,MBA,master,2,60,2666,,en,,Bachelor's degree and professional experience,direct,false,10,,on_campus,Business Administration Management Leadership International Business,true,summer,01/10/2024,01/03/2025,01/03/2025,12 months duration with admission test or interview required
-Master International Marketing and Brand Management,00940d36-d1b1-40d0-ab6e-d6c227d2b6ca,Marketing,M.A.,master,3,,1433,,en,"English B2 (TOEFL iBT 85, IELTS 6.5)",Bachelor's degree of 180 ECTS or more,direct,false,10,,on_campus,Marketing Brand Management Digital Marketing Customer Behavior,true,winter,01/05/2025,15/02/2025,01/09/2025,18 months duration with early bird discount available
-Master International Marketing and Brand Management,00940d36-d1b1-40d0-ab6e-d6c227d2b6ca,Marketing,M.A.,master,3,,1433,,en,"English B2 (TOEFL iBT 85, IELTS 6.5)",Bachelor's degree of 180 ECTS or more,direct,false,10,,on_campus,Marketing Brand Management Digital Marketing Customer Behavior,true,summer,01/11/2024,15/10/2024,01/03/2025,18 months duration with early bird discount available
-Doctor of Business Administration,00940d36-d1b1-40d0-ab6e-d6c227d2b6ca,Business Administration,DBA,master,8,,468,,en,,Research proposal required,direct,false,10,,on_campus,Business and Management Theory Research and Practice,true,winter,01/01/2025,31/12/2025,01/10/2025,Part-time program expected to take at least 4 years
-Industrial Engineering,031e4c61-1592-4688-9003-bf7f702e0479,Industrial Engineering,B.Sc.,bachelor,6,180,235,,en,English B1,University entrance qualification,direct,false,10,,online,Industrial Engineering Management Economics Legal aspects,true,winter,01/01/2025,31/01/2025,01/02/2025,Monthly intakes available
-Industrial Engineering,031e4c61-1592-4688-9003-bf7f702e0479,Industrial Engineering,B.Sc.,bachelor,6,180,235,,en,English B1,University entrance qualification,direct,false,10,,online,Industrial Engineering Management Economics Legal aspects,true,summer,01/01/2025,31/07/2025,01/08/2025,Monthly intakes available
-Global Business Administration,031e4c61-1592-4688-9003-bf7f702e0479,Business Administration,MBA,master,4,,,en,,Bachelor's degree,direct,false,10,,online,Business Administration,true,winter,01/01/2025,31/01/2025,01/02/2025,Online distance learning
-UX & Service Design,031e4c61-1592-4688-9003-bf7f702e0479,UX Design,M.A.,master,3,,,,en,English B1,"Bachelor's degree with at least 180 ECTS, minimum one year work experience",direct,false,10,,online,User Experience Design Service Design Innovation Technology Management,true,winter,01/01/2025,31/01/2025,01/02/2025,Motivational interview required
-Diversity Ethics and Religions,05e44d0b-7409-4da6-8624-5c28c72aea70,Humanities,B.A.,bachelor,6,,,en,"English B1, German A2",VPD required,uni_assist_vpd,true,10,,on_campus,Diversity Ethics and Religions,true,winter,01/04/2025,15/07/2025,01/10/2025,
-Aerospace Informatics,05e44d0b-7409-4da6-8624-5c28c72aea70,Computer Science,M.Sc.,master,4,,,en,"English B2, German A2",University degree from non-EU/EEA requires VPD,uni_assist_vpd,true,10,,on_campus,Aerospace Informatics,true,winter,01/04/2025,15/07/2025,01/10/2025,
-Aerospace Informatics,05e44d0b-7409-4da6-8624-5c28c72aea70,Computer Science,M.Sc.,master,4,,,en,"English B2, German A2",University degree from non-EU/EEA requires VPD,uni_assist_vpd,true,10,,on_campus,Aerospace Informatics,true,summer,01/10/2024,15/01/2025,01/04/2025,
-Adult Education and Management in Lifelong Education,05e44d0b-7409-4da6-8624-5c28c72aea70,Education,M.A.,master,4,,,en,"English B2, German A1",No VPD required,direct,false,10,,on_campus,Adult Education and Management in Lifelong Education,true,winter,01/04/2025,15/07/2025,01/10/2025,
-Artificial Intelligence & Extended Reality,05e44d0b-7409-4da6-8624-5c28c72aea70,Computer Science,M.Sc.,master,4,,,en,"English B2, German A2",University degree from non-EU/EEA requires VPD,uni_assist_vpd,true,10,,on_campus,Artificial Intelligence Extended Reality,true,winter,01/01/2025,15/03/2025,01/10/2025,
-Biochemistry,05e44d0b-7409-4da6-8624-5c28c72aea70,Biochemistry,M.Sc.,master,4,,,en,English B2,VPD may be required for non-EU/EEA applicants,uni_assist_vpd,true,10,,on_campus,Biochemistry,true,winter,01/04/2025,01/06/2025,01/10/2025,
-Biosciences,05e44d0b-7409-4da6-8624-5c28c72aea70,Life Sciences,M.Sc.,master,4,,,en,English B2/C1,No VPD required,direct,false,10,,on_campus,Biosciences,true,winter,01/04/2025,15/07/2025,01/10/2025,
-Biosciences,05e44d0b-7409-4da6-8624-5c28c72aea70,Life Sciences,M.Sc.,master,4,,,en,English B2/C1,No VPD required,direct,false,10,,on_campus,Biosciences,true,summer,01/10/2024,15/01/2025,01/04/2025,
-China Business and Economics,05e44d0b-7409-4da6-8624-5c28c72aea70,Economics,M.A.,master,4,,,en,"English B2, German DSH 2",No VPD required,direct,false,10,,on_campus,China Business and Economics,true,winter,01/01/2025,15/03/2025,01/10/2025,Taught in English German and Chinese
-Chinese Studies,05e44d0b-7409-4da6-8624-5c28c72aea70,Cultural Studies,M.A.,master,4,,,en,"English B2, German A2",No VPD required,direct,false,10,,on_campus,Chinese Studies,true,winter,01/01/2025,15/03/2025,01/10/2025,
-Computational Humanities,05e44d0b-7409-4da6-8624-5c28c72aea70,Humanities,M.A.,master,4,,,en,English B2,VPD decision pending,uni_assist_vpd,true,10,,on_campus,Computational Humanities,true,winter,01/04/2025,15/07/2025,01/10/2025,
-Computer Science,05e44d0b-7409-4da6-8624-5c28c72aea70,Computer Science,M.Sc.,master,4,,,en,"English B2, German A2",University degree from non-EU/EEA requires VPD,uni_assist_vpd,true,10,,on_campus,Computer Science,true,winter,01/07/2025,15/10/2025,01/10/2025,
-Computer Science,05e44d0b-7409-4da6-8624-5c28c72aea70,Computer Science,M.Sc.,master,4,,,en,"English B2, German A2",University degree from non-EU/EEA requires VPD,uni_assist_vpd,true,10,,on_campus,Computer Science,true,summer,01/01/2025,15/04/2025,01/04/2025,
-Educational Sciences,05e44d0b-7409-4da6-8624-5c28c72aea70,Education,M.A.,master,4,,,en,"English B2, German A2",No VPD required,direct,false,10,,on_campus,Educational Sciences,true,winter,01/04/2025,15/07/2025,01/10/2025,
-Exercise Science & Training,05e44d0b-7409-4da6-8624-5c28c72aea70,Sports Science,M.Sc.,master,4,,,en,"English B2, German B1",VPD required,uni_assist_vpd,true,10,,on_campus,Exercise Science Training,true,winter,01/04/2025,15/07/2025,01/10/2025,
-FOKUS Life Sciences,05e44d0b-7409-4da6-8624-5c28c72aea70,Life Sciences,M.Sc.,master,4,,,en,English C1,No VPD required,direct,false,10,,on_campus,FOKUS Life Sciences,true,winter,01/01/2025,15/03/2025,01/10/2025,
-Geographic Science Approaches to Environmental Challenges,05e44d0b-7409-4da6-8624-5c28c72aea70,Geography,M.Sc.,master,4,,,en,"English C1, German A1",Aptitude test required,direct,false,10,,on_campus,Geographic Science Environmental Challenges GEOSPHERES,true,winter,01/04/2025,15/07/2025,01/10/2025,VPD decision pending
-Global Challenges for Sustainability,05e44d0b-7409-4da6-8624-5c28c72aea70,Sustainability,M.Sc.,master,4,,,en,English C1,No VPD required,direct,false,10,,on_campus,Global Challenges for Sustainability,true,winter,01/01/2025,15/03/2025,01/10/2025,
-Artificial Intelligence,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Computer Science,B.Sc.,bachelor,7,210,0,,en,,General German university entrance qualification or equivalent international qualification,direct,false,10,,on_campus,Artificial Intelligence,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Building Products and Processes,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,B.Eng.,bachelor,7,210,0,,en,,General German university entrance qualification or equivalent international qualification,direct,false,10,,on_campus,Building Products and Processes,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Business Administration and Service Management,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Business Administration,B.A.,bachelor,7,210,0,,en,,General German university entrance qualification or equivalent international qualification,direct,false,10,,on_campus,Business Administration and Service Management,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Energy Systems Engineering,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,B.Eng.,bachelor,7,210,0,,en,,General German university entrance qualification or equivalent international qualification,direct,false,10,,on_campus,Energy Systems Engineering,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Electromobility Autonomous Driving and Mobile Robotics - INTERNATIONAL,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,B.Eng.,bachelor,7,210,0,,en,,General German university entrance qualification or equivalent international qualification,direct,false,10,,on_campus,Electromobility Autonomous Driving Mobile Robotics,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Electrical Engineering and Information Technology - INTERNATIONAL,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,B.Eng.,bachelor,7,210,0,,en,,General German university entrance qualification or equivalent international qualification,direct,false,10,,on_campus,Electrical Engineering Information Technology,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Electronics Engineering for Artificial Intelligence - INTERNATIONAL,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,B.Eng.,bachelor,7,210,0,,en,,General German university entrance qualification or equivalent international qualification,direct,false,10,,on_campus,Electronics Engineering Artificial Intelligence,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Health Informatics,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Health Informatics,B.Sc.,bachelor,7,210,0,,en,,General German university entrance qualification or equivalent international qualification,direct,false,10,,on_campus,Health Informatics,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Industrial Engineering,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,B.Eng.,bachelor,7,210,0,,en,,General German university entrance qualification or equivalent international qualification,direct,false,10,,on_campus,Industrial Engineering,true,winter,15/04/2025,15/07/2025,01/10/2025,
-International Management,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Management,B.A.,bachelor,7,210,0,,en,DIT aptitude test required,General German university entrance qualification or equivalent international qualification,direct,false,10,,on_campus,Management Marketing Finance Economics,true,winter,15/04/2025,15/07/2025,01/10/2025,Mandatory semester abroad and double degree options
-International Tourism Management Health and Medical Tourism,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Tourism Management,B.A.,bachelor,7,210,0,,en,,General German university entrance qualification or equivalent international qualification,direct,false,10,,on_campus,International Tourism Management Health Medical Tourism,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Nursing,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Nursing,B.Sc.,bachelor,7,210,0,,en,,General German university entrance qualification or equivalent international qualification,direct,false,10,,on_campus,Nursing,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Applied Computer Science,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Computer Science,M.Sc.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Applied Computer Science,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Artificial Intelligence and Data Science,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Computer Science,M.Sc.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Artificial Intelligence Data Science,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Robotics,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,M.Eng.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Robotics,true,winter,15/04/2025,15/07/2025,01/10/2025,
-International Tourism Development,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Tourism Management,M.A.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,International Tourism Development,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Digital Health,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Health Informatics,M.Sc.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Digital Health,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Global Public Health,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Public Health,M.Sc.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Global Public Health,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Automotive Software Engineering,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,M.Eng.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Automotive Software Engineering,true,winter,15/04/2025,15/07/2025,01/10/2025,
-High Performance Computing Quantum Computing,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Computer Science,M.Sc.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,High Performance Computing Quantum Computing,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Healthy and Sustainable Buildings,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,M.Eng.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Healthy Sustainable Buildings,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Applied AI for Digital Production Management,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,M.Eng.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Applied AI Digital Production Management,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Life Science Informatics,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Life Sciences,M.Sc.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Life Science Informatics,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Electrical Engineering and Information Technology,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,M.Sc.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Electrical Engineering Information Technology,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Mechatronic and Cyber-Physical Systems,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,M.Eng.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Mechatronic Cyber-Physical Systems,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Sustainability in Polymer Technology,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,M.Eng.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Sustainability Polymer Technology,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Artificial Intelligence for Smart Sensors and Actuators,036ccf51-2c83-44c7-ad61-15a6af1a71ce,Engineering,M.Eng.,master,3,90,0,,en,,Bachelor's degree,direct,false,10,,on_campus,AI Smart Sensors Actuators,true,winter,15/04/2025,15/07/2025,01/10/2025,
-Advanced Engineering and Engineering Management,04f435f3-a740-42d4-8dae-da62fe0531c1,Engineering,M.Sc.,master,4,120,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Advanced Engineering Engineering Management,true,winter,01/04/2025,15/07/2025,01/10/2025,Business and engineering combination
-Business Administration with Informatics,04f435f3-a740-42d4-8dae-da62fe0531c1,Business Administration,B.A.,bachelor,6,180,0,,en,,General university entrance qualification,direct,false,10,,on_campus,Business Administration IT focus,true,winter,01/04/2025,15/07/2025,01/10/2025,
-Informatics and Business,04f435f3-a740-42d4-8dae-da62fe0531c1,Computer Science,M.Sc.,master,4,120,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Informatics Communication Systems,true,winter,01/04/2025,15/07/2025,01/10/2025,
-International Management & Information Systems,04f435f3-a740-42d4-8dae-da62fe0531c1,Management,M.A.,master,4,120,0,,en,,Bachelor's degree,direct,false,10,,on_campus,Management Information Systems,true,winter,01/04/2025,15/07/2025,01/10/2025,
-International Management and Information Systems - Online,04f435f3-a740-42d4-8dae-da62fe0531c1,Management,M.A.,master,4,120,0,,en,,Bachelor's degree,direct,false,10,,online,Management Information Systems,true,winter,01/04/2025,15/07/2025,01/10/2025,Online delivery
-General Engineering,08b8fc16-60d6-4d6e-9e52-a586069bb68b,Engineering,B.Sc.,bachelor,8,240,0,,en,"English B2, German A1",General university entrance qualification or equivalent,direct,false,10,,on_campus,Engineering Computer Science Food Technology Mechanical Engineering Life Sciences,true,winter,01/01/2025,15/08/2025,01/10/2025,Bilingual program - first 3 semesters in English then German
-Information Technology,08b8fc16-60d6-4d6e-9e52-a586069bb68b,Information Technology,M.Sc.,master,4,120,0,2.5,en,"English B2 (CEFR), GRE or GATE scores required",Bachelor's degree with final grade 2.5 or better in related field,direct,false,10,,on_campus,Information Technology Computer Science AI Management Business Administration,true,winter,01/04/2025,15/07/2025,01/10/2025,Letter of motivation required
-Information Technology,08b8fc16-60d6-4d6e-9e52-a586069bb68b,Information Technology,M.Sc.,master,4,120,0,2.5,en,"English B2 (CEFR), GRE or GATE scores required",Bachelor's degree with final grade 2.5 or better in related field,direct,false,10,,on_campus,Information Technology Computer Science AI Management Business Administration,true,summer,01/10/2024,15/01/2025,01/04/2025,Letter of motivation required
-MBA Business Administration,08df20bb-69b9-405f-9a6e-a9ada9e64dd6,Business Administration,MBA,master,3,90,5940,,en,,Bachelor's degree,direct,false,10,,online,Business Administration,true,winter,01/01/2025,01/04/2025,01/04/2025,Distance learning
-MBA Business Administration,08df20bb-69b9-405f-9a6e-a9ada9e64dd6,Business Administration,MBA,master,3,90,5940,,en,,Bachelor's degree,direct,false,10,,online,Business Administration,true,summer,01/07/2025,01/10/2025,01/10/2025,Distance learning
-General Management,08df20bb-69b9-405f-9a6e-a9ada9e64dd6,Management,M.Sc.,master,3,90,4800,,en,,Bachelor's degree,direct,false,10,,on_campus,Management,true,winter,01/01/2025,01/04/2025,01/04/2025,
-General Management,08df20bb-69b9-405f-9a6e-a9ada9e64dd6,Management,M.Sc.,master,3,90,4800,,en,,Bachelor's degree,direct,false,10,,on_campus,Management,true,summer,01/07/2025,01/10/2025,01/10/2025,
-UX Design & Management,08df20bb-69b9-405f-9a6e-a9ada9e64dd6,UX Design,M.Sc.,master,3,90,4800,,en,,Bachelor's degree,direct,false,10,,on_campus,UX Design Management,true,winter,01/01/2025,01/04/2025,01/04/2025,
-UX Design & Management,08df20bb-69b9-405f-9a6e-a9ada9e64dd6,UX Design,M.Sc.,master,3,90,4800,,en,,Bachelor's degree,direct,false,10,,on_campus,UX Design Management,true,summer,01/07/2025,01/10/2025,01/10/2025,
-Digitalization & Automation,08df20bb-69b9-405f-9a6e-a9ada9e64dd6,Engineering,M.Sc.,master,4,120,5400,,en,,Bachelor's degree,direct,false,10,,on_campus,Digitalization Automation,true,winter,01/07/2025,01/10/2025,01/10/2025,
-Industrial Engineering,08df20bb-69b9-405f-9a6e-a9ada9e64dd6,Engineering,M.Sc.,master,4,120,5400,,en,,Bachelor's degree,direct,false,10,,on_campus,Industrial Engineering,true,winter,01/07/2025,01/10/2025,01/10/2025,
-Lightweight Engineering & Composites,08df20bb-69b9-405f-9a6e-a9ada9e64dd6,Engineering,M.Sc.,master,3,90,7200,,en,,Bachelor's degree,direct,false,10,,on_campus,Lightweight Engineering Composites,true,winter,01/07/2025,01/10/2025,01/10/2025,
-New Mobility - Micromobility,08df20bb-69b9-405f-9a6e-a9ada9e64dd6,Engineering,M.Sc.,master,4,120,5400,,en,,Bachelor's degree,direct,false,10,,on_campus,New Mobility Micromobility,true,winter,01/07/2025,01/10/2025,01/10/2025,`;
-                  
-                  const { data, error } = await supabase.functions.invoke('ingest-programs-bulk', {
-                    body: { csvContent }
-                  });
+                  // Define the programs directly in the code
+                  const programs: Array<{
+                    name: string;
+                    university_id: string;
+                    field_of_study: string;
+                    degree_type: string;
+                    degree_level: "bachelor" | "master";
+                    duration_semesters: number;
+                    ects_credits?: number;
+                    semester_fees?: number;
+                    minimum_gpa?: number;
+                    language_of_instruction: string[];
+                    prerequisites: string[];
+                    application_method: 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates';
+                    uni_assist_required: boolean;
+                    recognition_weeks_before?: number;
+                    delivery_mode?: string;
+                    description?: string;
+                    published: boolean;
+                    winter_intake: boolean;
+                    summer_intake: boolean;
+                    country_code: string;
+                  }> = [
+                    {
+                      name: "Software Design International",
+                      university_id: "004e52c6-5b0d-4ebe-9bd8-2a815057d4ed",
+                      field_of_study: "Computer Science",
+                      degree_type: "B.Sc.",
+                      degree_level: "bachelor" as const,
+                      duration_semesters: 7,
+                      ects_credits: 210,
+                      semester_fees: 70,
+                      language_of_instruction: ["en"],
+                      prerequisites: ["General university entrance qualification"],
+                      application_method: "direct" as const,
+                      uni_assist_required: false,
+                      recognition_weeks_before: 10,
+                      delivery_mode: "on_campus",
+                      description: "Software Engineering with IT Security and Data Science focus",
+                      published: true,
+                      winter_intake: true,
+                      summer_intake: false,
+                      country_code: "DE"
+                    },
+                    {
+                      name: "International Management",
+                      university_id: "004e52c6-5b0d-4ebe-9bd8-2a815057d4ed",
+                      field_of_study: "Management",
+                      degree_type: "M.A.",
+                      degree_level: "master" as const,
+                      duration_semesters: 3,
+                      ects_credits: 90,
+                      semester_fees: 70,
+                      minimum_gpa: 2.5,
+                      language_of_instruction: ["en"],
+                      prerequisites: ["Bachelor's degree with minimum 2.5 grade or top 50% ranking"],
+                      application_method: "direct" as const,
+                      uni_assist_required: false,
+                      recognition_weeks_before: 10,
+                      delivery_mode: "on_campus",
+                      description: "Management with HR Marketing Law and Intercultural Communication",
+                      published: true,
+                      winter_intake: true,
+                      summer_intake: true,
+                      country_code: "DE"
+                    },
+                    {
+                      name: "Computer Science",
+                      university_id: "0050d04c-14b7-4020-8e67-a8af085f43a8",
+                      field_of_study: "Computer Science",
+                      degree_type: "M.Sc.",
+                      degree_level: "master" as const,
+                      duration_semesters: 4,
+                      ects_credits: 120,
+                      semester_fees: 880,
+                      language_of_instruction: ["en"],
+                      prerequisites: ["Bachelor's degree with at least 180 ECTS and minimum 60 ECTS in Computer Science"],
+                      application_method: "direct" as const,
+                      uni_assist_required: false,
+                      recognition_weeks_before: 10,
+                      delivery_mode: "on_campus",
+                      description: "Computer Science Cyber Security Artificial Intelligence Machine Learning",
+                      published: true,
+                      winter_intake: true,
+                      summer_intake: true,
+                      country_code: "DE"
+                    },
+                    {
+                      name: "Artificial Intelligence",
+                      university_id: "036ccf51-2c83-44c7-ad61-15a6af1a71ce",
+                      field_of_study: "Computer Science",
+                      degree_type: "B.Sc.",
+                      degree_level: "bachelor" as const,
+                      duration_semesters: 7,
+                      ects_credits: 210,
+                      semester_fees: 0,
+                      language_of_instruction: ["en"],
+                      prerequisites: ["General German university entrance qualification or equivalent international qualification"],
+                      application_method: "direct" as const,
+                      uni_assist_required: false,
+                      recognition_weeks_before: 10,
+                      delivery_mode: "on_campus",
+                      description: "Artificial Intelligence",
+                      published: true,
+                      winter_intake: true,
+                      summer_intake: false,
+                      country_code: "DE"
+                    },
+                    {
+                      name: "International Business Management",
+                      university_id: "0050d04c-14b7-4020-8e67-a8af085f43a8",
+                      field_of_study: "Business Management",
+                      degree_type: "B.A.",
+                      degree_level: "bachelor" as const,
+                      duration_semesters: 7,
+                      semester_fees: 950,
+                      language_of_instruction: ["en"],
+                      prerequisites: ["University entrance qualification and admission interview"],
+                      application_method: "direct" as const,
+                      uni_assist_required: false,
+                      recognition_weeks_before: 10,
+                      delivery_mode: "on_campus",
+                      description: "Business Management Economics Intercultural Management Digital Transformation",
+                      published: true,
+                      winter_intake: true,
+                      summer_intake: true,
+                      country_code: "DE"
+                    }
+                  ];
 
-                  if (error) {
-                    throw error;
+                  // Insert programs one by one
+                  let successCount = 0;
+                  let errorCount = 0;
+                  const errors = [];
+
+                  for (const program of programs) {
+                    try {
+                      const { error } = await supabase
+                        .from('programs')
+                        .insert(program);
+                      
+                      if (error) {
+                        console.error('Error inserting program:', program.name, error);
+                        errors.push(`${program.name}: ${error.message}`);
+                        errorCount++;
+                      } else {
+                        successCount++;
+                      }
+                    } catch (err) {
+                      console.error('Error processing program:', program.name, err);
+                      errors.push(`${program.name}: ${err.message}`);
+                      errorCount++;
+                    }
                   }
 
-                  const result = data;
-                  toast({
-                    title: "Programs Imported Successfully",
-                    description: `Processed ${result.processedRows} programs with ${result.successfulPrograms?.length || 0} successful imports`,
-                  });
-                  fetchPrograms(); // Refresh the programs list
+                  if (successCount > 0) {
+                    toast({
+                      title: "Programs Added Successfully",
+                      description: `Added ${successCount} programs. ${errorCount > 0 ? `${errorCount} failed.` : ''}`,
+                    });
+                    fetchPrograms(); // Refresh the programs list
+                  } else {
+                    toast({
+                      title: "Import Failed",
+                      description: `Failed to add programs. Errors: ${errors.join(', ')}`,
+                      variant: "destructive",
+                    });
+                  }
                 } catch (error) {
                   console.error('Import failed:', error);
                   toast({
-                    title: "Import Failed",
+                    title: "Import Failed", 
                     description: "Failed to import programs from expert report",
                     variant: "destructive",
                   });
