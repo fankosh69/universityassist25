@@ -72,49 +72,66 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Edge function started');
+    
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { csvContent } = await req.json();
+    console.log('Supabase client created');
+    
+    const requestBody = await req.json();
+    console.log('Request body parsed:', typeof requestBody);
+    
+    const { csvContent } = requestBody;
     
     if (!csvContent) {
+      console.error('No CSV content provided in request');
       throw new Error('No CSV content provided');
     }
 
+    console.log('CSV content received, length:', csvContent.length);
     console.log('Processing CSV content...');
 
     // Parse CSV
-    const records = parse(csvContent, {
-      skipFirstRow: true,
-      columns: [
-        'program_name',
-        'university_id', 
-        'field_of_study',
-        'degree_type',
-        'degree_level',
-        'duration_semesters',
-        'ects_credits',
-        'semester_fees',
-        'minimum_gpa',
-        'language_of_instruction',
-        'language_requirements',
-        'prerequisites',
-        'application_method',
-        'uni_assist_required',
-        'recognition_weeks_before',
-        'program_url',
-        'delivery_mode',
-        'description',
-        'published',
-        'intake_season',
-        'application_start_date',
-        'application_end_date',
-        'semester_start_date',
-        'notes'
-      ]
-    }) as CSVRow[];
+    console.log('Starting CSV parsing...');
+    let records;
+    try {
+      records = parse(csvContent, {
+        skipFirstRow: true,
+        columns: [
+          'program_name',
+          'university_id', 
+          'field_of_study',
+          'degree_type',
+          'degree_level',
+          'duration_semesters',
+          'ects_credits',
+          'semester_fees',
+          'minimum_gpa',
+          'language_of_instruction',
+          'language_requirements',
+          'prerequisites',
+          'application_method',
+          'uni_assist_required',
+          'recognition_weeks_before',
+          'program_url',
+          'delivery_mode',
+          'description',
+          'published',
+          'intake_season',
+          'application_start_date',
+          'application_end_date',
+          'semester_start_date',
+          'notes'
+        ]
+      }) as CSVRow[];
+      console.log('CSV parsing completed successfully');
+    } catch (parseError) {
+      console.error('CSV parsing failed:', parseError);
+      throw new Error(`CSV parsing failed: ${parseError.message}`);
+    }
 
     console.log(`Parsed ${records.length} records from CSV`);
 
@@ -324,13 +341,19 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in ingest-programs-bulk:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
     return new Response(
       JSON.stringify({
         success: false,
         processedRows: 0,
         errors: [{
           row: 0,
-          error: `Processing failed: ${error.message}`
+          error: `Processing failed: ${error.message}`,
+          errorName: error.name,
+          errorStack: error.stack
         }]
       }),
       {
