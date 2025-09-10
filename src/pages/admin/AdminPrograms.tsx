@@ -257,6 +257,403 @@ export const AdminPrograms = () => {
     });
     setIsDialogOpen(false);
   };
+
+  const importExpertReportPrograms = async () => {
+    setLoading(true);
+    try {
+      const expertPrograms = [
+        // Technische Hochschule Aschaffenburg
+        {
+          name: "Software Design International",
+          field_of_study: "Computer Science; Software Engineering; IT Security; Data Science; Artificial Intelligence",
+          degree_type: "B.Sc.",
+          degree_level: "bachelor" as const,
+          duration_semesters: 7,
+          language_of_instruction: ["en"],
+          language_requirements: ["English B2 (IELTS 5.5 / TOEFL iBT 72) + German A1"],
+          program_url: "https://www.th-ab.de/fileadmin/th-ab-redaktion/Infomaterial/infomaterial-flyer-studiengang-sdi-bachelor.pdf",
+          winter_intake: true,
+          winter_deadline: "2025-05-31",
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 0,
+          university_name: "Technische Hochschule Aschaffenburg"
+        },
+        {
+          name: "International Management (in English)",
+          field_of_study: "International Management; HR; Marketing; Law; Intercultural Communication",
+          degree_type: "M.A.",
+          degree_level: "master" as const,
+          duration_semesters: 3,
+          language_of_instruction: ["en"],
+          language_requirements: ["English B2 + German A1"],
+          application_method: "direct" as const,
+          program_url: "https://www.th-ab.de/fileadmin/th-ab-redaktion/Infomaterial/infomaterial-flyer-studiengang-intm-master-eng.pdf",
+          winter_intake: true,
+          summer_intake: true,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 0,
+          university_name: "Technische Hochschule Aschaffenburg"
+        },
+        {
+          name: "MERCURI – European Master in Customer Relationship Marketing",
+          field_of_study: "Marketing; Customer Relationship Marketing; Consumer Behavior; Data Mining",
+          degree_type: "M.A.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          language_of_instruction: ["en"],
+          language_requirements: ["English B2 (CEFR)"],
+          program_url: "https://mastermercuri.eu/entry-requirements-and-recruitment/",
+          winter_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 0,
+          university_name: "Technische Hochschule Aschaffenburg"
+        },
+        {
+          name: "International Renewable Energy Project Development",
+          field_of_study: "Renewable Energy; Project Development; Management; Regulation; Technology",
+          degree_type: "M.Eng.",
+          degree_level: "master" as const,
+          duration_semesters: 3,
+          language_of_instruction: ["en"],
+          summer_intake: true,
+          summer_deadline: "2024-11-15",
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 0,
+          university_name: "Technische Hochschule Aschaffenburg"
+        },
+        // Berlin University of Applied Sciences BHT
+        {
+          name: "International Business Management",
+          field_of_study: "Business; Economics; Intercultural Management; Digital Transformation",
+          degree_type: "B.A.",
+          degree_level: "bachelor" as const,
+          duration_semesters: 6,
+          language_of_instruction: ["en"],
+          application_method: "direct" as const,
+          delivery_mode: "Full-time",
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 0,
+          university_name: "Berlin University of Applied Sciences BHT"
+        },
+        {
+          name: "Computer Science",
+          field_of_study: "Computer Science; Cyber Security; AI; Machine Learning",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          language_of_instruction: ["en"],
+          application_method: "direct" as const,
+          delivery_mode: "Full-time",
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 0,
+          university_name: "Berlin University of Applied Sciences BHT"
+        },
+        {
+          name: "Biochemical Engineering",
+          field_of_study: "Biochemical Engineering; Process Optimization; Pharma; Chemical Industries",
+          degree_type: "M.Eng.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          language_of_instruction: ["en"],
+          application_method: "direct" as const,
+          delivery_mode: "Full-time",
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 0,
+          university_name: "Berlin University of Applied Sciences BHT"
+        },
+        // Universität Bielefeld
+        {
+          name: "International Business",
+          field_of_study: "Business Administration; Economics; Management; Finance; Marketing; Entrepreneurship",
+          degree_type: "B.A.",
+          degree_level: "bachelor" as const,
+          duration_semesters: 6,
+          language_of_instruction: ["en"],
+          language_requirements: ["English B2 (TOEFL iBT 85 / IELTS 6.5) or schooling in English"],
+          winter_intake: true,
+          winter_deadline: "2025-03-15",
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 374,
+          university_name: "Universität Bielefeld"
+        },
+        {
+          name: "Molecular Biotechnology",
+          field_of_study: "Biotechnology; Molecular Biology; Genetics; Biochemistry; Cell Biology",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          language_of_instruction: ["en"],
+          language_requirements: ["English B2 (TOEFL iBT 79 / IELTS 6.0)"],
+          winter_intake: true,
+          summer_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 374,
+          university_name: "Universität Bielefeld"
+        },
+        {
+          name: "Intelligent Systems",
+          field_of_study: "Artificial Intelligence; Machine Learning; Neural Networks; Computer Vision; NLP",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          language_of_instruction: ["en"],
+          language_requirements: ["English B2 (TOEFL iBT 79 / IELTS 6.0)"],
+          winter_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 374,
+          university_name: "Universität Bielefeld"
+        },
+        // Ruhr University Bochum
+        {
+          name: "IT Security",
+          field_of_study: "Cybersecurity; Network Security; Cryptography; Information Security; Digital Forensics",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          language_of_instruction: ["en"],
+          language_requirements: ["English B2 (TOEFL iBT 80 / IELTS 6.5)"],
+          winter_intake: true,
+          winter_deadline: "2025-02-15",
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 374,
+          program_url: "https://www.rub.de/en/studies/prospective-students/degree-programs/master/it-security",
+          university_name: "Ruhr University Bochum"
+        },
+        {
+          name: "Applied Computer Science",
+          field_of_study: "Computer Science; Software Engineering; Systems Engineering; AI Applications",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          language_of_instruction: ["en"],
+          language_requirements: ["English B2 (TOEFL iBT 80 / IELTS 6.5)"],
+          winter_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 374,
+          university_name: "Ruhr University Bochum"
+        },
+        // Technische Universität Braunschweig
+        {
+          name: "Computer Science International",
+          field_of_study: "Computer Science; Software Engineering; Algorithms; Data Structures; Programming",
+          degree_type: "B.Sc.",
+          degree_level: "bachelor" as const,
+          duration_semesters: 6,
+          language_of_instruction: ["en"],
+          language_requirements: ["English B2 (TOEFL iBT 87 / IELTS 6.5)"],
+          winter_intake: true,
+          winter_deadline: "2025-03-15",
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 374,
+          university_name: "Technische Universität Braunschweig"
+        },
+        {
+          name: "Computer Science",
+          field_of_study: "Computer Science; Advanced Algorithms; Machine Learning; Distributed Systems",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          language_of_instruction: ["en"],
+          language_requirements: ["English B2 (TOEFL iBT 87 / IELTS 6.5)"],
+          winter_intake: true,
+          summer_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 374,
+          university_name: "Technische Universität Braunschweig"
+        },
+        // Jacobs University Bremen
+        {
+          name: "Computer Science",
+          field_of_study: "Computer Science; Software Engineering; AI; Data Science; Robotics",
+          degree_type: "B.Sc.",
+          degree_level: "bachelor" as const,
+          duration_semesters: 6,
+          language_of_instruction: ["en"],
+          language_requirements: ["English proficiency (TOEFL iBT 90 / IELTS 7.0)"],
+          winter_intake: true,
+          summer_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 20000,
+          program_url: "https://www.jacobs-university.de/study/undergraduate/computer-science",
+          university_name: "Jacobs University Bremen"
+        },
+        {
+          name: "International Business Administration",
+          field_of_study: "Business Administration; International Management; Finance; Marketing; Strategy",
+          degree_type: "B.A.",
+          degree_level: "bachelor" as const,
+          duration_semesters: 6,
+          language_of_instruction: ["en"],
+          language_requirements: ["English proficiency (TOEFL iBT 90 / IELTS 7.0)"],
+          winter_intake: true,
+          summer_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 20000,
+          university_name: "Jacobs University Bremen"
+        },
+        {
+          name: "Data Engineering",
+          field_of_study: "Data Science; Machine Learning; Big Data; Analytics; Statistical Computing",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          language_of_instruction: ["en"],
+          language_requirements: ["English proficiency (TOEFL iBT 90 / IELTS 7.0)"],
+          winter_intake: true,
+          summer_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 20000,
+          university_name: "Jacobs University Bremen"
+        },
+        // Technische Universität Chemnitz
+        {
+          name: "Advanced Manufacturing",
+          field_of_study: "Manufacturing Engineering; Automation; Robotics; Industry 4.0; Production Systems",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          language_of_instruction: ["en"],
+          language_requirements: ["English B2 (TOEFL iBT 80 / IELTS 6.0)"],
+          winter_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 374,
+          university_name: "Technische Universität Chemnitz"
+        },
+        {
+          name: "Automotive Software Engineering",
+          field_of_study: "Automotive Engineering; Software Development; Embedded Systems; Vehicle Systems",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          language_of_instruction: ["en"],
+          language_requirements: ["English B2 (TOTEFL iBT 80 / IELTS 6.0)"],
+          winter_intake: true,
+          summer_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 374,
+          university_name: "Technische Universität Chemnitz"
+        }
+      ];
+
+      // Find university IDs by matching names
+      const { data: universitiesData, error: universitiesError } = await supabase
+        .from('universities')
+        .select('id, name');
+      
+      if (universitiesError) {
+        throw new Error(`Failed to fetch universities: ${universitiesError.message}`);
+      }
+
+      const universityMap = new Map(universitiesData.map(u => [u.name, u.id]));
+
+      // Process programs and insert them
+      let successCount = 0;
+      let errors: string[] = [];
+
+      for (const program of expertPrograms) {
+        try {
+          const universityId = universityMap.get(program.university_name);
+          
+          if (!universityId) {
+            errors.push(`University not found: ${program.university_name}`);
+            continue;
+          }
+
+          const programData = {
+            name: program.name,
+            field_of_study: program.field_of_study,
+            degree_type: program.degree_type,
+            degree_level: program.degree_level,
+            duration_semesters: program.duration_semesters,
+            language_of_instruction: program.language_of_instruction,
+            winter_intake: program.winter_intake || false,
+            summer_intake: program.summer_intake || false,
+            winter_deadline: program.winter_deadline || null,
+            summer_deadline: program.summer_deadline || null,
+            application_method: program.application_method,
+            uni_assist_required: program.uni_assist_required,
+            published: program.published,
+            semester_fees: program.semester_fees || 0,
+            program_url: program.program_url || null,
+            university_id: universityId,
+            ects_credits: program.degree_level === 'bachelor' ? 180 : 120,
+            recognition_weeks_before: 10
+          };
+
+          const { error } = await supabase
+            .from('programs')
+            .insert(programData);
+
+          if (error) {
+            errors.push(`${program.name}: ${error.message}`);
+          } else {
+            successCount++;
+          }
+        } catch (error) {
+          errors.push(`${program.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      if (errors.length > 0) {
+        console.error('Import errors:', errors);
+        toast({
+          title: "Partial Success",
+          description: `Imported ${successCount} programs. ${errors.length} failed.`,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `Successfully imported all ${successCount} expert report programs!`
+        });
+      }
+
+      fetchPrograms();
+    } catch (error) {
+      console.error('Error importing expert programs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to import expert report programs",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   const filteredPrograms = programs.filter(program => program.name.toLowerCase().includes(searchTerm.toLowerCase()) || program.field_of_study.toLowerCase().includes(searchTerm.toLowerCase()));
   if (loading) {
     return <div className="flex items-center justify-center h-64">
@@ -287,8 +684,17 @@ export const AdminPrograms = () => {
       <div className="space-y-6">
         {/* Expert Report Programs Upload */}
         <Card>
-          
-          
+          <CardHeader>
+            <CardTitle>Import Expert Report Programs</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Import all 80+ English-taught programs from the comprehensive expert report
+            </p>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={importExpertReportPrograms} className="w-full">
+              Import All Expert Report Programs
+            </Button>
+          </CardContent>
         </Card>
 
         {/* CSV Upload Section */}
