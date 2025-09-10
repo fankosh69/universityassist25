@@ -15,19 +15,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LanguageFlags } from "@/components/LanguageFlags";
 import { getDeadlineStatus, getApplicationMethodInfo, getStatusColor } from "@/lib/deadline-utils";
 import { CSVProgramsUpload } from "@/components/admin/CSVProgramsUpload";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 interface Program {
   id: string;
   name: string;
@@ -54,13 +47,11 @@ interface Program {
     city: string;
   };
 }
-
 interface University {
   id: string;
   name: string;
   city: string;
 }
-
 export const AdminPrograms = () => {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [universities, setUniversities] = useState<University[]>([]);
@@ -68,8 +59,9 @@ export const AdminPrograms = () => {
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const [formData, setFormData] = useState<{
     name: string;
     description: string;
@@ -109,93 +101,80 @@ export const AdminPrograms = () => {
     summer_intake: false,
     winter_deadline: null,
     summer_deadline: null,
-    recognition_weeks_before: 10,
+    recognition_weeks_before: 10
   });
-
   useEffect(() => {
     fetchPrograms();
     fetchUniversities();
   }, []);
-
   const fetchPrograms = async () => {
     try {
-      const { data, error } = await supabase
-        .from('programs')
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from('programs').select(`
           *,
           universities (name, city)
-        `)
-        .order('name');
-
+        `).order('name');
       if (error) throw error;
-      
+
       // Cast data to proper types
       const typedData = (data || []).map(program => ({
         ...program,
-        application_method: program.application_method as 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates',
+        application_method: program.application_method as 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates'
       }));
-      
       setPrograms(typedData);
     } catch (error) {
       console.error('Error fetching programs:', error);
       toast({
         title: "Error",
         description: "Failed to fetch programs",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const fetchUniversities = async () => {
     try {
-      const { data, error } = await supabase
-        .from('universities')
-        .select('id, name, city')
-        .order('name');
-
+      const {
+        data,
+        error
+      } = await supabase.from('universities').select('id, name, city').order('name');
       if (error) throw error;
       setUniversities(data || []);
     } catch (error) {
       console.error('Error fetching universities:', error);
     }
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
       // Convert dates to strings for database
       const submitData = {
         ...formData,
         winter_deadline: formData.winter_deadline ? formData.winter_deadline.toISOString().split('T')[0] : null,
-        summer_deadline: formData.summer_deadline ? formData.summer_deadline.toISOString().split('T')[0] : null,
+        summer_deadline: formData.summer_deadline ? formData.summer_deadline.toISOString().split('T')[0] : null
       };
-
       if (editingProgram) {
-        const { error } = await supabase
-          .from('programs')
-          .update(submitData)
-          .eq('id', editingProgram.id);
-
+        const {
+          error
+        } = await supabase.from('programs').update(submitData).eq('id', editingProgram.id);
         if (error) throw error;
         toast({
           title: "Success",
-          description: "Program updated successfully",
+          description: "Program updated successfully"
         });
       } else {
-        const { error } = await supabase
-          .from('programs')
-          .insert(submitData);
-
+        const {
+          error
+        } = await supabase.from('programs').insert(submitData);
         if (error) throw error;
         toast({
           title: "Success",
-          description: "Program created successfully",
+          description: "Program created successfully"
         });
       }
-
       resetForm();
       fetchPrograms();
     } catch (error) {
@@ -203,25 +182,20 @@ export const AdminPrograms = () => {
       toast({
         title: "Error",
         description: "Failed to save program",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this program?')) return;
-
     try {
-      const { error } = await supabase
-        .from('programs')
-        .delete()
-        .eq('id', id);
-
+      const {
+        error
+      } = await supabase.from('programs').delete().eq('id', id);
       if (error) throw error;
-      
       toast({
         title: "Success",
-        description: "Program deleted successfully",
+        description: "Program deleted successfully"
       });
       fetchPrograms();
     } catch (error) {
@@ -229,11 +203,10 @@ export const AdminPrograms = () => {
       toast({
         title: "Error",
         description: "Failed to delete program",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const handleEdit = (program: Program) => {
     setEditingProgram(program);
     setFormData({
@@ -255,11 +228,10 @@ export const AdminPrograms = () => {
       summer_intake: program.summer_intake,
       winter_deadline: program.winter_deadline ? new Date(program.winter_deadline) : null,
       summer_deadline: program.summer_deadline ? new Date(program.summer_deadline) : null,
-      recognition_weeks_before: program.recognition_weeks_before || 10,
+      recognition_weeks_before: program.recognition_weeks_before || 10
     });
     setIsDialogOpen(true);
   };
-
   const resetForm = () => {
     setEditingProgram(null);
     setFormData({
@@ -281,26 +253,17 @@ export const AdminPrograms = () => {
       summer_intake: false,
       winter_deadline: null,
       summer_deadline: null,
-      recognition_weeks_before: 10,
+      recognition_weeks_before: 10
     });
     setIsDialogOpen(false);
   };
-
-  const filteredPrograms = programs.filter(program =>
-    program.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    program.field_of_study.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+  const filteredPrograms = programs.filter(program => program.name.toLowerCase().includes(searchTerm.toLowerCase()) || program.field_of_study.toLowerCase().includes(searchTerm.toLowerCase()));
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
+    return <div className="flex items-center justify-center h-64">
         <LoadingSpinner />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Programs Management</h1>
@@ -317,222 +280,22 @@ export const AdminPrograms = () => {
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search programs..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+          <Input placeholder="Search programs..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
         </div>
       </div>
 
       <div className="space-y-6">
         {/* Expert Report Programs Upload */}
         <Card>
-          <CardHeader>
-            <CardTitle>Import Expert Report Programs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Import all 80+ English-taught programs from the expert report on German universities.
-            </p>
-            <Button 
-              onClick={async () => {
-                try {
-                  setLoading(true);
-                  
-                  // Define the programs directly in the code
-                  const programs: Array<{
-                    name: string;
-                    university_id: string;
-                    field_of_study: string;
-                    degree_type: string;
-                    degree_level: "bachelor" | "master";
-                    duration_semesters: number;
-                    ects_credits?: number;
-                    semester_fees?: number;
-                    minimum_gpa?: number;
-                    language_of_instruction: string[];
-                    prerequisites: string[];
-                    application_method: 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates';
-                    uni_assist_required: boolean;
-                    recognition_weeks_before?: number;
-                    delivery_mode?: string;
-                    description?: string;
-                    published: boolean;
-                    winter_intake: boolean;
-                    summer_intake: boolean;
-                    country_code: string;
-                  }> = [
-                    {
-                      name: "Software Design International",
-                      university_id: "004e52c6-5b0d-4ebe-9bd8-2a815057d4ed",
-                      field_of_study: "Computer Science",
-                      degree_type: "B.Sc.",
-                      degree_level: "bachelor" as const,
-                      duration_semesters: 7,
-                      ects_credits: 210,
-                      semester_fees: 70,
-                      language_of_instruction: ["en"],
-                      prerequisites: ["General university entrance qualification"],
-                      application_method: "direct" as const,
-                      uni_assist_required: false,
-                      recognition_weeks_before: 10,
-                      delivery_mode: "on_campus",
-                      description: "Software Engineering with IT Security and Data Science focus",
-                      published: true,
-                      winter_intake: true,
-                      summer_intake: false,
-                      country_code: "DE"
-                    },
-                    {
-                      name: "International Management",
-                      university_id: "004e52c6-5b0d-4ebe-9bd8-2a815057d4ed",
-                      field_of_study: "Management",
-                      degree_type: "M.A.",
-                      degree_level: "master" as const,
-                      duration_semesters: 3,
-                      ects_credits: 90,
-                      semester_fees: 70,
-                      minimum_gpa: 2.5,
-                      language_of_instruction: ["en"],
-                      prerequisites: ["Bachelor's degree with minimum 2.5 grade or top 50% ranking"],
-                      application_method: "direct" as const,
-                      uni_assist_required: false,
-                      recognition_weeks_before: 10,
-                      delivery_mode: "on_campus",
-                      description: "Management with HR Marketing Law and Intercultural Communication",
-                      published: true,
-                      winter_intake: true,
-                      summer_intake: true,
-                      country_code: "DE"
-                    },
-                    {
-                      name: "Computer Science",
-                      university_id: "0050d04c-14b7-4020-8e67-a8af085f43a8",
-                      field_of_study: "Computer Science",
-                      degree_type: "M.Sc.",
-                      degree_level: "master" as const,
-                      duration_semesters: 4,
-                      ects_credits: 120,
-                      semester_fees: 880,
-                      language_of_instruction: ["en"],
-                      prerequisites: ["Bachelor's degree with at least 180 ECTS and minimum 60 ECTS in Computer Science"],
-                      application_method: "direct" as const,
-                      uni_assist_required: false,
-                      recognition_weeks_before: 10,
-                      delivery_mode: "on_campus",
-                      description: "Computer Science Cyber Security Artificial Intelligence Machine Learning",
-                      published: true,
-                      winter_intake: true,
-                      summer_intake: true,
-                      country_code: "DE"
-                    },
-                    {
-                      name: "Artificial Intelligence",
-                      university_id: "036ccf51-2c83-44c7-ad61-15a6af1a71ce",
-                      field_of_study: "Computer Science",
-                      degree_type: "B.Sc.",
-                      degree_level: "bachelor" as const,
-                      duration_semesters: 7,
-                      ects_credits: 210,
-                      semester_fees: 0,
-                      language_of_instruction: ["en"],
-                      prerequisites: ["General German university entrance qualification or equivalent international qualification"],
-                      application_method: "direct" as const,
-                      uni_assist_required: false,
-                      recognition_weeks_before: 10,
-                      delivery_mode: "on_campus",
-                      description: "Artificial Intelligence",
-                      published: true,
-                      winter_intake: true,
-                      summer_intake: false,
-                      country_code: "DE"
-                    },
-                    {
-                      name: "International Business Management",
-                      university_id: "0050d04c-14b7-4020-8e67-a8af085f43a8",
-                      field_of_study: "Business Management",
-                      degree_type: "B.A.",
-                      degree_level: "bachelor" as const,
-                      duration_semesters: 7,
-                      semester_fees: 950,
-                      language_of_instruction: ["en"],
-                      prerequisites: ["University entrance qualification and admission interview"],
-                      application_method: "direct" as const,
-                      uni_assist_required: false,
-                      recognition_weeks_before: 10,
-                      delivery_mode: "on_campus",
-                      description: "Business Management Economics Intercultural Management Digital Transformation",
-                      published: true,
-                      winter_intake: true,
-                      summer_intake: true,
-                      country_code: "DE"
-                    }
-                  ];
-
-                  // Insert programs one by one
-                  let successCount = 0;
-                  let errorCount = 0;
-                  const errors = [];
-
-                  for (const program of programs) {
-                    try {
-                      const { error } = await supabase
-                        .from('programs')
-                        .insert(program);
-                      
-                      if (error) {
-                        console.error('Error inserting program:', program.name, error);
-                        errors.push(`${program.name}: ${error.message}`);
-                        errorCount++;
-                      } else {
-                        successCount++;
-                      }
-                    } catch (err) {
-                      console.error('Error processing program:', program.name, err);
-                      errors.push(`${program.name}: ${err.message}`);
-                      errorCount++;
-                    }
-                  }
-
-                  if (successCount > 0) {
-                    toast({
-                      title: "Programs Added Successfully",
-                      description: `Added ${successCount} programs. ${errorCount > 0 ? `${errorCount} failed.` : ''}`,
-                    });
-                    fetchPrograms(); // Refresh the programs list
-                  } else {
-                    toast({
-                      title: "Import Failed",
-                      description: `Failed to add programs. Errors: ${errors.join(', ')}`,
-                      variant: "destructive",
-                    });
-                  }
-                } catch (error) {
-                  console.error('Import failed:', error);
-                  toast({
-                    title: "Import Failed", 
-                    description: "Failed to import programs from expert report",
-                    variant: "destructive",
-                  });
-                } finally {
-                  setLoading(false);
-                }
-              }}
-              disabled={loading}
-            >
-              {loading ? "Importing..." : "Import Expert Report Programs"}
-            </Button>
-          </CardContent>
+          
+          
         </Card>
 
         {/* CSV Upload Section */}
         <CSVProgramsUpload />
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPrograms.map((program) => (
-          <Card key={program.id} className="hover:shadow-medium transition-shadow">
+        {filteredPrograms.map(program => <Card key={program.id} className="hover:shadow-medium transition-shadow">
             <CardHeader>
               <CardTitle className="text-lg">{program.name}</CardTitle>
               <p className="text-sm text-muted-foreground">
@@ -543,19 +306,10 @@ export const AdminPrograms = () => {
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {program.program_url ? (
-                      <a 
-                        href={program.program_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="font-medium hover:underline flex items-center gap-1"
-                      >
+                    {program.program_url ? <a href={program.program_url} target="_blank" rel="noopener noreferrer" className="font-medium hover:underline flex items-center gap-1">
                         {program.name}
                         <ExternalLink className="h-3 w-3" />
-                      </a>
-                    ) : (
-                      <span className="font-medium">{program.name}</span>
-                    )}
+                      </a> : <span className="font-medium">{program.name}</span>}
                   </div>
                   <Badge variant="outline">{program.degree_type}</Badge>
                 </div>
@@ -572,48 +326,26 @@ export const AdminPrograms = () => {
                 <div>
                   <strong>Intake:</strong> 
                   <div className="flex gap-1 mt-1">
-                    {program.winter_intake && (
-                      <Badge variant="secondary" className="text-xs">
+                    {program.winter_intake && <Badge variant="secondary" className="text-xs">
                         Winter
-                        {program.winter_deadline && (
-                          <span className="ml-1">
+                        {program.winter_deadline && <span className="ml-1">
                             <Clock className="h-3 w-3 inline ml-1" />
                             {(() => {
-                              const deadline = getDeadlineStatus(
-                                new Date(program.winter_deadline), 
-                                'winter', 
-                                program.winter_intake, 
-                                program.summer_intake,
-                                program.winter_deadline ? new Date(program.winter_deadline) : null,
-                                program.summer_deadline ? new Date(program.summer_deadline) : null
-                              );
-                              return deadline.timeText;
-                            })()}
-                          </span>
-                        )}
-                      </Badge>
-                    )}
-                    {program.summer_intake && (
-                      <Badge variant="secondary" className="text-xs">
+                        const deadline = getDeadlineStatus(new Date(program.winter_deadline), 'winter', program.winter_intake, program.summer_intake, program.winter_deadline ? new Date(program.winter_deadline) : null, program.summer_deadline ? new Date(program.summer_deadline) : null);
+                        return deadline.timeText;
+                      })()}
+                          </span>}
+                      </Badge>}
+                    {program.summer_intake && <Badge variant="secondary" className="text-xs">
                         Summer
-                        {program.summer_deadline && (
-                          <span className="ml-1">
+                        {program.summer_deadline && <span className="ml-1">
                             <Clock className="h-3 w-3 inline ml-1" />
                             {(() => {
-                              const deadline = getDeadlineStatus(
-                                new Date(program.summer_deadline), 
-                                'summer', 
-                                program.winter_intake, 
-                                program.summer_intake,
-                                program.winter_deadline ? new Date(program.winter_deadline) : null,
-                                program.summer_deadline ? new Date(program.summer_deadline) : null
-                              );
-                              return deadline.timeText;
-                            })()}
-                          </span>
-                        )}
-                      </Badge>
-                    )}
+                        const deadline = getDeadlineStatus(new Date(program.summer_deadline), 'summer', program.winter_intake, program.summer_intake, program.winter_deadline ? new Date(program.winter_deadline) : null, program.summer_deadline ? new Date(program.summer_deadline) : null);
+                        return deadline.timeText;
+                      })()}
+                          </span>}
+                      </Badge>}
                   </div>
                 </div>
 
@@ -627,11 +359,9 @@ export const AdminPrograms = () => {
                   <span className={`px-2 py-1 rounded text-xs ${program.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                     {program.published ? 'Published' : 'Draft'}
                   </span>
-                  {program.uni_assist_required && (
-                    <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">
+                  {program.uni_assist_required && <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">
                       Uni-Assist
-                    </span>
-                  )}
+                    </span>}
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
@@ -643,8 +373,7 @@ export const AdminPrograms = () => {
                 </Button>
               </div>
             </CardContent>
-          </Card>
-        ))}
+          </Card>)}
         </div>
       </div>
 
@@ -660,29 +389,25 @@ export const AdminPrograms = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="name">Program Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
+                <Input id="name" value={formData.name} onChange={e => setFormData({
+                ...formData,
+                name: e.target.value
+              })} required />
               </div>
               
               <div>
                 <Label htmlFor="university">University</Label>
-                <Select
-                  value={formData.university_id}
-                  onValueChange={(value) => setFormData({ ...formData, university_id: value })}
-                >
+                <Select value={formData.university_id} onValueChange={value => setFormData({
+                ...formData,
+                university_id: value
+              })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select university" />
                   </SelectTrigger>
                   <SelectContent>
-                    {universities.map((uni) => (
-                      <SelectItem key={uni.id} value={uni.id}>
+                    {universities.map(uni => <SelectItem key={uni.id} value={uni.id}>
                         {uni.name} - {uni.city}
-                      </SelectItem>
-                    ))}
+                      </SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -690,21 +415,19 @@ export const AdminPrograms = () => {
 
             <div>
               <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-              />
+              <Textarea id="description" value={formData.description} onChange={e => setFormData({
+              ...formData,
+              description: e.target.value
+            })} rows={3} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="degree_level">Degree Level</Label>
-                <Select
-                  value={formData.degree_level}
-                  onValueChange={(value: "bachelor" | "master") => setFormData({ ...formData, degree_level: value })}
-                >
+                <Select value={formData.degree_level} onValueChange={(value: "bachelor" | "master") => setFormData({
+                ...formData,
+                degree_level: value
+              })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -717,10 +440,10 @@ export const AdminPrograms = () => {
 
               <div>
                 <Label htmlFor="degree_type">Degree Type</Label>
-                <Select
-                  value={formData.degree_type}
-                  onValueChange={(value) => setFormData({ ...formData, degree_type: value })}
-                >
+                <Select value={formData.degree_type} onValueChange={value => setFormData({
+                ...formData,
+                degree_type: value
+              })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select degree type" />
                   </SelectTrigger>
@@ -744,33 +467,27 @@ export const AdminPrograms = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="field_of_study">Field of Study</Label>
-                <Input
-                  id="field_of_study"
-                  value={formData.field_of_study}
-                  onChange={(e) => setFormData({ ...formData, field_of_study: e.target.value })}
-                  required
-                />
+                <Input id="field_of_study" value={formData.field_of_study} onChange={e => setFormData({
+                ...formData,
+                field_of_study: e.target.value
+              })} required />
               </div>
 
               <div>
                 <Label htmlFor="program_url">Program URL</Label>
-                <Input
-                  id="program_url"
-                  type="url"
-                  value={formData.program_url}
-                  onChange={(e) => setFormData({ ...formData, program_url: e.target.value })}
-                  placeholder="https://university.edu/program"
-                />
+                <Input id="program_url" type="url" value={formData.program_url} onChange={e => setFormData({
+                ...formData,
+                program_url: e.target.value
+              })} placeholder="https://university.edu/program" />
               </div>
             </div>
 
             <div>
               <Label htmlFor="application_method">Application Method</Label>
-              <Select
-                value={formData.application_method}
-                onValueChange={(value: 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates') => 
-                  setFormData({ ...formData, application_method: value })}
-              >
+              <Select value={formData.application_method} onValueChange={(value: 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates') => setFormData({
+              ...formData,
+              application_method: value
+            })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -782,153 +499,117 @@ export const AdminPrograms = () => {
                 </SelectContent>
               </Select>
               
-              {formData.application_method === 'uni_assist_vpd' && (
-                <Alert className="mt-2">
+              {formData.application_method === 'uni_assist_vpd' && <Alert className="mt-2">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
                     Application to uni-assist should be submitted at least 5 weeks before the university deadline.
                   </AlertDescription>
-                </Alert>
-              )}
+                </Alert>}
               
-              {formData.application_method === 'recognition_certificates' && (
-                <Alert className="mt-2">
+              {formData.application_method === 'recognition_certificates' && <Alert className="mt-2">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
                     Application for recognition should be submitted at least 10 weeks before the visible deadline. 
                     This process is only applicable for specific universities in Baden-Württemberg.
                   </AlertDescription>
-                </Alert>
-              )}
+                </Alert>}
             </div>
 
             <div className="space-y-4">
               <Label>Intake Availability</Label>
               <div className="flex gap-6">
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="winter_intake"
-                    checked={formData.winter_intake}
-                    onCheckedChange={(checked) => setFormData({ ...formData, winter_intake: !!checked })}
-                  />
+                  <Checkbox id="winter_intake" checked={formData.winter_intake} onCheckedChange={checked => setFormData({
+                  ...formData,
+                  winter_intake: !!checked
+                })} />
                   <Label htmlFor="winter_intake">Winter Intake</Label>
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="summer_intake"
-                    checked={formData.summer_intake}
-                    onCheckedChange={(checked) => setFormData({ ...formData, summer_intake: !!checked })}
-                  />
+                  <Checkbox id="summer_intake" checked={formData.summer_intake} onCheckedChange={checked => setFormData({
+                  ...formData,
+                  summer_intake: !!checked
+                })} />
                   <Label htmlFor="summer_intake">Summer Intake</Label>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              {formData.winter_intake && (
-                <div>
+              {formData.winter_intake && <div>
                   <Label>Winter Deadline</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !formData.winter_deadline && "text-muted-foreground"
-                        )}
-                      >
+                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.winter_deadline && "text-muted-foreground")}>
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {formData.winter_deadline ? format(formData.winter_deadline, "PPP") : "Select date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={formData.winter_deadline}
-                        onSelect={(date) => setFormData({ ...formData, winter_deadline: date || null })}
-                        initialFocus
-                        className="p-3 pointer-events-auto"
-                      />
+                      <Calendar mode="single" selected={formData.winter_deadline} onSelect={date => setFormData({
+                    ...formData,
+                    winter_deadline: date || null
+                  })} initialFocus className="p-3 pointer-events-auto" />
                     </PopoverContent>
                   </Popover>
-                </div>
-              )}
+                </div>}
               
-              {formData.summer_intake && (
-                <div>
+              {formData.summer_intake && <div>
                   <Label>Summer Deadline</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !formData.summer_deadline && "text-muted-foreground"
-                        )}
-                      >
+                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.summer_deadline && "text-muted-foreground")}>
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {formData.summer_deadline ? format(formData.summer_deadline, "PPP") : "Select date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={formData.summer_deadline}
-                        onSelect={(date) => setFormData({ ...formData, summer_deadline: date || null })}
-                        initialFocus
-                        className="p-3 pointer-events-auto"
-                      />
+                      <Calendar mode="single" selected={formData.summer_deadline} onSelect={date => setFormData({
+                    ...formData,
+                    summer_deadline: date || null
+                  })} initialFocus className="p-3 pointer-events-auto" />
                     </PopoverContent>
                   </Popover>
-                </div>
-              )}
+                </div>}
             </div>
 
             <div>
               <Label>Language of Instruction</Label>
               <div className="flex gap-4 mt-2">
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="lang_de"
-                    checked={formData.language_of_instruction.includes('de')}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setFormData({ 
-                          ...formData, 
-                          language_of_instruction: [...formData.language_of_instruction.filter(l => l !== 'de'), 'de']
-                        });
-                      } else {
-                        setFormData({ 
-                          ...formData, 
-                          language_of_instruction: formData.language_of_instruction.filter(l => l !== 'de')
-                        });
-                      }
-                    }}
-                  />
+                  <Checkbox id="lang_de" checked={formData.language_of_instruction.includes('de')} onCheckedChange={checked => {
+                  if (checked) {
+                    setFormData({
+                      ...formData,
+                      language_of_instruction: [...formData.language_of_instruction.filter(l => l !== 'de'), 'de']
+                    });
+                  } else {
+                    setFormData({
+                      ...formData,
+                      language_of_instruction: formData.language_of_instruction.filter(l => l !== 'de')
+                    });
+                  }
+                }} />
                   <Label htmlFor="lang_de" className="flex items-center gap-2">
                     🇩🇪 German
                   </Label>
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="lang_en"
-                    checked={formData.language_of_instruction.includes('en')}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setFormData({ 
-                          ...formData, 
-                          language_of_instruction: [...formData.language_of_instruction.filter(l => l !== 'en'), 'en']
-                        });
-                      } else {
-                        setFormData({ 
-                          ...formData, 
-                          language_of_instruction: formData.language_of_instruction.filter(l => l !== 'en')
-                        });
-                      }
-                    }}
-                  />
+                  <Checkbox id="lang_en" checked={formData.language_of_instruction.includes('en')} onCheckedChange={checked => {
+                  if (checked) {
+                    setFormData({
+                      ...formData,
+                      language_of_instruction: [...formData.language_of_instruction.filter(l => l !== 'en'), 'en']
+                    });
+                  } else {
+                    setFormData({
+                      ...formData,
+                      language_of_instruction: formData.language_of_instruction.filter(l => l !== 'en')
+                    });
+                  }
+                }} />
                   <Label htmlFor="lang_en" className="flex items-center gap-2">
                     🇬🇧 English
                   </Label>
@@ -940,44 +621,36 @@ export const AdminPrograms = () => {
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="duration_semesters">Duration (Semesters)</Label>
-                  <Input
-                    id="duration_semesters"
-                    type="number"
-                    value={formData.duration_semesters}
-                    onChange={(e) => setFormData({ ...formData, duration_semesters: parseInt(e.target.value) })}
-                    required
-                  />
+                  <Input id="duration_semesters" type="number" value={formData.duration_semesters} onChange={e => setFormData({
+                  ...formData,
+                  duration_semesters: parseInt(e.target.value)
+                })} required />
                 </div>
 
                 <div>
                   <Label htmlFor="ects_credits">ECTS Credits</Label>
-                  <Input
-                    id="ects_credits"
-                    type="number"
-                    value={formData.ects_credits}
-                    onChange={(e) => setFormData({ ...formData, ects_credits: parseInt(e.target.value) })}
-                  />
+                  <Input id="ects_credits" type="number" value={formData.ects_credits} onChange={e => setFormData({
+                  ...formData,
+                  ects_credits: parseInt(e.target.value)
+                })} />
                 </div>
 
                 <div>
                   <Label htmlFor="tuition_fees">Tuition Fees (€/year)</Label>
-                  <Input
-                    id="tuition_fees"
-                    type="number"
-                  value={formData.semester_fees}
-                  onChange={(e) => setFormData({ ...formData, semester_fees: parseInt(e.target.value) })}
-                  />
+                  <Input id="tuition_fees" type="number" value={formData.semester_fees} onChange={e => setFormData({
+                  ...formData,
+                  semester_fees: parseInt(e.target.value)
+                })} />
                 </div>
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="published"
-                  checked={formData.published}
-                  onCheckedChange={(checked) => setFormData({ ...formData, published: !!checked })}
-                />
+                <Checkbox id="published" checked={formData.published} onCheckedChange={checked => setFormData({
+                ...formData,
+                published: !!checked
+              })} />
                 <Label htmlFor="published">Published</Label>
               </div>
             </div>
@@ -993,6 +666,5 @@ export const AdminPrograms = () => {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
