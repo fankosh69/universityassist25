@@ -616,10 +616,12 @@ export type Database = {
           semester_fees: number | null
           semester_start: string | null
           slug: string | null
+          summer_application_open_date: string | null
           summer_deadline: string | null
           summer_intake: boolean | null
           uni_assist_required: boolean | null
           university_id: string
+          winter_application_open_date: string | null
           winter_deadline: string | null
           winter_intake: boolean | null
         }
@@ -649,10 +651,12 @@ export type Database = {
           semester_fees?: number | null
           semester_start?: string | null
           slug?: string | null
+          summer_application_open_date?: string | null
           summer_deadline?: string | null
           summer_intake?: boolean | null
           uni_assist_required?: boolean | null
           university_id: string
+          winter_application_open_date?: string | null
           winter_deadline?: string | null
           winter_intake?: boolean | null
         }
@@ -682,10 +686,12 @@ export type Database = {
           semester_fees?: number | null
           semester_start?: string | null
           slug?: string | null
+          summer_application_open_date?: string | null
           summer_deadline?: string | null
           summer_intake?: boolean | null
           uni_assist_required?: boolean | null
           university_id?: string
+          winter_application_open_date?: string | null
           winter_deadline?: string | null
           winter_intake?: boolean | null
         }

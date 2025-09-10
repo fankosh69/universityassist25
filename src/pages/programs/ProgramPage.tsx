@@ -260,7 +260,7 @@ export default function ProgramPage() {
                     {programData.winter_intake && programData.winter_deadline && (
                       <div className="p-3 bg-muted rounded-lg">
                         <p className="text-sm">
-                          <span className="font-medium">Winter Intake</span> - Application Open: October 1st - Application Deadline: {new Date(programData.winter_deadline).toLocaleDateString()} - {getDaysUntilDeadline(programData.winter_deadline) > 0 
+                          <span className="font-medium">Winter Intake</span> - Application Open: {programData.winter_application_open_date ? new Date(programData.winter_application_open_date).toLocaleDateString() : 'October 1st'} - Application Deadline: {new Date(programData.winter_deadline).toLocaleDateString()} - {getDaysUntilDeadline(programData.winter_deadline) > 0 
                             ? `${getDaysUntilDeadline(programData.winter_deadline)} days remaining` 
                             : 'Deadline passed'}
                         </p>
@@ -269,7 +269,7 @@ export default function ProgramPage() {
                     {programData.summer_intake && programData.summer_deadline && (
                       <div className="p-3 bg-muted rounded-lg">
                         <p className="text-sm">
-                          <span className="font-medium">Summer Intake</span> - Application Open: October 1st - Application Deadline: {new Date(programData.summer_deadline).toLocaleDateString()} - {getDaysUntilDeadline(programData.summer_deadline) > 0 
+                          <span className="font-medium">Summer Intake</span> - Application Open: {programData.summer_application_open_date ? new Date(programData.summer_application_open_date).toLocaleDateString() : 'October 1st'} - Application Deadline: {new Date(programData.summer_deadline).toLocaleDateString()} - {getDaysUntilDeadline(programData.summer_deadline) > 0 
                             ? `${getDaysUntilDeadline(programData.summer_deadline)} days remaining` 
                             : 'Deadline passed'}
                         </p>

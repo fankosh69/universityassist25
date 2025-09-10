@@ -41,6 +41,8 @@ interface Program {
   summer_intake: boolean;
   winter_deadline?: string;
   summer_deadline?: string;
+  winter_application_open_date?: string;
+  summer_application_open_date?: string;
   recognition_weeks_before: number;
   slug?: string;
   universities?: {
@@ -82,6 +84,8 @@ export const AdminPrograms = () => {
     summer_intake: boolean;
     winter_deadline: Date | null;
     summer_deadline: Date | null;
+    winter_application_open_date: Date | null;
+    summer_application_open_date: Date | null;
     recognition_weeks_before: number;
   }>({
     name: "",
@@ -102,6 +106,8 @@ export const AdminPrograms = () => {
     summer_intake: false,
     winter_deadline: null,
     summer_deadline: null,
+    winter_application_open_date: null,
+    summer_application_open_date: null,
     recognition_weeks_before: 10
   });
   useEffect(() => {
@@ -155,7 +161,9 @@ export const AdminPrograms = () => {
       const submitData = {
         ...formData,
         winter_deadline: formData.winter_deadline ? formData.winter_deadline.toISOString().split('T')[0] : null,
-        summer_deadline: formData.summer_deadline ? formData.summer_deadline.toISOString().split('T')[0] : null
+        summer_deadline: formData.summer_deadline ? formData.summer_deadline.toISOString().split('T')[0] : null,
+        winter_application_open_date: formData.winter_application_open_date ? formData.winter_application_open_date.toISOString().split('T')[0] : null,
+        summer_application_open_date: formData.summer_application_open_date ? formData.summer_application_open_date.toISOString().split('T')[0] : null
       };
       if (editingProgram) {
         const {
@@ -229,6 +237,8 @@ export const AdminPrograms = () => {
       summer_intake: program.summer_intake,
       winter_deadline: program.winter_deadline ? new Date(program.winter_deadline) : null,
       summer_deadline: program.summer_deadline ? new Date(program.summer_deadline) : null,
+      winter_application_open_date: program.winter_application_open_date ? new Date(program.winter_application_open_date) : null,
+      summer_application_open_date: program.summer_application_open_date ? new Date(program.summer_application_open_date) : null,
       recognition_weeks_before: program.recognition_weeks_before || 10
     });
     setIsDialogOpen(true);
@@ -254,6 +264,8 @@ export const AdminPrograms = () => {
       summer_intake: false,
       winter_deadline: null,
       summer_deadline: null,
+      winter_application_open_date: null,
+      summer_application_open_date: null,
       recognition_weeks_before: 10
     });
     setIsDialogOpen(false);
@@ -1115,42 +1127,90 @@ export const AdminPrograms = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              {formData.winter_intake && <div>
-                  <Label>Winter Deadline</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.winter_deadline && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {formData.winter_deadline ? format(formData.winter_deadline, "PPP") : "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={formData.winter_deadline} onSelect={date => setFormData({
-                    ...formData,
-                    winter_deadline: date || null
-                  })} initialFocus className="p-3 pointer-events-auto" />
-                    </PopoverContent>
-                  </Popover>
-                </div>}
+            <div className="grid grid-cols-1 gap-6">
+              {formData.winter_intake && (
+                <div className="space-y-4">
+                  <h4 className="font-medium text-lg">Winter Intake Period</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Winter Application Open Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.winter_application_open_date && "text-muted-foreground")}>
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.winter_application_open_date ? format(formData.winter_application_open_date, "PPP") : "Select date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={formData.winter_application_open_date} onSelect={date => setFormData({
+                            ...formData,
+                            winter_application_open_date: date
+                          })} className="p-3 pointer-events-auto" />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div>
+                      <Label>Winter Application Deadline</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.winter_deadline && "text-muted-foreground")}>
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.winter_deadline ? format(formData.winter_deadline, "PPP") : "Select date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={formData.winter_deadline} onSelect={date => setFormData({
+                        ...formData,
+                        winter_deadline: date || null
+                      })} initialFocus className="p-3 pointer-events-auto" />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </div>
+              )}
               
-              {formData.summer_intake && <div>
-                  <Label>Summer Deadline</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.summer_deadline && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {formData.summer_deadline ? format(formData.summer_deadline, "PPP") : "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={formData.summer_deadline} onSelect={date => setFormData({
-                    ...formData,
-                    summer_deadline: date || null
-                  })} initialFocus className="p-3 pointer-events-auto" />
-                    </PopoverContent>
-                  </Popover>
-                </div>}
+              {formData.summer_intake && (
+                <div className="space-y-4">
+                  <h4 className="font-medium text-lg">Summer Intake Period</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Summer Application Open Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.summer_application_open_date && "text-muted-foreground")}>
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.summer_application_open_date ? format(formData.summer_application_open_date, "PPP") : "Select date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={formData.summer_application_open_date} onSelect={date => setFormData({
+                            ...formData,
+                            summer_application_open_date: date
+                          })} className="p-3 pointer-events-auto" />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div>
+                      <Label>Summer Application Deadline</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.summer_deadline && "text-muted-foreground")}>
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.summer_deadline ? format(formData.summer_deadline, "PPP") : "Select date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={formData.summer_deadline} onSelect={date => setFormData({
+                            ...formData,
+                            summer_deadline: date || null
+                          })} initialFocus className="p-3 pointer-events-auto" />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
