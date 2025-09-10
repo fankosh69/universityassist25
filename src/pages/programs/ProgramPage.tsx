@@ -12,6 +12,7 @@ import { Calendar, Download, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageFlags } from '@/components/LanguageFlags';
 import { formatProgramTitle } from '@/lib/degree-formatting';
+import { Link } from 'react-router-dom';
 
 export default function ProgramPage() {
   const { uni, program } = useParams();
@@ -26,11 +27,21 @@ export default function ProgramPage() {
       if (!program) return;
 
       // Fetch program
-      const { data: prog } = await supabase
+      const { data: prog, error } = await supabase
         .from('programs')
         .select('*')
         .eq('slug', program)
-        .single();
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching program:', error);
+        return;
+      }
+      
+      if (!prog) {
+        console.error('Program not found with slug:', program);
+        return;
+      }
       
       // Fetch university separately
       if (prog?.university_id) {
@@ -38,7 +49,7 @@ export default function ProgramPage() {
           .from('universities')
           .select('*')
           .eq('id', prog.university_id)
-          .single();
+          .maybeSingle();
         setUniversity(universityData);
       }
       
@@ -62,7 +73,7 @@ export default function ProgramPage() {
           .from('student_academics')
           .select('*')
           .eq('profile_id', user.id)
-          .single();
+          .maybeSingle();
         setStudentProfile(profile);
       }
     }
@@ -79,7 +90,21 @@ export default function ProgramPage() {
     downloadICS(`${programData.title}-deadline.ics`, icsContent);
   };
 
-  if (!programData) return <div>Loading...</div>;
+  if (!programData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Program Not Found</h1>
+          <p className="text-muted-foreground mb-4">
+            The program you're looking for could not be found.
+          </p>
+          <Button asChild>
+            <Link to="/search">Browse Programs</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const programRequirements = {
     minimum_gpa: requirements.find(r => r.requirement_type === 'gpa')?.details?.minimum || 2.5,
