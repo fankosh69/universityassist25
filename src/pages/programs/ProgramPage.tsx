@@ -7,8 +7,8 @@ import Navigation from '@/components/Navigation';
 import SEOHead from '@/components/SEOHead';
 import EligibilityPanel from '@/components/EligibilityPanel';
 import WatchlistButton from '@/components/WatchlistButton';
-import { getDaysUntilDeadline, createICSEvent, downloadICS } from '@/lib/tz';
-import { Calendar, Download, ExternalLink } from 'lucide-react';
+import { getDaysUntilDeadline } from '@/lib/tz';
+import { Calendar, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageFlags } from '@/components/LanguageFlags';
 import { formatProgramTitle } from '@/lib/degree-formatting';
@@ -80,15 +80,6 @@ export default function ProgramPage() {
 
     fetchData();
   }, [program]);
-
-  const handleExportDeadline = (deadline: any) => {
-    const icsContent = createICSEvent(
-      `Application Deadline - ${programData.title}`,
-      deadline.application_deadline,
-      `Application deadline for ${programData.title} at ${university?.name}`
-    );
-    downloadICS(`${programData.title}-deadline.ics`, icsContent);
-  };
 
   if (!programData) {
     return (
@@ -267,78 +258,23 @@ export default function ProgramPage() {
                   <h4 className="font-medium mb-2">Application Periods</h4>
                   <div className="space-y-3">
                     {programData.winter_intake && programData.winter_deadline && (
-                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div>
-                          <h5 className="font-medium">Winter Intake</h5>
-                          <p className="text-sm text-muted-foreground">
-                            Deadline: {new Date(programData.winter_deadline).toLocaleDateString()}
-                          </p>
-                          <p className="text-sm">
-                            {getDaysUntilDeadline(programData.winter_deadline) > 0 
-                              ? `${getDaysUntilDeadline(programData.winter_deadline)} days remaining` 
-                              : 'Deadline passed'}
-                          </p>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleExportDeadline({ application_deadline: programData.winter_deadline, intake: 'winter' })}
-                          className="gap-2"
-                        >
-                          <Download className="h-4 w-4" />
-                          Export
-                        </Button>
+                      <div className="p-3 bg-muted rounded-lg">
+                        <p className="text-sm">
+                          <span className="font-medium">Winter Intake</span> - Application Open: October 1st - Application Deadline: {new Date(programData.winter_deadline).toLocaleDateString()} - {getDaysUntilDeadline(programData.winter_deadline) > 0 
+                            ? `${getDaysUntilDeadline(programData.winter_deadline)} days remaining` 
+                            : 'Deadline passed'}
+                        </p>
                       </div>
                     )}
                     {programData.summer_intake && programData.summer_deadline && (
-                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div>
-                          <h5 className="font-medium">Summer Intake</h5>
-                          <p className="text-sm text-muted-foreground">
-                            Deadline: {new Date(programData.summer_deadline).toLocaleDateString()}
-                          </p>
-                          <p className="text-sm">
-                            {getDaysUntilDeadline(programData.summer_deadline) > 0 
-                              ? `${getDaysUntilDeadline(programData.summer_deadline)} days remaining` 
-                              : 'Deadline passed'}
-                          </p>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleExportDeadline({ application_deadline: programData.summer_deadline, intake: 'summer' })}
-                          className="gap-2"
-                        >
-                          <Download className="h-4 w-4" />
-                          Export
-                        </Button>
+                      <div className="p-3 bg-muted rounded-lg">
+                        <p className="text-sm">
+                          <span className="font-medium">Summer Intake</span> - Application Open: October 1st - Application Deadline: {new Date(programData.summer_deadline).toLocaleDateString()} - {getDaysUntilDeadline(programData.summer_deadline) > 0 
+                            ? `${getDaysUntilDeadline(programData.summer_deadline)} days remaining` 
+                            : 'Deadline passed'}
+                        </p>
                       </div>
                     )}
-                    {deadlines.map(deadline => {
-                      const daysRemaining = getDaysUntilDeadline(deadline.application_deadline);
-                      return (
-                        <div key={deadline.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                          <div>
-                            <h5 className="font-medium capitalize">{deadline.intake} Intake</h5>
-                            <p className="text-sm text-muted-foreground">
-                              Deadline: {new Date(deadline.application_deadline).toLocaleDateString()}
-                            </p>
-                            <p className="text-sm">
-                              {daysRemaining > 0 ? `${daysRemaining} days remaining` : 'Deadline passed'}
-                            </p>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleExportDeadline(deadline)}
-                            className="gap-2"
-                          >
-                            <Download className="h-4 w-4" />
-                            Export
-                          </Button>
-                        </div>
-                      );
-                    })}
                   </div>
                 </div>
               </CardContent>
