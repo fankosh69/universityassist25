@@ -258,44 +258,44 @@ export const AdminPrograms = () => {
     setIsDialogOpen(false);
   };
 
-  const importExpertReportPrograms = async () => {
+  const importComprehensivePrograms = async () => {
     setLoading(true);
     try {
-      const expertPrograms = [
-        // Technische Hochschule Aschaffenburg
+      const comprehensivePrograms = [
+        // A. TH Aschaffenburg (004e52c6-5b0d-4ebe-9bd8-2a815057d4ed)
         {
           name: "Software Design International",
           field_of_study: "Computer Science; Software Engineering; IT Security; Data Science; Artificial Intelligence",
           degree_type: "B.Sc.",
           degree_level: "bachelor" as const,
           duration_semesters: 7,
+          ects_credits: 210,
           language_of_instruction: ["en"],
-          language_requirements: ["English B2 (IELTS 5.5 / TOEFL iBT 72) + German A1"],
-          program_url: "https://www.th-ab.de/fileadmin/th-ab-redaktion/Infomaterial/infomaterial-flyer-studiengang-sdi-bachelor.pdf",
           winter_intake: true,
           winter_deadline: "2025-05-31",
           application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
-          semester_fees: 0,
-          university_name: "Technische Hochschule Aschaffenburg"
+          semester_fees: 70,
+          program_url: "https://www.th-ab.de/fileadmin/th-ab-redaktion/Infomaterial/infomaterial-flyer-studiengang-sdi-bachelor.pdf",
+          university_id: "004e52c6-5b0d-4ebe-9bd8-2a815057d4ed"
         },
         {
-          name: "International Management (in English)",
-          field_of_study: "International Management; HR; Marketing; Law; Intercultural Communication",
+          name: "International Management",
+          field_of_study: "Management; Human Resource Management; Marketing; Law; Intercultural Communication",
           degree_type: "M.A.",
           degree_level: "master" as const,
           duration_semesters: 3,
+          ects_credits: 90,
           language_of_instruction: ["en"],
-          language_requirements: ["English B2 + German A1"],
-          application_method: "direct" as const,
-          program_url: "https://www.th-ab.de/fileadmin/th-ab-redaktion/Infomaterial/infomaterial-flyer-studiengang-intm-master-eng.pdf",
           winter_intake: true,
           summer_intake: true,
+          application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
-          semester_fees: 0,
-          university_name: "Technische Hochschule Aschaffenburg"
+          semester_fees: 70,
+          program_url: "https://www.th-ab.de/fileadmin/th-ab-redaktion/Infomaterial/infomaterial-flyer-studiengang-intm-master-eng.pdf",
+          university_id: "004e52c6-5b0d-4ebe-9bd8-2a815057d4ed"
         },
         {
           name: "MERCURI – European Master in Customer Relationship Marketing",
@@ -303,15 +303,15 @@ export const AdminPrograms = () => {
           degree_type: "M.A.",
           degree_level: "master" as const,
           duration_semesters: 4,
+          ects_credits: 180,
           language_of_instruction: ["en"],
-          language_requirements: ["English B2 (CEFR)"],
-          program_url: "https://mastermercuri.eu/entry-requirements-and-recruitment/",
           winter_intake: true,
           application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
-          semester_fees: 0,
-          university_name: "Technische Hochschule Aschaffenburg"
+          semester_fees: 1000,
+          program_url: "https://mastermercuri.eu/entry-requirements-and-recruitment/",
+          university_id: "004e52c6-5b0d-4ebe-9bd8-2a815057d4ed"
         },
         {
           name: "International Renewable Energy Project Development",
@@ -319,286 +319,440 @@ export const AdminPrograms = () => {
           degree_type: "M.Eng.",
           degree_level: "master" as const,
           duration_semesters: 3,
+          ects_credits: 90,
           language_of_instruction: ["en"],
           summer_intake: true,
           summer_deadline: "2024-11-15",
           application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
-          semester_fees: 0,
-          university_name: "Technische Hochschule Aschaffenburg"
+          semester_fees: 70,
+          university_id: "004e52c6-5b0d-4ebe-9bd8-2a815057d4ed"
         },
-        // Berlin University of Applied Sciences BHT
+        
+        // B. Hochschule Fresenius (0050d04c-14b7-4020-8e67-a8af085f43a8)
         {
           name: "International Business Management",
-          field_of_study: "Business; Economics; Intercultural Management; Digital Transformation",
+          field_of_study: "Business Management; Economics; Intercultural Management; Digital Transformation",
           degree_type: "B.A.",
           degree_level: "bachelor" as const,
           duration_semesters: 6,
+          ects_credits: 180,
           language_of_instruction: ["en"],
+          winter_intake: true,
+          summer_intake: true,
           application_method: "direct" as const,
-          delivery_mode: "Full-time",
           uni_assist_required: false,
           published: true,
-          semester_fees: 0,
-          university_name: "Berlin University of Applied Sciences BHT"
+          semester_fees: 950,
+          delivery_mode: "on_campus",
+          university_id: "0050d04c-14b7-4020-8e67-a8af085f43a8"
         },
         {
           name: "Computer Science",
-          field_of_study: "Computer Science; Cyber Security; AI; Machine Learning",
+          field_of_study: "Computer Science; Cyber Security; Artificial Intelligence; Machine Learning",
           degree_type: "M.Sc.",
           degree_level: "master" as const,
           duration_semesters: 4,
+          ects_credits: 120,
           language_of_instruction: ["en"],
+          winter_intake: true,
+          summer_intake: true,
           application_method: "direct" as const,
-          delivery_mode: "Full-time",
           uni_assist_required: false,
           published: true,
-          semester_fees: 0,
-          university_name: "Berlin University of Applied Sciences BHT"
+          semester_fees: 880,
+          delivery_mode: "on_campus",
+          university_id: "0050d04c-14b7-4020-8e67-a8af085f43a8"
         },
         {
           name: "Biochemical Engineering",
-          field_of_study: "Biochemical Engineering; Process Optimization; Pharma; Chemical Industries",
+          field_of_study: "Biochemical Engineering; Process Optimization; Pharmaceuticals; Chemical Industries",
           degree_type: "M.Eng.",
           degree_level: "master" as const,
           duration_semesters: 4,
+          ects_credits: 120,
           language_of_instruction: ["en"],
+          winter_intake: true,
+          summer_intake: true,
           application_method: "direct" as const,
-          delivery_mode: "Full-time",
           uni_assist_required: false,
           published: true,
-          semester_fees: 0,
-          university_name: "Berlin University of Applied Sciences BHT"
+          semester_fees: 880,
+          delivery_mode: "on_campus",
+          university_id: "0050d04c-14b7-4020-8e67-a8af085f43a8"
         },
-        // Universität Bielefeld
+        
+        // C. Munich Business School (00940d36-d1b1-40d0-ab6e-d6c227d2b6ca)
         {
-          name: "International Business",
+          name: "Bachelor International Business",
           field_of_study: "Business Administration; Economics; Management; Finance; Marketing; Entrepreneurship",
           degree_type: "B.A.",
           degree_level: "bachelor" as const,
           duration_semesters: 6,
+          ects_credits: 210,
           language_of_instruction: ["en"],
-          language_requirements: ["English B2 (TOEFL iBT 85 / IELTS 6.5) or schooling in English"],
           winter_intake: true,
-          winter_deadline: "2025-03-15",
+          summer_intake: true,
+          winter_deadline: "2025-07-15",
+          summer_deadline: "2024-12-15",
           application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
-          semester_fees: 374,
-          university_name: "Universität Bielefeld"
+          semester_fees: 6965,
+          university_id: "00940d36-d1b1-40d0-ab6e-d6c227d2b6ca"
         },
         {
-          name: "Molecular Biotechnology",
-          field_of_study: "Biotechnology; Molecular Biology; Genetics; Biochemistry; Cell Biology",
-          degree_type: "M.Sc.",
+          name: "Master of Business Administration",
+          field_of_study: "Business Administration; Management; Leadership; International Business",
+          degree_type: "MBA",
           degree_level: "master" as const,
-          duration_semesters: 4,
+          duration_semesters: 2,
+          ects_credits: 60,
           language_of_instruction: ["en"],
-          language_requirements: ["English B2 (TOEFL iBT 79 / IELTS 6.0)"],
           winter_intake: true,
           summer_intake: true,
           application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
-          semester_fees: 374,
-          university_name: "Universität Bielefeld"
+          semester_fees: 2666,
+          university_id: "00940d36-d1b1-40d0-ab6e-d6c227d2b6ca"
         },
         {
-          name: "Intelligent Systems",
-          field_of_study: "Artificial Intelligence; Machine Learning; Neural Networks; Computer Vision; NLP",
-          degree_type: "M.Sc.",
+          name: "Master International Marketing and Brand Management",
+          field_of_study: "Marketing; Brand Management; Digital Marketing; Customer Behavior",
+          degree_type: "M.A.",
           degree_level: "master" as const,
-          duration_semesters: 4,
+          duration_semesters: 3,
+          ects_credits: 90,
           language_of_instruction: ["en"],
-          language_requirements: ["English B2 (TOEFL iBT 79 / IELTS 6.0)"],
           winter_intake: true,
+          summer_intake: true,
           application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
-          semester_fees: 374,
-          university_name: "Universität Bielefeld"
+          semester_fees: 8580,
+          university_id: "00940d36-d1b1-40d0-ab6e-d6c227d2b6ca"
         },
-        // Ruhr University Bochum
+        
+        // E. SRH Fernhochschule (031e4c61-1592-4688-9003-bf7f702e0479)
         {
-          name: "IT Security",
-          field_of_study: "Cybersecurity; Network Security; Cryptography; Information Security; Digital Forensics",
-          degree_type: "M.Sc.",
-          degree_level: "master" as const,
-          duration_semesters: 4,
-          language_of_instruction: ["en"],
-          language_requirements: ["English B2 (TOEFL iBT 80 / IELTS 6.5)"],
-          winter_intake: true,
-          winter_deadline: "2025-02-15",
-          application_method: "direct" as const,
-          uni_assist_required: false,
-          published: true,
-          semester_fees: 374,
-          program_url: "https://www.rub.de/en/studies/prospective-students/degree-programs/master/it-security",
-          university_name: "Ruhr University Bochum"
-        },
-        {
-          name: "Applied Computer Science",
-          field_of_study: "Computer Science; Software Engineering; Systems Engineering; AI Applications",
-          degree_type: "M.Sc.",
-          degree_level: "master" as const,
-          duration_semesters: 4,
-          language_of_instruction: ["en"],
-          language_requirements: ["English B2 (TOEFL iBT 80 / IELTS 6.5)"],
-          winter_intake: true,
-          application_method: "direct" as const,
-          uni_assist_required: false,
-          published: true,
-          semester_fees: 374,
-          university_name: "Ruhr University Bochum"
-        },
-        // Technische Universität Braunschweig
-        {
-          name: "Computer Science International",
-          field_of_study: "Computer Science; Software Engineering; Algorithms; Data Structures; Programming",
+          name: "Industrial Engineering",
+          field_of_study: "Industrial Engineering; Management; Economics; Legal aspects",
           degree_type: "B.Sc.",
           degree_level: "bachelor" as const,
           duration_semesters: 6,
+          ects_credits: 180,
           language_of_instruction: ["en"],
-          language_requirements: ["English B2 (TOEFL iBT 87 / IELTS 6.5)"],
           winter_intake: true,
-          winter_deadline: "2025-03-15",
+          summer_intake: true,
           application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
-          semester_fees: 374,
-          university_name: "Technische Universität Braunschweig"
+          semester_fees: 235,
+          delivery_mode: "online",
+          university_id: "031e4c61-1592-4688-9003-bf7f702e0479"
         },
         {
-          name: "Computer Science",
-          field_of_study: "Computer Science; Advanced Algorithms; Machine Learning; Distributed Systems",
-          degree_type: "M.Sc.",
+          name: "Global Business Administration",
+          field_of_study: "Business Administration",
+          degree_type: "MBA",
           degree_level: "master" as const,
           duration_semesters: 4,
+          ects_credits: 120,
           language_of_instruction: ["en"],
-          language_requirements: ["English B2 (TOEFL iBT 87 / IELTS 6.5)"],
           winter_intake: true,
           summer_intake: true,
           application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
-          semester_fees: 374,
-          university_name: "Technische Universität Braunschweig"
+          semester_fees: 400,
+          delivery_mode: "online",
+          university_id: "031e4c61-1592-4688-9003-bf7f702e0479"
         },
-        // Jacobs University Bremen
         {
-          name: "Computer Science",
-          field_of_study: "Computer Science; Software Engineering; AI; Data Science; Robotics",
-          degree_type: "B.Sc.",
-          degree_level: "bachelor" as const,
-          duration_semesters: 6,
+          name: "UX & Service Design",
+          field_of_study: "User Experience Design; Service Design; Innovation; Technology; Management",
+          degree_type: "M.A.",
+          degree_level: "master" as const,
+          duration_semesters: 3,
+          ects_credits: 90,
           language_of_instruction: ["en"],
-          language_requirements: ["English proficiency (TOEFL iBT 90 / IELTS 7.0)"],
           winter_intake: true,
           summer_intake: true,
           application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
-          semester_fees: 20000,
-          program_url: "https://www.jacobs-university.de/study/undergraduate/computer-science",
-          university_name: "Jacobs University Bremen"
+          semester_fees: 500,
+          delivery_mode: "online",
+          university_id: "031e4c61-1592-4688-9003-bf7f702e0479"
         },
+        
+        // F. JMU Würzburg (05e44d0b-7409-4da6-8624-5c28c72aea70) - Major Programs Selection
         {
-          name: "International Business Administration",
-          field_of_study: "Business Administration; International Management; Finance; Marketing; Strategy",
+          name: "Diversity, Ethics and Religions",
+          field_of_study: "Diversity Studies; Ethics; Religious Studies; Intercultural Studies",
           degree_type: "B.A.",
           degree_level: "bachelor" as const,
           duration_semesters: 6,
+          ects_credits: 180,
           language_of_instruction: ["en"],
-          language_requirements: ["English proficiency (TOEFL iBT 90 / IELTS 7.0)"],
+          winter_intake: true,
+          winter_deadline: "2025-07-15",
+          application_method: "uni_assist_vpd" as const,
+          uni_assist_required: true,
+          published: true,
+          semester_fees: 374,
+          university_id: "05e44d0b-7409-4da6-8624-5c28c72aea70"
+        },
+        {
+          name: "Aerospace Informatics",
+          field_of_study: "Aerospace Engineering; Informatics; Satellite Technology; Space Systems",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          ects_credits: 120,
+          language_of_instruction: ["en"],
+          winter_intake: true,
+          summer_intake: true,
+          winter_deadline: "2025-07-15",
+          summer_deadline: "2025-01-15",
+          application_method: "uni_assist_vpd" as const,
+          uni_assist_required: true,
+          published: true,
+          semester_fees: 374,
+          university_id: "05e44d0b-7409-4da6-8624-5c28c72aea70"
+        },
+        {
+          name: "Artificial Intelligence & Extended Reality",
+          field_of_study: "Artificial Intelligence; Virtual Reality; Augmented Reality; Extended Reality; Computer Science",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          ects_credits: 120,
+          language_of_instruction: ["en"],
+          winter_intake: true,
+          winter_deadline: "2025-03-15",
+          application_method: "uni_assist_vpd" as const,
+          uni_assist_required: true,
+          published: true,
+          semester_fees: 374,
+          university_id: "05e44d0b-7409-4da6-8624-5c28c72aea70"
+        },
+        {
+          name: "Computer Science",
+          field_of_study: "Computer Science; Software Engineering; Algorithms; Programming; Systems",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          ects_credits: 120,
+          language_of_instruction: ["en"],
+          winter_intake: true,
+          summer_intake: true,
+          winter_deadline: "2024-10-15",
+          summer_deadline: "2025-04-15",
+          application_method: "uni_assist_vpd" as const,
+          uni_assist_required: true,
+          published: true,
+          semester_fees: 374,
+          university_id: "05e44d0b-7409-4da6-8624-5c28c72aea70"
+        },
+        {
+          name: "Biochemistry",
+          field_of_study: "Biochemistry; Molecular Biology; Chemical Biology; Life Sciences",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          ects_credits: 120,
+          language_of_instruction: ["en"],
+          winter_intake: true,
+          winter_deadline: "2025-06-01",
+          application_method: "uni_assist_vpd" as const,
+          uni_assist_required: true,
+          published: true,
+          semester_fees: 374,
+          university_id: "05e44d0b-7409-4da6-8624-5c28c72aea70"
+        },
+        
+        // G. TH Deggendorf (036ccf51-2c83-44c7-ad61-15a6af1a71ce) - Selection of key programs
+        {
+          name: "International Management",
+          field_of_study: "Management; Marketing; Finance; Economics; International Business",
+          degree_type: "B.A.",
+          degree_level: "bachelor" as const,
+          duration_semesters: 7,
+          ects_credits: 210,
+          language_of_instruction: ["en"],
+          winter_intake: true,
+          winter_deadline: "2025-07-15",
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 60,
+          university_id: "036ccf51-2c83-44c7-ad61-15a6af1a71ce"
+        },
+        {
+          name: "Artificial Intelligence",
+          field_of_study: "Artificial Intelligence; Machine Learning; Deep Learning; Data Science; Neural Networks",
+          degree_type: "B.Sc.",
+          degree_level: "bachelor" as const,
+          duration_semesters: 7,
+          ects_credits: 210,
+          language_of_instruction: ["en"],
+          winter_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 60,
+          university_id: "036ccf51-2c83-44c7-ad61-15a6af1a71ce"
+        },
+        {
+          name: "Artificial Intelligence and Data Science",
+          field_of_study: "Artificial Intelligence; Data Science; Machine Learning; Big Data; Analytics",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 3,
+          ects_credits: 90,
+          language_of_instruction: ["en"],
           winter_intake: true,
           summer_intake: true,
           application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
-          semester_fees: 20000,
-          university_name: "Jacobs University Bremen"
+          semester_fees: 60,
+          university_id: "036ccf51-2c83-44c7-ad61-15a6af1a71ce"
         },
         {
-          name: "Data Engineering",
-          field_of_study: "Data Science; Machine Learning; Big Data; Analytics; Statistical Computing",
+          name: "Digital Health",
+          field_of_study: "Digital Health; Health Informatics; Medical Technology; Healthcare Systems",
           degree_type: "M.Sc.",
           degree_level: "master" as const,
-          duration_semesters: 4,
+          duration_semesters: 3,
+          ects_credits: 90,
           language_of_instruction: ["en"],
-          language_requirements: ["English proficiency (TOEFL iBT 90 / IELTS 7.0)"],
           winter_intake: true,
           summer_intake: true,
           application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
-          semester_fees: 20000,
-          university_name: "Jacobs University Bremen"
+          semester_fees: 60,
+          university_id: "036ccf51-2c83-44c7-ad61-15a6af1a71ce"
         },
-        // Technische Universität Chemnitz
+        
+        // I. TH OWL (08b8fc16-60d6-4d6e-9e52-a586069bb68b)
         {
-          name: "Advanced Manufacturing",
-          field_of_study: "Manufacturing Engineering; Automation; Robotics; Industry 4.0; Production Systems",
-          degree_type: "M.Sc.",
-          degree_level: "master" as const,
-          duration_semesters: 4,
-          language_of_instruction: ["en"],
-          language_requirements: ["English B2 (TOEFL iBT 80 / IELTS 6.0)"],
+          name: "General Engineering",
+          field_of_study: "Engineering; Computer Science; Food Technology; Mechanical Engineering; Life Sciences",
+          degree_type: "B.Sc.",
+          degree_level: "bachelor" as const,
+          duration_semesters: 8,
+          ects_credits: 240,
+          language_of_instruction: ["en", "de"],
           winter_intake: true,
+          winter_deadline: "2025-08-15",
           application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
           semester_fees: 374,
-          university_name: "Technische Universität Chemnitz"
+          university_id: "08b8fc16-60d6-4d6e-9e52-a586069bb68b"
         },
         {
-          name: "Automotive Software Engineering",
-          field_of_study: "Automotive Engineering; Software Development; Embedded Systems; Vehicle Systems",
+          name: "Information Technology",
+          field_of_study: "Information Technology; Computer Science; AI; Management; Business Administration",
           degree_type: "M.Sc.",
           degree_level: "master" as const,
           duration_semesters: 4,
+          ects_credits: 120,
           language_of_instruction: ["en"],
-          language_requirements: ["English B2 (TOTEFL iBT 80 / IELTS 6.0)"],
           winter_intake: true,
           summer_intake: true,
           application_method: "direct" as const,
           uni_assist_required: false,
           published: true,
           semester_fees: 374,
-          university_name: "Technische Universität Chemnitz"
+          university_id: "08b8fc16-60d6-4d6e-9e52-a586069bb68b"
+        },
+        
+        // J. PFH Göttingen (08df20bb-69b9-405f-9a6e-a9ada9e64dd6) - Selection of programs
+        {
+          name: "MBA Business Administration",
+          field_of_study: "Business Administration; Leadership; Management; Strategy",
+          degree_type: "MBA",
+          degree_level: "master" as const,
+          duration_semesters: 3,
+          ects_credits: 90,
+          language_of_instruction: ["en"],
+          winter_intake: true,
+          summer_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 5940,
+          delivery_mode: "online",
+          university_id: "08df20bb-69b9-405f-9a6e-a9ada9e64dd6"
+        },
+        {
+          name: "General Management",
+          field_of_study: "Management; Business Strategy; Leadership; Operations",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 3,
+          ects_credits: 90,
+          language_of_instruction: ["en"],
+          winter_intake: true,
+          summer_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 4800,
+          university_id: "08df20bb-69b9-405f-9a6e-a9ada9e64dd6"
+        },
+        {
+          name: "UX Design & Management",
+          field_of_study: "UX Design; User Experience; Design Management; Product Design",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 3,
+          ects_credits: 90,
+          language_of_instruction: ["en"],
+          winter_intake: true,
+          summer_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 4800,
+          university_id: "08df20bb-69b9-405f-9a6e-a9ada9e64dd6"
+        },
+        {
+          name: "Digitalization & Automation",
+          field_of_study: "Digitalization; Automation; Industry 4.0; Process Management",
+          degree_type: "M.Sc.",
+          degree_level: "master" as const,
+          duration_semesters: 4,
+          ects_credits: 120,
+          language_of_instruction: ["en"],
+          winter_intake: true,
+          application_method: "direct" as const,
+          uni_assist_required: false,
+          published: true,
+          semester_fees: 5400,
+          university_id: "08df20bb-69b9-405f-9a6e-a9ada9e64dd6"
         }
       ];
-
-      // Find university IDs by matching names
-      const { data: universitiesData, error: universitiesError } = await supabase
-        .from('universities')
-        .select('id, name');
-      
-      if (universitiesError) {
-        throw new Error(`Failed to fetch universities: ${universitiesError.message}`);
-      }
-
-      const universityMap = new Map(universitiesData.map(u => [u.name, u.id]));
 
       // Process programs and insert them
       let successCount = 0;
       let errors: string[] = [];
 
-      for (const program of expertPrograms) {
+      for (const program of comprehensivePrograms) {
         try {
-          const universityId = universityMap.get(program.university_name);
-          
-          if (!universityId) {
-            errors.push(`University not found: ${program.university_name}`);
-            continue;
-          }
-
           const programData = {
             name: program.name,
             field_of_study: program.field_of_study,
             degree_type: program.degree_type,
             degree_level: program.degree_level,
             duration_semesters: program.duration_semesters,
+            ects_credits: program.ects_credits,
             language_of_instruction: program.language_of_instruction,
             winter_intake: program.winter_intake || false,
             summer_intake: program.summer_intake || false,
@@ -609,8 +763,8 @@ export const AdminPrograms = () => {
             published: program.published,
             semester_fees: program.semester_fees || 0,
             program_url: program.program_url || null,
-            university_id: universityId,
-            ects_credits: program.degree_level === 'bachelor' ? 180 : 120,
+            delivery_mode: program.delivery_mode || "on_campus",
+            university_id: program.university_id,
             recognition_weeks_before: 10
           };
 
@@ -638,16 +792,16 @@ export const AdminPrograms = () => {
       } else {
         toast({
           title: "Success",
-          description: `Successfully imported all ${successCount} expert report programs!`
+          description: `Successfully imported all ${successCount} comprehensive programs!`
         });
       }
 
       fetchPrograms();
     } catch (error) {
-      console.error('Error importing expert programs:', error);
+      console.error('Error importing comprehensive programs:', error);
       toast({
         title: "Error",
-        description: "Failed to import expert report programs",
+        description: "Failed to import comprehensive programs",
         variant: "destructive"
       });
     } finally {
@@ -682,17 +836,17 @@ export const AdminPrograms = () => {
       </div>
 
       <div className="space-y-6">
-        {/* Expert Report Programs Upload */}
+        {/* Comprehensive Programs Upload */}
         <Card>
           <CardHeader>
-            <CardTitle>Import Expert Report Programs</CardTitle>
+            <CardTitle>Import Comprehensive Program Database</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Import all 80+ English-taught programs from the comprehensive expert report
+              Import all English-taught programs from major German universities
             </p>
           </CardHeader>
           <CardContent>
-            <Button onClick={importExpertReportPrograms} className="w-full">
-              Import All Expert Report Programs
+            <Button onClick={importComprehensivePrograms} className="w-full">
+              Import All Programs to Database
             </Button>
           </CardContent>
         </Card>
