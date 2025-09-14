@@ -22,6 +22,7 @@ import ProgramPage from "./pages/programs/ProgramPage";
 import AmbassadorsList from "./pages/ambassadors/AmbassadorsList";
 import AmbassadorProfile from "./pages/ambassadors/AmbassadorProfile";
 import ProfilePage from "./pages/profile/ProfilePage";
+import Impressum from "./pages/Impressum";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -99,6 +100,7 @@ const App = () => {
             <Route path="/universities/:uni/programs/:program" element={<ProgramPage />} />
             <Route path="/ambassadors" element={<AmbassadorsList />} />
             <Route path="/ambassadors/:slug" element={<AmbassadorProfile />} />
+            <Route path="/impressum" element={<Impressum />} />
             <Route 
               path="/profile" 
               element={user ? <ProfilePage /> : <Navigate to="/auth" />} 
