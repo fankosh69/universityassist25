@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LanguageFlags } from "@/components/LanguageFlags";
 import { getDeadlineStatus, getApplicationMethodInfo, getStatusColor } from "@/lib/deadline-utils";
-import { CSVProgramsUpload } from "@/components/admin/CSVProgramsUpload";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -882,8 +882,6 @@ export const AdminPrograms = () => {
           </CardContent>
         </Card>
 
-        {/* CSV Upload Section */}
-        <CSVProgramsUpload />
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPrograms.map(program => <Card key={program.id} className="hover:shadow-medium transition-shadow">
