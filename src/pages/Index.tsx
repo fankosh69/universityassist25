@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import heroImage from "@/assets/hero-image.jpg";
+import heroImage from "@/assets/hero-image-optimized.jpg";
 import SEOHead from "@/components/SEOHead";
 import JsonLd, { organizationSchema, websiteSchema } from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
@@ -76,8 +76,8 @@ const Index = () => {
             src={heroImage}
             alt="German University Campus"
             className="w-full h-full object-cover opacity-20"
-            width="1920"
-            height="749"
+            width="1335"
+            height="751"
             loading="eager"
             decoding="async"
           />
@@ -253,7 +253,7 @@ const Index = () => {
             <div className="space-y-4">
               <Link to="/">
                 <img 
-                  src="/lovable-uploads/fda0393f-0b68-4ef6-bd9a-3d02ac39e07b.png" 
+                  src="/lovable-uploads/logo-optimized.png" 
                   alt="University Assist" 
                   className="h-12 w-auto object-contain"
                   width="200"
