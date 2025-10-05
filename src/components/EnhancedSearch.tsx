@@ -7,8 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Filter, ChevronDown, MapPin, Clock, Euro, GraduationCap, Heart, X, CreditCard } from 'lucide-react';
+import { Search, Filter, ChevronDown, MapPin, Clock, Euro, GraduationCap, Heart, X, CreditCard, Sparkles, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { LanguageFlags } from '@/components/LanguageFlags';
@@ -55,6 +57,7 @@ const EnhancedSearch: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [savedPrograms, setSavedPrograms] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
+  const [showAIMatching, setShowAIMatching] = useState(false);
   
   const [filters, setFilters] = useState<SearchFilters>({
     degreeLevel: 'all',
@@ -82,6 +85,47 @@ const EnhancedSearch: React.FC = () => {
       setUser(user);
     });
   }, []);
+
+  // Check if user has completed their profile
+  const { data: profileData } = useQuery({
+    queryKey: ['user-profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: academicData } = useQuery({
+    queryKey: ['user-academics', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      const { data, error } = await supabase
+        .from('student_academics')
+        .select('*')
+        .eq('profile_id', user.id)
+        .maybeSingle();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const hasCompleteProfile = profileData && 
+    profileData.current_education_level && 
+    profileData.current_field_of_study &&
+    academicData && 
+    (academicData.gpa_de || academicData.gpa_raw);
 
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -443,10 +487,107 @@ const EnhancedSearch: React.FC = () => {
           </CollapsibleContent>
         </Collapsible>
 
+        {/* AI Matching Feature */}
+        <Card className={`border-2 ${showAIMatching ? 'border-primary bg-primary/5' : 'border-dashed'}`}>
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    AI-Matched Programs
+                    <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+                  </h3>
+                  {user && hasCompleteProfile && (
+                    <Button
+                      variant={showAIMatching ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setShowAIMatching(!showAIMatching)}
+                      className="ml-auto"
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      {showAIMatching ? 'Showing AI Matches' : 'Show AI Matches'}
+                    </Button>
+                  )}
+                </div>
+                
+                {!user ? (
+                  <Alert>
+                    <User className="h-4 w-4" />
+                    <AlertTitle>Sign in to unlock AI matching</AlertTitle>
+                    <AlertDescription className="mt-2">
+                      Create a free account and complete your profile to get personalized program recommendations powered by AI.
+                      <div className="mt-3">
+                        <Link to="/auth?tab=signup">
+                          <Button size="sm">
+                            Get Started
+                          </Button>
+                        </Link>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                ) : !hasCompleteProfile ? (
+                  <Alert>
+                    <User className="h-4 w-4" />
+                    <AlertTitle>Complete your profile for AI matching</AlertTitle>
+                    <AlertDescription className="mt-2">
+                      Tell us about your academic background, language skills, and study preferences to receive personalized program recommendations.
+                      <div className="mt-3">
+                        <Link to="/profile">
+                          <Button size="sm" variant="outline">
+                            <User className="h-4 w-4 mr-2" />
+                            Complete Profile
+                          </Button>
+                        </Link>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                ) : showAIMatching ? (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      Our AI is analyzing your profile to find the best-matched programs based on:
+                    </p>
+                    <ul className="text-sm space-y-1 ml-4 list-disc text-muted-foreground">
+                      <li>Your academic background and GPA</li>
+                      <li>Language proficiency (German/English)</li>
+                      <li>Field of study preferences</li>
+                      <li>Eligibility requirements</li>
+                      <li>Application deadlines</li>
+                    </ul>
+                    <Alert className="mt-4 bg-blue-50 border-blue-200">
+                      <Sparkles className="h-4 w-4 text-blue-600" />
+                      <AlertTitle className="text-blue-900">AI Matching Engine</AlertTitle>
+                      <AlertDescription className="text-blue-800">
+                        This feature is currently in development. Soon you'll see only programs that match your profile perfectly, 
+                        ranked by compatibility score and deadline priority.
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Enable AI matching to filter programs based on your profile. Our intelligent system will show you only the programs 
+                    you're eligible for, ranked by compatibility.
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Results count */}
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">
             {programs.length} {programs.length === 1 ? 'program' : 'programs'} found
+            {showAIMatching && user && hasCompleteProfile && (
+              <Badge variant="outline" className="ml-2">
+                <Sparkles className="h-3 w-3 mr-1" />
+                AI-Matched
+              </Badge>
+            )}
           </p>
         </div>
       </div>
