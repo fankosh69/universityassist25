@@ -59,6 +59,66 @@ export type Database = {
         }
         Relationships: []
       }
+      admission_requirements_by_country: {
+        Row: {
+          accepts_english: boolean | null
+          additional_notes: string | null
+          aps_certificate_required: boolean | null
+          country_code: string
+          country_name: string
+          created_at: string | null
+          degree_level: Database["public"]["Enums"]["degree_level"]
+          direct_admission_criteria: Json | null
+          education_system: Database["public"]["Enums"]["education_system"]
+          entrance_exam_required: boolean | null
+          id: string
+          last_updated: string | null
+          min_english_level: string | null
+          min_german_level: string | null
+          required_documents: string[] | null
+          source_url: string | null
+          studienkolleg_criteria: Json | null
+        }
+        Insert: {
+          accepts_english?: boolean | null
+          additional_notes?: string | null
+          aps_certificate_required?: boolean | null
+          country_code: string
+          country_name: string
+          created_at?: string | null
+          degree_level: Database["public"]["Enums"]["degree_level"]
+          direct_admission_criteria?: Json | null
+          education_system: Database["public"]["Enums"]["education_system"]
+          entrance_exam_required?: boolean | null
+          id?: string
+          last_updated?: string | null
+          min_english_level?: string | null
+          min_german_level?: string | null
+          required_documents?: string[] | null
+          source_url?: string | null
+          studienkolleg_criteria?: Json | null
+        }
+        Update: {
+          accepts_english?: boolean | null
+          additional_notes?: string | null
+          aps_certificate_required?: boolean | null
+          country_code?: string
+          country_name?: string
+          created_at?: string | null
+          degree_level?: Database["public"]["Enums"]["degree_level"]
+          direct_admission_criteria?: Json | null
+          education_system?: Database["public"]["Enums"]["education_system"]
+          entrance_exam_required?: boolean | null
+          id?: string
+          last_updated?: string | null
+          min_english_level?: string | null
+          min_german_level?: string | null
+          required_documents?: string[] | null
+          source_url?: string | null
+          studienkolleg_criteria?: Json | null
+        }
+        Relationships: []
+      }
       ambassadors: {
         Row: {
           city_id: string | null
@@ -350,6 +410,71 @@ export type Database = {
             columns: ["region_id"]
             isOneToOne: false
             referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eligibility_checks: {
+        Row: {
+          check_date: string | null
+          country_of_origin: string
+          education_system: Database["public"]["Enums"]["education_system"]
+          eligibility_status: Database["public"]["Enums"]["eligibility_pathway"]
+          eligible_programs: string[] | null
+          grades_data: Json | null
+          has_aps_certificate: boolean | null
+          highest_education_level: string
+          id: string
+          ip_address: unknown | null
+          language_certificates: Json | null
+          missing_requirements: string[] | null
+          profile_id: string | null
+          recommended_actions: string[] | null
+          target_degree_level: Database["public"]["Enums"]["degree_level"]
+          user_agent: string | null
+        }
+        Insert: {
+          check_date?: string | null
+          country_of_origin: string
+          education_system: Database["public"]["Enums"]["education_system"]
+          eligibility_status: Database["public"]["Enums"]["eligibility_pathway"]
+          eligible_programs?: string[] | null
+          grades_data?: Json | null
+          has_aps_certificate?: boolean | null
+          highest_education_level: string
+          id?: string
+          ip_address?: unknown | null
+          language_certificates?: Json | null
+          missing_requirements?: string[] | null
+          profile_id?: string | null
+          recommended_actions?: string[] | null
+          target_degree_level: Database["public"]["Enums"]["degree_level"]
+          user_agent?: string | null
+        }
+        Update: {
+          check_date?: string | null
+          country_of_origin?: string
+          education_system?: Database["public"]["Enums"]["education_system"]
+          eligibility_status?: Database["public"]["Enums"]["eligibility_pathway"]
+          eligible_programs?: string[] | null
+          grades_data?: Json | null
+          has_aps_certificate?: boolean | null
+          highest_education_level?: string
+          id?: string
+          ip_address?: unknown | null
+          language_certificates?: Json | null
+          missing_requirements?: string[] | null
+          profile_id?: string | null
+          recommended_actions?: string[] | null
+          target_degree_level?: Database["public"]["Enums"]["degree_level"]
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eligibility_checks_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1428,6 +1553,20 @@ export type Database = {
         | "rejected"
         | "waitlisted"
       degree_level: "bachelor" | "master"
+      education_system:
+        | "abitur"
+        | "a_levels"
+        | "ib"
+        | "us_high_school"
+        | "indian_higher_secondary"
+        | "chinese_gaokao"
+        | "french_baccalaureat"
+        | "other"
+      eligibility_pathway:
+        | "direct_admission"
+        | "studienkolleg_required"
+        | "not_eligible"
+        | "conditional"
       intake_season: "winter" | "summer" | "spring" | "fall"
       package_type: "basic" | "standard" | "premium" | "vip"
     }
@@ -1578,6 +1717,22 @@ export const Constants = {
         "waitlisted",
       ],
       degree_level: ["bachelor", "master"],
+      education_system: [
+        "abitur",
+        "a_levels",
+        "ib",
+        "us_high_school",
+        "indian_higher_secondary",
+        "chinese_gaokao",
+        "french_baccalaureat",
+        "other",
+      ],
+      eligibility_pathway: [
+        "direct_admission",
+        "studienkolleg_required",
+        "not_eligible",
+        "conditional",
+      ],
       intake_season: ["winter", "summer", "spring", "fall"],
       package_type: ["basic", "standard", "premium", "vip"],
     },
