@@ -23,6 +23,9 @@ import AmbassadorsList from "./pages/ambassadors/AmbassadorsList";
 import AmbassadorProfile from "./pages/ambassadors/AmbassadorProfile";
 import ProfilePage from "./pages/profile/ProfilePage";
 import Impressum from "./pages/Impressum";
+import Regions from "./pages/Regions";
+import RegionDetail from "./pages/RegionDetail";
+import AdmissionsNavigator from "./pages/AdmissionsNavigator";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -101,6 +104,9 @@ const App = () => {
             <Route path="/ambassadors" element={<AmbassadorsList />} />
             <Route path="/ambassadors/:slug" element={<AmbassadorProfile />} />
             <Route path="/impressum" element={<Impressum />} />
+            <Route path="/regions" element={<Regions />} />
+            <Route path="/regions/:slug" element={<RegionDetail />} />
+            <Route path="/admissions-navigator" element={<AdmissionsNavigator />} />
             <Route 
               path="/profile" 
               element={user ? <ProfilePage /> : <Navigate to="/auth" />} 

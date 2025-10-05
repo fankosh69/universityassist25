@@ -57,6 +57,9 @@ const Navigation = () => {
         <Logo />
         
         <div className="flex items-center space-x-4">
+          <Link to="/regions" className="text-muted-foreground hover:text-foreground transition-colors">
+            Regions
+          </Link>
           <Link to="/cities" className="text-muted-foreground hover:text-foreground transition-colors">
             {t('navigation.cities')}
           </Link>
@@ -66,6 +69,9 @@ const Navigation = () => {
           <Link to="/search" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
             <SearchIcon className="h-4 w-4" />
             {t('navigation.search')}
+          </Link>
+          <Link to="/admissions-navigator" className="text-muted-foreground hover:text-foreground transition-colors">
+            Eligibility
           </Link>
           
           {user ? (
