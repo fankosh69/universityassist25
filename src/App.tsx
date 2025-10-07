@@ -21,6 +21,7 @@ import UniversityPage from "./pages/universities/UniversityPage";
 import ProgramPage from "./pages/programs/ProgramPage";
 import AmbassadorsList from "./pages/ambassadors/AmbassadorsList";
 import AmbassadorProfile from "./pages/ambassadors/AmbassadorProfile";
+import AIAssistant from "./pages/AIAssistant";
 import ProfilePage from "./pages/profile/ProfilePage";
 import Impressum from "./pages/Impressum";
 import Regions from "./pages/Regions";
@@ -102,8 +103,9 @@ const App = () => {
             <Route path="/universities" element={<Universities />} />
             <Route path="/universities/:uni" element={<UniversityPage />} />
             <Route path="/universities/:uni/programs/:program" element={<ProgramPage />} />
-            <Route path="/ambassadors" element={<AmbassadorsList />} />
-            <Route path="/ambassadors/:slug" element={<AmbassadorProfile />} />
+        <Route path="/ambassadors" element={<AmbassadorsList />} />
+        <Route path="/ambassadors/:slug" element={<AmbassadorProfile />} />
+        <Route path="/ai-assistant" element={<AIAssistant />} />
             <Route path="/impressum" element={<Impressum />} />
             <Route path="/regions" element={<Regions />} />
             <Route path="/regions/:slug" element={<RegionDetail />} />

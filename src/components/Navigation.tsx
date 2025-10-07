@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, User, Search as SearchIcon, Bookmark, Settings } from "lucide-react";
+import { LogOut, User, Search as SearchIcon, Bookmark, Settings, Bot } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
@@ -72,6 +72,10 @@ const Navigation = () => {
           </Link>
           <Link to="/admissions-navigator" className="text-muted-foreground hover:text-foreground transition-colors">
             Eligibility
+          </Link>
+          <Link to="/ai-assistant" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+            <Bot className="h-4 w-4" />
+            AI Assistant
           </Link>
           
           {user ? (

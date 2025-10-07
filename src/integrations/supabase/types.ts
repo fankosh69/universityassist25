@@ -119,6 +119,82 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_conversations: {
+        Row: {
+          collected_data: Json | null
+          created_at: string | null
+          id: string
+          profile_completion_progress: Json | null
+          profile_id: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          collected_data?: Json | null
+          created_at?: string | null
+          id?: string
+          profile_completion_progress?: Json | null
+          profile_id?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          collected_data?: Json | null
+          created_at?: string | null
+          id?: string
+          profile_completion_progress?: Json | null
+          profile_id?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_conversations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_messages: {
+        Row: {
+          content: string
+          conversation_id: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ambassadors: {
         Row: {
           city_id: string | null

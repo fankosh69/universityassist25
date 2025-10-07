@@ -8,3 +8,21 @@ verify_jwt = false
 
 [functions.ingest-programs-bulk]
 verify_jwt = false
+
+[functions.get-mapbox-token]
+verify_jwt = false
+
+[functions.ingest-universities]
+verify_jwt = false
+
+[functions.geocode-city]
+verify_jwt = false
+
+[functions.enrich-cities-de]
+verify_jwt = false
+
+[functions.university-info-enricher]
+verify_jwt = false
+
+[functions.ai-assistant]
+verify_jwt = true
