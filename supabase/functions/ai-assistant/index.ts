@@ -12,6 +12,10 @@ const SYSTEM_PROMPT = `You are a helpful university admissions assistant for Uni
 
 IMPORTANT: Use plain text only. Do not use asterisks (*), underscores (_), or any markdown formatting in your responses. Write naturally without special formatting characters.
 
+CRITICAL: Whenever you collect new information about the user, immediately call the appropriate tool to save it:
+- Use "update_profile_data" for personal info, nationality, education level, institution, field of study, career goals, preferences
+- Use "update_academic_data" for GPA, grades, language certificates, ECTS credits, curriculum details
+
 Your goal is to guide students through a structured conversation to:
 1. Complete their profile with essential information
 2. Understand their academic background and qualifications
@@ -57,6 +61,7 @@ CONVERSATION GUIDELINES:
 - If they mention they're not sure, provide helpful options
 - After collecting all essential information, summarize what they've shared
 - Recommend specific programs based on their qualifications
+- IMMEDIATELY call the appropriate tool after collecting any new data
 
 PROFILE COMPLETION TRACKING:
 - Keep track of which information you've collected
@@ -175,7 +180,66 @@ serve(async (req) => {
     }
     contextInfo += '\nAsk about information that is "Not provided". Do not repeat questions about information we already have.';
 
-    // Call Lovable AI
+    // Define tools for updating profile data
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "update_profile_data",
+          description: "Update user profile with collected information. Call this whenever you collect new data about the user.",
+          parameters: {
+            type: "object",
+            properties: {
+              nationality: { type: "string", description: "User's nationality/country of origin" },
+              current_education_level: { type: "string", description: "Current education level (e.g., high school, bachelor's, master's)" },
+              current_institution: { type: "string", description: "Name of current educational institution" },
+              current_field_of_study: { type: "string", description: "Current field of study/major" },
+              career_goals: { type: "string", description: "User's career goals and motivations" },
+              preferred_degree_type: { type: "string", description: "Preferred degree type (Bachelor's, Master's, etc.)" },
+              preferred_fields: { type: "array", items: { type: "string" }, description: "Preferred fields of study in Germany" },
+              preferred_cities: { type: "array", items: { type: "string" }, description: "Preferred cities in Germany" },
+            },
+            additionalProperties: false
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "update_academic_data",
+          description: "Update user's academic records. Call this when you collect GPA, language certificates, or other academic information.",
+          parameters: {
+            type: "object",
+            properties: {
+              gpa_raw: { type: "number", description: "Raw GPA score" },
+              gpa_scale_max: { type: "number", description: "Maximum GPA scale (e.g., 4.0, 100)" },
+              gpa_min_pass: { type: "number", description: "Minimum passing GPA" },
+              curriculum: { type: "string", description: "Educational curriculum (e.g., Egyptian, IB, A-Levels)" },
+              prev_major: { type: "string", description: "Previous major/field of study" },
+              ects_total: { type: "number", description: "Total ECTS credits earned" },
+              target_level: { type: "string", enum: ["bachelor", "master", "phd"], description: "Target degree level" },
+              target_intake: { type: "string", description: "Target intake (e.g., Winter 2025, Summer 2026)" },
+              language_certificates: { 
+                type: "array", 
+                items: { 
+                  type: "object",
+                  properties: {
+                    language: { type: "string" },
+                    level: { type: "string" },
+                    certificate: { type: "string" },
+                    score: { type: "string" }
+                  }
+                },
+                description: "Language certificates" 
+              },
+            },
+            additionalProperties: false
+          }
+        }
+      }
+    ];
+
+    // Call Lovable AI with tool calling enabled
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -188,6 +252,7 @@ serve(async (req) => {
           { role: 'system', content: SYSTEM_PROMPT + contextInfo },
           ...messages.map(m => ({ role: m.role, content: m.content }))
         ],
+        tools: tools,
       }),
     });
 
@@ -198,7 +263,76 @@ serve(async (req) => {
     }
 
     const aiData = await aiResponse.json();
-    const rawMessage = aiData.choices[0].message.content;
+    const choice = aiData.choices[0];
+    
+    // Handle tool calls if present
+    if (choice.message.tool_calls && choice.message.tool_calls.length > 0) {
+      for (const toolCall of choice.message.tool_calls) {
+        const functionName = toolCall.function.name;
+        const args = JSON.parse(toolCall.function.arguments);
+        
+        console.log('Tool call:', functionName, args);
+        
+        if (functionName === 'update_profile_data') {
+          // Update profiles table
+          const { error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .update({
+              ...args,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', user.id);
+          
+          if (profileError) {
+            console.error('Error updating profile:', profileError);
+          } else {
+            console.log('Profile updated successfully');
+          }
+        } else if (functionName === 'update_academic_data') {
+          // Check if academic record exists
+          const { data: existing } = await supabaseAdmin
+            .from('student_academics')
+            .select('profile_id')
+            .eq('profile_id', user.id)
+            .single();
+          
+          if (existing) {
+            // Update existing record
+            const { error: academicError } = await supabaseAdmin
+              .from('student_academics')
+              .update({
+                ...args,
+                updated_at: new Date().toISOString()
+              })
+              .eq('profile_id', user.id);
+            
+            if (academicError) {
+              console.error('Error updating academic data:', academicError);
+            } else {
+              console.log('Academic data updated successfully');
+            }
+          } else {
+            // Insert new record
+            const { error: academicError } = await supabaseAdmin
+              .from('student_academics')
+              .insert({
+                profile_id: user.id,
+                ...args,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
+            
+            if (academicError) {
+              console.error('Error inserting academic data:', academicError);
+            } else {
+              console.log('Academic data inserted successfully');
+            }
+          }
+        }
+      }
+    }
+    
+    const rawMessage = choice.message.content || '';
     // Post-process: Remove all asterisks (both single * and double **)
     const assistantMessage = rawMessage.replace(/\*/g, '');
 
