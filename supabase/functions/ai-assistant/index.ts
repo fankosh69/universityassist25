@@ -274,34 +274,70 @@ serve(async (req) => {
         console.log('Tool call:', functionName, args);
         
         if (functionName === 'update_profile_data') {
-          // Update profiles table
-          const { error: profileError } = await supabaseAdmin
-            .from('profiles')
-            .update({
-              ...args,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', user.id);
+          // Map fields to match the secure profile structure
+          const publicData: Record<string, any> = {};
+          const privateData: Record<string, any> = {};
+          const academicData: Record<string, any> = {};
+          
+          // Map legacy field names to new structure
+          if (args.current_education_level) publicData.education_level = args.current_education_level;
+          if (args.current_field_of_study) publicData.field_of_study = args.current_field_of_study;
+          if (args.current_institution) publicData.institution_name = args.current_institution;
+          
+          // Private fields
+          if (args.nationality) privateData.nationality = args.nationality;
+          if (args.full_name) privateData.full_name = args.full_name;
+          
+          // Academic preference fields
+          if (args.preferred_fields) academicData.preferred_fields = args.preferred_fields;
+          if (args.preferred_degree_type) academicData.preferred_degree_type = args.preferred_degree_type;
+          if (args.preferred_cities) academicData.preferred_cities = args.preferred_cities;
+          if (args.career_goals) academicData.career_goals = args.career_goals;
+          
+          // Use secure profile update function
+          const { data: updateResult, error: profileError } = await supabaseAdmin
+            .rpc('secure_update_separated_profile', {
+              profile_uuid: user.id,
+              public_data: Object.keys(publicData).length > 0 ? publicData : null,
+              private_data: Object.keys(privateData).length > 0 ? privateData : null,
+              academic_data: Object.keys(academicData).length > 0 ? academicData : null
+            });
           
           if (profileError) {
-            console.error('Error updating profile:', profileError);
+            console.error('Error updating profile via RPC:', profileError);
           } else {
-            console.log('Profile updated successfully');
+            console.log('Profile updated successfully:', updateResult);
           }
         } else if (functionName === 'update_academic_data') {
+          // Normalize target_intake to match expected format (e.g., "winter_2025" or "summer_2026")
+          let normalizedIntake = args.target_intake;
+          if (normalizedIntake && !normalizedIntake.includes('_')) {
+            // Convert "Summer" to "summer_2026" format
+            const season = normalizedIntake.toLowerCase();
+            const currentYear = new Date().getFullYear();
+            const nextYear = currentYear + 1;
+            normalizedIntake = `${season}_${nextYear}`;
+          }
+          
+          const academicData = {
+            ...args,
+            target_intake: normalizedIntake,
+            profile_id: user.id
+          };
+          
           // Check if academic record exists
           const { data: existing } = await supabaseAdmin
             .from('student_academics')
             .select('profile_id')
             .eq('profile_id', user.id)
-            .single();
+            .maybeSingle();
           
           if (existing) {
             // Update existing record
             const { error: academicError } = await supabaseAdmin
               .from('student_academics')
               .update({
-                ...args,
+                ...academicData,
                 updated_at: new Date().toISOString()
               })
               .eq('profile_id', user.id);
@@ -316,8 +352,7 @@ serve(async (req) => {
             const { error: academicError } = await supabaseAdmin
               .from('student_academics')
               .insert({
-                profile_id: user.id,
-                ...args,
+                ...academicData,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               });
