@@ -4,7 +4,7 @@ import Navigation from "@/components/Navigation";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -169,11 +169,12 @@ export default function AIAssistant() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
+    // Shift+Enter will naturally create a new line in textarea
   };
 
   if (!isAuthenticated) {
@@ -276,19 +277,21 @@ export default function AIAssistant() {
             </ScrollArea>
 
             <div className="p-4 border-t">
-              <div className="flex gap-2">
-                <Input
+              <div className="flex gap-2 items-end">
+                <Textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Type your message..."
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type your message... (Shift+Enter for new line)"
                   disabled={isLoading}
-                  className="flex-1"
+                  className="flex-1 min-h-[44px] max-h-[200px] resize-none"
+                  rows={1}
                 />
                 <Button 
                   onClick={sendMessage} 
                   disabled={!input.trim() || isLoading}
                   size="icon"
+                  className="h-11 w-11"
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -297,6 +300,9 @@ export default function AIAssistant() {
                   )}
                 </Button>
               </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Press Enter to send, Shift+Enter for new line
+              </p>
             </div>
           </Card>
         </div>
