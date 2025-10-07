@@ -198,7 +198,9 @@ serve(async (req) => {
     }
 
     const aiData = await aiResponse.json();
-    const assistantMessage = aiData.choices[0].message.content;
+    const rawMessage = aiData.choices[0].message.content;
+    // Post-process: Remove all asterisks (both single * and double **)
+    const assistantMessage = rawMessage.replace(/\*/g, '');
 
     // Save assistant message
     await supabaseAdmin.from('ai_messages').insert({
