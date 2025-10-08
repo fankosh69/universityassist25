@@ -94,18 +94,18 @@ export default function AdminHistoricalData() {
         description: `${files.length} document(s) uploaded - OCR processing started`,
       });
 
-      // Add system message with document IDs for AI to process
+      // Add user message with file info for UI display
       const uploadMessage: Message = {
-        role: 'system',
-        content: `DOCUMENTS_UPLOADED: ${JSON.stringify(uploadedDocs)}. Automatically trigger OCR and analyze these documents.`,
+        role: 'user',
+        content: `✅ Uploaded ${uploadedDocs.map(d => d.name).join(', ')}. Please analyze these documents.`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, uploadMessage]);
 
-      // Automatically send message to AI to analyze documents
+      // Send document IDs to AI for processing
       setTimeout(() => {
-        const docList = uploadedDocs.map(d => d.name).join(', ');
-        handleSendMessage(`I uploaded ${uploadedDocs.length} document(s): ${docList}. Please analyze them.`);
+        const docIds = uploadedDocs.map(d => d.id);
+        handleSendMessage(`UPLOADED_DOCUMENT_IDS: ${JSON.stringify(docIds)}. Please trigger OCR and analyze these documents.`);
       }, 1000);
 
     } catch (error) {
