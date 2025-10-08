@@ -358,13 +358,17 @@ serve(async (req) => {
     const aiData = await aiResponse.json();
     const aiMessage = aiData.choices[0].message;
 
-    // Handle tool calls
+    // Handle tool calls and continue conversation
     if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
+      const toolResults = [];
+      
       for (const toolCall of aiMessage.tool_calls) {
         const functionName = toolCall.function.name;
         const args = JSON.parse(toolCall.function.arguments);
 
         console.log('Tool call:', functionName, args);
+
+        let toolResult: any = { success: false, data: null };
 
         if (functionName === 'trigger_document_ocr') {
           const { document_id } = args;
@@ -376,8 +380,10 @@ serve(async (req) => {
             
             if (error) throw error;
             
+            toolResult = { success: true, message: `OCR processing started for document ${document_id}` };
             console.log('OCR triggered for document:', document_id);
           } catch (error: any) {
+            toolResult = { success: false, error: error.message };
             console.error('Failed to trigger OCR:', error);
           }
           
@@ -392,8 +398,10 @@ serve(async (req) => {
             .limit(1);
           
           if (error || !data || data.length === 0) {
+            toolResult = { success: false, message: 'Document text not yet available. OCR may still be processing.' };
             console.log('Document text not found for:', document_id);
           } else {
+            toolResult = { success: true, data: data[0] };
             console.log('Document text retrieved:', data[0].raw_text?.substring(0, 100));
           }
           
@@ -406,6 +414,7 @@ serve(async (req) => {
             .order('uploaded_at', { ascending: false })
             .limit(limit);
           
+          toolResult = { success: true, data: data || [] };
           console.log('Listed documents:', data?.length || 0);
             
         } else if (functionName === 'calculate_bavarian_gpa') {
@@ -418,8 +427,10 @@ serve(async (req) => {
             
             if (error) throw error;
             
+            toolResult = { success: true, data };
             console.log('GPA calculated:', data);
           } catch (error: any) {
+            toolResult = { success: false, error: error.message };
             console.error('GPA calculation failed:', error);
           }
           
@@ -451,8 +462,11 @@ Return JSON format with extracted fields. If a field cannot be found, set its va
             });
 
             const extractionData = await extractionResponse.json();
-            console.log('Extracted data:', extractionData.choices[0].message.content);
+            const extracted = JSON.parse(extractionData.choices[0].message.content);
+            toolResult = { success: true, data: extracted };
+            console.log('Extracted data:', extracted);
           } catch (error: any) {
+            toolResult = { success: false, error: error.message };
             console.error('Data extraction failed:', error);
           }
           
@@ -467,8 +481,10 @@ Return JSON format with extracted fields. If a field cannot be found, set its va
             });
 
           if (insertError) {
+            toolResult = { success: false, error: insertError.message };
             console.error('Error creating historical application:', insertError);
           } else {
+            toolResult = { success: true, message: 'Historical application created successfully' };
             console.log('Historical application created successfully');
           }
         } else if (functionName === 'get_similar_cases') {
@@ -487,12 +503,14 @@ Return JSON format with extracted fields. If a field cannot be found, set its va
           }
 
           const { data: similarCases } = await query.limit(10);
+          toolResult = { success: true, data: similarCases || [] };
           console.log('Found similar cases:', similarCases?.length || 0);
         } else if (functionName === 'get_data_quality_report') {
           const { count } = await supabaseAdmin
             .from('historical_applications')
             .select('*', { count: 'exact', head: true });
 
+          toolResult = { success: true, data: { total_applications: count } };
           console.log('Total historical applications:', count);
         } else if (functionName === 'search_program_in_database') {
           let query = supabaseAdmin
@@ -503,7 +521,6 @@ Return JSON format with extracted fields. If a field cannot be found, set its va
             query = query.ilike('name', `%${args.program_name}%`);
           }
           if (args.university_name) {
-            // Join with universities table
             const { data: universities } = await supabaseAdmin
               .from('universities')
               .select('id')
@@ -521,8 +538,10 @@ Return JSON format with extracted fields. If a field cannot be found, set its va
           const { data: programs, error: programError } = await query.limit(5);
           
           if (programError) {
+            toolResult = { success: false, error: programError.message };
             console.error('Error searching programs:', programError);
           } else {
+            toolResult = { success: true, data: programs || [] };
             console.log('Found programs:', programs?.length || 0, programs);
           }
         } else if (functionName === 'check_admission_requirements_exist') {
@@ -546,18 +565,67 @@ Return JSON format with extracted fields. If a field cannot be found, set its va
           const { data: requirements, error: reqError } = await query.limit(1);
           
           if (reqError) {
+            toolResult = { success: false, error: reqError.message };
             console.error('Error checking admission requirements:', reqError);
           } else {
+            toolResult = { success: true, data: requirements || [] };
             console.log('Found admission requirements:', requirements?.length || 0, requirements);
           }
         }
+        
+        toolResults.push({
+          tool_call_id: toolCall.id,
+          role: 'tool',
+          name: functionName,
+          content: JSON.stringify(toolResult)
+        });
       }
+      
+      // Make second call to AI with tool results
+      const followUpMessages = [
+        { role: 'system', content: ADMIN_SYSTEM_PROMPT },
+        ...(conversationHistory || []),
+        { role: 'user', content: message },
+        aiMessage,
+        ...toolResults
+      ];
+      
+      const followUpResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: followUpMessages,
+          temperature: 0.7,
+        }),
+      });
+
+      if (!followUpResponse.ok) {
+        const errorText = await followUpResponse.text();
+        console.error('AI Gateway follow-up error:', followUpResponse.status, errorText);
+        throw new Error(`AI Gateway error: ${followUpResponse.status}`);
+      }
+
+      const followUpData = await followUpResponse.json();
+      const finalMessage = followUpData.choices[0].message;
+
+      return new Response(
+        JSON.stringify({
+          message: finalMessage.content || 'Analysis complete.',
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    // Return AI response
+    // Return AI response (no tool calls)
     return new Response(
       JSON.stringify({
-        message: aiMessage.content || 'I\'ve processed your request.',
+        message: aiMessage.content || 'I\'ve received your message.',
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
