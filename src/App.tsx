@@ -41,6 +41,7 @@ import AdminSecurity from "./pages/admin/AdminSecurity";
 import AdminSitemap from "./pages/admin/AdminSitemap";
 import AdminDesign from "./pages/admin/AdminDesign";
 import AdminAdmissionRequirements from "./pages/admin/AdminAdmissionRequirements";
+import AdminHistoricalData from "./pages/admin/AdminHistoricalData";
 
 const queryClient = new QueryClient();
 
@@ -127,6 +128,7 @@ const App = () => {
             <Route path="/admin/users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
             <Route path="/admin/sitemap" element={<AdminLayout><AdminSitemap /></AdminLayout>} />
             <Route path="/admin/admission-requirements" element={<AdminLayout><AdminAdmissionRequirements /></AdminLayout>} />
+            <Route path="/admin/historical-data" element={<AdminLayout><AdminHistoricalData /></AdminLayout>} />
             
             {/* Legacy routes */}
             <Route path="/cities/:citySlug" element={<CityDetail />} />

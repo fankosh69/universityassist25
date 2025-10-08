@@ -59,6 +59,63 @@ export type Database = {
         }
         Relationships: []
       }
+      admission_patterns: {
+        Row: {
+          confidence_level: string | null
+          country_filter: string | null
+          generated_at: string | null
+          generated_by_ai_model: string | null
+          id: string
+          insights: Json
+          last_updated: string | null
+          pattern_type: string
+          program_id: string | null
+          sample_size: number | null
+          university_id: string | null
+        }
+        Insert: {
+          confidence_level?: string | null
+          country_filter?: string | null
+          generated_at?: string | null
+          generated_by_ai_model?: string | null
+          id?: string
+          insights: Json
+          last_updated?: string | null
+          pattern_type: string
+          program_id?: string | null
+          sample_size?: number | null
+          university_id?: string | null
+        }
+        Update: {
+          confidence_level?: string | null
+          country_filter?: string | null
+          generated_at?: string | null
+          generated_by_ai_model?: string | null
+          id?: string
+          insights?: Json
+          last_updated?: string | null
+          pattern_type?: string
+          program_id?: string | null
+          sample_size?: number | null
+          university_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admission_patterns_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admission_patterns_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admission_requirements_by_country: {
         Row: {
           accepts_english: boolean | null
@@ -490,6 +547,65 @@ export type Database = {
           },
         ]
       }
+      document_extractions: {
+        Row: {
+          admin_corrections: Json | null
+          document_id: string
+          extracted_at: string | null
+          extracted_courses: Json | null
+          extracted_dates: Json | null
+          extracted_gpa: number | null
+          extracted_language_scores: Json | null
+          extraction_method: string | null
+          id: string
+          ocr_confidence_score: number | null
+          raw_text: string | null
+          reviewed_at: string | null
+          reviewed_by_admin: boolean | null
+          structured_data: Json | null
+        }
+        Insert: {
+          admin_corrections?: Json | null
+          document_id: string
+          extracted_at?: string | null
+          extracted_courses?: Json | null
+          extracted_dates?: Json | null
+          extracted_gpa?: number | null
+          extracted_language_scores?: Json | null
+          extraction_method?: string | null
+          id?: string
+          ocr_confidence_score?: number | null
+          raw_text?: string | null
+          reviewed_at?: string | null
+          reviewed_by_admin?: boolean | null
+          structured_data?: Json | null
+        }
+        Update: {
+          admin_corrections?: Json | null
+          document_id?: string
+          extracted_at?: string | null
+          extracted_courses?: Json | null
+          extracted_dates?: Json | null
+          extracted_gpa?: number | null
+          extracted_language_scores?: Json | null
+          extraction_method?: string | null
+          id?: string
+          ocr_confidence_score?: number | null
+          raw_text?: string | null
+          reviewed_at?: string | null
+          reviewed_by_admin?: boolean | null
+          structured_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_extractions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "student_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eligibility_checks: {
         Row: {
           check_date: string | null
@@ -551,6 +667,123 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historical_applications: {
+        Row: {
+          acceptance_conditions: string | null
+          additional_test_scores: Json | null
+          application_date: string | null
+          application_semester: string | null
+          country_of_origin: string
+          created_at: string | null
+          created_by: string | null
+          curriculum: string | null
+          data_completeness_score: number | null
+          education_level: string
+          extra_qualifications: Json | null
+          gpa_converted_german: number | null
+          gpa_min_pass: number | null
+          gpa_raw: number | null
+          gpa_scale_max: number | null
+          had_aps_certificate: boolean | null
+          id: string
+          language_certificates: Json | null
+          nationality: string
+          notes: string | null
+          outcome: string
+          passed_studienkolleg: boolean | null
+          previous_degree_field: string | null
+          program_id: string | null
+          program_name: string
+          rejection_reason: string | null
+          student_identifier: string | null
+          university_name: string
+          updated_at: string | null
+          verified_by_admin: boolean | null
+          work_experience_years: number | null
+        }
+        Insert: {
+          acceptance_conditions?: string | null
+          additional_test_scores?: Json | null
+          application_date?: string | null
+          application_semester?: string | null
+          country_of_origin: string
+          created_at?: string | null
+          created_by?: string | null
+          curriculum?: string | null
+          data_completeness_score?: number | null
+          education_level: string
+          extra_qualifications?: Json | null
+          gpa_converted_german?: number | null
+          gpa_min_pass?: number | null
+          gpa_raw?: number | null
+          gpa_scale_max?: number | null
+          had_aps_certificate?: boolean | null
+          id?: string
+          language_certificates?: Json | null
+          nationality: string
+          notes?: string | null
+          outcome: string
+          passed_studienkolleg?: boolean | null
+          previous_degree_field?: string | null
+          program_id?: string | null
+          program_name: string
+          rejection_reason?: string | null
+          student_identifier?: string | null
+          university_name: string
+          updated_at?: string | null
+          verified_by_admin?: boolean | null
+          work_experience_years?: number | null
+        }
+        Update: {
+          acceptance_conditions?: string | null
+          additional_test_scores?: Json | null
+          application_date?: string | null
+          application_semester?: string | null
+          country_of_origin?: string
+          created_at?: string | null
+          created_by?: string | null
+          curriculum?: string | null
+          data_completeness_score?: number | null
+          education_level?: string
+          extra_qualifications?: Json | null
+          gpa_converted_german?: number | null
+          gpa_min_pass?: number | null
+          gpa_raw?: number | null
+          gpa_scale_max?: number | null
+          had_aps_certificate?: boolean | null
+          id?: string
+          language_certificates?: Json | null
+          nationality?: string
+          notes?: string | null
+          outcome?: string
+          passed_studienkolleg?: boolean | null
+          previous_degree_field?: string | null
+          program_id?: string | null
+          program_name?: string
+          rejection_reason?: string | null
+          student_identifier?: string | null
+          university_name?: string
+          updated_at?: string | null
+          verified_by_admin?: boolean | null
+          work_experience_years?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historical_applications_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historical_applications_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
             referencedColumns: ["id"]
           },
         ]
@@ -1107,6 +1340,63 @@ export type Database = {
             foreignKeyName: "student_academics_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_documents: {
+        Row: {
+          file_name: string
+          file_path: string
+          file_size_kb: number | null
+          file_type: string
+          historical_application_id: string | null
+          id: string
+          mime_type: string | null
+          ocr_completed_at: string | null
+          ocr_status: string | null
+          uploaded_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          file_name: string
+          file_path: string
+          file_size_kb?: number | null
+          file_type: string
+          historical_application_id?: string | null
+          id?: string
+          mime_type?: string | null
+          ocr_completed_at?: string | null
+          ocr_status?: string | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          file_name?: string
+          file_path?: string
+          file_size_kb?: number | null
+          file_type?: string
+          historical_application_id?: string | null
+          id?: string
+          mime_type?: string | null
+          ocr_completed_at?: string | null
+          ocr_status?: string | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_documents_historical_application_id_fkey"
+            columns: ["historical_application_id"]
+            isOneToOne: false
+            referencedRelation: "historical_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },

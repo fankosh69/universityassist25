@@ -15,7 +15,8 @@ import {
   Shield,
   FileText,
   Palette,
-  ClipboardCheck
+  ClipboardCheck,
+  Database
 } from "lucide-react";
 
 import {
@@ -41,6 +42,7 @@ const adminMenuItems = [
   { title: "Service Packages", url: "/admin/packages", icon: Package },
   { title: "Design", url: "/admin/design", icon: Palette },
   { title: "User Management", url: "/admin/users", icon: Users },
+  { title: "Historical Data", url: "/admin/historical-data", icon: Database },
   { title: "Security", url: "/admin/security", icon: Shield },
   { title: "Sitemap", url: "/admin/sitemap", icon: FileText },
 ];
