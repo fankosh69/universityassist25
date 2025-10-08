@@ -33,7 +33,7 @@ export function useUniversityInfo(universityName: string, city: string): UseUniv
       setError(null);
 
       try {
-        const { data: result, error } = await supabase.functions.invoke('university-info-enricher', {
+        const { data: result, error } = await supabase.functions.invoke('scrape-university-website', {
           body: {
             universityName,
             city
@@ -51,15 +51,15 @@ export function useUniversityInfo(universityName: string, city: string): UseUniv
         console.error('Error fetching university info:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch university information');
         
-        // Provide fallback data
+        // Return unknown instead of estimates
         setData({
           name: universityName,
           city: city,
-          totalStudents: 25000,
-          internationalStudentPercentage: 15,
-          numberOfCampuses: 1,
-          generalInfo: `${universityName} is a university located in ${city}, Germany, offering various academic programs to both domestic and international students.`,
-          researchAreas: ['Engineering', 'Sciences', 'Humanities']
+          totalStudents: undefined,
+          internationalStudentPercentage: undefined,
+          numberOfCampuses: undefined,
+          generalInfo: `Information about ${universityName} is not currently available. Please check the official university website.`,
+          researchAreas: []
         });
       } finally {
         setLoading(false);

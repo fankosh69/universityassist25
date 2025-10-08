@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const ADMIN_SYSTEM_PROMPT = `You are an intelligent admin assistant for University Assist platform specialized in managing historical student application data.
 
-Your primary role is to help administrators input historical student application data to improve future matching accuracy.
+Your primary role is to help administrators input historical application data to improve future matching accuracy.
 
 **Core Capabilities:**
 
@@ -31,11 +31,27 @@ Your primary role is to help administrators input historical student application
    - Accuracy of extracted information
    - Proper anonymization (no personal names)
 
-4. **Tools Available**:
+4. **Detection Workflows**:
+   When analyzing acceptance/rejection letters:
+   - Extract program name and university name
+   - Use search_program_in_database tool to check if program exists
+   - If NOT found, inform admin and ask if they want to add it to database
+   - If admin agrees, request program URL for scraping
+   
+   When analyzing student transcripts/documents:
+   - Extract student's country of origin and education system
+   - Use check_admission_requirements_exist tool
+   - If requirements NOT found, inform admin and ask if they want to add them
+   - If admin agrees, collect requirement details through conversation
+   
+   Always notify admin when you detect missing data that could improve the system.
+
+5. **Tools Available**:
    - create_historical_application: Save a new historical case
    - get_similar_cases: Find similar historical applications
-   - analyze_program_patterns: Generate insights for a program
    - get_data_quality_report: Check completeness of data
+   - search_program_in_database: Check if a program exists
+   - check_admission_requirements_exist: Check if admission requirements exist for a country
 
 **Interaction Guidelines:**
 - Be thorough and ask clarifying questions
@@ -43,6 +59,7 @@ Your primary role is to help administrators input historical student application
 - Verify extracted data with admin before saving
 - Suggest patterns when you notice trends
 - Always maintain student privacy (use identifiers, not names)
+- Proactively detect missing programs and admission requirements
 
 Start by greeting the admin and asking how you can help with historical data management.`;
 
@@ -169,6 +186,39 @@ serve(async (req) => {
             properties: {}
           }
         }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'search_program_in_database',
+          description: 'Search for programs in the database by name and/or university to check if they exist',
+          parameters: {
+            type: 'object',
+            properties: {
+              program_name: { type: 'string', description: 'Name of the program to search for' },
+              university_name: { type: 'string', description: 'Name of the university' },
+              degree_level: { type: 'string', enum: ['bachelor', 'master'], description: 'Degree level (optional)' }
+            },
+            required: ['program_name', 'university_name']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'check_admission_requirements_exist',
+          description: 'Check if admission requirements exist for a specific country and education system',
+          parameters: {
+            type: 'object',
+            properties: {
+              country_code: { type: 'string', description: 'ISO country code (e.g., EG, IN, NG)' },
+              country_name: { type: 'string', description: 'Full country name' },
+              education_system: { type: 'string', enum: ['high_school', 'bachelor', 'other'], description: 'Education system type' },
+              degree_level: { type: 'string', enum: ['bachelor', 'master'], description: 'Target degree level' }
+            },
+            required: ['country_name', 'degree_level']
+          }
+        }
       }
     ];
 
@@ -242,6 +292,62 @@ serve(async (req) => {
             .select('*', { count: 'exact', head: true });
 
           console.log('Total historical applications:', count);
+        } else if (functionName === 'search_program_in_database') {
+          let query = supabaseAdmin
+            .from('programs')
+            .select('id, name, slug, degree_level, language_requirements, universities(name, slug)');
+
+          if (args.program_name) {
+            query = query.ilike('name', `%${args.program_name}%`);
+          }
+          if (args.university_name) {
+            // Join with universities table
+            const { data: universities } = await supabaseAdmin
+              .from('universities')
+              .select('id')
+              .ilike('name', `%${args.university_name}%`);
+            
+            if (universities && universities.length > 0) {
+              const uniIds = universities.map(u => u.id);
+              query = query.in('university_id', uniIds);
+            }
+          }
+          if (args.degree_level) {
+            query = query.eq('degree_level', args.degree_level);
+          }
+
+          const { data: programs, error: programError } = await query.limit(5);
+          
+          if (programError) {
+            console.error('Error searching programs:', programError);
+          } else {
+            console.log('Found programs:', programs?.length || 0, programs);
+          }
+        } else if (functionName === 'check_admission_requirements_exist') {
+          let query = supabaseAdmin
+            .from('admission_requirements_by_country')
+            .select('*');
+
+          if (args.country_code) {
+            query = query.eq('country_code', args.country_code);
+          }
+          if (args.country_name) {
+            query = query.ilike('country_name', `%${args.country_name}%`);
+          }
+          if (args.education_system) {
+            query = query.eq('education_system', args.education_system);
+          }
+          if (args.degree_level) {
+            query = query.eq('degree_level', args.degree_level);
+          }
+
+          const { data: requirements, error: reqError } = await query.limit(1);
+          
+          if (reqError) {
+            console.error('Error checking admission requirements:', reqError);
+          } else {
+            console.log('Found admission requirements:', requirements?.length || 0, requirements);
+          }
         }
       }
     }

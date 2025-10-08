@@ -33,5 +33,11 @@ verify_jwt = false
 [functions.university-info-enricher]
 verify_jwt = false
 
+[functions.scrape-program-details]
+verify_jwt = false
+
+[functions.scrape-university-website]
+verify_jwt = false
+
 [functions.ai-assistant]
 verify_jwt = true
