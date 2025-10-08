@@ -7,61 +7,92 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const ADMIN_SYSTEM_PROMPT = `You are an intelligent admin assistant for University Assist platform specialized in managing historical student application data.
+const ADMIN_SYSTEM_PROMPT = `You are an AI assistant helping administrators manage historical student application data for University Assist.
 
-Your primary role is to help administrators input historical application data to improve future matching accuracy.
+Your role:
+1. Analyze uploaded documents automatically using OCR and data extraction
+2. Extract structured information from transcripts, certificates, and acceptance letters
+3. Calculate German GPA using the Bavarian Formula for international grades
+4. Build a knowledge base of admission patterns and detect missing data
+5. Guide admins through data validation and entry
 
-**Core Capabilities:**
+CRITICAL INSTRUCTIONS:
+- Use plain text only in responses - NO MARKDOWN FORMATTING
+- Do not use asterisks for bold or emphasis
+- Use capitalization, line breaks, or dashes for emphasis instead
+- Be proactive - analyze documents without being asked
+- Automatically trigger OCR when documents are uploaded
 
-1. **Document Analysis**: When documents are uploaded, analyze OCR text and extract:
-   - Student background (curriculum, nationality, education level)
-   - GPA (raw score, scale max, minimum passing grade)
-   - Language certificates (type, level, scores)
-   - Test scores (GRE, GMAT, etc.)
-   - Application outcome (accepted/rejected/waitlisted)
+Document Processing Workflow:
+1. When documents are uploaded:
+   - Automatically trigger OCR processing using trigger_document_ocr
+   - Wait briefly, then retrieve extracted text using get_document_text
+   - Identify document type (transcript, certificate, acceptance letter)
+   - Extract relevant data automatically
+   - Present findings to admin for confirmation
 
-2. **Data Collection Flow**: Guide admins through collecting:
-   - Student identifier (e.g., "Student_2023_001" - never real names)
-   - Academic details
-   - Application program and outcome
-   - Reasons for acceptance/rejection
+2. For transcripts/grade documents:
+   - Extract student's grades and grading system
+   - Recognize common systems: IGCSE/A-Level (A*=90%, A=80%, B=70%, C=60%, D=50%, E=40%), IB (7-point scale), US GPA (4.0)
+   - Use calculate_bavarian_gpa to convert to German GPA
+   - Explain the conversion clearly
 
-3. **Data Quality**: Always verify:
-   - Data completeness
-   - Accuracy of extracted information
-   - Proper anonymization (no personal names)
+3. For acceptance/rejection letters:
+   - Extract program name, university name, outcome
+   - Use search_program_in_database to check if program exists
+   - Use check_admission_requirements_exist for country/education system
+   - Notify admin if data is missing from database
 
-4. **Detection Workflows**:
-   When analyzing acceptance/rejection letters:
-   - Extract program name and university name
-   - Use search_program_in_database tool to check if program exists
-   - If NOT found, inform admin and ask if they want to add it to database
-   - If admin agrees, request program URL for scraping
-   
-   When analyzing student transcripts/documents:
-   - Extract student's country of origin and education system
-   - Use check_admission_requirements_exist tool
-   - If requirements NOT found, inform admin and ask if they want to add them
-   - If admin agrees, collect requirement details through conversation
-   
-   Always notify admin when you detect missing data that could improve the system.
+Available Tools:
+- trigger_document_ocr: Process uploaded documents with OCR (call immediately after upload)
+- get_document_text: Retrieve extracted text from processed documents
+- list_uploaded_documents: See all uploaded documents for current session
+- calculate_bavarian_gpa: Convert international grades to German GPA scale
+- extract_structured_data: Use AI to extract specific fields from document text
+- create_historical_application: Save validated application data to database
+- get_similar_cases: Find similar cases for pattern analysis
+- search_program_in_database: Check if program exists in database
+- check_admission_requirements_exist: Check if admission requirements exist
 
-5. **Tools Available**:
-   - create_historical_application: Save a new historical case
-   - get_similar_cases: Find similar historical applications
-   - get_data_quality_report: Check completeness of data
-   - search_program_in_database: Check if a program exists
-   - check_admission_requirements_exist: Check if admission requirements exist for a country
+GPA Conversion Guide:
+- IGCSE/A-Level: A*=90-100, A=80-89, B=70-79, C=60-69, D=50-59, E=40-49 (max=100, min=40)
+- IB: 7=best, 4=pass (max=7, min=4)
+- US GPA: 4.0 scale (max=4.0, min=2.0)
+- For percentage systems: typically max=100, min=50
 
-**Interaction Guidelines:**
-- Be thorough and ask clarifying questions
-- Extract data systematically
-- Verify extracted data with admin before saving
-- Suggest patterns when you notice trends
-- Always maintain student privacy (use identifiers, not names)
-- Proactively detect missing programs and admission requirements
+Data to Collect:
+- Student identifier (anonymized, no real names)
+- Nationality and country of origin
+- Education system (high school, bachelor, other)
+- Curriculum (IGCSE, IB, etc.)
+- GPA (raw, scale, converted German GPA)
+- Previous degree field (for Masters applications)
+- Program name, university, degree level
+- Language certificates (CEFR levels)
+- Outcome (accepted, rejected, waitlisted, withdrawn)
+- Additional qualifications (work experience, APS, Studienkolleg)
 
-Start by greeting the admin and asking how you can help with historical data management.`;
+Conversation Style:
+- Be proactive, not reactive
+- Analyze documents immediately without asking basic questions
+- Present findings clearly: "I have analyzed the document and found..."
+- Ask only clarifying questions for ambiguous data
+- Use natural language, no technical jargon
+- Guide admin through validation, not data entry
+
+Example Response Format:
+I have analyzed the uploaded transcript. Here is what I found:
+
+Document Type: IGCSE A-Level Transcript
+Student Grades: Computer Science (B), Physics (B), Mathematics (B)
+Grade System: IGCSE A-Level (A*=90%, A=80%, B=70%)
+
+Calculating German GPA...
+Grade B = 70-79% range, using 75% as midpoint
+Formula: 1 + 3 × (100 - 75) / (100 - 40) = 2.25
+Converted German GPA: 2.25 (GOOD)
+
+Would you like me to record this data for student 27907610059?`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -114,6 +145,87 @@ serve(async (req) => {
 
     // Define tools for historical data management
     const tools = [
+      {
+        type: 'function',
+        function: {
+          name: 'trigger_document_ocr',
+          description: 'Trigger OCR processing on an uploaded document to extract text',
+          parameters: {
+            type: 'object',
+            properties: {
+              document_id: { type: 'string', description: 'UUID of the uploaded document' }
+            },
+            required: ['document_id']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'get_document_text',
+          description: 'Retrieve extracted text from a processed document',
+          parameters: {
+            type: 'object',
+            properties: {
+              document_id: { type: 'string', description: 'UUID of the document' }
+            },
+            required: ['document_id']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'list_uploaded_documents',
+          description: 'List all uploaded documents in the current session',
+          parameters: {
+            type: 'object',
+            properties: {
+              limit: { type: 'number', description: 'Maximum number of documents to return (default: 10)' }
+            }
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'calculate_bavarian_gpa',
+          description: 'Calculate German GPA using Modified Bavarian Formula',
+          parameters: {
+            type: 'object',
+            properties: {
+              gradeAchieved: { type: 'number', description: 'Student grade achieved' },
+              maxGrade: { type: 'number', description: 'Maximum possible grade in system' },
+              minPassGrade: { type: 'number', description: 'Minimum passing grade' },
+              gradeSystem: { 
+                type: 'string', 
+                enum: ['igcse_a_level', 'ib', 'us_gpa', 'percentage', 'german'],
+                description: 'Grade system type (optional, will use predefined scales)' 
+              }
+            },
+            required: ['gradeAchieved', 'maxGrade', 'minPassGrade']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'extract_structured_data',
+          description: 'Use AI to extract specific fields from document text',
+          parameters: {
+            type: 'object',
+            properties: {
+              document_text: { type: 'string', description: 'Raw text from document' },
+              fields_to_extract: { 
+                type: 'array',
+                items: { type: 'string' },
+                description: 'List of fields to extract (e.g., program_name, university, grades, outcome)' 
+              }
+            },
+            required: ['document_text', 'fields_to_extract']
+          }
+        }
+      },
       {
         type: 'function',
         function: {
@@ -254,7 +366,97 @@ serve(async (req) => {
 
         console.log('Tool call:', functionName, args);
 
-        if (functionName === 'create_historical_application') {
+        if (functionName === 'trigger_document_ocr') {
+          const { document_id } = args;
+          
+          try {
+            const { data, error } = await supabaseAdmin.functions.invoke('process-document-ocr', {
+              body: { document_id }
+            });
+            
+            if (error) throw error;
+            
+            console.log('OCR triggered for document:', document_id);
+          } catch (error: any) {
+            console.error('Failed to trigger OCR:', error);
+          }
+          
+        } else if (functionName === 'get_document_text') {
+          const { document_id } = args;
+          
+          const { data, error } = await supabaseAdmin
+            .from('document_extractions')
+            .select('*')
+            .eq('document_id', document_id)
+            .order('extracted_at', { ascending: false })
+            .limit(1);
+          
+          if (error || !data || data.length === 0) {
+            console.log('Document text not found for:', document_id);
+          } else {
+            console.log('Document text retrieved:', data[0].raw_text?.substring(0, 100));
+          }
+          
+        } else if (functionName === 'list_uploaded_documents') {
+          const limit = args.limit || 10;
+          
+          const { data } = await supabaseAdmin
+            .from('student_documents')
+            .select('id, file_name, file_type, uploaded_at, ocr_status')
+            .order('uploaded_at', { ascending: false })
+            .limit(limit);
+          
+          console.log('Listed documents:', data?.length || 0);
+            
+        } else if (functionName === 'calculate_bavarian_gpa') {
+          const { gradeAchieved, maxGrade, minPassGrade, gradeSystem } = args;
+          
+          try {
+            const { data, error } = await supabaseAdmin.functions.invoke('calculate-german-gpa', {
+              body: { gradeAchieved, maxGrade, minPassGrade, gradeSystem }
+            });
+            
+            if (error) throw error;
+            
+            console.log('GPA calculated:', data);
+          } catch (error: any) {
+            console.error('GPA calculation failed:', error);
+          }
+          
+        } else if (functionName === 'extract_structured_data') {
+          const { document_text, fields_to_extract } = args;
+          
+          const extractionPrompt = `Extract the following fields from this document text:
+${fields_to_extract.map((f: string) => `- ${f}`).join('\n')}
+
+Document Text:
+${document_text}
+
+Return JSON format with extracted fields. If a field cannot be found, set its value to null.`;
+
+          try {
+            const extractionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${lovableApiKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: 'google/gemini-2.5-flash',
+                messages: [
+                  { role: 'user', content: extractionPrompt }
+                ],
+                response_format: { type: 'json_object' }
+              }),
+            });
+
+            const extractionData = await extractionResponse.json();
+            console.log('Extracted data:', extractionData.choices[0].message.content);
+          } catch (error: any) {
+            console.error('Data extraction failed:', error);
+          }
+          
+        } else if (functionName === 'create_historical_application') {
           const { error: insertError } = await supabaseAdmin
             .from('historical_applications')
             .insert({

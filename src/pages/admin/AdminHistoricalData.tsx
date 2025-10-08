@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Upload, FileText, Loader2, Send, Database } from 'lucide-react';
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
 }
@@ -41,6 +41,8 @@ export default function AdminHistoricalData() {
     }
     setUploadingFiles(newFiles);
 
+    const uploadedDocs: Array<{ id: string; name: string }> = [];
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
@@ -58,19 +60,54 @@ export default function AdminHistoricalData() {
 
         if (uploadError) throw uploadError;
 
-        // Add message about uploaded file
-        const uploadMessage: Message = {
-          role: 'assistant',
-          content: `✅ Uploaded ${file.name}. I'll analyze this document and extract the student data. Please provide some context: What is this document (transcript/certificate)? What was the outcome (accepted/rejected)?`,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, uploadMessage]);
+        // Create document record
+        const { data: docData, error: dbError } = await supabase
+          .from('student_documents')
+          .insert({
+            file_name: file.name,
+            file_path: filePath,
+            file_type: fileExt || 'unknown',
+            mime_type: file.type,
+            file_size_kb: Math.round(file.size / 1024),
+            uploaded_by: user.id,
+            ocr_status: 'pending'
+          })
+          .select()
+          .single();
+
+        if (dbError) throw dbError;
+
+        uploadedDocs.push({ id: docData.id, name: file.name });
+
+        // Automatically trigger OCR processing
+        try {
+          await supabase.functions.invoke('process-document-ocr', {
+            body: { document_id: docData.id }
+          });
+        } catch (ocrError) {
+          console.error('OCR trigger failed:', ocrError);
+        }
       }
 
       toast({
         title: 'Files uploaded',
-        description: `${files.length} document(s) uploaded successfully`,
+        description: `${files.length} document(s) uploaded - OCR processing started`,
       });
+
+      // Add system message with document IDs for AI to process
+      const uploadMessage: Message = {
+        role: 'system',
+        content: `DOCUMENTS_UPLOADED: ${JSON.stringify(uploadedDocs)}. Automatically trigger OCR and analyze these documents.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, uploadMessage]);
+
+      // Automatically send message to AI to analyze documents
+      setTimeout(() => {
+        const docList = uploadedDocs.map(d => d.name).join(', ');
+        handleSendMessage(`I uploaded ${uploadedDocs.length} document(s): ${docList}. Please analyze them.`);
+      }, 1000);
+
     } catch (error) {
       console.error('Error uploading files:', error);
       toast({
@@ -84,12 +121,13 @@ export default function AdminHistoricalData() {
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  const handleSendMessage = async (messageText?: string) => {
+    const message = messageText || input.trim();
+    if (!message || isLoading) return;
 
     const userMessage: Message = {
       role: 'user',
-      content: input,
+      content: message,
       timestamp: new Date()
     };
 
@@ -101,7 +139,7 @@ export default function AdminHistoricalData() {
       // Call admin-ai-assistant edge function
       const { data, error } = await supabase.functions.invoke('admin-ai-assistant', {
         body: { 
-          message: input,
+          message: message,
           conversationHistory: messages.map(m => ({
             role: m.role,
             content: m.content
@@ -254,7 +292,7 @@ export default function AdminHistoricalData() {
               />
               <Button
                 size="icon"
-                onClick={handleSendMessage}
+                onClick={() => handleSendMessage()}
                 disabled={!input.trim() || isLoading}
               >
                 <Send className="h-4 w-4" />
