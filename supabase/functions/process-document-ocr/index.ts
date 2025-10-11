@@ -2,13 +2,93 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
 import * as pdfjsLib from 'npm:pdfjs-dist@4.0.379';
+import Tesseract from 'npm:tesseract.js@5.0.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-async function extractTextFromPDF(fileData: Blob): Promise<{ text: string; confidence: number }> {
+async function extractTextWithTesseract(fileData: Blob): Promise<{ text: string; confidence: number }> {
+  try {
+    console.log('[OCR] Starting Tesseract OCR for scanned document');
+    const arrayBuffer = await fileData.arrayBuffer();
+    const typedArray = new Uint8Array(arrayBuffer);
+    
+    const loadingTask = pdfjsLib.getDocument({ data: typedArray });
+    const pdfDocument = await loadingTask.promise;
+    
+    let fullText = '';
+    let totalConfidence = 0;
+    const numPages = pdfDocument.numPages;
+    
+    console.log(`[OCR] Processing ${numPages} pages with Tesseract`);
+    
+    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+      const page = await pdfDocument.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 2.0 });
+      
+      // Create canvas to render page
+      const canvas = new OffscreenCanvas(viewport.width, viewport.height);
+      const context = canvas.getContext('2d');
+      
+      if (!context) {
+        console.error(`[OCR] Failed to get canvas context for page ${pageNum}`);
+        continue;
+      }
+      
+      await page.render({
+        canvasContext: context as any,
+        viewport: viewport
+      }).promise;
+      
+      // Convert canvas to blob
+      const blob = await canvas.convertToBlob({ type: 'image/png' });
+      const imageBuffer = await blob.arrayBuffer();
+      
+      console.log(`[OCR] Running Tesseract on page ${pageNum}...`);
+      
+      // Run Tesseract OCR
+      const result = await Tesseract.recognize(
+        new Uint8Array(imageBuffer),
+        'eng',
+        {
+          logger: (m: any) => {
+            if (m.status === 'recognizing text') {
+              console.log(`[OCR] Page ${pageNum} progress: ${Math.round(m.progress * 100)}%`);
+            }
+          }
+        }
+      );
+      
+      const pageText = result.data.text.trim();
+      const pageConfidence = result.data.confidence / 100;
+      
+      console.log(`[OCR] Page ${pageNum} extracted ${pageText.length} chars, confidence: ${pageConfidence.toFixed(2)}`);
+      
+      if (pageText) {
+        fullText += `\n--- Page ${pageNum} ---\n${pageText}\n`;
+        totalConfidence += pageConfidence;
+      }
+    }
+    
+    const avgConfidence = numPages > 0 ? totalConfidence / numPages : 0;
+    console.log(`[OCR] Tesseract completed. Total text: ${fullText.length} chars, avg confidence: ${avgConfidence.toFixed(2)}`);
+    
+    return { 
+      text: fullText.trim(), 
+      confidence: avgConfidence 
+    };
+  } catch (error) {
+    console.error('[OCR] Tesseract error:', error);
+    return { 
+      text: `[Tesseract OCR failed: ${error instanceof Error ? error.message : 'Unknown error'}]`, 
+      confidence: 0.0 
+    };
+  }
+}
+
+async function extractTextFromPDF(fileData: Blob): Promise<{ text: string; confidence: number; method: string }> {
   try {
     const arrayBuffer = await fileData.arrayBuffer();
     const typedArray = new Uint8Array(arrayBuffer);
@@ -19,15 +99,12 @@ async function extractTextFromPDF(fileData: Blob): Promise<{ text: string; confi
     let fullText = '';
     const numPages = pdfDocument.numPages;
     
-    console.log(`[OCR] Processing ${numPages} pages`);
+    console.log(`[OCR] Processing ${numPages} pages with PDF.js (fast path)`);
     
     for (let pageNum = 1; pageNum <= numPages; pageNum++) {
       const page = await pdfDocument.getPage(pageNum);
       const textContent = await page.getTextContent();
       
-      console.log(`[OCR] Page ${pageNum} has ${textContent.items.length} text items`);
-      
-      // Extract text with better formatting
       const pageTexts: string[] = [];
       textContent.items.forEach((item: any) => {
         if (item.str && item.str.trim()) {
@@ -36,27 +113,31 @@ async function extractTextFromPDF(fileData: Blob): Promise<{ text: string; confi
       });
       
       const pageText = pageTexts.join(' ');
-      console.log(`[OCR] Page ${pageNum} extracted text length: ${pageText.length}`);
       
       if (pageText.trim()) {
         fullText += `\n--- Page ${pageNum} ---\n${pageText}\n`;
-      } else {
-        fullText += `\n--- Page ${pageNum} ---\n[No text extracted from this page]\n`;
       }
     }
     
-    const actualTextLength = fullText.replace(/--- Page \d+ ---/g, '').replace(/\[No text extracted from this page\]/g, '').trim().length;
-    console.log(`[OCR] Total extracted text length: ${actualTextLength} characters`);
+    const actualTextLength = fullText.replace(/--- Page \d+ ---/g, '').trim().length;
+    console.log(`[OCR] PDF.js extracted ${actualTextLength} characters`);
     
-    // Calculate confidence based on actual text density
-    const confidence = actualTextLength > 100 ? 0.95 : actualTextLength > 50 ? 0.7 : actualTextLength > 0 ? 0.4 : 0.0;
+    // If no text found, use Tesseract
+    if (actualTextLength === 0) {
+      console.log('[OCR] No text found with PDF.js, falling back to Tesseract OCR');
+      const tesseractResult = await extractTextWithTesseract(fileData);
+      return { ...tesseractResult, method: 'tesseract' };
+    }
     
-    return { text: fullText.trim(), confidence };
+    const confidence = actualTextLength > 100 ? 0.95 : actualTextLength > 50 ? 0.7 : 0.4;
+    
+    return { text: fullText.trim(), confidence, method: 'pdfjs' };
   } catch (error) {
     console.error('PDF extraction error:', error);
     return { 
       text: `[PDF extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}]`, 
-      confidence: 0.0 
+      confidence: 0.0,
+      method: 'failed'
     };
   }
 }
@@ -118,14 +199,18 @@ serve(async (req) => {
       const result = await extractTextFromPDF(fileData);
       extractedText = result.text;
       confidence = result.confidence;
-      extractionMethod = 'pdfjs';
-      console.log(`[OCR] PDF extraction completed, text length: ${extractedText.length}, confidence: ${confidence}`);
+      extractionMethod = result.method;
+      console.log(`[OCR] PDF extraction completed with ${result.method}, text length: ${extractedText.length}, confidence: ${confidence}`);
     } else if (document.mime_type?.startsWith('image/')) {
-      // For images, we'd use Tesseract.js or similar
-      extractedText = '[Image OCR not yet implemented - requires Tesseract.js]';
-      confidence = 0.0;
-      extractionMethod = 'pending';
-      console.log(`[OCR] Image file detected, OCR not yet implemented`);
+      console.log(`[OCR] Processing image file with Tesseract`);
+      const result = await Tesseract.recognize(
+        await fileData.arrayBuffer(),
+        'eng'
+      );
+      extractedText = result.data.text;
+      confidence = result.data.confidence / 100;
+      extractionMethod = 'tesseract';
+      console.log(`[OCR] Image OCR completed, text length: ${extractedText.length}, confidence: ${confidence}`);
     } else {
       extractedText = '[Unsupported file type for OCR]';
       confidence = 0.0;
