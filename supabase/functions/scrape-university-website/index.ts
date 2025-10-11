@@ -131,13 +131,14 @@ serve(async (req) => {
   }
 
   try {
+    console.log('[scrape-university-website] Function invoked');
     const { universityName, city } = await req.json();
 
     if (!universityName || !city) {
       throw new Error('University name and city are required');
     }
 
-    console.log(`Scraping info for: ${universityName} in ${city}`);
+    console.log(`[scrape-university-website] Scraping info for: ${universityName} in ${city}`);
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
