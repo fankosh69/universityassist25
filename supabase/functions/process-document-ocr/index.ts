@@ -19,19 +19,37 @@ async function extractTextFromPDF(fileData: Blob): Promise<{ text: string; confi
     let fullText = '';
     const numPages = pdfDocument.numPages;
     
+    console.log(`[OCR] Processing ${numPages} pages`);
+    
     for (let pageNum = 1; pageNum <= numPages; pageNum++) {
       const page = await pdfDocument.getPage(pageNum);
       const textContent = await page.getTextContent();
       
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
+      console.log(`[OCR] Page ${pageNum} has ${textContent.items.length} text items`);
       
-      fullText += `\n--- Page ${pageNum} ---\n${pageText}\n`;
+      // Extract text with better formatting
+      const pageTexts: string[] = [];
+      textContent.items.forEach((item: any) => {
+        if (item.str && item.str.trim()) {
+          pageTexts.push(item.str.trim());
+        }
+      });
+      
+      const pageText = pageTexts.join(' ');
+      console.log(`[OCR] Page ${pageNum} extracted text length: ${pageText.length}`);
+      
+      if (pageText.trim()) {
+        fullText += `\n--- Page ${pageNum} ---\n${pageText}\n`;
+      } else {
+        fullText += `\n--- Page ${pageNum} ---\n[No text extracted from this page]\n`;
+      }
     }
     
-    // Calculate confidence based on text density
-    const confidence = fullText.trim().length > 100 ? 0.95 : 0.6;
+    const actualTextLength = fullText.replace(/--- Page \d+ ---/g, '').replace(/\[No text extracted from this page\]/g, '').trim().length;
+    console.log(`[OCR] Total extracted text length: ${actualTextLength} characters`);
+    
+    // Calculate confidence based on actual text density
+    const confidence = actualTextLength > 100 ? 0.95 : actualTextLength > 50 ? 0.7 : actualTextLength > 0 ? 0.4 : 0.0;
     
     return { text: fullText.trim(), confidence };
   } catch (error) {
