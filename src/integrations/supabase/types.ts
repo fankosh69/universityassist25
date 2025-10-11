@@ -547,6 +547,89 @@ export type Database = {
           },
         ]
       }
+      contracts: {
+        Row: {
+          contract_data: Json | null
+          contract_number: string
+          contract_template_url: string | null
+          created_at: string | null
+          id: string
+          profile_id: string
+          sales_lead_id: string | null
+          sent_at: string | null
+          sent_by: string | null
+          service_package_id: string | null
+          signature_ip: string | null
+          signed_at: string | null
+          signed_contract_url: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          contract_data?: Json | null
+          contract_number: string
+          contract_template_url?: string | null
+          created_at?: string | null
+          id?: string
+          profile_id: string
+          sales_lead_id?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          service_package_id?: string | null
+          signature_ip?: string | null
+          signed_at?: string | null
+          signed_contract_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          contract_data?: Json | null
+          contract_number?: string
+          contract_template_url?: string | null
+          created_at?: string | null
+          id?: string
+          profile_id?: string
+          sales_lead_id?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          service_package_id?: string | null
+          signature_ip?: string | null
+          signed_at?: string | null
+          signed_contract_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_sales_lead_id_fkey"
+            columns: ["sales_lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_service_package_id_fkey"
+            columns: ["service_package_id"]
+            isOneToOne: false
+            referencedRelation: "service_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_extractions: {
         Row: {
           admin_corrections: Json | null
@@ -784,6 +867,142 @@ export type Database = {
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hubspot_sync_log: {
+        Row: {
+          error_message: string | null
+          hubspot_contact_id: string | null
+          id: string
+          profile_id: string | null
+          request_data: Json | null
+          response_data: Json | null
+          sync_status: string | null
+          sync_type: string | null
+          synced_at: string | null
+        }
+        Insert: {
+          error_message?: string | null
+          hubspot_contact_id?: string | null
+          id?: string
+          profile_id?: string | null
+          request_data?: Json | null
+          response_data?: Json | null
+          sync_status?: string | null
+          sync_type?: string | null
+          synced_at?: string | null
+        }
+        Update: {
+          error_message?: string | null
+          hubspot_contact_id?: string | null
+          id?: string
+          profile_id?: string | null
+          request_data?: Json | null
+          response_data?: Json | null
+          sync_status?: string | null
+          sync_type?: string | null
+          synced_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hubspot_sync_log_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          amount_egp: number
+          amount_eur: number | null
+          created_at: string | null
+          currency: string | null
+          due_date: string | null
+          id: string
+          invoice_data: Json | null
+          invoice_number: string
+          issued_at: string | null
+          issued_by: string | null
+          paid_at: string | null
+          payment_method: string | null
+          paymob_transaction_id: string | null
+          profile_id: string
+          sales_lead_id: string | null
+          service_package_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount_egp: number
+          amount_eur?: number | null
+          created_at?: string | null
+          currency?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_data?: Json | null
+          invoice_number: string
+          issued_at?: string | null
+          issued_by?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          paymob_transaction_id?: string | null
+          profile_id: string
+          sales_lead_id?: string | null
+          service_package_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount_egp?: number
+          amount_eur?: number | null
+          created_at?: string | null
+          currency?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_data?: Json | null
+          invoice_number?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          paymob_transaction_id?: string | null
+          profile_id?: string
+          sales_lead_id?: string | null
+          service_package_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_sales_lead_id_fkey"
+            columns: ["sales_lead_id"]
+            isOneToOne: false
+            referencedRelation: "sales_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_service_package_id_fkey"
+            columns: ["service_package_id"]
+            isOneToOne: false
+            referencedRelation: "service_packages"
             referencedColumns: ["id"]
           },
         ]
@@ -1211,6 +1430,119 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_leads: {
+        Row: {
+          assigned_to: string | null
+          created_at: string | null
+          current_stage_id: string | null
+          evaluated_at: string | null
+          evaluated_by: string | null
+          evaluation_required: boolean | null
+          evaluation_status: string | null
+          id: string
+          last_contact_date: string | null
+          lead_source: string | null
+          next_follow_up: string | null
+          notes: Json | null
+          payment_enabled: boolean | null
+          profile_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string | null
+          current_stage_id?: string | null
+          evaluated_at?: string | null
+          evaluated_by?: string | null
+          evaluation_required?: boolean | null
+          evaluation_status?: string | null
+          id?: string
+          last_contact_date?: string | null
+          lead_source?: string | null
+          next_follow_up?: string | null
+          notes?: Json | null
+          payment_enabled?: boolean | null
+          profile_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string | null
+          current_stage_id?: string | null
+          evaluated_at?: string | null
+          evaluated_by?: string | null
+          evaluation_required?: boolean | null
+          evaluation_status?: string | null
+          id?: string
+          last_contact_date?: string | null
+          lead_source?: string | null
+          next_follow_up?: string | null
+          notes?: Json | null
+          payment_enabled?: boolean | null
+          profile_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_leads_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_leads_current_stage_id_fkey"
+            columns: ["current_stage_id"]
+            isOneToOne: false
+            referencedRelation: "sales_pipeline_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_leads_evaluated_by_fkey"
+            columns: ["evaluated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_leads_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_pipeline_stages: {
+        Row: {
+          color_hex: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          stage_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          color_hex?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          stage_order: number
+          updated_at?: string | null
+        }
+        Update: {
+          color_hex?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          stage_order?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       saved_programs: {
         Row: {
           created_at: string
@@ -1531,45 +1863,77 @@ export type Database = {
       }
       user_applications: {
         Row: {
+          admissions_decision: string | null
+          admissions_decision_date: string | null
+          admissions_decision_notes: string | null
+          application_notes: Json | null
           application_period_id: string
           applied_at: string | null
+          assigned_admissions_officer: string | null
           created_at: string
+          documents_verified: boolean | null
           id: string
+          last_reminder_sent: string | null
           metadata: Json | null
           profile_id: string
           program_id: string
+          reminders_count: number | null
           service_package_id: string | null
           status: Database["public"]["Enums"]["application_status"] | null
           submitted_at: string | null
           updated_at: string
         }
         Insert: {
+          admissions_decision?: string | null
+          admissions_decision_date?: string | null
+          admissions_decision_notes?: string | null
+          application_notes?: Json | null
           application_period_id: string
           applied_at?: string | null
+          assigned_admissions_officer?: string | null
           created_at?: string
+          documents_verified?: boolean | null
           id?: string
+          last_reminder_sent?: string | null
           metadata?: Json | null
           profile_id: string
           program_id: string
+          reminders_count?: number | null
           service_package_id?: string | null
           status?: Database["public"]["Enums"]["application_status"] | null
           submitted_at?: string | null
           updated_at?: string
         }
         Update: {
+          admissions_decision?: string | null
+          admissions_decision_date?: string | null
+          admissions_decision_notes?: string | null
+          application_notes?: Json | null
           application_period_id?: string
           applied_at?: string | null
+          assigned_admissions_officer?: string | null
           created_at?: string
+          documents_verified?: boolean | null
           id?: string
+          last_reminder_sent?: string | null
           metadata?: Json | null
           profile_id?: string
           program_id?: string
+          reminders_count?: number | null
           service_package_id?: string | null
           status?: Database["public"]["Enums"]["application_status"] | null
           submitted_at?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_applications_assigned_admissions_officer_fkey"
+            columns: ["assigned_admissions_officer"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
