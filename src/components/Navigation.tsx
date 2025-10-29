@@ -1,12 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, User, Search as SearchIcon, Bookmark, Settings, Bot } from "lucide-react";
+import { LogOut, User, Search as SearchIcon, Settings, Bot, ChevronDown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Logo from "@/components/Logo";
 import { useAdmin } from "@/hooks/useAdmin";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navigation = () => {
   const [user, setUser] = useState<any>(null);
@@ -57,12 +63,23 @@ const Navigation = () => {
         <Logo />
         
         <div className="flex items-center space-x-4">
-          <Link to="/regions" className="text-muted-foreground hover:text-foreground transition-colors">
-            Regions
-          </Link>
-          <Link to="/cities" className="text-muted-foreground hover:text-foreground transition-colors">
-            {t('navigation.cities')}
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                Explore Germany
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem asChild>
+                <Link to="/regions" className="cursor-pointer">Regions</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/cities" className="cursor-pointer">{t('navigation.cities')}</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           <Link to="/universities" className="text-muted-foreground hover:text-foreground transition-colors">
             {t('navigation.universities')}
           </Link>
@@ -82,10 +99,6 @@ const Navigation = () => {
             <>
               <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('navigation.dashboard')}
-              </Link>
-              <Link to="/saved" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                <Bookmark className="h-4 w-4" />
-                {t('navigation.saved')}
               </Link>
               {isAdmin && !adminLoading && (
                 <Link to="/admin" className="text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
