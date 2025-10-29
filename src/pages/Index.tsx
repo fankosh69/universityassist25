@@ -257,18 +257,15 @@ const Index = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <Link to="/">
-                <picture>
-                  <source srcSet="/lovable-uploads/logo-new-colors.webp" type="image/webp" />
-                  <img 
-                    src="/lovable-uploads/logo-new-colors.png" 
-                    alt="University Assist" 
-                    className="h-12 w-auto object-contain"
-                    width="200"
-                    height="48"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </picture>
+                <img 
+                  src="/lovable-uploads/logo-white.png" 
+                  alt="University Assist" 
+                  className="h-12 w-auto object-contain"
+                  width="200"
+                  height="48"
+                  loading="lazy"
+                  decoding="async"
+                />
               </Link>
               <p className="text-white/70">
                 {t('footer.tagline')}
