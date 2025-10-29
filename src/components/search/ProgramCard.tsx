@@ -36,7 +36,7 @@ interface ProgramCardProps {
 
 export function ProgramCard({ program, isSaved, onSave }: ProgramCardProps) {
   const formattedTitle = formatProgramTitle(program.degree_type, program.name);
-  const tuitionDisplay = program.semester_fees === 0 ? 'Free' : `€${program.semester_fees.toLocaleString()}/sem`;
+  const tuitionDisplay = program.semester_fees === 0 ? 'Free' : `€${program.semester_fees.toLocaleString()}/Semester`;
 
   return (
     <Card className="group hover:shadow-md transition-shadow border border-border bg-background">
