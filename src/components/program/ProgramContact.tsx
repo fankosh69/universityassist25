@@ -1,28 +1,28 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Mail, Phone, Globe, FileText } from 'lucide-react';
+import { MessageSquare, Sparkles, Building2, HelpCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface ProgramContactProps {
+  programId: string;
+  programName: string;
   universityName: string;
+  universitySlug: string;
   universityWebsite?: string;
   programUrl?: string;
   applicationMethod: string;
   uniAssistRequired: boolean;
+  onConsultationClick: () => void;
 }
 
 export function ProgramContact({
+  programId,
+  programName,
   universityName,
+  universitySlug,
   universityWebsite,
-  programUrl,
-  applicationMethod,
-  uniAssistRequired,
+  onConsultationClick,
 }: ProgramContactProps) {
-  const getApplicationUrl = () => {
-    if (programUrl) return programUrl;
-    if (uniAssistRequired) return 'https://www.uni-assist.de';
-    return universityWebsite || '#';
-  };
-
   return (
     <Card className="border-2 border-primary">
       <CardHeader>
@@ -31,73 +31,85 @@ export function ProgramContact({
       <CardContent className="space-y-4">
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Take the next step in your academic journey. Apply now or get in touch with {universityName} for more information.
+            Get expert guidance for your application to {universityName}. Our advisors are here to help you every step of the way.
           </p>
 
           {/* Primary Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Button asChild size="lg" className="w-full">
-              <a href={getApplicationUrl()} target="_blank" rel="noopener noreferrer">
-                <FileText className="h-4 w-4 mr-2" />
-                Apply Now
-                <ExternalLink className="h-3 w-3 ml-2" />
-              </a>
+            <Button size="lg" className="w-full" onClick={onConsultationClick}>
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Start Your Journey
             </Button>
 
-            {universityWebsite && (
-              <Button asChild variant="outline" size="lg" className="w-full">
-                <a href={universityWebsite} target="_blank" rel="noopener noreferrer">
-                  <Globe className="h-4 w-4 mr-2" />
-                  University Website
-                  <ExternalLink className="h-3 w-3 ml-2" />
-                </a>
-              </Button>
-            )}
+            <Button asChild variant="outline" size="lg" className="w-full">
+              <Link to={`/universities/${universitySlug}`}>
+                <Building2 className="h-4 w-4 mr-2" />
+                View {universityName}
+              </Link>
+            </Button>
           </div>
 
-          {/* Uni-Assist Link */}
-          {uniAssistRequired && (
-            <Button asChild variant="secondary" className="w-full">
-              <a href="https://www.uni-assist.de" target="_blank" rel="noopener noreferrer">
-                Apply via Uni-Assist
-                <ExternalLink className="h-3 w-3 ml-2" />
-              </a>
-            </Button>
-          )}
+          <Button
+            size="lg"
+            variant="secondary"
+            className="w-full"
+            onClick={onConsultationClick}
+          >
+            <HelpCircle className="h-4 w-4 mr-2" />
+            Get Application Support
+          </Button>
         </div>
 
-        {/* Contact Information */}
+        {/* Guidance Section */}
         <div className="border-t pt-4 space-y-3">
-          <h4 className="text-sm font-semibold">Contact Information</h4>
+          <h4 className="text-sm font-semibold">Need Guidance?</h4>
           
           <div className="space-y-2">
-            <div className="flex items-center gap-3 text-sm">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Admissions Office:</span>
-              <a href={`mailto:admissions@${universityWebsite?.replace(/^https?:\/\/(www\.)?/, '')}`} className="text-primary hover:underline">
-                Contact via website
-              </a>
-            </div>
+            <Button
+              variant="ghost"
+              className="w-full justify-start h-auto py-3"
+              onClick={onConsultationClick}
+            >
+              <MessageSquare className="h-4 w-4 mr-3 text-muted-foreground shrink-0" />
+              <div className="text-left">
+                <p className="font-medium text-sm">Speak with Our Advisors</p>
+                <p className="text-xs text-muted-foreground">Get personalized admission support</p>
+              </div>
+            </Button>
 
-            <div className="flex items-center gap-3 text-sm">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Phone:</span>
-              <span>Available on university website</span>
-            </div>
-
-            <div className="flex items-center gap-3 text-sm">
-              <Globe className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">International Office:</span>
-              <a href={universityWebsite} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                Visit website
-              </a>
-            </div>
+            <Button
+              variant="ghost"
+              className="w-full justify-start h-auto py-3"
+              asChild
+            >
+              <Link to={`/ai-assistant?program_id=${programId}`}>
+                <Sparkles className="h-4 w-4 mr-3 text-muted-foreground shrink-0" />
+                <div className="text-left">
+                  <p className="font-medium text-sm">Check Your Eligibility</p>
+                  <p className="text-xs text-muted-foreground">Use our AI tool for instant assessment</p>
+                </div>
+              </Link>
+            </Button>
           </div>
         </div>
 
-        {/* Disclaimer */}
-        <div className="bg-muted p-3 rounded-lg text-xs text-muted-foreground">
-          <strong>Important:</strong> Always verify application requirements and deadlines directly with the university, as information may change.
+        {/* CTA Info Box */}
+        <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg space-y-2">
+          <p className="text-sm font-medium">Have questions about this program?</p>
+          <p className="text-xs text-muted-foreground">
+            Use our AI Assistant to get instant, personalized guidance based on this program's specific requirements and your profile.
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full mt-2"
+            asChild
+          >
+            <Link to={`/ai-assistant?program_id=${programId}`}>
+              <Sparkles className="h-3 w-3 mr-2" />
+              Ask AI About This Program
+            </Link>
+          </Button>
         </div>
       </CardContent>
     </Card>

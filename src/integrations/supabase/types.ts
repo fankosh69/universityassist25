@@ -381,7 +381,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_data: Json | null
           old_data: Json | null
           operation: string
@@ -392,7 +392,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_data?: Json | null
           old_data?: Json | null
           operation: string
@@ -403,7 +403,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_data?: Json | null
           old_data?: Json | null
           operation?: string
@@ -476,7 +476,7 @@ export type Database = {
           country_code: string
           created_at: string | null
           description: string | null
-          fts: unknown | null
+          fts: unknown
           id: string
           keywords: string[] | null
           lat: number | null
@@ -498,7 +498,7 @@ export type Database = {
           country_code?: string
           created_at?: string | null
           description?: string | null
-          fts?: unknown | null
+          fts?: unknown
           id?: string
           keywords?: string[] | null
           lat?: number | null
@@ -520,7 +520,7 @@ export type Database = {
           country_code?: string
           created_at?: string | null
           description?: string | null
-          fts?: unknown | null
+          fts?: unknown
           id?: string
           keywords?: string[] | null
           lat?: number | null
@@ -543,6 +543,57 @@ export type Database = {
             columns: ["region_id"]
             isOneToOne: false
             referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consultations: {
+        Row: {
+          consultation_type: string
+          contacted_at: string | null
+          created_at: string
+          id: string
+          notes: Json | null
+          profile_id: string
+          program_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          consultation_type?: string
+          contacted_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: Json | null
+          profile_id: string
+          program_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          consultation_type?: string
+          contacted_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: Json | null
+          profile_id?: string
+          program_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consultations_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
             referencedColumns: ["id"]
           },
         ]
@@ -700,7 +751,7 @@ export type Database = {
           has_aps_certificate: boolean | null
           highest_education_level: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           language_certificates: Json | null
           missing_requirements: string[] | null
           profile_id: string | null
@@ -718,7 +769,7 @@ export type Database = {
           has_aps_certificate?: boolean | null
           highest_education_level: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           language_certificates?: Json | null
           missing_requirements?: string[] | null
           profile_id?: string | null
@@ -736,7 +787,7 @@ export type Database = {
           has_aps_certificate?: boolean | null
           highest_education_level?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           language_certificates?: Json | null
           missing_requirements?: string[] | null
           profile_id?: string | null
@@ -1780,7 +1831,7 @@ export type Database = {
           control_type: string | null
           created_at: string
           external_refs: Json | null
-          fts: unknown | null
+          fts: unknown
           id: string
           keywords: string[] | null
           lat: number | null
@@ -1801,7 +1852,7 @@ export type Database = {
           control_type?: string | null
           created_at?: string
           external_refs?: Json | null
-          fts?: unknown | null
+          fts?: unknown
           id?: string
           keywords?: string[] | null
           lat?: number | null
@@ -1822,7 +1873,7 @@ export type Database = {
           control_type?: string | null
           created_at?: string
           external_refs?: Json | null
-          fts?: unknown | null
+          fts?: unknown
           id?: string
           keywords?: string[] | null
           lat?: number | null
@@ -2015,20 +2066,14 @@ export type Database = {
       }
     }
     Functions: {
-      can_access_profile: {
-        Args: { profile_id: string }
-        Returns: boolean
-      }
-      check_profile_access_rate_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      can_access_profile: { Args: { profile_id: string }; Returns: boolean }
+      check_profile_access_rate_limit: { Args: never; Returns: boolean }
       check_profile_access_rights: {
         Args: { profile_uuid: string }
         Returns: Json
       }
       check_qa_users_setup: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           email: string
           profile_exists: boolean
@@ -2036,18 +2081,9 @@ export type Database = {
           user_exists: boolean
         }[]
       }
-      enhanced_validate_profile_access: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      export_my_profile_data: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_admin_dashboard_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      enhanced_validate_profile_access: { Args: never; Returns: boolean }
+      export_my_profile_data: { Args: never; Returns: Json }
+      get_admin_dashboard_stats: { Args: never; Returns: Json }
       get_current_application_period: {
         Args: { program_uuid: string }
         Returns: {
@@ -2097,10 +2133,7 @@ export type Database = {
           semester_start_date: string
         }[]
       }
-      get_profile_summary: {
-        Args: { profile_uuid: string }
-        Returns: Json
-      }
+      get_profile_summary: { Args: { profile_uuid: string }; Returns: Json }
       get_public_profile_display: {
         Args: { profile_uuid: string }
         Returns: {
@@ -2165,26 +2198,6 @@ export type Database = {
           updated_at: string
         }[]
       }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
       has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
@@ -2196,10 +2209,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      profile_access_guide: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      profile_access_guide: { Args: never; Returns: string }
       request_emergency_admin_access: {
         Args: { reason: string; target_profile_id?: string }
         Returns: Json
@@ -2238,30 +2248,14 @@ export type Database = {
         }
         Returns: Json
       }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
-      }
-      show_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
-      }
-      slugify: {
-        Args: { txt: string }
-        Returns: string
-      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
+      slugify: { Args: { txt: string }; Returns: string }
       ultra_secure_profile_update: {
         Args: { target_profile_id: string; update_data: Json }
         Returns: Json
       }
-      validate_profile_access: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      validate_profile_access: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role:

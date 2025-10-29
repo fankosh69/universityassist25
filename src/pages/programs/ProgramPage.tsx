@@ -12,6 +12,7 @@ import { ProgramApplicationTimeline } from '@/components/program/ProgramApplicat
 import { ProgramCosts } from '@/components/program/ProgramCosts';
 import { ProgramContact } from '@/components/program/ProgramContact';
 import { ProgramSidebar } from '@/components/program/ProgramSidebar';
+import { ConsultationModal } from '@/components/consultation/ConsultationModal';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
@@ -26,6 +27,7 @@ export default function ProgramPage() {
   const [deadlines, setDeadlines] = useState<any[]>([]);
   const [requirements, setRequirements] = useState<any[]>([]);
   const [studentProfile, setStudentProfile] = useState<StudentProfile | undefined>(undefined);
+  const [consultationModalOpen, setConsultationModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -227,11 +229,15 @@ export default function ProgramPage() {
 
             {/* Contact & Apply */}
             <ProgramContact
+              programId={programData.id}
+              programName={programData.name}
               universityName={university?.name}
+              universitySlug={university?.slug}
               universityWebsite={university?.website}
               programUrl={programData.program_url}
               applicationMethod={programData.application_method}
               uniAssistRequired={programData.uni_assist_required}
+              onConsultationClick={() => setConsultationModalOpen(true)}
             />
           </div>
 
@@ -256,6 +262,15 @@ export default function ProgramPage() {
           </div>
         </div>
       </div>
+
+      {/* Consultation Modal */}
+      <ConsultationModal
+        open={consultationModalOpen}
+        onOpenChange={setConsultationModalOpen}
+        programId={programData.id}
+        programName={programData.name}
+        universityName={university?.name}
+      />
     </div>
   );
 }
