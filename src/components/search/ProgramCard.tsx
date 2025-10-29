@@ -82,7 +82,12 @@ export function ProgramCard({ program, isSaved, onSave }: ProgramCardProps) {
           
           <div className="flex items-center gap-2">
             <MapPin className="h-3.5 w-3.5 shrink-0" />
-            <span className="text-xs">{program.universities.city}</span>
+            <Link 
+              to={`/cities/${program.universities.city.toLowerCase().replace(/\s+/g, '-')}`}
+              className="text-xs hover:text-primary transition-colors"
+            >
+              {program.universities.city}
+            </Link>
           </div>
 
           <div className="flex items-center gap-2">

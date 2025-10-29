@@ -61,7 +61,12 @@ export function ProgramListItem({ program, isSaved, onSave }: ProgramListItemPro
             <span>•</span>
             <div className="flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5" />
-              {program.universities.city}
+              <Link 
+                to={`/cities/${program.universities.city.toLowerCase().replace(/\s+/g, '-')}`}
+                className="hover:text-primary transition-colors"
+              >
+                {program.universities.city}
+              </Link>
             </div>
             <span>•</span>
             <div className="flex items-center gap-1">
