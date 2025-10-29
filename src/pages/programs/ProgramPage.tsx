@@ -75,7 +75,7 @@ export default function ProgramPage() {
           setStudentProfile({
             gpa_de: academics.gpa_de || 0,
             ects_total: academics.ects_total || 0,
-            language_certificates: academics.language_certificates || [],
+            language_certificates: (academics.language_certificates || []) as { language: string; level: string; certificate_type: string; }[],
             target_intake: academics.target_intake || '',
           });
         }
