@@ -6,6 +6,10 @@ import { FilterSidebar } from './FilterSidebar';
 import { ResultsPanel } from './ResultsPanel';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { normalizeInstitutionType, normalizeControlType } from '@/lib/institution-types';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search, Filter, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface Program {
   id: string;
@@ -242,6 +246,14 @@ export function EnhancedSearchContainer() {
     value !== 'all' && value !== null && value !== ''
   ) || searchQuery.trim() !== '';
 
+  const getActiveFilterCount = () => {
+    return Object.values(filters).filter(v => v !== 'all' && v !== null && v !== '').length;
+  };
+
+  const removeFilter = (key: keyof SearchFilters) => {
+    setFilters(prev => ({ ...prev, [key]: 'all' }));
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-neutral-50 p-4">
@@ -271,16 +283,100 @@ export function EnhancedSearchContainer() {
       <SearchLayout
         sidebar={sidebarContent}
         results={
-          <ResultsPanel
-            programs={programs}
-            savedPrograms={savedPrograms}
-            onSaveProgram={handleSaveProgram}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-            onFilterToggle={() => setMobileFiltersOpen(true)}
-          />
+          <>
+            {/* Mobile-only search bar and filters - sticky at top */}
+            <div className="lg:hidden sticky top-0 z-20 bg-background border-b shadow-sm">
+              <div className="p-3 space-y-2">
+                {/* Search input */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search programs..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 h-11"
+                  />
+                </div>
+
+                {/* Filter button */}
+                <Button
+                  variant="outline"
+                  onClick={() => setMobileFiltersOpen(true)}
+                  className="w-full h-11"
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filters
+                  {getActiveFilterCount() > 0 && (
+                    <Badge variant="secondary" className="ml-2 px-1.5 min-w-[20px] h-5">
+                      {getActiveFilterCount()}
+                    </Badge>
+                  )}
+                </Button>
+              </div>
+
+              {/* Active filter chips */}
+              {hasActiveFilters && (
+                <div className="px-3 pb-3 flex flex-wrap gap-1.5">
+                  {searchQuery && (
+                    <Badge variant="secondary" className="text-xs">
+                      Search: {searchQuery}
+                      <X
+                        className="h-3 w-3 ml-1 cursor-pointer"
+                        onClick={() => setSearchQuery('')}
+                      />
+                    </Badge>
+                  )}
+                  {filters.degreeLevel !== 'all' && (
+                    <Badge variant="secondary" className="text-xs">
+                      {filters.degreeLevel}
+                      <X
+                        className="h-3 w-3 ml-1 cursor-pointer"
+                        onClick={() => removeFilter('degreeLevel')}
+                      />
+                    </Badge>
+                  )}
+                  {filters.city !== 'all' && (
+                    <Badge variant="secondary" className="text-xs">
+                      {filters.city}
+                      <X
+                        className="h-3 w-3 ml-1 cursor-pointer"
+                        onClick={() => removeFilter('city')}
+                      />
+                    </Badge>
+                  )}
+                  {filters.maxTuitionFees !== 'all' && (
+                    <Badge variant="secondary" className="text-xs">
+                      ≤€{filters.maxTuitionFees}
+                      <X
+                        className="h-3 w-3 ml-1 cursor-pointer"
+                        onClick={() => removeFilter('maxTuitionFees')}
+                      />
+                    </Badge>
+                  )}
+                  {filters.fieldOfStudy !== 'all' && (
+                    <Badge variant="secondary" className="text-xs">
+                      {filters.fieldOfStudy}
+                      <X
+                        className="h-3 w-3 ml-1 cursor-pointer"
+                        onClick={() => removeFilter('fieldOfStudy')}
+                      />
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <ResultsPanel
+              programs={programs}
+              savedPrograms={savedPrograms}
+              onSaveProgram={handleSaveProgram}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+              onFilterToggle={() => setMobileFiltersOpen(true)}
+            />
+          </>
         }
       />
 

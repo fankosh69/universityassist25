@@ -1,7 +1,9 @@
 import React from 'react';
 import { ProgramCard } from './ProgramCard';
 import { ProgramListItem } from './ProgramListItem';
+import { ProgramMobileCard } from './ProgramMobileCard';
 import { SearchHeader } from './SearchHeader';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Program {
   id: string;
@@ -45,6 +47,8 @@ export function ResultsPanel({
   onSortChange,
   onFilterToggle
 }: ResultsPanelProps) {
+  const isMobile = useIsMobile();
+
   // Sort programs
   const sortedPrograms = React.useMemo(() => {
     const sorted = [...programs];
@@ -101,10 +105,11 @@ export function ResultsPanel({
           </div>
         ) : (
           <div>
-            {viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {/* Mobile: Use optimized mobile cards */}
+            {isMobile ? (
+              <div className="space-y-3">
                 {sortedPrograms.map(program => (
-                  <ProgramCard
+                  <ProgramMobileCard
                     key={program.id}
                     program={program}
                     isSaved={savedPrograms.has(program.id)}
@@ -113,16 +118,32 @@ export function ResultsPanel({
                 ))}
               </div>
             ) : (
-              <div className="space-y-2">
-                {sortedPrograms.map(program => (
-                  <ProgramListItem
-                    key={program.id}
-                    program={program}
-                    isSaved={savedPrograms.has(program.id)}
-                    onSave={onSaveProgram}
-                  />
-                ))}
-              </div>
+              /* Desktop: Use grid or list view */
+              <>
+                {viewMode === 'grid' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {sortedPrograms.map(program => (
+                      <ProgramCard
+                        key={program.id}
+                        program={program}
+                        isSaved={savedPrograms.has(program.id)}
+                        onSave={onSaveProgram}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {sortedPrograms.map(program => (
+                      <ProgramListItem
+                        key={program.id}
+                        program={program}
+                        isSaved={savedPrograms.has(program.id)}
+                        onSave={onSaveProgram}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
