@@ -77,7 +77,7 @@ export function ProgramListItem({ program, isSaved, onSave }: ProgramListItemPro
 
           <div className="flex flex-wrap gap-1.5">
             <Badge variant="secondary" className="text-xs">
-              {program.degree_level}
+              {program.degree_level.charAt(0).toUpperCase() + program.degree_level.slice(1)}
             </Badge>
             <LanguageFlags languages={program.language_of_instruction} size="sm" />
             {program.uni_assist_required && (

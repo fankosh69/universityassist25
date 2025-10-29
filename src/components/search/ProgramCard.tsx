@@ -64,7 +64,7 @@ export function ProgramCard({ program, isSaved, onSave }: ProgramCardProps) {
         {/* Badges */}
         <div className="flex flex-wrap gap-1.5 mb-3">
           <Badge variant="secondary" className="text-xs">
-            {program.degree_level}
+            {program.degree_level.charAt(0).toUpperCase() + program.degree_level.slice(1)}
           </Badge>
         </div>
 
