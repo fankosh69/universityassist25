@@ -74,9 +74,6 @@ export function ProgramListItem({ program, isSaved, onSave }: ProgramListItemPro
             <Badge variant="secondary" className="text-xs">
               {program.degree_level}
             </Badge>
-            <Badge variant="outline" className="text-xs">
-              {program.field_of_study}
-            </Badge>
             <LanguageFlags languages={program.language_of_instruction} size="sm" />
             {program.uni_assist_required && (
               <Badge variant="outline" className="text-xs">

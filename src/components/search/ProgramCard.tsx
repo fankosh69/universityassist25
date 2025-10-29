@@ -66,9 +66,6 @@ export function ProgramCard({ program, isSaved, onSave }: ProgramCardProps) {
           <Badge variant="secondary" className="text-xs">
             {program.degree_level}
           </Badge>
-          <Badge variant="outline" className="text-xs">
-            {program.field_of_study}
-          </Badge>
         </div>
 
         {/* Info rows */}
