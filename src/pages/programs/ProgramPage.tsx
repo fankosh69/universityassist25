@@ -258,6 +258,7 @@ export default function ProgramPage() {
                 website: university?.website
               }}
               nextDeadline={nextDeadline}
+              onConsultationClick={() => setConsultationModalOpen(true)}
             />
           </div>
         </div>

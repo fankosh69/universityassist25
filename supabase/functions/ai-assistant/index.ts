@@ -100,9 +100,9 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { conversationId, message } = await req.json();
+    const { conversationId, message, programId } = await req.json();
 
-    console.log('AI Assistant request:', { conversationId, userId: user.id, messageLength: message?.length });
+    console.log('AI Assistant request:', { conversationId, userId: user.id, messageLength: message?.length, programId });
 
     // Get or create conversation
     let conversation;
@@ -162,6 +162,43 @@ serve(async (req) => {
       .eq('profile_id', user.id)
       .single();
 
+    // Fetch program data if programId is provided
+    let programContext = '';
+    let programData = null;
+    if (programId) {
+      const { data, error } = await supabaseAdmin
+        .from('programs')
+        .select(`
+          id, name, degree_level, field_of_study, 
+          minimum_gpa, ects_credits, duration_semesters,
+          language_requirements, prerequisites,
+          uni_assist_required, application_method,
+          winter_deadline, summer_deadline, winter_intake, summer_intake,
+          description,
+          universities!inner(id, name, city, type, control_type)
+        `)
+        .eq('id', programId)
+        .single();
+
+      if (!error && data) {
+        programData = data;
+        programContext = `\n\nPROGRAM CONTEXT:\nThe user is inquiring about: ${data.name}
+- University: ${data.universities.name}, ${data.universities.city}
+- Degree Level: ${data.degree_level}
+- Field: ${data.field_of_study}
+- Duration: ${data.duration_semesters} semesters
+- Minimum GPA: ${data.minimum_gpa || 'Not specified'}
+- ECTS Required: ${data.ects_credits || 'Not specified'}
+- Language Requirements: ${JSON.stringify(data.language_requirements || [])}
+- Winter Intake: ${data.winter_intake ? 'Yes' : 'No'}${data.winter_deadline ? ` (Deadline: ${data.winter_deadline})` : ''}
+- Summer Intake: ${data.summer_intake ? 'Yes' : 'No'}${data.summer_deadline ? ` (Deadline: ${data.summer_deadline})` : ''}
+- Uni-Assist Required: ${data.uni_assist_required ? 'Yes' : 'No'}
+- Application Method: ${data.application_method}
+
+Provide specific guidance about this program, check eligibility, and answer questions about admission requirements.`;
+      }
+    }
+
     // Build context about what we already know
     let contextInfo = '\n\nCURRENT PROFILE DATA:\n';
     if (profile) {
@@ -177,10 +214,13 @@ serve(async (req) => {
     if (academics) {
       contextInfo += `- GPA: ${academics.gpa_raw || 'Not provided'} / ${academics.gpa_scale_max || '?'}\n`;
       contextInfo += `- Language Certificates: ${academics.language_certificates ? JSON.stringify(academics.language_certificates) : 'None'}\n`;
+      contextInfo += `- ECTS Credits: ${academics.ects_total || 'Not provided'}\n`;
+      contextInfo += `- Target Level: ${academics.target_level || 'Not provided'}\n`;
     }
     contextInfo += '\nAsk about information that is "Not provided". Do not repeat questions about information we already have.';
+    contextInfo += programContext;
 
-    // Define tools for updating profile data
+    // Define tools for updating profile data and checking eligibility
     const tools = [
       {
         type: "function",
@@ -236,6 +276,18 @@ serve(async (req) => {
             additionalProperties: false
           }
         }
+      },
+      {
+        type: "function",
+        function: {
+          name: "check_program_eligibility",
+          description: "Check user's eligibility for the current program based on their profile and academic data. Use this when user asks about eligibility or chances.",
+          parameters: {
+            type: "object",
+            properties: {},
+            additionalProperties: false
+          }
+        }
       }
     ];
 
@@ -273,7 +325,57 @@ serve(async (req) => {
         
         console.log('Tool call:', functionName, args);
         
-        if (functionName === 'update_profile_data') {
+        if (functionName === 'check_program_eligibility') {
+          // Calculate eligibility based on profile, academics, and program data
+          if (!programData) {
+            console.log('No program data available for eligibility check');
+            continue;
+          }
+
+          // Build eligibility response
+          let eligibilityResult = 'ELIGIBILITY ANALYSIS:\n';
+          const issues = [];
+          const strengths = [];
+
+          // Check GPA
+          if (academics?.gpa_raw && academics?.gpa_scale_max && academics?.gpa_min_pass) {
+            const normalizedGPA = ((academics.gpa_raw - academics.gpa_min_pass) / (academics.gpa_scale_max - academics.gpa_min_pass)) * 4.0;
+            const germanGPA = 1 + (4 - 1) * (1 - (normalizedGPA / 4.0));
+            const requiredGPA = programData.minimum_gpa || 2.5;
+            
+            if (germanGPA <= requiredGPA) {
+              strengths.push(`GPA meets requirements (German equivalent: ${germanGPA.toFixed(2)})`);
+            } else {
+              issues.push(`GPA may be below requirement (German equivalent: ${germanGPA.toFixed(2)}, required: ${requiredGPA})`);
+            }
+          } else {
+            issues.push('GPA information not provided');
+          }
+
+          // Check language requirements
+          if (programData.language_requirements && programData.language_requirements.length > 0) {
+            if (academics?.language_certificates && academics.language_certificates.length > 0) {
+              strengths.push('Has language certificates');
+            } else {
+              issues.push('Language certificates required but not provided');
+            }
+          }
+
+          // Check ECTS
+          if (programData.ects_credits) {
+            if (academics?.ects_total && academics.ects_total >= programData.ects_credits) {
+              strengths.push(`ECTS credits sufficient (${academics.ects_total}/${programData.ects_credits})`);
+            } else {
+              issues.push(`Need more ECTS credits (current: ${academics?.ects_total || 0}, required: ${programData.ects_credits})`);
+            }
+          }
+
+          eligibilityResult += '\nSTRENGTHS:\n' + (strengths.length > 0 ? strengths.map(s => `- ${s}`).join('\n') : '- None identified yet');
+          eligibilityResult += '\n\nAREAS TO ADDRESS:\n' + (issues.length > 0 ? issues.map(i => `- ${i}`).join('\n') : '- None identified');
+          eligibilityResult += '\n\nProvide this analysis to the user in a friendly, encouraging way. Offer specific advice on how to address any issues.';
+          
+          console.log('Eligibility check result:', eligibilityResult);
+        } else if (functionName === 'update_profile_data') {
           // Map fields to match the secure profile structure
           const publicData: Record<string, any> = {};
           const privateData: Record<string, any> = {};

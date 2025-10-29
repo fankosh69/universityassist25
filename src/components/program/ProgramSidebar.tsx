@@ -5,7 +5,8 @@ import WatchlistButton from '@/components/WatchlistButton';
 import EligibilityPanel from '@/components/EligibilityPanel';
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
-import { Share2, Printer, Calendar, ExternalLink, MapPin } from 'lucide-react';
+import { AskAIButton } from '@/components/program/AskAIButton';
+import { Share2, Printer, Calendar, ExternalLink, MapPin, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import type { StudentProfile, ProgramRequirements } from '@/lib/matching';
@@ -25,6 +26,7 @@ interface ProgramSidebarProps {
     website?: string;
   };
   nextDeadline?: Date;
+  onConsultationClick?: () => void;
   className?: string;
 }
 
@@ -35,6 +37,7 @@ export function ProgramSidebar({
   programRequirements,
   university,
   nextDeadline,
+  onConsultationClick,
   className,
 }: ProgramSidebarProps) {
   const handleShare = async () => {
@@ -66,6 +69,20 @@ export function ProgramSidebar({
           <CardTitle className="text-base">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
+          <AskAIButton 
+            programId={programId}
+            variant="default"
+            size="default"
+            className="w-full"
+          />
+
+          {onConsultationClick && (
+            <Button variant="secondary" className="w-full" onClick={onConsultationClick}>
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Get Admission Support
+            </Button>
+          )}
+          
           <div className="w-full">
             <WatchlistButton programId={programId} size="default" variant="outline" />
           </div>
@@ -130,20 +147,20 @@ export function ProgramSidebar({
             <span>{university.city}, Germany</span>
           </div>
 
+          <Link to={`/universities/${university.slug}`}>
+            <Button variant="secondary" size="sm" className="w-full">
+              View University Profile
+            </Button>
+          </Link>
+
           {university.website && (
             <Button asChild variant="outline" size="sm" className="w-full">
               <a href={university.website} target="_blank" rel="noopener noreferrer">
-                Visit University
+                Visit Website
                 <ExternalLink className="h-3 w-3 ml-2" />
               </a>
             </Button>
           )}
-
-          <Link to={`/universities/${university.slug}`}>
-            <Button variant="ghost" size="sm" className="w-full">
-              View All Programs
-            </Button>
-          </Link>
         </CardContent>
       </Card>
 

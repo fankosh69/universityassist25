@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Bot, Send, Loader2, CheckCircle2, Circle } from "lucide-react";
+import { Bot, Send, Loader2, CheckCircle2, Circle, GraduationCap, ExternalLink } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface Message {
@@ -26,6 +27,7 @@ interface ProfileChecklist {
 
 export default function AIAssistant() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -33,6 +35,8 @@ export default function AIAssistant() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [programData, setProgramData] = useState<any>(null);
+  const programId = searchParams.get('program_id');
 
   const [checklist, setChecklist] = useState<ProfileChecklist>({
     personalInfo: false,
@@ -44,7 +48,10 @@ export default function AIAssistant() {
   useEffect(() => {
     checkAuth();
     loadConversation();
-  }, []);
+    if (programId) {
+      loadProgramData();
+    }
+  }, [programId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -90,6 +97,23 @@ export default function AIAssistant() {
     });
   };
 
+  const loadProgramData = async () => {
+    if (!programId) return;
+
+    const { data, error } = await supabase
+      .from('programs')
+      .select(`
+        id, name, degree_level, field_of_study,
+        universities!inner(id, name, slug, city)
+      `)
+      .eq('id', programId)
+      .single();
+
+    if (!error && data) {
+      setProgramData(data);
+    }
+  };
+
   const loadConversation = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
@@ -123,9 +147,13 @@ export default function AIAssistant() {
       }
     } else {
       // Start with welcome message
+      const welcomeMsg = programData
+        ? `Hi! I'm your University Assist AI advisor. I see you're interested in ${programData.name} at ${programData.universities.name}. I can help you understand the requirements, check your eligibility, and guide you through the application process. How can I help you today?`
+        : "Hi! I'm your University Assist AI advisor. I'm here to help you find the perfect university program in Germany. Let's start by getting to know you better. What's your name?";
+      
       setMessages([{
         role: 'assistant',
-        content: "Hi! I'm your University Assist AI advisor. I'm here to help you find the perfect university program in Germany. Let's start by getting to know you better. What's your name?"
+        content: welcomeMsg
       }]);
     }
   };
@@ -142,7 +170,8 @@ export default function AIAssistant() {
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: {
           conversationId,
-          message: userMessage
+          message: userMessage,
+          programId: programId || null
         }
       });
 
@@ -192,31 +221,62 @@ export default function AIAssistant() {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           
-          {/* Profile Completion Checklist - Sidebar */}
-          <Card className="p-6 h-fit">
-            <div className="flex items-center gap-2 mb-4">
-              <Bot className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold">Profile Completion</h3>
-            </div>
-            <div className="space-y-3">
-              <ChecklistItem 
-                completed={checklist.personalInfo}
-                label="Personal Information"
-              />
-              <ChecklistItem 
-                completed={checklist.academicBackground}
-                label="Academic Background"
-              />
-              <ChecklistItem 
-                completed={checklist.languageSkills}
-                label="Language Skills"
-              />
-              <ChecklistItem 
-                completed={checklist.preferences}
-                label="Study Preferences"
-              />
-            </div>
-          </Card>
+          {/* Sidebar */}
+          <div className="space-y-4">
+            {/* Program Context Card */}
+            {programData && (
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">Program Context</h3>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">{programData.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {programData.universities.name}, {programData.universities.city}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary">{programData.degree_level}</Badge>
+                    <Badge variant="outline">{programData.field_of_study}</Badge>
+                  </div>
+                  <Button asChild variant="outline" size="sm" className="w-full">
+                    <Link to={`/universities/${programData.universities.slug}/programs/${programId}`}>
+                      View Program Details
+                      <ExternalLink className="h-3 w-3 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              </Card>
+            )}
+
+            {/* Profile Completion Checklist */}
+            <Card className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Bot className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold">Profile Completion</h3>
+              </div>
+              <div className="space-y-3">
+                <ChecklistItem 
+                  completed={checklist.personalInfo}
+                  label="Personal Information"
+                />
+                <ChecklistItem 
+                  completed={checklist.academicBackground}
+                  label="Academic Background"
+                />
+                <ChecklistItem 
+                  completed={checklist.languageSkills}
+                  label="Language Skills"
+                />
+                <ChecklistItem 
+                  completed={checklist.preferences}
+                  label="Study Preferences"
+                />
+              </div>
+            </Card>
+          </div>
 
           {/* Chat Interface */}
           <Card className="lg:col-span-3 flex flex-col h-[calc(100vh-12rem)]">
