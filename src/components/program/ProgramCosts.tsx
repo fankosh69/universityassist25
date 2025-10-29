@@ -1,0 +1,187 @@
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Euro, Info, Home, ShoppingBag, Heart, Briefcase } from 'lucide-react';
+
+interface ProgramCostsProps {
+  semesterFees: number | null;
+  durationSemesters: number | null;
+}
+
+export function ProgramCosts({ semesterFees, durationSemesters }: ProgramCostsProps) {
+  const totalProgramCost = semesterFees && durationSemesters ? semesterFees * durationSemesters : null;
+  const isTuitionFree = !semesterFees || semesterFees === 0;
+
+  // Typical semester contribution breakdown
+  const semesterContribution = {
+    admin: 50,
+    studentUnion: 20,
+    semesterTicket: 180,
+    total: 250,
+  };
+
+  // Living costs estimates for Germany
+  const livingCosts = {
+    accommodation: { min: 300, max: 700 },
+    food: { min: 200, max: 350 },
+    insurance: { min: 110, max: 120 },
+    transport: { min: 0, max: 50 }, // Often covered by semester ticket
+    other: { min: 100, max: 200 },
+  };
+
+  const totalMonthlyMin = 
+    livingCosts.accommodation.min +
+    livingCosts.food.min +
+    livingCosts.insurance.min +
+    livingCosts.transport.min +
+    livingCosts.other.min;
+
+  const totalMonthlyMax = 
+    livingCosts.accommodation.max +
+    livingCosts.food.max +
+    livingCosts.insurance.max +
+    livingCosts.transport.max +
+    livingCosts.other.max;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Euro className="h-5 w-5" />
+          Costs & Financing
+        </CardTitle>
+        <CardDescription>
+          Estimated costs for studying this program in Germany
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Tuition Fees Section */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold">Tuition Fees</h3>
+          {isTuitionFree ? (
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                This program is <strong className="text-green-600">tuition-free</strong>. Most public universities in Germany do not charge tuition fees for undergraduate and many graduate programs.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center p-3 rounded-lg bg-muted">
+                <span className="text-sm">Per Semester</span>
+                <span className="font-semibold">€{semesterFees?.toLocaleString()}</span>
+              </div>
+              {totalProgramCost && (
+                <div className="flex justify-between items-center p-3 rounded-lg bg-muted">
+                  <span className="text-sm">Total Program Cost ({durationSemesters} semesters)</span>
+                  <span className="font-semibold text-lg">€{totalProgramCost.toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Semester Contribution */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold">Semester Contribution (All Students)</h3>
+          <p className="text-xs text-muted-foreground">
+            Even at tuition-free universities, students pay a semester contribution
+          </p>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Administrative Fee</span>
+              <span>€{semesterContribution.admin}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Student Union Fee</span>
+              <span>€{semesterContribution.studentUnion}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Semester Ticket (Public Transport)</span>
+              <span>€{semesterContribution.semesterTicket}</span>
+            </div>
+            <div className="flex justify-between items-center p-3 rounded-lg bg-primary/10 font-medium">
+              <span>Typical Total per Semester</span>
+              <span>~€{semesterContribution.total}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Living Costs */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold">Monthly Living Costs Estimate</h3>
+          <p className="text-xs text-muted-foreground">
+            Average monthly expenses for students in Germany
+          </p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2 text-muted-foreground">
+                <Home className="h-4 w-4" />
+                Accommodation (rent)
+              </span>
+              <span>€{livingCosts.accommodation.min}-{livingCosts.accommodation.max}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2 text-muted-foreground">
+                <ShoppingBag className="h-4 w-4" />
+                Food & Groceries
+              </span>
+              <span>€{livingCosts.food.min}-{livingCosts.food.max}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2 text-muted-foreground">
+                <Heart className="h-4 w-4" />
+                Health Insurance
+              </span>
+              <span>€{livingCosts.insurance.min}-{livingCosts.insurance.max}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2 text-muted-foreground">
+                <Briefcase className="h-4 w-4" />
+                Other (books, leisure, etc.)
+              </span>
+              <span>€{livingCosts.other.min}-{livingCosts.other.max}</span>
+            </div>
+            <div className="flex justify-between items-center p-3 rounded-lg bg-secondary font-medium mt-3">
+              <span>Total Monthly Budget</span>
+              <span>€{totalMonthlyMin}-{totalMonthlyMax}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Financing Options */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold">Financing Options</h3>
+          <div className="space-y-2">
+            <div className="p-3 rounded-lg border">
+              <p className="text-sm font-medium">Scholarships</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                DAAD, Erasmus+, and other scholarship programs available for international students
+              </p>
+            </div>
+            <div className="p-3 rounded-lg border">
+              <p className="text-sm font-medium">Student Jobs</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                International students can work up to 120 full days or 240 half days per year
+              </p>
+            </div>
+            <div className="p-3 rounded-lg border">
+              <p className="text-sm font-medium">Blocked Account</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Required proof of ~€11,208/year for student visa application
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Important Note */}
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription className="text-xs">
+            <strong>Note:</strong> Costs vary by city and lifestyle. Major cities like Munich and Frankfurt tend to be more expensive. Always check the university's official website for current fees.
+          </AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
+  );
+}
