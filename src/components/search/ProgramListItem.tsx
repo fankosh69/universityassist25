@@ -52,7 +52,12 @@ export function ProgramListItem({ program, isSaved, onSave }: ProgramListItemPro
 
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-2">
             <InstitutionTypeBadge type={program.universities.type} className="text-xs" />
-            <span className="truncate">{program.universities.name}</span>
+            <Link 
+              to={`/universities/${program.universities.slug}`}
+              className="truncate hover:text-primary transition-colors"
+            >
+              {program.universities.name}
+            </Link>
             <span>•</span>
             <div className="flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5" />

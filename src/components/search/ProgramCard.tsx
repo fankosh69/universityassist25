@@ -72,7 +72,12 @@ export function ProgramCard({ program, isSaved, onSave }: ProgramCardProps) {
         <div className="space-y-1.5 text-sm text-muted-foreground mb-4">
           <div className="flex items-center gap-2">
             <InstitutionTypeBadge type={program.universities.type} className="text-xs" />
-            <span className="truncate text-xs">{program.universities.name}</span>
+            <Link 
+              to={`/universities/${program.universities.slug}`}
+              className="truncate text-xs hover:text-primary transition-colors"
+            >
+              {program.universities.name}
+            </Link>
           </div>
           
           <div className="flex items-center gap-2">
