@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,8 @@ import { AskAIButton } from '@/components/program/AskAIButton';
 import { Share2, Printer, Calendar, ExternalLink, MapPin, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 import type { StudentProfile, ProgramRequirements } from '@/lib/matching';
 
 interface ProgramSidebarProps {
@@ -40,20 +43,42 @@ export function ProgramSidebar({
   onConsultationClick,
   className,
 }: ProgramSidebarProps) {
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const [isSharing, setIsSharing] = useState(false);
+
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
+    setIsSharing(true);
+    
+    try {
+      if (navigator.share) {
         await navigator.share({
           title: programName,
           text: `Check out this program at ${university.name}`,
           url: window.location.href,
         });
-      } catch (err) {
-        console.log('Share cancelled');
+        // No toast needed for native share - it has its own UI
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        
+        toast({
+          title: t('share.copied'),
+          description: t('share.copied_desc'),
+        });
       }
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      // Could show a toast here
+    } catch (err) {
+      // Only show error if it's not just a user cancellation
+      if (err instanceof Error && err.name !== 'AbortError') {
+        console.error('Share error:', err);
+        toast({
+          title: t('share.error'),
+          description: t('share.error_desc'),
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -87,9 +112,9 @@ export function ProgramSidebar({
             <WatchlistButton programId={programId} size="default" variant="outline" />
           </div>
           
-          <Button variant="outline" className="w-full" onClick={handleShare}>
+          <Button variant="outline" className="w-full" onClick={handleShare} disabled={isSharing}>
             <Share2 className="h-4 w-4 mr-2" />
-            Share Program
+            {isSharing ? 'Sharing...' : t('share.title')}
           </Button>
 
           <Button variant="outline" className="w-full" onClick={handlePrint}>

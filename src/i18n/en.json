@@ -60,6 +60,13 @@
     "login_required_desc": "Please login to save programs to your watchlist.",
     "error": "Unable to update watchlist. Please try again."
   },
+  "share": {
+    "title": "Share Program",
+    "copied": "Link Copied!",
+    "copied_desc": "Program link has been copied to your clipboard.",
+    "error": "Unable to share",
+    "error_desc": "Failed to copy link to clipboard. Please try again."
+  },
   "gaps": {
     "title": "Gap Analysis",
     "description": "Areas where you can improve your application strength.",

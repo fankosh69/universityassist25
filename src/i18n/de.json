@@ -60,6 +60,13 @@
     "login_required_desc": "Bitte melden Sie sich an, um Programme zu speichern.",
     "error": "Merkliste konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
   },
+  "share": {
+    "title": "Programm teilen",
+    "copied": "Link kopiert!",
+    "copied_desc": "Der Programm-Link wurde in die Zwischenablage kopiert.",
+    "error": "Teilen fehlgeschlagen",
+    "error_desc": "Der Link konnte nicht in die Zwischenablage kopiert werden. Bitte versuchen Sie es erneut."
+  },
   "gaps": {
     "title": "Lückenanalyse",
     "description": "Bereiche, in denen Sie Ihre Bewerbung stärken können.",
