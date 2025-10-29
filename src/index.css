@@ -5,36 +5,36 @@
 @layer base {
   :root {
     /* University Assist Brand Colors - Based on Logo */
-    --primary: 208 61% 29%; /* Dark Navy Blue from logo */
+    --primary: 208 61% 42%; /* Lighter Navy Blue from logo */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 208 61% 50%;
-    --primary-dark: 208 61% 20%;
+    --primary-glow: 208 61% 58%;
+    --primary-dark: 208 61% 32%;
     
-    --secondary: 200 44% 52%; /* Light Blue/Teal from logo tagline */
+    --secondary: 200 44% 62%; /* Lighter Blue/Teal from logo tagline */
     --secondary-foreground: 0 0% 100%;
-    --secondary-glow: 200 44% 65%;
+    --secondary-glow: 200 44% 72%;
     
-    --accent: 180 50% 45%; /* Complementary teal */
+    --accent: 180 50% 55%; /* Lighter complementary teal */
     --accent-foreground: 0 0% 100%;
-    --accent-glow: 180 50% 60%;
+    --accent-glow: 180 50% 68%;
     
     --neutral: 210 25% 96%; /* Neutral light blue-grey */
     --neutral-dark: 210 25% 20%;
     
     /* Core System Colors */
     --background: 0 0% 100%;
-    --foreground: 208 61% 15%;
+    --foreground: 208 61% 25%;
     --card: 0 0% 100%;
-    --card-foreground: 208 61% 15%;
+    --card-foreground: 208 61% 25%;
     --popover: 0 0% 100%;
-    --popover-foreground: 208 61% 15%;
+    --popover-foreground: 208 61% 25%;
     --muted: 210 25% 96%;
-    --muted-foreground: 210 15% 45%;
+    --muted-foreground: 210 15% 52%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
     --border: 210 25% 90%;
     --input: 210 25% 90%;
-    --ring: 208 61% 29%;
+    --ring: 208 61% 42%;
     --success: 142 72% 43%;
     --success-foreground: 0 0% 100%;
     --warning: 43 96% 56%;
@@ -63,13 +63,13 @@
     
     /* Sidebar colors */
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 208 61% 20%;
-    --sidebar-primary: 208 61% 29%;
+    --sidebar-foreground: 208 61% 28%;
+    --sidebar-primary: 208 61% 42%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 210 25% 95%;
-    --sidebar-accent-foreground: 208 61% 29%;
+    --sidebar-accent-foreground: 208 61% 42%;
     --sidebar-border: 210 25% 88%;
-    --sidebar-ring: 200 44% 52%;
+    --sidebar-ring: 200 44% 62%;
   }
 
   .dark {
