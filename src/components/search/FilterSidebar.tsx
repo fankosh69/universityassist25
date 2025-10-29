@@ -87,7 +87,9 @@ export function FilterSidebar({
               {filterOptions.degreeLevels.map(level => (
                 <div key={level} className="flex items-center space-x-2 mb-2">
                   <RadioGroupItem value={level} id={`degree-${level}`} />
-                  <Label htmlFor={`degree-${level}`} className="text-sm cursor-pointer">{level}</Label>
+                  <Label htmlFor={`degree-${level}`} className="text-sm cursor-pointer">
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </Label>
                 </div>
               ))}
             </RadioGroup>
@@ -106,7 +108,9 @@ export function FilterSidebar({
               <SelectContent className="max-h-[300px]">
                 <SelectItem value="all">All Fields</SelectItem>
                 {filterOptions.fieldsOfStudy.map(field => (
-                  <SelectItem key={field} value={field}>{field}</SelectItem>
+                  <SelectItem key={field} value={field}>
+                    {field.charAt(0).toUpperCase() + field.slice(1)}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -126,7 +130,9 @@ export function FilterSidebar({
               <SelectContent className="max-h-[300px]">
                 <SelectItem value="all">All Cities</SelectItem>
                 {filterOptions.cities.sort().map(city => (
-                  <SelectItem key={city} value={city}>{city}</SelectItem>
+                  <SelectItem key={city} value={city}>
+                    {city.charAt(0).toUpperCase() + city.slice(1)}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -200,7 +206,7 @@ export function FilterSidebar({
                 <SelectItem value="all">Any Duration</SelectItem>
                 {filterOptions.durations.map(duration => (
                   <SelectItem key={duration} value={duration.toString()}>
-                    {duration} semesters
+                    {duration} Semesters
                   </SelectItem>
                 ))}
               </SelectContent>
