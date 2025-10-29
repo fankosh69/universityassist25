@@ -77,10 +77,13 @@ export function ProgramMobileCard({ program, isSaved, onSave }: ProgramMobileCar
           <Badge variant="secondary" className="text-xs px-2 py-0.5">
             {program.degree_level.charAt(0).toUpperCase() + program.degree_level.slice(1)}
           </Badge>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Link 
+            to={`/cities/${program.universities.city.toLowerCase().replace(/\s+/g, '-')}`}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+          >
             <MapPin className="h-3 w-3" />
             <span>{program.universities.city}</span>
-          </div>
+          </Link>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Euro className="h-3 w-3" />
             <span>{tuitionDisplay}</span>
