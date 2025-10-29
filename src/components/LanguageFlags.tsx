@@ -43,17 +43,20 @@ export const LanguageFlags: React.FC<LanguageFlagsProps> = ({
   };
 
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
+    <div className={`flex items-center gap-1.5 ${className}`}>
       {languages.map((language, index) => {
         const { flag, alt, title } = getFlag(language);
         return (
           <span
             key={index}
-            className={`inline-flex items-center justify-center ${sizeClasses[size]} text-xs`}
+            className="inline-flex items-center gap-1 text-xs"
             title={title}
             aria-label={alt}
           >
-            {flag}
+            <span className={`inline-flex items-center justify-center ${sizeClasses[size]}`}>
+              {flag}
+            </span>
+            <span>{title}</span>
           </span>
         );
       })}
