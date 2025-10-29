@@ -114,9 +114,6 @@ const Navigation = () => {
             
             {user ? (
               <>
-                <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  {t('navigation.dashboard')}
-                </Link>
                 {isAdmin && !adminLoading && (
                   <Link to="/admin" className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5">
                     <Settings className="h-3.5 w-3.5" />
