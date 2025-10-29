@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, User, Search as SearchIcon, Settings, Bot, ChevronDown } from "lucide-react";
+import { LogOut, User, Search as SearchIcon, Settings, Bot, ChevronDown, Target } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
@@ -106,14 +106,42 @@ const Navigation = () => {
                   Admin
                 </Link>
               )}
-              <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                <User className="h-4 w-4" />
-                {t('navigation.profile')}
-              </Link>
-              <Button variant="ghost" onClick={handleSignOut} className="flex items-center gap-1">
-                <LogOut className="h-4 w-4" />
-                {t('navigation.signout')}
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors">
+                    <User className="h-5 w-5 text-primary" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-background z-50">
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="cursor-pointer flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      {t('navigation.profile')}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="cursor-pointer flex items-center gap-2">
+                      <Target className="h-4 w-4" />
+                      {t('navigation.dashboard')}
+                    </Link>
+                  </DropdownMenuItem>
+                  {isAdmin && !adminLoading && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="cursor-pointer flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem 
+                    onClick={handleSignOut}
+                    className="cursor-pointer flex items-center gap-2 text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    {t('navigation.signout')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <>
@@ -121,7 +149,7 @@ const Navigation = () => {
                 <Button variant="ghost">{t('navigation.signin')}</Button>
               </Link>
               <Link to="/auth?tab=signup">
-                <Button variant="hero">{t('navigation.signup')}</Button>
+                <Button variant="hero">Get Started</Button>
               </Link>
             </>
           )}
