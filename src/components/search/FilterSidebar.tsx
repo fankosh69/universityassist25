@@ -3,7 +3,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Accordion } from '@/components/ui/accordion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FilterGroup } from './FilterGroup';
@@ -15,7 +14,7 @@ interface SearchFilters {
   fieldOfStudy: string;
   city: string;
   maxTuitionFees: string;
-  uniAssistRequired: boolean | null;
+  uniAssistRequired: string;
   duration: string;
   institutionType: string;
 }
@@ -211,19 +210,27 @@ export function FilterSidebar({
           {/* Uni-Assist */}
           <FilterGroup 
             value="uniassist" 
-            title="Uni-Assist"
-            activeCount={filters.uniAssistRequired !== null ? 1 : 0}
+            title="Application Method"
+            activeCount={filters.uniAssistRequired !== 'all' ? 1 : 0}
           >
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="uni-assist-required"
-                checked={filters.uniAssistRequired === true}
-                onCheckedChange={(checked) => updateFilter('uniAssistRequired', checked ? true : null)}
-              />
-              <Label htmlFor="uni-assist-required" className="text-sm cursor-pointer">
-                Uni-Assist Required Only
-              </Label>
-            </div>
+            <RadioGroup value={filters.uniAssistRequired} onValueChange={(value) => updateFilter('uniAssistRequired', value)}>
+              <div className="flex items-center space-x-2 mb-2">
+                <RadioGroupItem value="all" id="uniassist-all" />
+                <Label htmlFor="uniassist-all" className="text-sm cursor-pointer">All Methods</Label>
+              </div>
+              <div className="flex items-center space-x-2 mb-2">
+                <RadioGroupItem value="direct" id="uniassist-direct" />
+                <Label htmlFor="uniassist-direct" className="text-sm cursor-pointer">Direct Application</Label>
+              </div>
+              <div className="flex items-center space-x-2 mb-2">
+                <RadioGroupItem value="uni-assist" id="uniassist-required" />
+                <Label htmlFor="uniassist-required" className="text-sm cursor-pointer">Uni-Assist Required</Label>
+              </div>
+              <div className="flex items-center space-x-2 mb-2">
+                <RadioGroupItem value="vpd" id="uniassist-vpd" />
+                <Label htmlFor="uniassist-vpd" className="text-sm cursor-pointer">Uni-Assist VPD Required</Label>
+              </div>
+            </RadioGroup>
           </FilterGroup>
         </Accordion>
       </div>

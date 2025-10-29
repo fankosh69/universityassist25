@@ -32,7 +32,7 @@ interface SearchFilters {
   fieldOfStudy: string;
   city: string;
   maxTuitionFees: string;
-  uniAssistRequired: boolean | null;
+  uniAssistRequired: string;
   duration: string;
   institutionType: string;
 }
@@ -53,7 +53,7 @@ export function EnhancedSearchContainer() {
     fieldOfStudy: 'all',
     city: 'all',
     maxTuitionFees: 'all',
-    uniAssistRequired: null,
+    uniAssistRequired: 'all',
     duration: 'all',
     institutionType: 'all'
   });
@@ -151,8 +151,14 @@ export function EnhancedSearchContainer() {
       const maxFees = parseInt(filters.maxTuitionFees);
       filtered = filtered.filter(p => (p.semester_fees || 0) <= maxFees);
     }
-    if (filters.uniAssistRequired !== null) {
-      filtered = filtered.filter(p => p.uni_assist_required === filters.uniAssistRequired);
+    if (filters.uniAssistRequired && filters.uniAssistRequired !== 'all') {
+      if (filters.uniAssistRequired === 'direct') {
+        filtered = filtered.filter(p => p.application_method === 'direct');
+      } else if (filters.uniAssistRequired === 'uni-assist') {
+        filtered = filtered.filter(p => p.uni_assist_required === true && p.application_method !== 'vpd');
+      } else if (filters.uniAssistRequired === 'vpd') {
+        filtered = filtered.filter(p => p.application_method === 'vpd' || (p.uni_assist_required === true && p.application_method === 'vpd'));
+      }
     }
     if (filters.duration && filters.duration !== 'all') {
       filtered = filtered.filter(p => p.duration_semesters === parseInt(filters.duration));
@@ -214,7 +220,7 @@ export function EnhancedSearchContainer() {
       fieldOfStudy: 'all',
       city: 'all',
       maxTuitionFees: 'all',
-      uniAssistRequired: null,
+      uniAssistRequired: 'all',
       duration: 'all',
       institutionType: 'all'
     });
