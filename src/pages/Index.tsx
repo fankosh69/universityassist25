@@ -80,6 +80,7 @@ const Index = () => {
             height="751"
             loading="eager"
             decoding="async"
+            fetchPriority="high"
           />
         </div>
         <div className="relative container mx-auto px-4 py-24 text-center text-white">
