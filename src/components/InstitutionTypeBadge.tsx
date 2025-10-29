@@ -23,7 +23,7 @@ export function InstitutionTypeBadge({ type, useShort = false, className = '' }:
     );
   }
   
-  const label = getInstitutionTypeLabel(normalizedType, currentLanguage, useShort);
+  const label = getInstitutionTypeLabel(normalizedType, currentLanguage, useShort, true);
   
   return (
     <Badge 

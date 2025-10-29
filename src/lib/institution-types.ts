@@ -2,6 +2,8 @@ interface InstitutionType {
   value: string;
   labelEn: string;
   labelDe: string;
+  singularEn: string;
+  singularDe: string;
   shortEn: string;
   shortDe: string;
   description: string;
@@ -26,6 +28,8 @@ export const INSTITUTION_TYPES: InstitutionType[] = [
     value: 'university',
     labelEn: 'Universities',
     labelDe: 'Universitäten',
+    singularEn: 'University',
+    singularDe: 'Universität',
     shortEn: 'Uni',
     shortDe: 'Uni',
     description: 'Traditional universities focusing on academic research and theory',
@@ -37,6 +41,8 @@ export const INSTITUTION_TYPES: InstitutionType[] = [
     value: 'university_applied_sciences',
     labelEn: 'Universities of Applied Sciences',
     labelDe: 'Fachhochschulen',
+    singularEn: 'University of Applied Science',
+    singularDe: 'Fachhochschule',
     shortEn: 'UAS',
     shortDe: 'FH',
     description: 'Universities focusing on practical, application-oriented education',
@@ -48,6 +54,8 @@ export const INSTITUTION_TYPES: InstitutionType[] = [
     value: 'technical_university',
     labelEn: 'Technical Universities',
     labelDe: 'Technische Universitäten',
+    singularEn: 'Technical University',
+    singularDe: 'Technische Universität',
     shortEn: 'TU',
     shortDe: 'TU',
     description: 'Universities specializing in engineering, technology, and applied sciences',
@@ -59,6 +67,8 @@ export const INSTITUTION_TYPES: InstitutionType[] = [
     value: 'art_music_university',
     labelEn: 'Art/Music Universities',
     labelDe: 'Kunst-/Musikhochschulen',
+    singularEn: 'Art/Music University',
+    singularDe: 'Kunst-/Musikhochschule',
     shortEn: 'Art/Music',
     shortDe: 'Kunst/Musik',
     description: 'Specialized universities for arts, music, and creative disciplines',
@@ -109,12 +119,16 @@ export function getControlType(value: string): ControlType | undefined {
   return CONTROL_TYPES.find(type => type.value === value);
 }
 
-export function getInstitutionTypeLabel(value: string, language: 'en' | 'de' = 'en', useShort: boolean = false): string {
+export function getInstitutionTypeLabel(value: string, language: 'en' | 'de' = 'en', useShort: boolean = false, useSingular: boolean = false): string {
   const type = getInstitutionType(value);
   if (!type) return value;
   
   if (useShort) {
     return language === 'de' ? type.shortDe : type.shortEn;
+  }
+  
+  if (useSingular) {
+    return language === 'de' ? type.singularDe : type.singularEn;
   }
   
   return language === 'de' ? type.labelDe : type.labelEn;
