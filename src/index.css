@@ -4,38 +4,38 @@
 
 @layer base {
   :root {
-    /* University Assist Brand Colors */
-    --primary: 231 87% 58%; /* #2E57F6 */
+    /* University Assist Brand Colors - Based on Logo */
+    --primary: 208 61% 29%; /* Dark Navy Blue from logo */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 231 87% 70%;
-    --primary-dark: 231 87% 45%;
+    --primary-glow: 208 61% 50%;
+    --primary-dark: 208 61% 20%;
     
-    --secondary: 184 58% 59%; /* #5DC6C5 */
+    --secondary: 200 44% 52%; /* Light Blue/Teal from logo tagline */
     --secondary-foreground: 0 0% 100%;
-    --secondary-glow: 184 58% 70%;
+    --secondary-glow: 200 44% 65%;
     
-    --accent: 134 57% 62%; /* #63D581 */
+    --accent: 180 50% 45%; /* Complementary teal */
     --accent-foreground: 0 0% 100%;
-    --accent-glow: 134 57% 75%;
+    --accent-glow: 180 50% 60%;
     
-    --neutral: 220 43% 96%; /* #F5F7FA */
-    --neutral-dark: 220 43% 20%;
+    --neutral: 210 25% 96%; /* Neutral light blue-grey */
+    --neutral-dark: 210 25% 20%;
     
     /* Core System Colors */
-    --background: 220 43% 99%;
-    --foreground: 220 43% 8%;
+    --background: 0 0% 100%;
+    --foreground: 208 61% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 220 43% 8%;
+    --card-foreground: 208 61% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 43% 8%;
-    --muted: 220 43% 96%;
-    --muted-foreground: 220 20% 50%;
+    --popover-foreground: 208 61% 15%;
+    --muted: 210 25% 96%;
+    --muted-foreground: 210 15% 45%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --border: 220 43% 91%;
-    --input: 220 43% 91%;
-    --ring: 231 87% 58%;
-    --success: 134 57% 50%;
+    --border: 210 25% 90%;
+    --input: 210 25% 90%;
+    --ring: 208 61% 29%;
+    --success: 142 72% 43%;
     --success-foreground: 0 0% 100%;
     --warning: 43 96% 56%;
     --warning-foreground: 0 0% 100%;
@@ -46,13 +46,13 @@
     --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-glow)));
     --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
     --gradient-academic: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--neutral)));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
     
     /* Shadows */
     --shadow-soft: 0 2px 8px -2px hsl(var(--primary) / 0.1);
     --shadow-medium: 0 4px 16px -4px hsl(var(--primary) / 0.15);
     --shadow-strong: 0 8px 32px -8px hsl(var(--primary) / 0.2);
-    --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.3);
+    --shadow-glow: 0 0 40px hsl(var(--secondary) / 0.3);
     
     /* Typography */
     --font-heading: 'Poppins', system-ui, sans-serif;
@@ -63,51 +63,51 @@
     
     /* Sidebar colors */
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-foreground: 208 61% 20%;
+    --sidebar-primary: 208 61% 29%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 210 25% 95%;
+    --sidebar-accent-foreground: 208 61% 29%;
+    --sidebar-border: 210 25% 88%;
+    --sidebar-ring: 200 44% 52%;
   }
 
   .dark {
-    --background: 220 43% 4%;
-    --foreground: 220 43% 96%;
-    --card: 220 43% 6%;
-    --card-foreground: 220 43% 96%;
-    --popover: 220 43% 6%;
-    --popover-foreground: 220 43% 96%;
-    --primary: 231 87% 65%;
-    --primary-glow: 231 87% 75%;
-    --primary-dark: 231 87% 35%;
-    --secondary: 184 58% 65%;
-    --secondary-glow: 184 58% 75%;
-    --accent: 134 57% 68%;
-    --accent-glow: 134 57% 78%;
-    --muted: 220 43% 15%;
-    --muted-foreground: 220 20% 65%;
-    --border: 220 43% 15%;
-    --input: 220 43% 15%;
-    --ring: 231 87% 65%;
-    --neutral: 220 43% 15%;
-    --neutral-dark: 220 43% 85%;
+    --background: 208 61% 8%;
+    --foreground: 210 25% 96%;
+    --card: 208 61% 10%;
+    --card-foreground: 210 25% 96%;
+    --popover: 208 61% 10%;
+    --popover-foreground: 210 25% 96%;
+    --primary: 208 61% 40%;
+    --primary-glow: 208 61% 55%;
+    --primary-dark: 208 61% 25%;
+    --secondary: 200 44% 60%;
+    --secondary-glow: 200 44% 70%;
+    --accent: 180 50% 50%;
+    --accent-glow: 180 50% 65%;
+    --muted: 208 25% 18%;
+    --muted-foreground: 210 15% 60%;
+    --border: 208 25% 18%;
+    --input: 208 25% 18%;
+    --ring: 208 61% 40%;
+    --neutral: 208 25% 18%;
+    --neutral-dark: 210 25% 85%;
     
     /* Update shadows for dark mode */
     --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
     --shadow-medium: 0 4px 16px -4px hsl(0 0% 0% / 0.4);
     --shadow-strong: 0 8px 32px -8px hsl(0 0% 0% / 0.5);
-    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.2);
+    --shadow-glow: 0 0 40px hsl(var(--secondary) / 0.2);
     
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 208 61% 12%;
+    --sidebar-foreground: 210 25% 90%;
+    --sidebar-primary: 200 44% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 208 25% 20%;
+    --sidebar-accent-foreground: 210 25% 90%;
+    --sidebar-border: 208 25% 20%;
+    --sidebar-ring: 200 44% 52%;
   }
   
   /* RTL Support */

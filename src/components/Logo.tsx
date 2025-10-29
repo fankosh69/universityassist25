@@ -14,9 +14,9 @@ const Logo = ({ className = "", showText = false, variant = "default" }: LogoPro
       title="University Assist - Back to Home"
     >
       <picture>
-        <source srcSet="/lovable-uploads/logo-optimized.webp" type="image/webp" />
+        <source srcSet="/lovable-uploads/logo-new-colors.webp" type="image/webp" />
         <img 
-          src="/lovable-uploads/logo-optimized.png" 
+          src="/lovable-uploads/logo-new-colors.png" 
           alt="University Assist Logo" 
           className="h-10 w-auto object-contain max-w-[160px]"
           width="160"

@@ -258,9 +258,9 @@ const Index = () => {
             <div className="space-y-4">
               <Link to="/">
                 <picture>
-                  <source srcSet="/lovable-uploads/logo-optimized.webp" type="image/webp" />
+                  <source srcSet="/lovable-uploads/logo-new-colors.webp" type="image/webp" />
                   <img 
-                    src="/lovable-uploads/logo-optimized.png" 
+                    src="/lovable-uploads/logo-new-colors.png" 
                     alt="University Assist" 
                     className="h-12 w-auto object-contain"
                     width="200"
