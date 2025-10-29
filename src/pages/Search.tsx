@@ -1,4 +1,4 @@
-import EnhancedSearch from "@/components/EnhancedSearch";
+import { EnhancedSearchContainer } from "@/components/search/EnhancedSearchContainer";
 import Navigation from "@/components/Navigation";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
@@ -13,7 +13,7 @@ export default function Search() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5">
+    <div className="min-h-screen">
       <SEOHead 
         title="Search University Programs in Germany | University Assist"
         description="Find and compare university programs across Germany. Advanced search and filtering for Bachelor's and Master's degrees in all fields of study."
@@ -21,17 +21,7 @@ export default function Search() {
       <JsonLd data={jsonLd} />
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-4">Find Your Perfect Program</h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Search through thousands of university programs in Germany. 
-            Use our advanced filters to find the perfect match for your academic goals.
-          </p>
-        </div>
-
-        <EnhancedSearch />
-      </div>
+      <EnhancedSearchContainer />
     </div>
   );
 }
