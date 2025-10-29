@@ -13,15 +13,18 @@ const Logo = ({ className = "", showText = false, variant = "default" }: LogoPro
       className={`flex items-center space-x-3 hover:opacity-80 transition-opacity ${className}`}
       title="University Assist - Back to Home"
     >
-      <img 
-        src="/lovable-uploads/logo-optimized.png" 
-        alt="University Assist Logo" 
-        className="h-10 w-auto object-contain max-w-[160px]"
-        width="160"
-        height="40"
-        loading="lazy"
-        decoding="async"
-      />
+      <picture>
+        <source srcSet="/lovable-uploads/logo-optimized.webp" type="image/webp" />
+        <img 
+          src="/lovable-uploads/logo-optimized.png" 
+          alt="University Assist Logo" 
+          className="h-10 w-auto object-contain max-w-[160px]"
+          width="160"
+          height="40"
+          loading="lazy"
+          decoding="async"
+        />
+      </picture>
       {showText && (
         <span className={`text-xl font-bold ${
           variant === "white" ? "text-white" : 

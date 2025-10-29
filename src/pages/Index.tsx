@@ -13,6 +13,7 @@ import {
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import heroImage from "@/assets/hero-image-optimized.jpg";
+import heroImageWebP from "@/assets/hero-image-optimized.webp";
 import SEOHead from "@/components/SEOHead";
 import JsonLd, { organizationSchema, websiteSchema } from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
@@ -72,16 +73,19 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative bg-gradient-hero overflow-hidden">
         <div className="absolute inset-0">
-          <img 
-            src={heroImage}
-            alt="German University Campus"
-            className="w-full h-full object-cover opacity-20"
-            width="1335"
-            height="751"
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-          />
+          <picture>
+            <source srcSet={heroImageWebP} type="image/webp" />
+            <img 
+              src={heroImage}
+              alt="German University Campus"
+              className="w-full h-full object-cover opacity-20"
+              width="1335"
+              height="751"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+            />
+          </picture>
         </div>
         <div className="relative container mx-auto px-4 py-24 text-center text-white">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
@@ -253,15 +257,18 @@ const Index = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <Link to="/">
-                <img 
-                  src="/lovable-uploads/logo-optimized.png" 
-                  alt="University Assist" 
-                  className="h-12 w-auto object-contain"
-                  width="200"
-                  height="48"
-                  loading="lazy"
-                  decoding="async"
-                />
+                <picture>
+                  <source srcSet="/lovable-uploads/logo-optimized.webp" type="image/webp" />
+                  <img 
+                    src="/lovable-uploads/logo-optimized.png" 
+                    alt="University Assist" 
+                    className="h-12 w-auto object-contain"
+                    width="200"
+                    height="48"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </picture>
               </Link>
               <p className="text-white/70">
                 {t('footer.tagline')}
