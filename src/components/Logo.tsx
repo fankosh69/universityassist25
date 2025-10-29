@@ -18,11 +18,12 @@ const Logo = ({ className = "", showText = false, variant = "default" }: LogoPro
         <img 
           src="/lovable-uploads/logo-new-colors.png" 
           alt="University Assist Logo" 
-          className="h-10 w-auto object-contain max-w-[160px]"
+          className="h-10 w-auto object-contain max-w-[160px] brightness-100 dark:brightness-100"
           width="160"
           height="40"
           loading="lazy"
           decoding="async"
+          style={{ filter: 'none' }}
         />
       </picture>
       {showText && (
