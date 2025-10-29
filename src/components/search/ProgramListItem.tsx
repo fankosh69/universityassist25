@@ -5,6 +5,7 @@ import { Heart, MapPin, Clock, Euro, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatProgramTitle } from '@/lib/degree-formatting';
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
+import { ControlTypeBadge } from '@/components/ControlTypeBadge';
 import { LanguageFlags } from '@/components/LanguageFlags';
 
 interface Program {
@@ -23,6 +24,7 @@ interface Program {
     name: string;
     city: string;
     type: string;
+    control_type: string;
     slug: string;
   };
 }
@@ -84,6 +86,7 @@ export function ProgramListItem({ program, isSaved, onSave }: ProgramListItemPro
             <Badge variant="secondary" className="text-xs">
               {program.degree_level.charAt(0).toUpperCase() + program.degree_level.slice(1)}
             </Badge>
+            <ControlTypeBadge type={program.universities.control_type} className="text-xs" />
             <LanguageFlags languages={program.language_of_instruction} size="sm" />
             {program.uni_assist_required && (
               <Badge variant="outline" className="text-xs">

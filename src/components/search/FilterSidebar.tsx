@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FilterGroup } from './FilterGroup';
 import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X } from 'lucide-react';
-import { INSTITUTION_TYPES } from '@/lib/institution-types';
+import { INSTITUTION_TYPES, CONTROL_TYPES } from '@/lib/institution-types';
 
 interface SearchFilters {
   degreeLevel: string;
@@ -17,6 +17,7 @@ interface SearchFilters {
   uniAssistRequired: string;
   duration: string;
   institutionType: string;
+  controlType: string;
 }
 
 interface FilterOptions {
@@ -25,6 +26,7 @@ interface FilterOptions {
   cities: string[];
   durations: number[];
   institutionTypes: string[];
+  controlTypes: string[];
 }
 
 interface FilterSidebarProps {
@@ -183,6 +185,28 @@ export function FilterSidebar({
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
                 {INSTITUTION_TYPES.map(type => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.labelEn}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FilterGroup>
+
+          {/* Control Type Filter */}
+          <FilterGroup 
+            value="controlType" 
+            title="Institution Ownership" 
+            icon={<Building2 className="h-4 w-4" />}
+            activeCount={filters.controlType !== 'all' ? 1 : 0}
+          >
+            <Select value={filters.controlType} onValueChange={(value) => updateFilter('controlType', value)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select ownership..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {CONTROL_TYPES.map(type => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.labelEn}
                   </SelectItem>

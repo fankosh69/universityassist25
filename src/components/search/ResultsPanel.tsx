@@ -19,6 +19,7 @@ interface Program {
     name: string;
     city: string;
     type: string;
+    control_type: string;
     slug: string;
   };
 }

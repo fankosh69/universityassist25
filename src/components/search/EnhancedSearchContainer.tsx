@@ -5,7 +5,7 @@ import { SearchLayout } from './SearchLayout';
 import { FilterSidebar } from './FilterSidebar';
 import { ResultsPanel } from './ResultsPanel';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { normalizeInstitutionType } from '@/lib/institution-types';
+import { normalizeInstitutionType, normalizeControlType } from '@/lib/institution-types';
 
 interface Program {
   id: string;
@@ -23,6 +23,7 @@ interface Program {
     name: string;
     city: string;
     type: string;
+    control_type: string;
     slug: string;
   };
 }
@@ -35,6 +36,7 @@ interface SearchFilters {
   uniAssistRequired: string;
   duration: string;
   institutionType: string;
+  controlType: string;
 }
 
 export function EnhancedSearchContainer() {
@@ -55,7 +57,8 @@ export function EnhancedSearchContainer() {
     maxTuitionFees: 'all',
     uniAssistRequired: 'all',
     duration: 'all',
-    institutionType: 'all'
+    institutionType: 'all',
+    controlType: 'all'
   });
 
   // Get unique filter options
@@ -65,8 +68,9 @@ export function EnhancedSearchContainer() {
     const cities = [...new Set(allPrograms.map(p => p.universities?.city))].filter(Boolean);
     const durations = [...new Set(allPrograms.map(p => p.duration_semesters))].filter(Boolean).sort((a, b) => a - b);
     const institutionTypes = [...new Set(allPrograms.map(p => p.universities?.type))].filter(Boolean);
+    const controlTypes = [...new Set(allPrograms.map(p => p.universities?.control_type))].filter(Boolean);
     
-    return { degreeLevels, fieldsOfStudy, cities, durations, institutionTypes };
+    return { degreeLevels, fieldsOfStudy, cities, durations, institutionTypes, controlTypes };
   }, [allPrograms]);
 
   useEffect(() => {
@@ -82,7 +86,7 @@ export function EnhancedSearchContainer() {
           .from('programs')
           .select(`
             *,
-            universities!inner(name, city, type, slug)
+            universities!inner(name, city, type, control_type, slug)
           `)
           .eq('published', true)
           .order('name');
@@ -169,6 +173,12 @@ export function EnhancedSearchContainer() {
         return normalizedType === filters.institutionType;
       });
     }
+    if (filters.controlType && filters.controlType !== 'all') {
+      filtered = filtered.filter(p => {
+        const normalizedControlType = normalizeControlType(p.universities?.control_type || '');
+        return normalizedControlType === filters.controlType;
+      });
+    }
 
     setPrograms(filtered);
   }, [searchQuery, filters, allPrograms]);
@@ -222,7 +232,8 @@ export function EnhancedSearchContainer() {
       maxTuitionFees: 'all',
       uniAssistRequired: 'all',
       duration: 'all',
-      institutionType: 'all'
+      institutionType: 'all',
+      controlType: 'all'
     });
     setSearchQuery('');
   };
