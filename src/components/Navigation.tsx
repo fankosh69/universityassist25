@@ -73,7 +73,7 @@ const Navigation = () => {
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
-    <nav className="bg-background/95 backdrop-blur-sm border-b sticky top-0 z-50">
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-6 py-3 flex items-center justify-between gap-8">
         <Logo />
         
@@ -82,7 +82,7 @@ const Navigation = () => {
           <div className="flex items-center gap-6">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                <button className="text-sm text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1">
                   Explore Germany
                   <ChevronDown className="h-3.5 w-3.5" />
                 </button>
@@ -97,17 +97,17 @@ const Navigation = () => {
               </DropdownMenuContent>
             </DropdownMenu>
             
-            <Link to="/universities" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/universities" className="text-sm text-gray-700 hover:text-gray-900 transition-colors">
               {t('navigation.universities')}
             </Link>
-            <Link to="/search" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5">
+            <Link to="/search" className="text-sm text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1.5">
               <SearchIcon className="h-3.5 w-3.5" />
               {t('navigation.search')}
             </Link>
-            <Link to="/admissions-navigator" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/admissions-navigator" className="text-sm text-gray-700 hover:text-gray-900 transition-colors">
               Eligibility
             </Link>
-            <Link to="/ai-assistant" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5">
+            <Link to="/ai-assistant" className="text-sm text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1.5">
               <Bot className="h-3.5 w-3.5" />
               AI Assistant
             </Link>
