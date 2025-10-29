@@ -58,16 +58,16 @@ const Navigation = () => {
   };
 
   return (
-    <nav className="bg-white/95 backdrop-blur-sm border-b shadow-soft sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+    <nav className="bg-background/95 backdrop-blur-sm border-b sticky top-0 z-50">
+      <div className="container mx-auto px-6 py-3 flex items-center justify-between gap-8">
         <Logo />
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-6">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+              <button className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
                 Explore Germany
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
@@ -80,36 +80,36 @@ const Navigation = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <Link to="/universities" className="text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="/universities" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             {t('navigation.universities')}
           </Link>
-          <Link to="/search" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-            <SearchIcon className="h-4 w-4" />
+          <Link to="/search" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5">
+            <SearchIcon className="h-3.5 w-3.5" />
             {t('navigation.search')}
           </Link>
-          <Link to="/admissions-navigator" className="text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="/admissions-navigator" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Eligibility
           </Link>
-          <Link to="/ai-assistant" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-            <Bot className="h-4 w-4" />
+          <Link to="/ai-assistant" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5">
+            <Bot className="h-3.5 w-3.5" />
             AI Assistant
           </Link>
           
           {user ? (
             <>
-              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 {t('navigation.dashboard')}
               </Link>
               {isAdmin && !adminLoading && (
-                <Link to="/admin" className="text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
-                  <Settings className="h-4 w-4" />
+                <Link to="/admin" className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5">
+                  <Settings className="h-3.5 w-3.5" />
                   Admin
                 </Link>
               )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors">
-                    <User className="h-5 w-5 text-primary" />
+                  <button className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors">
+                    <User className="h-4 w-4 text-primary" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 bg-background z-50">
@@ -146,10 +146,10 @@ const Navigation = () => {
           ) : (
             <>
               <Link to="/auth?tab=signin">
-                <Button variant="ghost">{t('navigation.signin')}</Button>
+                <Button variant="ghost" size="sm">{t('navigation.signin')}</Button>
               </Link>
               <Link to="/auth?tab=signup">
-                <Button variant="hero">Get Started</Button>
+                <Button variant="hero" size="sm">Get Started</Button>
               </Link>
             </>
           )}
