@@ -81,7 +81,7 @@ serve(async (req) => {
         *,
         program:program_id(
           *,
-          university:university_id(name, city_id)
+          university:university_id(name, slug, city_id, logo_url)
         )
       `)
       .eq("shortlist_id", shortlistId)
@@ -116,6 +116,8 @@ serve(async (req) => {
     const studentEmail = student.email;
     const studentName = student.full_name || "Student";
     const staffName = creator.full_name || "Your Advisor";
+    const appUrl = Deno.env.get("APP_URL") || "https://universityassist25.lovable.app";
+    const logoUrl = `${appUrl}/lovable-uploads/logo-optimized.webp`;
 
     if (!studentEmail) {
       throw new Error("Student email not found");
@@ -131,6 +133,8 @@ serve(async (req) => {
         title: shortlist.title,
         message: shortlist.message,
         programs: enrichedPrograms,
+        appUrl,
+        logoUrl,
       })
     );
 

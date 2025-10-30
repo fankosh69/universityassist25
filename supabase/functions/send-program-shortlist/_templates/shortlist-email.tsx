@@ -9,6 +9,7 @@ import {
   Text,
   Section,
   Hr,
+  Img,
 } from 'npm:@react-email/components@0.0.22';
 import * as React from 'npm:react@18.3.1';
 
@@ -17,6 +18,8 @@ interface ShortlistEmailProps {
   staffName: string;
   title: string;
   message?: string;
+  appUrl: string;
+  logoUrl: string;
   programs: Array<{
     id: string;
     name: string;
@@ -30,6 +33,7 @@ interface ShortlistEmailProps {
       name: string;
       slug: string;
       city_name: string;
+      logo_url?: string;
     };
     staff_notes?: string;
   }>;
@@ -41,6 +45,8 @@ export const ShortlistEmail = ({
   title,
   message,
   programs,
+  appUrl,
+  logoUrl,
 }: ShortlistEmailProps) => (
   <Html>
     <Head />
@@ -49,7 +55,13 @@ export const ShortlistEmail = ({
       <Container style={container}>
         {/* Header */}
         <Section style={header}>
-          <Heading style={logo}>University Assist</Heading>
+          <Img
+            src={logoUrl}
+            alt="University Assist"
+            width="180"
+            height="auto"
+            style={logoImage}
+          />
         </Section>
 
         {/* Greeting */}
@@ -70,6 +82,16 @@ export const ShortlistEmail = ({
         {/* Programs */}
         {programs.map((program, index) => (
           <Section key={program.id} style={programCard}>
+            {program.university.logo_url && (
+              <Img
+                src={program.university.logo_url}
+                alt={program.university.name}
+                width="120"
+                height="auto"
+                style={universityLogo}
+              />
+            )}
+            
             <Heading style={programTitle}>{program.name}</Heading>
             
             <Text style={universityText}>
@@ -103,7 +125,7 @@ export const ShortlistEmail = ({
             )}
 
             <Link
-              href={`https://universityassist.com/universities/${program.university.slug}/programs/${program.slug}`}
+              href={`${appUrl}/universities/${program.university.slug}/programs/${program.slug}`}
               style={button}
             >
               View Program Details →
@@ -118,10 +140,7 @@ export const ShortlistEmail = ({
         {/* Footer */}
         <Section style={footer}>
           <Text style={footerText}>
-            Have questions? Reply to this email or contact us at{' '}
-            <Link href="mailto:support@universityassist.com" style={link}>
-              support@universityassist.com
-            </Link>
+            Have questions? Reply to this email or contact your advisor.
           </Text>
 
           <Text style={disclaimer}>
@@ -298,4 +317,15 @@ const disclaimer = {
   lineHeight: '18px',
   margin: '20px 0 0',
   fontStyle: 'italic' as const,
+};
+
+const logoImage = {
+  margin: '0 auto',
+  display: 'block',
+};
+
+const universityLogo = {
+  marginBottom: '16px',
+  maxHeight: '60px',
+  objectFit: 'contain' as const,
 };
