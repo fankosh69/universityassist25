@@ -83,19 +83,28 @@ export const ShortlistEmail = ({
         {programs.map((program, index) => (
           <Section key={program.id} style={programCard}>
             {program.university.logo_url && (
-              <Img
-                src={program.university.logo_url}
-                alt={program.university.name}
-                width="120"
-                height="auto"
-                style={universityLogo}
-              />
+              <Link href={`${appUrl}/universities/${program.university.slug}`}>
+                <Img
+                  src={program.university.logo_url}
+                  alt={program.university.name}
+                  width="120"
+                  height="auto"
+                  style={universityLogo}
+                />
+              </Link>
             )}
             
             <Heading style={programTitle}>{program.name}</Heading>
             
             <Text style={universityText}>
-              📍 {program.university.name}, {program.university.city_name}
+              📍{' '}
+              <Link href={`${appUrl}/universities/${program.university.slug}`} style={inlineLink}>
+                {program.university.name}
+              </Link>
+              ,{' '}
+              <Link href={`${appUrl}/cities/${program.university.city_name.toLowerCase().replace(/\s+/g, '-')}`} style={inlineLink}>
+                {program.university.city_name}
+              </Link>
             </Text>
 
             <Section style={detailsGrid}>
@@ -328,4 +337,10 @@ const universityLogo = {
   marginBottom: '16px',
   maxHeight: '60px',
   objectFit: 'contain' as const,
+};
+
+const inlineLink = {
+  color: '#2E57F6',
+  textDecoration: 'none',
+  fontWeight: '500',
 };

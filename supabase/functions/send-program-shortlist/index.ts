@@ -117,7 +117,7 @@ serve(async (req) => {
     const studentName = student.full_name || "Student";
     const staffName = creator.full_name || "Your Advisor";
     const appUrl = Deno.env.get("APP_URL") || "https://universityassist25.lovable.app";
-    const logoUrl = `${appUrl}/lovable-uploads/logo-optimized.webp`;
+    const logoUrl = `${appUrl}/lovable-uploads/logo-white-transparent.png`;
 
     if (!studentEmail) {
       throw new Error("Student email not found");
