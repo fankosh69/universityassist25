@@ -1343,6 +1343,42 @@ export type Database = {
           },
         ]
       }
+      program_shortlists: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          id: string
+          message: string | null
+          sent_at: string | null
+          status: string
+          student_profile_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          id?: string
+          message?: string | null
+          sent_at?: string | null
+          status?: string
+          student_profile_id: string
+          title?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          message?: string | null
+          sent_at?: string | null
+          status?: string
+          student_profile_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       programs: {
         Row: {
           application_deadline: string | null
@@ -1728,6 +1764,48 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      shortlist_programs: {
+        Row: {
+          created_at: string | null
+          id: string
+          program_id: string
+          shortlist_id: string
+          sort_order: number | null
+          staff_notes: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          program_id: string
+          shortlist_id: string
+          sort_order?: number | null
+          staff_notes?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          program_id?: string
+          shortlist_id?: string
+          sort_order?: number | null
+          staff_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shortlist_programs_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shortlist_programs_shortlist_id_fkey"
+            columns: ["shortlist_id"]
+            isOneToOne: false
+            referencedRelation: "program_shortlists"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       student_academics: {
         Row: {
