@@ -805,6 +805,56 @@ export type Database = {
           },
         ]
       }
+      fields_of_study: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          level: number
+          name: string
+          name_ar: string | null
+          name_de: string | null
+          parent_id: string | null
+          slug: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          level: number
+          name: string
+          name_ar?: string | null
+          name_de?: string | null
+          parent_id?: string | null
+          slug: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          level?: number
+          name?: string
+          name_ar?: string | null
+          name_de?: string | null
+          parent_id?: string | null
+          slug?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fields_of_study_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "fields_of_study"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       historical_applications: {
         Row: {
           acceptance_conditions: string | null
@@ -1306,6 +1356,7 @@ export type Database = {
           duration_semesters: number
           ects_credits: number | null
           field_of_study: string
+          field_of_study_id: string | null
           id: string
           language_of_instruction: string[] | null
           language_requirements: string[] | null
@@ -1341,6 +1392,7 @@ export type Database = {
           duration_semesters: number
           ects_credits?: number | null
           field_of_study: string
+          field_of_study_id?: string | null
           id?: string
           language_of_instruction?: string[] | null
           language_requirements?: string[] | null
@@ -1376,6 +1428,7 @@ export type Database = {
           duration_semesters?: number
           ects_credits?: number | null
           field_of_study?: string
+          field_of_study_id?: string | null
           id?: string
           language_of_instruction?: string[] | null
           language_requirements?: string[] | null
@@ -1400,6 +1453,13 @@ export type Database = {
           winter_intake?: boolean | null
         }
         Relationships: [
+          {
+            foreignKeyName: "programs_field_of_study_id_fkey"
+            columns: ["field_of_study_id"]
+            isOneToOne: false
+            referencedRelation: "fields_of_study"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "programs_university_id_fkey"
             columns: ["university_id"]
@@ -2081,6 +2141,7 @@ export type Database = {
           user_exists: boolean
         }[]
       }
+      count_programs_by_field: { Args: { field_id: string }; Returns: number }
       enhanced_validate_profile_access: { Args: never; Returns: boolean }
       export_my_profile_data: { Args: never; Returns: Json }
       get_admin_dashboard_stats: { Args: never; Returns: Json }
@@ -2094,6 +2155,12 @@ export type Database = {
           intake_year: number
           semester_start_date: string
           status: string
+        }[]
+      }
+      get_field_descendants: {
+        Args: { field_id: string }
+        Returns: {
+          descendant_id: string
         }[]
       }
       get_masked_academic_summary: {
