@@ -1349,9 +1349,12 @@ export type Database = {
           created_by: string
           id: string
           message: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          recipient_type: string | null
           sent_at: string | null
           status: string
-          student_profile_id: string
+          student_profile_id: string | null
           title: string
           updated_at: string | null
         }
@@ -1360,9 +1363,12 @@ export type Database = {
           created_by: string
           id?: string
           message?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          recipient_type?: string | null
           sent_at?: string | null
           status?: string
-          student_profile_id: string
+          student_profile_id?: string | null
           title?: string
           updated_at?: string | null
         }
@@ -1371,9 +1377,12 @@ export type Database = {
           created_by?: string
           id?: string
           message?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          recipient_type?: string | null
           sent_at?: string | null
           status?: string
-          student_profile_id?: string
+          student_profile_id?: string | null
           title?: string
           updated_at?: string | null
         }

@@ -50,16 +50,37 @@ serve(async (req) => {
 
     console.log("Shortlist found:", shortlist);
 
-    // Fetch student details
-    const { data: student, error: studentError } = await supabaseClient
-      .from("profiles")
-      .select("full_name, email")
-      .eq("id", shortlist.student_profile_id)
-      .single();
+    let recipientEmail: string;
+    let recipientName: string;
+    const isExternalRecipient = shortlist.recipient_type === 'external';
 
-    if (studentError || !student) {
-      console.error("Student fetch error:", studentError);
-      throw new Error("Student not found");
+    if (isExternalRecipient) {
+      // Use external recipient data
+      recipientEmail = shortlist.recipient_email;
+      recipientName = shortlist.recipient_name;
+      
+      if (!recipientEmail || !recipientName) {
+        throw new Error("External recipient data incomplete");
+      }
+      
+      console.log("Sending to external recipient:", recipientEmail);
+    } else {
+      // Fetch student details from profiles (existing logic)
+      const { data: student, error: studentError } = await supabaseClient
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", shortlist.student_profile_id)
+        .single();
+
+      if (studentError || !student) {
+        console.error("Student fetch error:", studentError);
+        throw new Error("Student not found");
+      }
+      
+      recipientEmail = student.email;
+      recipientName = student.full_name || "Student";
+      
+      console.log("Sending to registered student:", recipientEmail);
     }
 
     // Fetch creator details
@@ -113,36 +134,37 @@ serve(async (req) => {
       staff_notes: sp.staff_notes,
     }));
 
-    const studentEmail = student.email;
-    const studentName = student.full_name || "Student";
     const staffName = creator.full_name || "Your Advisor";
     const appUrl = Deno.env.get("APP_URL") || "https://universityassist25.lovable.app";
     const logoUrl = `${appUrl}/lovable-uploads/logo-white-transparent.png`;
 
-    if (!studentEmail) {
-      throw new Error("Student email not found");
+    if (!recipientEmail) {
+      throw new Error("Recipient email not found");
     }
 
-    console.log("Rendering email for:", studentEmail);
+    console.log("Rendering email for:", recipientEmail);
 
     // Render email
     const html = await renderAsync(
       React.createElement(ShortlistEmail, {
-        studentName,
+        studentName: recipientName,
         staffName,
         title: shortlist.title,
         message: shortlist.message,
         programs: enrichedPrograms,
         appUrl,
         logoUrl,
+        isExternalRecipient,
       })
     );
 
     // Send email
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: "University Assist <onboarding@resend.dev>",
-      to: [studentEmail],
-      subject: `${staffName} recommends programs for you`,
+      to: [recipientEmail],
+      subject: isExternalRecipient 
+        ? `${staffName} recommends programs for studying in Germany`
+        : `${staffName} recommends programs for you`,
       html,
     });
 

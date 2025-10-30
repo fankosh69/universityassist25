@@ -20,6 +20,7 @@ interface ShortlistEmailProps {
   message?: string;
   appUrl: string;
   logoUrl: string;
+  isExternalRecipient?: boolean;
   programs: Array<{
     id: string;
     name: string;
@@ -47,6 +48,7 @@ export const ShortlistEmail = ({
   programs,
   appUrl,
   logoUrl,
+  isExternalRecipient = false,
 }: ShortlistEmailProps) => (
   <Html>
     <Head />
@@ -74,6 +76,30 @@ export const ShortlistEmail = ({
         {message && (
           <Section style={messageBox}>
             <Text style={messageText}>{message}</Text>
+          </Section>
+        )}
+
+        {isExternalRecipient && (
+          <Section style={ctaBox}>
+            <Heading style={ctaHeading}>
+              🎓 Ready to Start Your Journey to Germany?
+            </Heading>
+            <Text style={ctaText}>
+              Create a free account to save these programs, track deadlines, 
+              and get personalized guidance throughout your application process.
+            </Text>
+            <Link
+              href={`${appUrl}/auth?mode=signup`}
+              style={ctaButton}
+            >
+              Create Free Account →
+            </Link>
+            <Text style={ctaSubtext}>
+              Already have an account?{' '}
+              <Link href={`${appUrl}/auth?mode=login`} style={inlineLink}>
+                Sign in here
+              </Link>
+            </Text>
           </Section>
         )}
 
@@ -149,7 +175,10 @@ export const ShortlistEmail = ({
         {/* Footer */}
         <Section style={footer}>
           <Text style={footerText}>
-            Have questions? Reply to this email or contact your advisor.
+            {isExternalRecipient 
+              ? 'Have questions? Create an account or visit our website for more information.'
+              : 'Have questions? Reply to this email or contact your advisor.'
+            }
           </Text>
 
           <Text style={disclaimer}>
@@ -343,4 +372,45 @@ const inlineLink = {
   color: '#2E57F6',
   textDecoration: 'none',
   fontWeight: '500',
+};
+
+const ctaBox = {
+  backgroundColor: '#f0f7ff',
+  border: '2px solid #2E57F6',
+  padding: '24px',
+  margin: '30px 0',
+  borderRadius: '12px',
+  textAlign: 'center' as const,
+};
+
+const ctaHeading = {
+  color: '#1a202c',
+  fontSize: '22px',
+  fontWeight: '700',
+  margin: '0 0 12px',
+};
+
+const ctaText = {
+  color: '#4a5568',
+  fontSize: '15px',
+  lineHeight: '22px',
+  margin: '0 0 20px',
+};
+
+const ctaButton = {
+  backgroundColor: '#2E57F6',
+  color: '#ffffff',
+  padding: '16px 32px',
+  textDecoration: 'none',
+  borderRadius: '8px',
+  display: 'inline-block',
+  fontWeight: '700',
+  fontSize: '16px',
+  margin: '0 0 16px',
+};
+
+const ctaSubtext = {
+  color: '#718096',
+  fontSize: '14px',
+  margin: '0',
 };

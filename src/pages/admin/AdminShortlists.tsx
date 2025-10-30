@@ -48,6 +48,9 @@ interface Shortlist {
   status: string;
   sent_at: string | null;
   created_at: string;
+  recipient_type: 'internal' | 'external';
+  recipient_email?: string;
+  recipient_name?: string;
   student: Student;
 }
 
@@ -61,7 +64,10 @@ export default function AdminShortlists() {
   const [shortlists, setShortlists] = useState<Shortlist[]>([]);
   
   // Form state
+  const [recipientType, setRecipientType] = useState<'internal' | 'external'>('internal');
   const [selectedStudent, setSelectedStudent] = useState<string>("");
+  const [externalEmail, setExternalEmail] = useState("");
+  const [externalName, setExternalName] = useState("");
   const [title, setTitle] = useState("Program Recommendations");
   const [message, setMessage] = useState("");
   const [selectedPrograms, setSelectedPrograms] = useState<ShortlistProgram[]>([]);
@@ -129,9 +135,21 @@ export default function AdminShortlists() {
 
       if (error) throw error;
 
-      // Fetch student details separately
+      // Fetch student details separately for internal recipients
       const enrichedData = await Promise.all(
         (data || []).map(async (shortlist) => {
+          if (shortlist.recipient_type === 'external') {
+            return {
+              ...shortlist,
+              recipient_type: 'external' as const,
+              student: {
+                id: "",
+                full_name: shortlist.recipient_name,
+                email: shortlist.recipient_email,
+              },
+            };
+          }
+
           const { data: student } = await supabase
             .from("profiles")
             .select("id, full_name, email")
@@ -140,6 +158,7 @@ export default function AdminShortlists() {
 
           return {
             ...shortlist,
+            recipient_type: 'internal' as const,
             student: student || { id: "", full_name: "Unknown", email: "" },
           };
         })
@@ -196,11 +215,21 @@ export default function AdminShortlists() {
     setSelectedPrograms(updated);
   };
 
+  const validateRecipient = () => {
+    if (recipientType === 'internal') {
+      return selectedStudent !== '';
+    } else {
+      return externalEmail !== '' && externalName !== '' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(externalEmail);
+    }
+  };
+
   const saveDraft = async () => {
-    if (!selectedStudent || selectedPrograms.length === 0) {
+    if (!validateRecipient() || selectedPrograms.length === 0) {
       toast({
         title: "Missing information",
-        description: "Please select a student and at least one program",
+        description: recipientType === 'internal' 
+          ? "Please select a student and at least one program"
+          : "Please provide recipient name, valid email, and at least one program",
         variant: "destructive",
       });
       return;
@@ -211,16 +240,25 @@ export default function AdminShortlists() {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Not authenticated");
 
+      const shortlistData: any = {
+        created_by: user.user.id,
+        title,
+        message,
+        status: "draft",
+        recipient_type: recipientType,
+      };
+
+      if (recipientType === 'internal') {
+        shortlistData.student_profile_id = selectedStudent;
+      } else {
+        shortlistData.recipient_email = externalEmail;
+        shortlistData.recipient_name = externalName;
+      }
+
       // Create shortlist
       const { data: shortlist, error: shortlistError } = await supabase
         .from("program_shortlists")
-        .insert({
-          created_by: user.user.id,
-          student_profile_id: selectedStudent,
-          title,
-          message,
-          status: "draft",
-        })
+        .insert(shortlistData)
         .select()
         .single();
 
@@ -259,10 +297,12 @@ export default function AdminShortlists() {
   };
 
   const sendShortlist = async () => {
-    if (!selectedStudent || selectedPrograms.length === 0) {
+    if (!validateRecipient() || selectedPrograms.length === 0) {
       toast({
         title: "Missing information",
-        description: "Please select a student and at least one program",
+        description: recipientType === 'internal' 
+          ? "Please select a student and at least one program"
+          : "Please provide recipient name, valid email, and at least one program",
         variant: "destructive",
       });
       return;
@@ -273,16 +313,25 @@ export default function AdminShortlists() {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Not authenticated");
 
+      const shortlistData: any = {
+        created_by: user.user.id,
+        title,
+        message,
+        status: "draft",
+        recipient_type: recipientType,
+      };
+
+      if (recipientType === 'internal') {
+        shortlistData.student_profile_id = selectedStudent;
+      } else {
+        shortlistData.recipient_email = externalEmail;
+        shortlistData.recipient_name = externalName;
+      }
+
       // Create shortlist
       const { data: shortlist, error: shortlistError } = await supabase
         .from("program_shortlists")
-        .insert({
-          created_by: user.user.id,
-          student_profile_id: selectedStudent,
-          title,
-          message,
-          status: "draft",
-        })
+        .insert(shortlistData)
         .select()
         .single();
 
@@ -331,7 +380,10 @@ export default function AdminShortlists() {
   };
 
   const resetForm = () => {
+    setRecipientType("internal");
     setSelectedStudent("");
+    setExternalEmail("");
+    setExternalName("");
     setTitle("Program Recommendations");
     setMessage("");
     setSelectedPrograms([]);
@@ -358,22 +410,63 @@ export default function AdminShortlists() {
           </TabsList>
 
           <TabsContent value="create" className="space-y-6">
-            {/* Student Selection */}
+            {/* Recipient Selection */}
             <Card>
               <CardHeader>
-                <CardTitle>Select Student</CardTitle>
+                <CardTitle>Select Recipient</CardTitle>
                 <CardDescription>Choose who will receive this recommendation</CardDescription>
               </CardHeader>
-              <CardContent>
-                <SearchableSelect
-                  value={selectedStudent}
-                  onValueChange={setSelectedStudent}
-                  options={students.map(s => ({
-                    value: s.id,
-                    label: `${s.full_name} (${s.email})`,
-                  }))}
-                  placeholder="Search students..."
-                />
+              <CardContent className="space-y-4">
+                <div className="flex gap-4">
+                  <Button
+                    type="button"
+                    variant={recipientType === 'internal' ? 'default' : 'outline'}
+                    onClick={() => setRecipientType('internal')}
+                  >
+                    Existing Student
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={recipientType === 'external' ? 'default' : 'outline'}
+                    onClick={() => setRecipientType('external')}
+                  >
+                    External Email
+                  </Button>
+                </div>
+
+                {recipientType === 'internal' ? (
+                  <SearchableSelect
+                    value={selectedStudent}
+                    onValueChange={setSelectedStudent}
+                    options={students.map(s => ({
+                      value: s.id,
+                      label: `${s.full_name} (${s.email})`,
+                    }))}
+                    placeholder="Search students..."
+                  />
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="external-name">Recipient Name</Label>
+                      <Input
+                        id="external-name"
+                        value={externalName}
+                        onChange={(e) => setExternalName(e.target.value)}
+                        placeholder="John Doe"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="external-email">Email Address</Label>
+                      <Input
+                        id="external-email"
+                        type="email"
+                        value={externalEmail}
+                        onChange={(e) => setExternalEmail(e.target.value)}
+                        placeholder="john@example.com"
+                      />
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -492,7 +585,7 @@ export default function AdminShortlists() {
             <div className="flex gap-3">
               <Button
                 onClick={saveDraft}
-                disabled={loading || !selectedStudent || selectedPrograms.length === 0}
+                disabled={loading || !validateRecipient() || selectedPrograms.length === 0}
                 variant="outline"
               >
                 {loading ? (
@@ -509,7 +602,7 @@ export default function AdminShortlists() {
               </Button>
               <Button
                 onClick={() => setShowPreview(true)}
-                disabled={!selectedStudent || selectedPrograms.length === 0}
+                disabled={!validateRecipient() || selectedPrograms.length === 0}
                 variant="outline"
               >
                 <Eye className="mr-2 h-4 w-4" />
@@ -517,7 +610,7 @@ export default function AdminShortlists() {
               </Button>
               <Button
                 onClick={sendShortlist}
-                disabled={loading || !selectedStudent || selectedPrograms.length === 0}
+                disabled={loading || !validateRecipient() || selectedPrograms.length === 0}
               >
                 {loading ? (
                   <>
@@ -527,7 +620,7 @@ export default function AdminShortlists() {
                 ) : (
                   <>
                     <Send className="mr-2 h-4 w-4" />
-                    Send to Student
+                    {recipientType === 'external' ? 'Send Email' : 'Send to Student'}
                   </>
                 )}
               </Button>
@@ -545,10 +638,16 @@ export default function AdminShortlists() {
                     <Card key={shortlist.id}>
                       <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-semibold">{shortlist.title}</h4>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-semibold">{shortlist.title}</h4>
+                              <Badge variant={shortlist.recipient_type === 'external' ? 'secondary' : 'default'}>
+                                {shortlist.recipient_type === 'external' ? 'External' : 'Student'}
+                              </Badge>
+                            </div>
                             <p className="text-sm text-muted-foreground">
                               To: {shortlist.student?.full_name || "Unknown"}
+                              {shortlist.student?.email && ` (${shortlist.student.email})`}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(shortlist.created_at).toLocaleDateString()}
