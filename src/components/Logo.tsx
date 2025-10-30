@@ -14,7 +14,7 @@ const Logo = ({ className = "", showText = false, variant = "default" }: LogoPro
       title="University Assist - Back to Home"
     >
       <img 
-        src="/lovable-uploads/logo-transparent.png" 
+        src={variant === "white" ? "/lovable-uploads/logo-white-transparent.png" : "/lovable-uploads/logo-transparent.png"} 
         alt="University Assist Logo" 
         className="h-10 w-auto object-contain max-w-[160px]"
         width="160"
