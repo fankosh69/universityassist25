@@ -136,7 +136,7 @@ serve(async (req) => {
 
     // Send email
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: "University Assist <noreply@universityassist.com>",
+      from: "University Assist <onboarding@resend.dev>",
       to: [studentEmail],
       subject: `${staffName} recommends programs for you`,
       html,
