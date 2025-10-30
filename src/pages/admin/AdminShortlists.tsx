@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Send, Save, Eye, Search, Plus, X, GripVertical } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -73,11 +73,32 @@ export default function AdminShortlists() {
   const [selectedPrograms, setSelectedPrograms] = useState<ShortlistProgram[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [currentUserName, setCurrentUserName] = useState<string>("Your Advisor");
 
   useEffect(() => {
     fetchData();
     fetchShortlists();
+    fetchCurrentUser();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+        
+        if (profile?.full_name) {
+          setCurrentUserName(profile.full_name);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -625,6 +646,114 @@ export default function AdminShortlists() {
                 )}
               </Button>
             </div>
+
+            {/* Preview Dialog */}
+            <Dialog open={showPreview} onOpenChange={setShowPreview}>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Email Preview</DialogTitle>
+                  <DialogDescription>
+                    This is how the email will appear to the recipient
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="border rounded-lg bg-background">
+                  {/* Email Header */}
+                  <div className="bg-primary p-5 rounded-t-lg">
+                    <img 
+                      src="/lovable-uploads/logo-white-transparent.png" 
+                      alt="University Assist" 
+                      className="h-12 mx-auto"
+                    />
+                  </div>
+                  
+                  {/* Email Body */}
+                  <div className="bg-card p-6">
+                    <h1 className="text-2xl font-semibold mb-4">
+                      Hi {recipientType === 'internal' ? 
+                        students.find(s => s.id === selectedStudent)?.full_name : 
+                        externalName}! 👋
+                    </h1>
+                    
+                    <p className="mb-4">
+                      <strong>{currentUserName}</strong> has carefully curated these programs for you:
+                    </p>
+                    
+                    {message && (
+                      <div className="bg-primary/10 border-l-4 border-primary p-4 mb-4 italic">
+                        {message}
+                      </div>
+                    )}
+                    
+                    {recipientType === 'external' && (
+                      <div className="bg-accent/10 border-2 border-accent rounded-lg p-6 text-center mb-6">
+                        <h2 className="text-xl font-bold mb-2">
+                          🎓 Ready to Start Your Journey to Germany?
+                        </h2>
+                        <p className="mb-4">
+                          Create a free account to save these programs, track deadlines, 
+                          and get personalized guidance throughout your application process.
+                        </p>
+                        <Button className="mb-2">Create Free Account →</Button>
+                        <p className="text-sm text-muted-foreground">
+                          Already have an account? <a href="#" className="text-primary">Sign in here</a>
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Programs List */}
+                    <div className="space-y-6">
+                      {selectedPrograms.map((prog, idx) => {
+                        const program = prog.program;
+                        const university = prog.program.university;
+                        const cityName = prog.program.city_name;
+                        
+                        return (
+                          <div key={program.id} className="border rounded-lg p-6 bg-card">
+                            <h3 className="text-xl font-semibold mb-2">{program.name}</h3>
+                            
+                            <p className="text-muted-foreground mb-4">
+                              📍 {university.name}, {cityName || 'Germany'}
+                            </p>
+                            
+                            <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
+                              <div>🎓 <strong>{program.degree_type}</strong></div>
+                              <div>⏱️ <strong>{program.duration_semesters} semesters</strong></div>
+                              <div>💶 <strong>€{program.semester_fees}/semester</strong></div>
+                            </div>
+                            
+                            {prog.staff_notes && (
+                              <div className="bg-muted rounded p-3 mb-4">
+                                <p className="font-semibold text-sm mb-1">💡 Why this program?</p>
+                                <p className="text-sm">{prog.staff_notes}</p>
+                              </div>
+                            )}
+                            
+                            <Button variant="default" size="sm">View Program Details →</Button>
+                            
+                            {idx < selectedPrograms.length - 1 && <hr className="mt-6" />}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Footer */}
+                    <div className="mt-8 text-center text-muted-foreground">
+                      <p className="mb-4">
+                        {recipientType === 'external' 
+                          ? 'Have questions? Create an account or visit our website for more information.'
+                          : 'Have questions? Reply to this email or contact your advisor.'
+                        }
+                      </p>
+                      <p className="text-xs italic">
+                        University Assist is not affiliated with uni-assist e.V., DAAD, or
+                        German universities. All trademarks belong to their respective owners.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           <TabsContent value="history">

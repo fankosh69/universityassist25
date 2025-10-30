@@ -135,8 +135,31 @@ serve(async (req) => {
     }));
 
     const staffName = creator.full_name || "Your Advisor";
-    const appUrl = Deno.env.get("APP_URL") || "https://universityassist25.lovable.app";
-    const logoUrl = `${appUrl}/lovable-uploads/logo-white-transparent.png`;
+    
+    // Build email HTML with React Email template
+    const appUrl = Deno.env.get('APP_URL') || 'https://universityassist.net';
+    
+    // Fetch logo and convert to base64 for email compatibility
+    let logoUrl = `${appUrl}/lovable-uploads/logo-white-transparent.png`;
+    try {
+      const logoResponse = await fetch(logoUrl);
+      if (logoResponse.ok) {
+        const logoBlob = await logoResponse.arrayBuffer();
+        const logoBase64 = btoa(
+          new Uint8Array(logoBlob).reduce(
+            (data, byte) => data + String.fromCharCode(byte),
+            ''
+          )
+        );
+        logoUrl = `data:image/png;base64,${logoBase64}`;
+        console.log('Logo converted to base64 for email');
+      } else {
+        console.warn('Could not fetch logo, using URL fallback');
+      }
+    } catch (error) {
+      console.error('Error converting logo to base64:', error);
+      // Fallback to URL if conversion fails
+    }
 
     if (!recipientEmail) {
       throw new Error("Recipient email not found");
