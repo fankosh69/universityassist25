@@ -28,8 +28,12 @@ interface ShortlistEmailProps {
     degree_type: string;
     duration_semesters: number;
     semester_fees: number;
+    winter_intake?: boolean;
+    summer_intake?: boolean;
     winter_deadline?: string;
     summer_deadline?: string;
+    application_method?: string;
+    uni_assist_required?: boolean;
     university: {
       name: string;
       slug: string;
@@ -56,15 +60,17 @@ export const ShortlistEmail = ({
     <Body style={main}>
       <Container style={container}>
         {/* Header */}
-        <Section style={header}>
-          <Img
-            src={logoUrl}
-            alt="University Assist"
-            width="180"
-            height="auto"
-            style={logoImage}
-          />
-        </Section>
+          <Section style={header}>
+            <Link href={appUrl}>
+              <Img
+                src={logoUrl}
+                alt="University Assist"
+                width="180"
+                height="auto"
+                style={logoImage}
+              />
+            </Link>
+          </Section>
 
         {/* Greeting */}
         <Heading style={h1}>Hi {studentName}! 👋</Heading>
@@ -143,13 +149,32 @@ export const ShortlistEmail = ({
               <Text style={detailItem}>
                 💶 <strong>€{program.semester_fees}/semester</strong>
               </Text>
+              <Text style={detailItem}>
+                📅 <strong>Intake:</strong>{' '}
+                {program.winter_intake && program.summer_intake && 'Winter & Summer'}
+                {program.winter_intake && !program.summer_intake && 'Winter Only'}
+                {!program.winter_intake && program.summer_intake && 'Summer Only'}
+                {!program.winter_intake && !program.summer_intake && 'Not specified'}
+              </Text>
+              <Text style={detailItem}>
+                📝 <strong>Application:</strong>{' '}
+                {program.uni_assist_required ? 'Via Uni-Assist' : 'Direct Application'}
+              </Text>
             </Section>
 
-            {(program.winter_deadline || program.summer_deadline) && (
-              <Text style={deadlineText}>
-                📅 Application Deadline:{' '}
-                {program.winter_deadline || program.summer_deadline}
-              </Text>
+            {(program.winter_intake || program.summer_intake) && (
+              <Section style={deadlineSection}>
+                {program.winter_intake && program.winter_deadline && (
+                  <Text style={deadlineText}>
+                    📅 <strong>Winter Intake Deadline:</strong> {program.winter_deadline}
+                  </Text>
+                )}
+                {program.summer_intake && program.summer_deadline && (
+                  <Text style={deadlineText}>
+                    📅 <strong>Summer Intake Deadline:</strong> {program.summer_deadline}
+                  </Text>
+                )}
+              </Section>
             )}
 
             {program.staff_notes && (
@@ -287,11 +312,16 @@ const detailItem = {
   margin: '8px 0',
 };
 
+const deadlineSection = {
+  margin: '12px 0',
+  padding: '8px 0',
+};
+
 const deadlineText = {
   color: '#e53e3e',
   fontSize: '14px',
   fontWeight: '600',
-  margin: '12px 0',
+  margin: '6px 0',
 };
 
 const notesBox = {

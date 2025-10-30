@@ -26,6 +26,12 @@ interface Program {
   duration_semesters: number;
   semester_fees: number;
   university_id: string;
+  winter_intake?: boolean;
+  summer_intake?: boolean;
+  winter_deadline?: string;
+  summer_deadline?: string;
+  application_method?: string;
+  uni_assist_required?: boolean;
 }
 
 interface University {
@@ -115,7 +121,7 @@ export default function AdminShortlists() {
       // Fetch programs
       const { data: programsData, error: programsError } = await supabase
         .from("programs")
-        .select("id, name, degree_type, duration_semesters, semester_fees, university_id")
+        .select("id, name, degree_type, duration_semesters, semester_fees, university_id, winter_intake, summer_intake, winter_deadline, summer_deadline, application_method, uni_assist_required")
         .eq("published", true)
         .order("name");
 
@@ -721,6 +727,31 @@ export default function AdminShortlists() {
                               <div>⏱️ <strong>{program.duration_semesters} semesters</strong></div>
                               <div>💶 <strong>€{program.semester_fees}/semester</strong></div>
                             </div>
+                            
+                            <div className="flex flex-wrap gap-4 mb-4 text-sm">
+                              <div>
+                                📅 <strong>Intake:</strong>{' '}
+                                {program.winter_intake && program.summer_intake && 'Winter & Summer'}
+                                {program.winter_intake && !program.summer_intake && 'Winter Only'}
+                                {!program.winter_intake && program.summer_intake && 'Summer Only'}
+                                {!program.winter_intake && !program.summer_intake && 'Not specified'}
+                              </div>
+                              <div>
+                                📝 <strong>Application:</strong>{' '}
+                                {program.uni_assist_required ? 'Via Uni-Assist' : 'Direct Application'}
+                              </div>
+                            </div>
+                            
+                            {(program.winter_intake || program.summer_intake) && (
+                              <div className="mb-4 text-sm text-destructive space-y-1">
+                                {program.winter_intake && program.winter_deadline && (
+                                  <p>📅 <strong>Winter Intake Deadline:</strong> {program.winter_deadline}</p>
+                                )}
+                                {program.summer_intake && program.summer_deadline && (
+                                  <p>📅 <strong>Summer Intake Deadline:</strong> {program.summer_deadline}</p>
+                                )}
+                              </div>
+                            )}
                             
                             {prog.staff_notes && (
                               <div className="bg-muted rounded p-3 mb-4">

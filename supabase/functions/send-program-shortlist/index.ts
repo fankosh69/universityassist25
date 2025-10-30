@@ -139,27 +139,8 @@ serve(async (req) => {
     // Build email HTML with React Email template
     const appUrl = Deno.env.get('APP_URL') || 'https://universityassist.net';
     
-    // Fetch logo and convert to base64 for email compatibility
-    let logoUrl = `${appUrl}/lovable-uploads/logo-white-transparent.png`;
-    try {
-      const logoResponse = await fetch(logoUrl);
-      if (logoResponse.ok) {
-        const logoBlob = await logoResponse.arrayBuffer();
-        const logoBase64 = btoa(
-          new Uint8Array(logoBlob).reduce(
-            (data, byte) => data + String.fromCharCode(byte),
-            ''
-          )
-        );
-        logoUrl = `data:image/png;base64,${logoBase64}`;
-        console.log('Logo converted to base64 for email');
-      } else {
-        console.warn('Could not fetch logo, using URL fallback');
-      }
-    } catch (error) {
-      console.error('Error converting logo to base64:', error);
-      // Fallback to URL if conversion fails
-    }
+    // Use direct production URL for logo (email clients block base64 images)
+    const logoUrl = 'https://universityassist.net/lovable-uploads/logo-white-transparent.png';
 
     if (!recipientEmail) {
       throw new Error("Recipient email not found");
@@ -185,10 +166,11 @@ serve(async (req) => {
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: "University Assist <info@uniassist.net>",
       to: [recipientEmail],
-      subject: isExternalRecipient 
-        ? `${staffName} recommends programs for studying in Germany`
-        : `${staffName} recommends programs for you`,
+      subject: "German Universities Shortlist",
       html,
+      headers: {
+        'Content-Type': 'text/html; charset=UTF-8',
+      },
     });
 
     if (emailError) {
