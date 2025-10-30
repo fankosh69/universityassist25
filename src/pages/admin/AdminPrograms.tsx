@@ -21,6 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 interface Program {
   id: string;
   name: string;
@@ -986,19 +987,19 @@ export const AdminPrograms = () => {
               
               <div>
                 <Label htmlFor="university">University</Label>
-                <Select value={formData.university_id} onValueChange={value => setFormData({
-                ...formData,
-                university_id: value
-              })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select university" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {universities.map(uni => <SelectItem key={uni.id} value={uni.id}>
-                        {uni.name} - {uni.city}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  value={formData.university_id}
+                  onValueChange={(value) => setFormData({
+                    ...formData,
+                    university_id: value
+                  })}
+                  options={universities.map(uni => ({
+                    value: uni.id,
+                    label: `${uni.name} - ${uni.city}`
+                  }))}
+                  placeholder="Search and select university..."
+                  emptyText="No university found"
+                />
               </div>
             </div>
 
