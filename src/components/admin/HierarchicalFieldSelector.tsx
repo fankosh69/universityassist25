@@ -128,7 +128,11 @@ export const HierarchicalFieldSelector = ({
     setExpandedItems(newExpanded);
   };
 
-  const handleSelect = (field: FieldNode) => {
+  const handleSelect = (field: FieldNode, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     const fullPath = getFieldPath(field);
     onChange(field.id, field.name, fullPath);
   };
@@ -182,11 +186,13 @@ export const HierarchicalFieldSelector = ({
         >
           {hasChildren && (
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               className="h-6 w-6 p-0"
               onClick={(e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 toggleExpand(field.id);
               }}
             >
@@ -203,7 +209,7 @@ export const HierarchicalFieldSelector = ({
           
           <div
             className="flex items-center justify-between flex-1 gap-2"
-            onClick={() => handleSelect(field)}
+            onClick={(e) => handleSelect(field, e)}
           >
             <span className="flex-1">{field.name}</span>
             <div className="flex items-center gap-2">
@@ -257,9 +263,14 @@ export const HierarchicalFieldSelector = ({
             </div>
           </div>
           <Button
+            type="button"
             variant="ghost"
             size="sm"
-            onClick={handleClear}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              handleClear();
+            }}
             className="h-8 w-8 p-0"
           >
             <X className="h-4 w-4" />
