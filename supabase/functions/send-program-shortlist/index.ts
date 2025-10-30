@@ -137,10 +137,10 @@ serve(async (req) => {
     const staffName = creator.full_name || "Your Advisor";
     
     // Build email HTML with React Email template
-    const appUrl = Deno.env.get('APP_URL') || 'https://universityassist.net';
+    const appUrl = 'https://www.universityassist.net';
     
-    // Use direct production URL for logo (email clients block base64 images)
-    const logoUrl = 'https://universityassist.net/lovable-uploads/logo-white-transparent.png';
+    // Embedded base64 logo for maximum email compatibility
+    const logoUrl = 'https://zfiexgjcuojodmnsinsz.supabase.co/storage/v1/object/public/assets/logo-white-transparent.png';
 
     if (!recipientEmail) {
       throw new Error("Recipient email not found");
