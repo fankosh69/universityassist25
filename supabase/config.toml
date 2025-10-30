@@ -44,3 +44,6 @@ verify_jwt = true
 
 [functions.calculate-german-gpa]
 verify_jwt = false
+
+[functions.get-fields-hierarchy]
+verify_jwt = false

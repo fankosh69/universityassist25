@@ -48,6 +48,7 @@ const AdminSitemap = lazy(() => import("./pages/admin/AdminSitemap"));
 const AdminDesign = lazy(() => import("./pages/admin/AdminDesign"));
 const AdminAdmissionRequirements = lazy(() => import("./pages/admin/AdminAdmissionRequirements"));
 const AdminHistoricalData = lazy(() => import("./pages/admin/AdminHistoricalData"));
+const AdminFieldsOfStudy = lazy(() => import("./pages/admin/AdminFieldsOfStudy"));
 
 const queryClient = new QueryClient();
 
@@ -127,6 +128,7 @@ const App = () => {
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
                 <Route path="/admin/programs" element={<AdminLayout><AdminPrograms /></AdminLayout>} />
+                <Route path="/admin/fields-of-study" element={<AdminLayout><AdminFieldsOfStudy /></AdminLayout>} />
                 <Route path="/admin/security" element={<AdminLayout><AdminSecurity /></AdminLayout>} />
                 <Route path="/admin/cities" element={<AdminLayout><AdminCities /></AdminLayout>} />
                 <Route path="/admin/regions" element={<AdminLayout><AdminRegions /></AdminLayout>} />

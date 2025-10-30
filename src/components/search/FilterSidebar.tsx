@@ -6,12 +6,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FilterGroup } from './FilterGroup';
+import { HierarchicalFieldSelect } from './HierarchicalFieldSelect';
 import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X } from 'lucide-react';
 import { INSTITUTION_TYPES, CONTROL_TYPES } from '@/lib/institution-types';
 
 interface SearchFilters {
   degreeLevel: string;
   fieldOfStudy: string;
+  fieldOfStudyIds?: string[]; // New hierarchical field selection
   city: string;
   maxTuitionFees: string;
   uniAssistRequired: string;
@@ -53,7 +55,12 @@ export function FilterSidebar({
   };
 
   const getActiveFilterCount = () => {
-    return Object.values(filters).filter(v => v !== 'all' && v !== null && v !== '').length;
+    return Object.entries(filters).filter(([key, value]) => {
+      if (key === 'fieldOfStudyIds') {
+        return Array.isArray(value) && value.length > 0;
+      }
+      return value !== 'all' && value !== null && value !== '';
+    }).length;
   };
 
   return (
@@ -97,25 +104,16 @@ export function FilterSidebar({
             </RadioGroup>
           </FilterGroup>
 
-          {/* Field of Study */}
+          {/* Course of Study - Hierarchical */}
           <FilterGroup 
             value="field" 
-            title="Field of Study"
-            activeCount={filters.fieldOfStudy !== 'all' ? 1 : 0}
+            title="Course of Study"
+            activeCount={(filters.fieldOfStudyIds?.length || 0) > 0 ? filters.fieldOfStudyIds!.length : 0}
           >
-            <Select value={filters.fieldOfStudy} onValueChange={(value) => updateFilter('fieldOfStudy', value)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select field..." />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                <SelectItem value="all">All Fields</SelectItem>
-                {filterOptions.fieldsOfStudy.map(field => (
-                  <SelectItem key={field} value={field}>
-                    {field.charAt(0).toUpperCase() + field.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <HierarchicalFieldSelect
+              selectedFieldIds={filters.fieldOfStudyIds || []}
+              onSelectionChange={(fieldIds) => updateFilter('fieldOfStudyIds', fieldIds.length > 0 ? fieldIds : [])}
+            />
           </FilterGroup>
 
           {/* Location */}

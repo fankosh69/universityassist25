@@ -17,6 +17,7 @@ interface Program {
   degree_type: string;
   degree_level: string;
   field_of_study: string;
+  field_of_study_id?: string; // New hierarchical field reference
   duration_semesters: number;
   semester_fees: number;
   uni_assist_required: boolean;
@@ -35,6 +36,7 @@ interface Program {
 interface SearchFilters {
   degreeLevel: string;
   fieldOfStudy: string;
+  fieldOfStudyIds?: string[]; // New hierarchical field selection
   city: string;
   maxTuitionFees: string;
   uniAssistRequired: string;
@@ -57,6 +59,7 @@ export function EnhancedSearchContainer() {
   const [filters, setFilters] = useState<SearchFilters>({
     degreeLevel: 'all',
     fieldOfStudy: 'all',
+    fieldOfStudyIds: [],
     city: 'all',
     maxTuitionFees: 'all',
     uniAssistRequired: 'all',
@@ -149,9 +152,17 @@ export function EnhancedSearchContainer() {
     if (filters.degreeLevel && filters.degreeLevel !== 'all') {
       filtered = filtered.filter(p => p.degree_level === filters.degreeLevel);
     }
-    if (filters.fieldOfStudy && filters.fieldOfStudy !== 'all') {
+    
+    // Use hierarchical field filter if available, otherwise fall back to flat field
+    if (filters.fieldOfStudyIds && filters.fieldOfStudyIds.length > 0) {
+      filtered = filtered.filter(p => {
+        // Check if program has field_of_study_id that matches any selected field
+        return p.field_of_study_id && filters.fieldOfStudyIds!.includes(p.field_of_study_id);
+      });
+    } else if (filters.fieldOfStudy && filters.fieldOfStudy !== 'all') {
       filtered = filtered.filter(p => p.field_of_study === filters.fieldOfStudy);
     }
+    
     if (filters.city && filters.city !== 'all') {
       filtered = filtered.filter(p => p.universities?.city === filters.city);
     }
@@ -232,6 +243,7 @@ export function EnhancedSearchContainer() {
     setFilters({
       degreeLevel: 'all',
       fieldOfStudy: 'all',
+      fieldOfStudyIds: [],
       city: 'all',
       maxTuitionFees: 'all',
       uniAssistRequired: 'all',
@@ -242,12 +254,20 @@ export function EnhancedSearchContainer() {
     setSearchQuery('');
   };
 
-  const hasActiveFilters = Object.values(filters).some(value => 
-    value !== 'all' && value !== null && value !== ''
-  ) || searchQuery.trim() !== '';
+  const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
+    if (key === 'fieldOfStudyIds') {
+      return Array.isArray(value) && value.length > 0;
+    }
+    return value !== 'all' && value !== null && value !== '';
+  }) || searchQuery.trim() !== '';
 
   const getActiveFilterCount = () => {
-    return Object.values(filters).filter(v => v !== 'all' && v !== null && v !== '').length;
+    return Object.entries(filters).filter(([key, value]) => {
+      if (key === 'fieldOfStudyIds') {
+        return Array.isArray(value) && value.length > 0;
+      }
+      return value !== 'all' && value !== null && value !== '';
+    }).length;
   };
 
   const removeFilter = (key: keyof SearchFilters) => {
