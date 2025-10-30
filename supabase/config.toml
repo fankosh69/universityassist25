@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.get-fields-hierarchy]
 verify_jwt = false
+
+[functions.migrate-program-fields]
+verify_jwt = false

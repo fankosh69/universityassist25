@@ -28,8 +28,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, Edit2, Trash2, Eye, EyeOff, Database } from "lucide-react";
 
 interface FieldOfStudy {
   id: string;
@@ -50,6 +51,8 @@ export default function AdminFieldsOfStudy() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState<FieldOfStudy | null>(null);
+  const [migrationRunning, setMigrationRunning] = useState(false);
+  const [migrationResults, setMigrationResults] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: "",
     name_de: "",
@@ -186,6 +189,33 @@ export default function AdminFieldsOfStudy() {
     }
   };
 
+  const runMigration = async (dryRun: boolean = false) => {
+    setMigrationRunning(true);
+    setMigrationResults(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('migrate-program-fields', {
+        body: { dryRun, onlyHighConfidence: false },
+      });
+
+      if (error) throw error;
+
+      setMigrationResults(data);
+      
+      if (!dryRun && data.success) {
+        toast.success(`Migration complete! ${data.summary.updated} programs updated.`);
+        loadFields();
+      } else if (dryRun && data.success) {
+        toast.info(`Dry run complete. ${data.summary.matched} programs would be updated.`);
+      }
+    } catch (error: any) {
+      console.error('Migration error:', error);
+      toast.error(`Migration failed: ${error.message}`);
+    } finally {
+      setMigrationRunning(false);
+    }
+  };
+
   const getParentName = (parentId?: string) => {
     if (!parentId) return "-";
     const parent = fields.find((f) => f.id === parentId);
@@ -204,11 +234,65 @@ export default function AdminFieldsOfStudy() {
               Manage hierarchical fields of study taxonomy
             </p>
           </div>
-          <Button onClick={handleCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Field
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => runMigration(true)} 
+              variant="outline"
+              disabled={migrationRunning}
+            >
+              <Database className="h-4 w-4 mr-2" />
+              {migrationRunning ? 'Running...' : 'Preview Migration'}
+            </Button>
+            <Button 
+              onClick={() => runMigration(false)} 
+              disabled={migrationRunning}
+              variant="secondary"
+            >
+              <Database className="h-4 w-4 mr-2" />
+              {migrationRunning ? 'Running...' : 'Run Migration'}
+            </Button>
+            <Button onClick={handleCreate}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Field
+            </Button>
+          </div>
         </div>
+
+        {migrationResults && (
+          <Card className="p-6">
+            <h3 className="font-semibold text-lg mb-4">Migration Results</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Programs</p>
+                <p className="text-3xl font-bold">{migrationResults.summary.totalPrograms}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">High Confidence</p>
+                <p className="text-3xl font-bold text-green-600">{migrationResults.summary.highConfidence}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Medium Confidence</p>
+                <p className="text-3xl font-bold text-yellow-600">{migrationResults.summary.mediumConfidence}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Low/No Match</p>
+                <p className="text-3xl font-bold text-red-600">
+                  {migrationResults.summary.lowConfidence + migrationResults.summary.noMatch}
+                </p>
+              </div>
+            </div>
+            {migrationResults.summary.updated > 0 && (
+              <p className="text-sm text-green-600 font-medium">
+                ✓ {migrationResults.summary.updated} programs successfully updated
+              </p>
+            )}
+            {migrationResults.summary.dryRun && (
+              <p className="text-sm text-muted-foreground italic mt-2">
+                This was a dry run. No changes were made to the database.
+              </p>
+            )}
+          </Card>
+        )}
 
         {loading ? (
           <div className="space-y-2">
