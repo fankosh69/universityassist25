@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { HierarchicalFieldSelector } from "@/components/admin/HierarchicalFieldSelector";
 interface Program {
   id: string;
   name: string;
@@ -29,6 +30,7 @@ interface Program {
   degree_type: string;
   degree_level: "bachelor" | "master";
   field_of_study: string;
+  field_of_study_id?: string;
   duration_semesters: number;
   ects_credits?: number;
   semester_fees: number;
@@ -72,6 +74,7 @@ export const AdminPrograms = () => {
     degree_type: string;
     degree_level: "bachelor" | "master";
     field_of_study: string;
+    field_of_study_id: string | null;
     duration_semesters: number;
     ects_credits: number;
     semester_fees: number;
@@ -94,6 +97,7 @@ export const AdminPrograms = () => {
     degree_type: "B.A.",
     degree_level: "bachelor",
     field_of_study: "",
+    field_of_study_id: null,
     duration_semesters: 6,
     ects_credits: 180,
     semester_fees: 0,
@@ -225,6 +229,7 @@ export const AdminPrograms = () => {
       degree_type: program.degree_type,
       degree_level: program.degree_level,
       field_of_study: program.field_of_study,
+      field_of_study_id: program.field_of_study_id || null,
       duration_semesters: program.duration_semesters,
       ects_credits: program.ects_credits || 180,
       semester_fees: program.semester_fees,
@@ -252,6 +257,7 @@ export const AdminPrograms = () => {
       degree_type: "B.A.",
       degree_level: "bachelor",
       field_of_study: "",
+      field_of_study_id: null,
       duration_semesters: 6,
       ects_credits: 180,
       semester_fees: 0,
@@ -1054,22 +1060,35 @@ export const AdminPrograms = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="field_of_study">Field of Study</Label>
-                <Input id="field_of_study" value={formData.field_of_study} onChange={e => setFormData({
-                ...formData,
-                field_of_study: e.target.value
-              })} required />
-              </div>
+            <div>
+              <Label>Field of Study</Label>
+              <HierarchicalFieldSelector
+                value={formData.field_of_study_id}
+                onChange={(fieldId, fieldName, fullPath) => {
+                  setFormData({
+                    ...formData,
+                    field_of_study_id: fieldId,
+                    field_of_study: fullPath || fieldName
+                  });
+                }}
+                required
+              />
+              {!formData.field_of_study_id && formData.field_of_study && (
+                <Alert className="mt-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    This program has a text-based field "{formData.field_of_study}" but no structured field mapping. Please select from the hierarchy.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
 
-              <div>
-                <Label htmlFor="program_url">Program URL</Label>
-                <Input id="program_url" type="url" value={formData.program_url} onChange={e => setFormData({
-                ...formData,
-                program_url: e.target.value
-              })} placeholder="https://university.edu/program" />
-              </div>
+            <div>
+              <Label htmlFor="program_url">Program URL</Label>
+              <Input id="program_url" type="url" value={formData.program_url} onChange={e => setFormData({
+              ...formData,
+              program_url: e.target.value
+            })} placeholder="https://university.edu/program" />
             </div>
 
             <div>
