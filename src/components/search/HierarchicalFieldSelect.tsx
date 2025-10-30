@@ -107,6 +107,9 @@ export function HierarchicalFieldSelect({
     const isIndeterminate = isFieldIndeterminate(field);
     const isExpanded = expandedItems.includes(field.id);
 
+    // Calculate indentation based on level
+    const indentClass = level === 1 ? "" : level === 2 ? "ml-6" : "ml-12";
+    
     if (!hasChildren) {
       // Leaf node - simple checkbox with name and count
       return (
@@ -114,7 +117,9 @@ export function HierarchicalFieldSelect({
           key={field.id}
           className={cn(
             "flex items-center gap-3 py-2 px-3 rounded-md transition-colors hover:bg-accent/50",
-            level > 1 && "ml-6"
+            indentClass,
+            level === 2 && "border-l-2 border-border/40",
+            level === 3 && "border-l-2 border-border/60 bg-muted/30"
           )}
         >
           <Checkbox
@@ -126,8 +131,10 @@ export function HierarchicalFieldSelect({
             htmlFor={`field-${field.id}`}
             className="flex items-center justify-between flex-1 cursor-pointer text-sm"
           >
-            <span className="text-foreground">{field.name}</span>
-            <Badge variant="secondary" className="ml-2">
+            <span className={cn("text-foreground", level === 3 && "text-sm text-muted-foreground")}>
+              {field.name}
+            </span>
+            <Badge variant="secondary" className="ml-2 text-xs">
               {field.programCount}
             </Badge>
           </label>
@@ -141,8 +148,12 @@ export function HierarchicalFieldSelect({
         <div
           className={cn(
             "flex items-center gap-2 rounded-md transition-colors",
-            isExpanded && "bg-yellow-50 dark:bg-yellow-950/20",
-            level > 1 && "ml-6"
+            level === 1 && "bg-accent/10 font-semibold border border-border/50 mb-1",
+            level === 2 && "border-l-2 border-primary/30 bg-accent/5",
+            level === 3 && "border-l-2 border-primary/20 bg-muted/20",
+            isExpanded && level === 1 && "bg-primary/5 border-primary/30",
+            isExpanded && level === 2 && "bg-accent/20",
+            indentClass
           )}
         >
           <Checkbox
@@ -153,8 +164,11 @@ export function HierarchicalFieldSelect({
           />
           <AccordionTrigger
             className={cn(
-              "flex-1 py-2 pr-3 hover:no-underline",
-              isExpanded && "text-yellow-800 dark:text-yellow-200 font-medium"
+              "flex-1 py-2.5 pr-3 hover:no-underline",
+              level === 1 && "font-semibold text-base",
+              level === 2 && "font-medium",
+              level === 3 && "text-sm",
+              isExpanded && "text-primary"
             )}
             onClick={() => {
               setExpandedItems(prev =>
@@ -167,7 +181,12 @@ export function HierarchicalFieldSelect({
             <div className="flex items-center justify-between w-full">
               <label
                 htmlFor={`field-${field.id}`}
-                className="cursor-pointer text-sm font-medium"
+                className={cn(
+                  "cursor-pointer",
+                  level === 1 && "font-semibold text-base",
+                  level === 2 && "font-medium text-sm",
+                  level === 3 && "text-sm"
+                )}
                 onClick={(e) => e.preventDefault()}
               >
                 {field.name}
@@ -175,8 +194,10 @@ export function HierarchicalFieldSelect({
               <Badge
                 variant="secondary"
                 className={cn(
-                  "ml-2",
-                  isExpanded && "bg-yellow-200 dark:bg-yellow-900 text-yellow-900 dark:text-yellow-100"
+                  "ml-2 text-xs",
+                  level === 1 && "bg-primary/20 text-primary font-semibold",
+                  level === 2 && "bg-accent/50",
+                  isExpanded && "bg-primary/30 text-primary"
                 )}
               >
                 {field.programCount}
@@ -184,7 +205,11 @@ export function HierarchicalFieldSelect({
             </div>
           </AccordionTrigger>
         </div>
-        <AccordionContent className="pb-0 pt-1">
+        <AccordionContent className={cn(
+          "pb-1 pt-1",
+          level === 1 && "border-l-2 border-primary/10 ml-3",
+          level === 2 && "pl-2"
+        )}>
           {field.children.map(child => renderField(child, level + 1))}
         </AccordionContent>
       </AccordionItem>
