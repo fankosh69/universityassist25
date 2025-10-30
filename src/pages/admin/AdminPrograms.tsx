@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LanguageFlags } from "@/components/LanguageFlags";
 import { getDeadlineStatus, getApplicationMethodInfo, getStatusColor } from "@/lib/deadline-utils";
+import { slugify } from "@/lib/slug";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
@@ -162,9 +163,32 @@ export const AdminPrograms = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Generate slug from program name
+      const baseSlug = slugify(formData.name);
+      
+      // Check for slug conflicts and add suffix if needed
+      let slug = baseSlug;
+      let counter = 1;
+      while (true) {
+        const { data: existing } = await supabase
+          .from('programs')
+          .select('id')
+          .eq('slug', slug)
+          .maybeSingle();
+        
+        // If editing, allow the same slug for this program
+        if (!existing || (editingProgram && existing.id === editingProgram.id)) {
+          break;
+        }
+        
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+      
       // Convert dates to strings for database
       const submitData = {
         ...formData,
+        slug,
         winter_deadline: formData.winter_deadline ? formData.winter_deadline.toISOString().split('T')[0] : null,
         summer_deadline: formData.summer_deadline ? formData.summer_deadline.toISOString().split('T')[0] : null,
         winter_application_open_date: formData.winter_application_open_date ? formData.winter_application_open_date.toISOString().split('T')[0] : null,
