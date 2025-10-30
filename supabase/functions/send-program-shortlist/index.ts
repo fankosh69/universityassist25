@@ -136,11 +136,11 @@ serve(async (req) => {
 
     const staffName = creator.full_name || "Your Advisor";
     
-    // Build email HTML with React Email template
-    const appUrl = 'https://www.universityassist.net';
+    // Build email HTML with React Email template  
+    const appUrl = Deno.env.get('APP_URL') || 'https://www.universityassist.net';
     
-    // Embedded base64 logo for maximum email compatibility
-    const logoUrl = 'https://zfiexgjcuojodmnsinsz.supabase.co/storage/v1/object/public/assets/logo-white-transparent.png';
+    // Logo from Supabase Storage (public bucket)
+    const logoUrl = `${Deno.env.get('SUPABASE_URL')}/storage/v1/object/public/email-assets/logo-white-transparent.png`;
 
     if (!recipientEmail) {
       throw new Error("Recipient email not found");
