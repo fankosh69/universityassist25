@@ -160,7 +160,7 @@ serve(async (req) => {
 
     // Send email
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: "University Assist <onboarding@resend.dev>",
+      from: "University Assist <info@uniassist.net>",
       to: [recipientEmail],
       subject: isExternalRecipient 
         ? `${staffName} recommends programs for studying in Germany`
