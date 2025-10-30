@@ -27,6 +27,7 @@ const UniversityPage = lazy(() => import("./pages/universities/UniversityPage"))
 const ProgramPage = lazy(() => import("./pages/programs/ProgramPage"));
 const AmbassadorsList = lazy(() => import("./pages/ambassadors/AmbassadorsList"));
 const AmbassadorProfile = lazy(() => import("./pages/ambassadors/AmbassadorProfile"));
+const ShortlistsReceived = lazy(() => import("./pages/ShortlistsReceived"));
 const AIAssistant = lazy(() => import("./pages/AIAssistant"));
 const ProfilePage = lazy(() => import("./pages/profile/ProfilePage"));
 const Impressum = lazy(() => import("./pages/Impressum"));
@@ -49,6 +50,7 @@ const AdminDesign = lazy(() => import("./pages/admin/AdminDesign"));
 const AdminAdmissionRequirements = lazy(() => import("./pages/admin/AdminAdmissionRequirements"));
 const AdminHistoricalData = lazy(() => import("./pages/admin/AdminHistoricalData"));
 const AdminFieldsOfStudy = lazy(() => import("./pages/admin/AdminFieldsOfStudy"));
+const AdminShortlists = lazy(() => import("./pages/admin/AdminShortlists"));
 
 const queryClient = new QueryClient();
 
@@ -113,8 +115,9 @@ const App = () => {
                 <Route path="/universities" element={<Universities />} />
                 <Route path="/universities/:uni" element={<UniversityPage />} />
                 <Route path="/universities/:uni/programs/:program" element={<ProgramPage />} />
-                <Route path="/ambassadors" element={<AmbassadorsList />} />
-                <Route path="/ambassadors/:slug" element={<AmbassadorProfile />} />
+          <Route path="/ambassadors" element={<AmbassadorsList />} />
+          <Route path="/ambassadors/:slug" element={<AmbassadorProfile />} />
+          <Route path="/recommendations" element={<ShortlistsReceived />} />
                 <Route path="/ai-assistant" element={<AIAssistant />} />
                 <Route path="/impressum" element={<Impressum />} />
                 <Route path="/regions" element={<Regions />} />
@@ -129,6 +132,7 @@ const App = () => {
                 <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
                 <Route path="/admin/programs" element={<AdminLayout><AdminPrograms /></AdminLayout>} />
                 <Route path="/admin/fields-of-study" element={<AdminLayout><AdminFieldsOfStudy /></AdminLayout>} />
+                <Route path="/admin/shortlists" element={<AdminLayout><AdminShortlists /></AdminLayout>} />
                 <Route path="/admin/security" element={<AdminLayout><AdminSecurity /></AdminLayout>} />
                 <Route path="/admin/cities" element={<AdminLayout><AdminCities /></AdminLayout>} />
                 <Route path="/admin/regions" element={<AdminLayout><AdminRegions /></AdminLayout>} />

@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.migrate-program-fields]
 verify_jwt = false
+
+[functions.send-program-shortlist]
+verify_jwt = true

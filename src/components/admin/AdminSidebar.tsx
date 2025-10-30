@@ -17,7 +17,8 @@ import {
   Palette,
   ClipboardCheck,
   Database,
-  Network
+  Network,
+  Mail
 } from "lucide-react";
 
 import {
@@ -40,6 +41,7 @@ const adminMenuItems = [
   { title: "Universities", url: "/admin/universities", icon: Building },
   { title: "Programs", url: "/admin/programs", icon: GraduationCap },
   { title: "Fields of Study", url: "/admin/fields-of-study", icon: Network },
+  { title: "Program Shortlists", url: "/admin/shortlists", icon: Mail },
   { title: "Admission Requirements", url: "/admin/admission-requirements", icon: ClipboardCheck },
   { title: "Service Packages", url: "/admin/packages", icon: Package },
   { title: "Design", url: "/admin/design", icon: Palette },
