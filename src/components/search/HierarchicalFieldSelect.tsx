@@ -164,7 +164,7 @@ export function HierarchicalFieldSelect({
           />
           <AccordionTrigger
             className={cn(
-              "flex-1 py-2.5 pr-3 hover:no-underline",
+              "flex-1 py-2.5 pr-3 hover:no-underline [&>svg]:ml-auto",
               level === 1 && "font-semibold text-base",
               level === 2 && "font-medium",
               level === 3 && "text-sm",
@@ -178,7 +178,7 @@ export function HierarchicalFieldSelect({
               );
             }}
           >
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-between w-full pr-2">
               <label
                 htmlFor={`field-${field.id}`}
                 className={cn(
@@ -194,7 +194,7 @@ export function HierarchicalFieldSelect({
               <Badge
                 variant="secondary"
                 className={cn(
-                  "ml-2 text-xs",
+                  "ml-2 text-xs shrink-0",
                   level === 1 && "bg-primary/20 text-primary font-semibold",
                   level === 2 && "bg-accent/50",
                   isExpanded && "bg-primary/30 text-primary"
