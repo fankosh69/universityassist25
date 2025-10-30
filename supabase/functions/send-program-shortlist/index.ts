@@ -36,19 +36,42 @@ serve(async (req) => {
 
     console.log("Fetching shortlist data for:", shortlistId);
 
-    // Fetch shortlist with programs
+    // Fetch shortlist
     const { data: shortlist, error: shortlistError } = await supabaseClient
       .from("program_shortlists")
-      .select(`
-        *,
-        student:student_profile_id(full_name, email),
-        creator:created_by(email, raw_user_meta_data)
-      `)
+      .select("*")
       .eq("id", shortlistId)
       .single();
 
     if (shortlistError || !shortlist) {
+      console.error("Shortlist fetch error:", shortlistError);
       throw new Error("Shortlist not found");
+    }
+
+    console.log("Shortlist found:", shortlist);
+
+    // Fetch student details
+    const { data: student, error: studentError } = await supabaseClient
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", shortlist.student_profile_id)
+      .single();
+
+    if (studentError || !student) {
+      console.error("Student fetch error:", studentError);
+      throw new Error("Student not found");
+    }
+
+    // Fetch creator details
+    const { data: creator, error: creatorError } = await supabaseClient
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", shortlist.created_by)
+      .single();
+
+    if (creatorError || !creator) {
+      console.error("Creator fetch error:", creatorError);
+      throw new Error("Creator not found");
     }
 
     // Fetch programs in shortlist
@@ -90,9 +113,9 @@ serve(async (req) => {
       staff_notes: sp.staff_notes,
     }));
 
-    const studentEmail = shortlist.student?.email;
-    const studentName = shortlist.student?.full_name || "Student";
-    const staffName = shortlist.creator?.raw_user_meta_data?.full_name || "Your Advisor";
+    const studentEmail = student.email;
+    const studentName = student.full_name || "Student";
+    const staffName = creator.full_name || "Your Advisor";
 
     if (!studentEmail) {
       throw new Error("Student email not found");
