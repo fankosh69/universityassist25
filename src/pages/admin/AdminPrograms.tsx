@@ -158,11 +158,11 @@ export const AdminPrograms = () => {
         application_method: program.application_method as 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates'
       }));
       setPrograms(typedData);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching programs:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch programs",
+        description: error?.message || "Failed to fetch programs",
         variant: "destructive"
       });
     } finally {
@@ -226,6 +226,10 @@ export const AdminPrograms = () => {
         summer_application_open_date: formData.summer_application_open_date ? formData.summer_application_open_date.toISOString().split('T')[0] : null
       };
 
+      // Remove fields that belong to the junction table, not the programs table
+      delete submitData.field_of_study_ids;
+      delete submitData.primary_field_id;
+
       let programId: string;
 
       if (editingProgram) {
@@ -271,11 +275,18 @@ export const AdminPrograms = () => {
 
       resetForm();
       fetchPrograms();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving program:', error);
+      
+      // Extract meaningful error message
+      const errorMessage = error?.message || 
+                           error?.error_description || 
+                           error?.details || 
+                           "Failed to save program";
+      
       toast({
         title: "Error",
-        description: "Failed to save program",
+        description: errorMessage,
         variant: "destructive"
       });
     }
