@@ -122,13 +122,17 @@ export default function AdminFieldsOfStudy() {
       // Auto-generate slug from name if not provided
       const slug = formData.slug || formData.name.toLowerCase().replace(/\s+/g, "-");
 
+      // Convert empty parent_id to null for proper UUID handling
+      const dataToSave = {
+        ...formData,
+        slug,
+        parent_id: formData.parent_id || null,
+      };
+
       if (editingField) {
         const { error } = await supabase
           .from("fields_of_study")
-          .update({
-            ...formData,
-            slug,
-          })
+          .update(dataToSave)
           .eq("id", editingField.id);
 
         if (error) throw error;
@@ -136,10 +140,7 @@ export default function AdminFieldsOfStudy() {
       } else {
         const { error } = await supabase
           .from("fields_of_study")
-          .insert({
-            ...formData,
-            slug,
-          });
+          .insert(dataToSave);
 
         if (error) throw error;
         toast.success("Field created successfully");
@@ -486,7 +487,14 @@ export default function AdminFieldsOfStudy() {
                         .filter((f) => f.level < formData.level)
                         .map((field) => (
                           <SelectItem key={field.id} value={field.id}>
-                            {field.name}
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                L{field.level}
+                              </Badge>
+                              <span className={field.level === 2 ? "ml-4" : ""}>
+                                {field.name}
+                              </span>
+                            </div>
                           </SelectItem>
                         ))}
                     </SelectContent>
