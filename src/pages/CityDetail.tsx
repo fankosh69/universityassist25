@@ -63,11 +63,11 @@ export default function CityDetail() {
         if (cityError) throw cityError;
         setCity(cityData);
 
-        // Fetch universities in this city with city name lookup
+        // Fetch universities in this city using city_id foreign key
         const { data: universitiesData, error: universitiesError } = await supabase
           .from('universities')
           .select('*')
-          .eq('city', cityData.name)  // Use city name instead of city_id
+          .eq('city_id', cityData.id)
           .order('ranking', { ascending: true });
 
         if (universitiesError) throw universitiesError;

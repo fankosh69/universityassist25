@@ -36,7 +36,7 @@ export default function RegionDetail() {
         .from("cities")
         .select(`
           *,
-          universities:universities(count)
+          universities:universities!city_id(count)
         `)
         .eq("region_id", region.id)
         .order("population_total", { ascending: false, nullsFirst: false });
