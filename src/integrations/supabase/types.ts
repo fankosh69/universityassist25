@@ -1266,6 +1266,45 @@ export type Database = {
           },
         ]
       }
+      program_fields_of_study: {
+        Row: {
+          created_at: string | null
+          field_of_study_id: string
+          id: string
+          is_primary: boolean | null
+          program_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          field_of_study_id: string
+          id?: string
+          is_primary?: boolean | null
+          program_id: string
+        }
+        Update: {
+          created_at?: string | null
+          field_of_study_id?: string
+          id?: string
+          is_primary?: boolean | null
+          program_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_fields_of_study_field_of_study_id_fkey"
+            columns: ["field_of_study_id"]
+            isOneToOne: false
+            referencedRelation: "fields_of_study"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_fields_of_study_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       program_matches: {
         Row: {
           components: Json | null

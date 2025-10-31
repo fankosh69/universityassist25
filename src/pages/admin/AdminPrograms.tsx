@@ -23,7 +23,18 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { HierarchicalFieldSelector } from "@/components/admin/HierarchicalFieldSelector";
+import { HierarchicalFieldMultiSelector } from "@/components/admin/HierarchicalFieldMultiSelector";
+
+interface ProgramField {
+  field_of_study_id: string;
+  is_primary: boolean;
+  field: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+}
+
 interface Program {
   id: string;
   name: string;
@@ -32,6 +43,7 @@ interface Program {
   degree_level: "bachelor" | "master";
   field_of_study: string;
   field_of_study_id?: string;
+  program_fields?: ProgramField[];
   duration_semesters: number;
   ects_credits?: number;
   semester_fees: number;
@@ -76,6 +88,8 @@ export const AdminPrograms = () => {
     degree_level: "bachelor" | "master";
     field_of_study: string;
     field_of_study_id: string | null;
+    field_of_study_ids: string[];
+    primary_field_id: string | null;
     duration_semesters: number;
     ects_credits: number;
     semester_fees: number;
@@ -99,6 +113,8 @@ export const AdminPrograms = () => {
     degree_level: "bachelor",
     field_of_study: "",
     field_of_study_id: null,
+    field_of_study_ids: [],
+    primary_field_id: null,
     duration_semesters: 6,
     ects_credits: 180,
     semester_fees: 0,
@@ -127,7 +143,12 @@ export const AdminPrograms = () => {
         error
       } = await supabase.from('programs').select(`
           *,
-          universities (name, city)
+          universities (name, city),
+          program_fields:program_fields_of_study(
+            field_of_study_id,
+            is_primary,
+            field:fields_of_study(id, name, slug)
+          )
         `).order('name');
       if (error) throw error;
 
@@ -163,6 +184,16 @@ export const AdminPrograms = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Validate fields selection
+      if (formData.field_of_study_ids.length === 0) {
+        toast({
+          title: "Error",
+          description: "Please select at least one field of study",
+          variant: "destructive"
+        });
+        return;
+      }
+
       // Generate slug from program name
       const baseSlug = slugify(formData.name);
       
@@ -194,25 +225,50 @@ export const AdminPrograms = () => {
         winter_application_open_date: formData.winter_application_open_date ? formData.winter_application_open_date.toISOString().split('T')[0] : null,
         summer_application_open_date: formData.summer_application_open_date ? formData.summer_application_open_date.toISOString().split('T')[0] : null
       };
+
+      let programId: string;
+
       if (editingProgram) {
-        const {
-          error
-        } = await supabase.from('programs').update(submitData).eq('id', editingProgram.id);
+        const { error } = await supabase
+          .from('programs')
+          .update(submitData)
+          .eq('id', editingProgram.id);
         if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Program updated successfully"
-        });
+        programId = editingProgram.id;
       } else {
-        const {
-          error
-        } = await supabase.from('programs').insert(submitData);
+        const { data, error } = await supabase
+          .from('programs')
+          .insert(submitData)
+          .select()
+          .single();
         if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Program created successfully"
-        });
+        programId = data.id;
       }
+
+      // Delete existing field associations
+      await supabase
+        .from('program_fields_of_study')
+        .delete()
+        .eq('program_id', programId);
+
+      // Insert new field associations
+      const fieldAssociations = formData.field_of_study_ids.map(fieldId => ({
+        program_id: programId,
+        field_of_study_id: fieldId,
+        is_primary: fieldId === formData.primary_field_id
+      }));
+
+      const { error: fieldsError } = await supabase
+        .from('program_fields_of_study')
+        .insert(fieldAssociations);
+
+      if (fieldsError) throw fieldsError;
+
+      toast({
+        title: "Success",
+        description: editingProgram ? "Program updated successfully" : "Program created successfully"
+      });
+
       resetForm();
       fetchPrograms();
     } catch (error) {
@@ -247,6 +303,11 @@ export const AdminPrograms = () => {
   };
   const handleEdit = (program: Program) => {
     setEditingProgram(program);
+    
+    // Extract field IDs and primary from program_fields
+    const fieldIds = program.program_fields?.map(pf => pf.field_of_study_id) || [];
+    const primaryFieldId = program.program_fields?.find(pf => pf.is_primary)?.field_of_study_id || null;
+    
     setFormData({
       name: program.name,
       description: program.description || "",
@@ -254,6 +315,8 @@ export const AdminPrograms = () => {
       degree_level: program.degree_level,
       field_of_study: program.field_of_study,
       field_of_study_id: program.field_of_study_id || null,
+      field_of_study_ids: fieldIds,
+      primary_field_id: primaryFieldId,
       duration_semesters: program.duration_semesters,
       ects_credits: program.ects_credits || 180,
       semester_fees: program.semester_fees,
@@ -282,6 +345,8 @@ export const AdminPrograms = () => {
       degree_level: "bachelor",
       field_of_study: "",
       field_of_study_id: null,
+      field_of_study_ids: [],
+      primary_field_id: null,
       duration_semesters: 6,
       ects_credits: 180,
       semester_fees: 0,
@@ -941,6 +1006,25 @@ export const AdminPrograms = () => {
 
                 <div><strong>Duration:</strong> {program.duration_semesters} semesters</div>
                 <div><strong>ECTS:</strong> {program.ects_credits}</div>
+                
+                {program.program_fields && program.program_fields.length > 0 && (
+                  <div>
+                    <strong>Fields of Study:</strong>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {program.program_fields.map(pf => (
+                        <Badge 
+                          key={pf.field_of_study_id} 
+                          variant={pf.is_primary ? "default" : "secondary"}
+                          className="text-xs"
+                        >
+                          {pf.field.name}
+                          {pf.is_primary && " ⭐"}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
                 <div><strong>Semester Fees:</strong> €{program.semester_fees}/semester</div>
                 
                 <div>
@@ -1085,26 +1169,19 @@ export const AdminPrograms = () => {
             </div>
 
             <div>
-              <Label>Field of Study</Label>
-              <HierarchicalFieldSelector
-                value={formData.field_of_study_id}
-                onChange={(fieldId, fieldName, fullPath) => {
+              <Label>Fields of Study</Label>
+              <HierarchicalFieldMultiSelector
+                selectedFieldIds={formData.field_of_study_ids}
+                primaryFieldId={formData.primary_field_id}
+                onChange={(fieldIds, primaryId) => {
                   setFormData({
                     ...formData,
-                    field_of_study_id: fieldId,
-                    field_of_study: fullPath || fieldName
+                    field_of_study_ids: fieldIds,
+                    primary_field_id: primaryId
                   });
                 }}
                 required
               />
-              {!formData.field_of_study_id && formData.field_of_study && (
-                <Alert className="mt-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    This program has a text-based field "{formData.field_of_study}" but no structured field mapping. Please select from the hierarchy.
-                  </AlertDescription>
-                </Alert>
-              )}
             </div>
 
             <div>
