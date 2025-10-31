@@ -44,6 +44,7 @@ interface University {
 
 export const AdminUniversities = () => {
   const [universities, setUniversities] = useState<University[]>([]);
+  const [cities, setCities] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [editingUniversity, setEditingUniversity] = useState<University | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -74,6 +75,7 @@ export const AdminUniversities = () => {
 
   useEffect(() => {
     fetchUniversities();
+    fetchCities();
   }, []);
 
   const fetchUniversities = async () => {
@@ -103,6 +105,20 @@ export const AdminUniversities = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCities = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('cities')
+        .select('id, name')
+        .order('name');
+
+      if (error) throw error;
+      setCities(data || []);
+    } catch (error) {
+      console.error('Error fetching cities:', error);
     }
   };
 
@@ -361,12 +377,21 @@ export const AdminUniversities = () => {
               
               <div>
                 <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  required
-                />
+                <Select 
+                  value={formData.city} 
+                  onValueChange={(value) => setFormData({ ...formData, city: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select city" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cities.map((city) => (
+                      <SelectItem key={city.id} value={city.name}>
+                        {city.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
