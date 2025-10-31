@@ -1345,6 +1345,7 @@ export type Database = {
       }
       program_shortlists: {
         Row: {
+          cc_recipients: Json | null
           created_at: string | null
           created_by: string
           id: string
@@ -1359,6 +1360,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          cc_recipients?: Json | null
           created_at?: string | null
           created_by: string
           id?: string
@@ -1373,6 +1375,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          cc_recipients?: Json | null
           created_at?: string | null
           created_by?: string
           id?: string

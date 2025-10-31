@@ -53,6 +53,10 @@ serve(async (req) => {
     let recipientEmail: string;
     let recipientName: string;
     const isExternalRecipient = shortlist.recipient_type === 'external';
+    
+    // Extract CC recipients
+    const ccRecipients = shortlist.cc_recipients || [];
+    console.log("CC Recipients:", ccRecipients);
 
     if (isExternalRecipient) {
       // Use external recipient data
@@ -148,6 +152,15 @@ serve(async (req) => {
 
     console.log("Rendering email for:", recipientEmail);
 
+    // Prepare CC emails
+    const ccEmails = ccRecipients
+      .filter((cc: any) => cc.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cc.email))
+      .map((cc: any) => cc.email);
+    
+    if (ccEmails.length > 0) {
+      console.log("CC emails:", ccEmails);
+    }
+
     // Render email
     const html = await renderAsync(
       React.createElement(ShortlistEmail, {
@@ -162,8 +175,8 @@ serve(async (req) => {
       })
     );
 
-    // Send email
-    const { data: emailData, error: emailError } = await resend.emails.send({
+    // Build email payload
+    const emailPayload: any = {
       from: "University Assist <info@uniassist.net>",
       to: [recipientEmail],
       subject: "German Universities Shortlist",
@@ -171,7 +184,15 @@ serve(async (req) => {
       headers: {
         'Content-Type': 'text/html; charset=UTF-8',
       },
-    });
+    };
+
+    // Add CC if recipients exist
+    if (ccEmails.length > 0) {
+      emailPayload.cc = ccEmails;
+    }
+
+    // Send email
+    const { data: emailData, error: emailError } = await resend.emails.send(emailPayload);
 
     if (emailError) {
       console.error("Email send error:", emailError);

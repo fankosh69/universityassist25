@@ -47,6 +47,11 @@ interface ShortlistProgram {
   sort_order: number;
 }
 
+interface CCRecipient {
+  name: string;
+  email: string;
+}
+
 interface Shortlist {
   id: string;
   title: string;
@@ -57,6 +62,7 @@ interface Shortlist {
   recipient_type: 'internal' | 'external';
   recipient_email?: string;
   recipient_name?: string;
+  cc_recipients?: CCRecipient[];
   student: Student;
 }
 
@@ -80,6 +86,11 @@ export default function AdminShortlists() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [currentUserName, setCurrentUserName] = useState<string>("Your Advisor");
+  
+  // CC recipients state
+  const [ccRecipients, setCcRecipients] = useState<CCRecipient[]>([]);
+  const [ccName, setCcName] = useState("");
+  const [ccEmail, setCcEmail] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -169,6 +180,7 @@ export default function AdminShortlists() {
             return {
               ...shortlist,
               recipient_type: 'external' as const,
+              cc_recipients: (shortlist.cc_recipients as unknown as CCRecipient[]) || [],
               student: {
                 id: "",
                 full_name: shortlist.recipient_name,
@@ -186,6 +198,7 @@ export default function AdminShortlists() {
           return {
             ...shortlist,
             recipient_type: 'internal' as const,
+            cc_recipients: (shortlist.cc_recipients as unknown as CCRecipient[]) || [],
             student: student || { id: "", full_name: "Unknown", email: "" },
           };
         })
@@ -273,6 +286,7 @@ export default function AdminShortlists() {
         message,
         status: "draft",
         recipient_type: recipientType,
+        cc_recipients: ccRecipients,
       };
 
       if (recipientType === 'internal') {
@@ -346,6 +360,7 @@ export default function AdminShortlists() {
         message,
         status: "draft",
         recipient_type: recipientType,
+        cc_recipients: ccRecipients,
       };
 
       if (recipientType === 'internal') {
@@ -414,6 +429,59 @@ export default function AdminShortlists() {
     setTitle("Program Recommendations");
     setMessage("");
     setSelectedPrograms([]);
+    setCcRecipients([]);
+    setCcName("");
+    setCcEmail("");
+  };
+
+  const addCcRecipient = () => {
+    // Validate email
+    if (!ccEmail || !ccName) {
+      toast({
+        title: "Missing information",
+        description: "Please provide both name and email",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ccEmail)) {
+      toast({
+        title: "Invalid email",
+        description: "Please provide a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for duplicates
+    if (ccRecipients.some(cc => cc.email.toLowerCase() === ccEmail.toLowerCase())) {
+      toast({
+        title: "Duplicate email",
+        description: "This email is already added",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check limit
+    if (ccRecipients.length >= 5) {
+      toast({
+        title: "Maximum CC limit reached",
+        description: "You can add up to 5 CC recipients",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCcRecipients([...ccRecipients, { name: ccName, email: ccEmail }]);
+    setCcName("");
+    setCcEmail("");
+  };
+
+  const removeCcRecipient = (index: number) => {
+    setCcRecipients(ccRecipients.filter((_, i) => i !== index));
   };
 
   const filteredPrograms = programs.filter(p =>
@@ -491,6 +559,85 @@ export default function AdminShortlists() {
                         onChange={(e) => setExternalEmail(e.target.value)}
                         placeholder="john@example.com"
                       />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* CC Recipients */}
+            <Card>
+              <CardHeader>
+                <CardTitle>CC Recipients (Optional)</CardTitle>
+                <CardDescription>
+                  Add parents, counselors, or other stakeholders to receive a copy
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="cc-name">Name</Label>
+                    <Input
+                      id="cc-name"
+                      value={ccName}
+                      onChange={(e) => setCcName(e.target.value)}
+                      placeholder="John Parent"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <Label htmlFor="cc-email">Email</Label>
+                      <Input
+                        id="cc-email"
+                        type="email"
+                        value={ccEmail}
+                        onChange={(e) => setCcEmail(e.target.value)}
+                        placeholder="john@example.com"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addCcRecipient();
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={addCcRecipient}
+                        disabled={!ccName || !ccEmail}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {ccRecipients.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Added CC Recipients ({ccRecipients.length}/5)</Label>
+                    <div className="space-y-2">
+                      {ccRecipients.map((cc, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                        >
+                          <div>
+                            <p className="font-medium text-sm">{cc.name}</p>
+                            <p className="text-xs text-muted-foreground">{cc.email}</p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeCcRecipient(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -688,6 +835,15 @@ export default function AdminShortlists() {
                     {message && (
                       <div className="bg-primary/10 border-l-4 border-primary p-4 mb-4 italic">
                         {message}
+                      </div>
+                    )}
+
+                    {ccRecipients.length > 0 && (
+                      <div className="bg-muted/50 rounded p-3 mb-4 text-sm">
+                        <p className="font-semibold mb-1">📧 CC Recipients:</p>
+                        <p className="text-muted-foreground">
+                          {ccRecipients.map(cc => cc.name).join(', ')}
+                        </p>
                       </div>
                     )}
                     
