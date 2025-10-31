@@ -54,6 +54,7 @@ export const AdminUniversities = () => {
   const [formData, setFormData] = useState<{
     name: string;
     city: string;
+    city_id: string;
     website: string;
     logo_url: string;
     type: string;
@@ -64,6 +65,7 @@ export const AdminUniversities = () => {
   }>({
     name: "",
     city: "",
+    city_id: "",
     website: "",
     logo_url: "",
     type: "",
@@ -128,6 +130,7 @@ export const AdminUniversities = () => {
     try {
       const submitData = {
         ...formData,
+        city_id: formData.city_id || null,
         ranking: formData.ranking || null,
         lat: formData.lat || null,
         lng: formData.lng || null,
@@ -196,9 +199,14 @@ export const AdminUniversities = () => {
 
   const handleEdit = (university: University) => {
     setEditingUniversity(university);
+    
+    // Find the city_id from the cities list
+    const selectedCity = cities.find(c => c.name === university.city);
+    
     setFormData({
       name: university.name,
       city: university.city,
+      city_id: selectedCity?.id || "",
       website: university.website || "",
       logo_url: university.logo_url || "",
       type: university.type || "",
@@ -215,6 +223,7 @@ export const AdminUniversities = () => {
     setFormData({
       name: "",
       city: "",
+      city_id: "",
       website: "",
       logo_url: "",
       type: "",
@@ -378,15 +387,22 @@ export const AdminUniversities = () => {
               <div>
                 <Label htmlFor="city">City</Label>
                 <Select 
-                  value={formData.city} 
-                  onValueChange={(value) => setFormData({ ...formData, city: value })}
+                  value={formData.city_id} 
+                  onValueChange={(cityId) => {
+                    const selectedCity = cities.find(c => c.id === cityId);
+                    setFormData({ 
+                      ...formData, 
+                      city_id: cityId,
+                      city: selectedCity?.name || ""
+                    });
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select city" />
                   </SelectTrigger>
                   <SelectContent>
                     {cities.map((city) => (
-                      <SelectItem key={city.id} value={city.name}>
+                      <SelectItem key={city.id} value={city.id}>
                         {city.name}
                       </SelectItem>
                     ))}
