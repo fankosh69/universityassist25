@@ -584,9 +584,14 @@ export type Database = {
           created_at: string | null
           description: string | null
           fts: unknown
+          fun_facts: Json | null
+          gallery_images: Json | null
+          hashtags: string[] | null
+          hero_image_url: string | null
           id: string
           keywords: string[] | null
           lat: number | null
+          living_text: string | null
           lng: number | null
           metadata: Json | null
           name: string
@@ -598,6 +603,9 @@ export type Database = {
           search_doc: Json | null
           slug: string
           state: string | null
+          student_count: number | null
+          tips: string | null
+          welcome_text: string | null
           wikidata_qid: string | null
         }
         Insert: {
@@ -606,9 +614,14 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           fts?: unknown
+          fun_facts?: Json | null
+          gallery_images?: Json | null
+          hashtags?: string[] | null
+          hero_image_url?: string | null
           id?: string
           keywords?: string[] | null
           lat?: number | null
+          living_text?: string | null
           lng?: number | null
           metadata?: Json | null
           name: string
@@ -620,6 +633,9 @@ export type Database = {
           search_doc?: Json | null
           slug: string
           state?: string | null
+          student_count?: number | null
+          tips?: string | null
+          welcome_text?: string | null
           wikidata_qid?: string | null
         }
         Update: {
@@ -628,9 +644,14 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           fts?: unknown
+          fun_facts?: Json | null
+          gallery_images?: Json | null
+          hashtags?: string[] | null
+          hero_image_url?: string | null
           id?: string
           keywords?: string[] | null
           lat?: number | null
+          living_text?: string | null
           lng?: number | null
           metadata?: Json | null
           name?: string
@@ -642,6 +663,9 @@ export type Database = {
           search_doc?: Json | null
           slug?: string
           state?: string | null
+          student_count?: number | null
+          tips?: string | null
+          welcome_text?: string | null
           wikidata_qid?: string | null
         }
         Relationships: [

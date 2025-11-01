@@ -2,9 +2,17 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import CityMap from '@/components/CityMap';
 import Navigation from '@/components/Navigation';
 import SEOCityPage from '@/components/SEOCityPage';
+import { CityHero } from '@/components/cities/CityHero';
+import { CityFactsSidebar } from '@/components/cities/CityFactsSidebar';
+import { CityGallery } from '@/components/cities/CityGallery';
+import { CityWelcomeSection } from '@/components/cities/CityWelcomeSection';
+import { CityLivingSection } from '@/components/cities/CityLivingSection';
+import { CityTipsCard } from '@/components/cities/CityTipsCard';
+import { SimilarCitiesGrid } from '@/components/cities/SimilarCitiesGrid';
 
 interface MapMarker {
   id: string;
@@ -19,6 +27,7 @@ export default function CityPage() {
   const [cityData, setCityData] = useState<any>(null);
   const [universities, setUniversities] = useState<any[]>([]);
   const [ambassadors, setAmbassadors] = useState<any[]>([]);
+  const [similarCities, setSimilarCities] = useState<any[]>([]);
   const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,10 +36,10 @@ export default function CityPage() {
       try {
         if (!city) return;
         
-        // Fetch city data with population and region info
+        // Fetch city data with all new fields
         const { data: cityInfo, error: cityError } = await supabase
           .from('cities')
-          .select('id, name, slug, lat, lng, region, population_total, population_asof')
+          .select('*')
           .eq('slug', city)
           .maybeSingle();
         
@@ -66,6 +75,20 @@ export default function CityPage() {
         
         if (!ambassadorError && cityAmbassadors) {
           setAmbassadors(cityAmbassadors);
+        }
+
+        // Fetch similar cities from the same region
+        if (cityInfo?.region) {
+          const { data: regionCities } = await supabase
+            .from('cities')
+            .select('id, name, slug, region, hero_image_url, hashtags')
+            .eq('region', cityInfo.region)
+            .neq('id', cityInfo.id)
+            .limit(4);
+          
+          if (regionCities) {
+            setSimilarCities(regionCities);
+          }
         }
 
         // Create map markers - only include universities with valid coordinates
@@ -125,6 +148,11 @@ export default function CityPage() {
   if (loading) return <div className="flex items-center justify-center min-h-screen"><div className="text-lg">Loading...</div></div>;
   if (!cityData) return <div className="flex items-center justify-center min-h-screen"><div className="text-lg">City not found</div></div>;
 
+  // Parse gallery images if they exist
+  const galleryImages = cityData.gallery_images && Array.isArray(cityData.gallery_images) 
+    ? cityData.gallery_images 
+    : [];
+
   return (
     <div className="min-h-screen bg-background">
       <SEOCityPage 
@@ -133,92 +161,128 @@ export default function CityPage() {
       />
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">Study in {cityData.name}</h1>
-          <div className="flex flex-wrap items-center gap-2 text-lg text-muted-foreground mb-2">
-            {cityData.region && <span>{cityData.region}</span>}
-            {cityData.population_total && (
-              <>
-                <span>•</span>
-                <span>{cityData.population_total.toLocaleString()} residents</span>
-                {cityData.population_asof && (
-                  <span className="text-base">(as of {new Date(cityData.population_asof).getFullYear()})</span>
-                )}
-              </>
+      {/* Hero Section */}
+      <CityHero 
+        cityName={cityData.name}
+        heroImageUrl={cityData.hero_image_url}
+        hashtags={cityData.hashtags}
+        subtitle={`Regal Education in the ${cityData.region || 'Heart of Germany'}`}
+      />
+      
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {/* Welcome Section */}
+            <CityWelcomeSection 
+              cityName={cityData.name}
+              welcomeText={cityData.welcome_text}
+            />
+            
+            {/* Photo Gallery */}
+            {galleryImages.length > 0 && (
+              <CityGallery images={galleryImages} />
             )}
-          </div>
-          <p className="text-xl text-muted-foreground">
-            Explore {universities.length} universities and their programs
-          </p>
-        </div>
+            
+            {/* Living Section */}
+            <CityLivingSection 
+              cityName={cityData.name}
+              livingText={cityData.living_text}
+            />
+            
+            {/* Tips Card */}
+            <CityTipsCard tips={cityData.tips} />
 
-        {/* Student Ambassadors Section */}
-        {ambassadors.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold mb-6">👥 Student Ambassadors in {cityData.name}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {ambassadors.map(ambassador => (
-                <Card key={ambassador.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    {ambassador.photo_url && (
-                      <img 
-                        src={ambassador.photo_url}
-                        alt={ambassador.full_name}
-                        className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
-                      />
-                    )}
-                    <h3 className="font-semibold text-lg text-center mb-2">{ambassador.full_name}</h3>
-                    <p className="text-sm text-muted-foreground text-center mb-2">
-                      {ambassador.universities?.name || 'Student Ambassador'}
-                    </p>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                      {ambassador.testimonial}
-                    </p>
-                    <Link 
-                      to={`/ambassadors/${ambassador.slug}`}
-                      className="text-primary hover:underline text-sm block text-center"
-                    >
-                      Read Story →
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            <div className="text-center mt-6">
-              <Link to="/ambassadors" className="text-primary hover:underline">
-                View All Student Ambassadors →
-              </Link>
-            </div>
-          </div>
-        )}
+            {/* Student Ambassadors Section */}
+            {ambassadors.length > 0 && (
+              <div className="my-12">
+                <h2 className="text-3xl font-bold mb-6">Student Ambassadors in {cityData.name}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {ambassadors.map(ambassador => (
+                    <Card key={ambassador.id} className="hover:shadow-lg transition-shadow">
+                      <CardContent className="p-6">
+                        {ambassador.photo_url && (
+                          <img 
+                            src={ambassador.photo_url}
+                            alt={ambassador.full_name}
+                            className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
+                          />
+                        )}
+                        <h3 className="font-semibold text-lg text-center mb-2">{ambassador.full_name}</h3>
+                        <p className="text-sm text-muted-foreground text-center mb-2">
+                          {ambassador.universities?.name || 'Student Ambassador'}
+                        </p>
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                          {ambassador.testimonial}
+                        </p>
+                        <Link 
+                          to={`/ambassadors/${ambassador.slug}`}
+                          className="text-primary hover:underline text-sm block text-center"
+                        >
+                          Read Story →
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                <div className="text-center mt-6">
+                  <Link to="/ambassadors">
+                    <Button variant="outline">View All Student Ambassadors</Button>
+                  </Link>
+                </div>
+              </div>
+            )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <CityMap 
-              city={cityData}
-              className="mb-8"
+            {/* Map Section */}
+            <div className="my-12">
+              <h2 className="text-3xl font-bold mb-6">Universities Map</h2>
+              <CityMap 
+                city={cityData}
+                className="rounded-lg"
+              />
+            </div>
+            
+            {/* Similar Cities */}
+            <SimilarCitiesGrid 
+              cities={similarCities}
+              currentCityId={cityData.id}
             />
           </div>
           
-          <div>
-            <Card>
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <CityFactsSidebar 
+              population={cityData.population_total}
+              populationYear={cityData.population_asof ? new Date(cityData.population_asof).getFullYear().toString() : undefined}
+              studentCount={cityData.student_count}
+              universityCount={universities.length}
+              region={cityData.region}
+            />
+            
+            {/* Universities List Card */}
+            <Card className="mt-8">
               <CardHeader>
                 <CardTitle>Universities ({universities.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {universities.map(uni => (
-                  <div className="border-b pb-4 last:border-b-0">
                     <Link 
+                      key={uni.id}
                       to={`/universities/${uni.slug || uni.id}`}
-                      className="block hover:bg-muted/50 rounded p-2 transition-colors"
+                      className="block hover:bg-muted/50 rounded p-3 transition-colors border-b last:border-b-0"
                     >
                       <h3 className="font-semibold hover:text-primary transition-colors">{uni.name}</h3>
                       <p className="text-sm text-muted-foreground">{uni.type}</p>
                     </Link>
-                  </div>
                   ))}
+                </div>
+                <div className="mt-4 pt-4 border-t">
+                  <Link to={`/universities?city=${cityData.name}`}>
+                    <Button variant="outline" className="w-full">
+                      View All Programs
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
