@@ -328,6 +328,9 @@ Provide specific guidance about this program, check eligibility, and answer ques
     const aiData = await aiResponse.json();
     const choice = aiData.choices[0];
     
+    let assistantMessage = '';
+    const toolResults: any[] = [];
+    
     // Handle tool calls if present
     if (choice.message.tool_calls && choice.message.tool_calls.length > 0) {
       for (const toolCall of choice.message.tool_calls) {
@@ -336,107 +339,201 @@ Provide specific guidance about this program, check eligibility, and answer ques
         
         console.log('Tool call:', functionName, args);
         
+        let toolResult: any = { success: false, message: 'Unknown tool' };
+        
         if (functionName === 'check_program_eligibility') {
           // Calculate eligibility based on profile, academics, and program data
           if (!programData) {
             console.log('No program data available for eligibility check');
-            continue;
-          }
-
-          // Build eligibility response
-          let eligibilityResult = 'ELIGIBILITY ANALYSIS:\n';
-          const issues = [];
-          const strengths = [];
-
-          // Check GPA
-          if (academics?.gpa_raw && academics?.gpa_scale_max && academics?.gpa_min_pass) {
-            const normalizedGPA = ((academics.gpa_raw - academics.gpa_min_pass) / (academics.gpa_scale_max - academics.gpa_min_pass)) * 4.0;
-            const germanGPA = 1 + (4 - 1) * (1 - (normalizedGPA / 4.0));
-            const requiredGPA = programData.minimum_gpa || 2.5;
-            
-            if (germanGPA <= requiredGPA) {
-              strengths.push(`GPA meets requirements (German equivalent: ${germanGPA.toFixed(2)})`);
-            } else {
-              issues.push(`GPA may be below requirement (German equivalent: ${germanGPA.toFixed(2)}, required: ${requiredGPA})`);
-            }
+            toolResult = { success: false, message: 'No program data available' };
           } else {
-            issues.push('GPA information not provided');
-          }
+            // Build eligibility response
+            let eligibilityResult = 'ELIGIBILITY ANALYSIS:\n';
+            const issues = [];
+            const strengths = [];
 
-          // Check language requirements
-          if (programData.language_requirements && programData.language_requirements.length > 0) {
-            if (academics?.language_certificates && academics.language_certificates.length > 0) {
-              strengths.push('Has language certificates');
+            // Check GPA
+            if (academics?.gpa_raw && academics?.gpa_scale_max && academics?.gpa_min_pass) {
+              const normalizedGPA = ((academics.gpa_raw - academics.gpa_min_pass) / (academics.gpa_scale_max - academics.gpa_min_pass)) * 4.0;
+              const germanGPA = 1 + (4 - 1) * (1 - (normalizedGPA / 4.0));
+              const requiredGPA = programData.minimum_gpa || 2.5;
+              
+              if (germanGPA <= requiredGPA) {
+                strengths.push(`GPA meets requirements (German equivalent: ${germanGPA.toFixed(2)})`);
+              } else {
+                issues.push(`GPA may be below requirement (German equivalent: ${germanGPA.toFixed(2)}, required: ${requiredGPA})`);
+              }
             } else {
-              issues.push('Language certificates required but not provided');
+              issues.push('GPA information not provided');
             }
-          }
 
-          // Check ECTS
-          if (programData.ects_credits) {
-            if (academics?.ects_total && academics.ects_total >= programData.ects_credits) {
-              strengths.push(`ECTS credits sufficient (${academics.ects_total}/${programData.ects_credits})`);
-            } else {
-              issues.push(`Need more ECTS credits (current: ${academics?.ects_total || 0}, required: ${programData.ects_credits})`);
+            // Check language requirements
+            if (programData.language_requirements && programData.language_requirements.length > 0) {
+              if (academics?.language_certificates && academics.language_certificates.length > 0) {
+                strengths.push('Has language certificates');
+              } else {
+                issues.push('Language certificates required but not provided');
+              }
             }
-          }
 
-          eligibilityResult += '\nSTRENGTHS:\n' + (strengths.length > 0 ? strengths.map(s => `- ${s}`).join('\n') : '- None identified yet');
-          eligibilityResult += '\n\nAREAS TO ADDRESS:\n' + (issues.length > 0 ? issues.map(i => `- ${i}`).join('\n') : '- None identified');
-          eligibilityResult += '\n\nProvide this analysis to the user in a friendly, encouraging way. Offer specific advice on how to address any issues.';
-          
-          console.log('Eligibility check result:', eligibilityResult);
+            // Check ECTS
+            if (programData.ects_credits) {
+              if (academics?.ects_total && academics.ects_total >= programData.ects_credits) {
+                strengths.push(`ECTS credits sufficient (${academics.ects_total}/${programData.ects_credits})`);
+              } else {
+                issues.push(`Need more ECTS credits (current: ${academics?.ects_total || 0}, required: ${programData.ects_credits})`);
+              }
+            }
+
+            eligibilityResult += '\nSTRENGTHS:\n' + (strengths.length > 0 ? strengths.map(s => `- ${s}`).join('\n') : '- None identified yet');
+            eligibilityResult += '\n\nAREAS TO ADDRESS:\n' + (issues.length > 0 ? issues.map(i => `- ${i}`).join('\n') : '- None identified');
+            eligibilityResult += '\n\nProvide this analysis to the user in a friendly, encouraging way. Offer specific advice on how to address any issues.';
+            
+            console.log('Eligibility check result:', eligibilityResult);
+            toolResult = { success: true, analysis: eligibilityResult };
+          }
         } else if (functionName === 'update_profile_data') {
           // Call the dedicated update function for better reliability
-          const updateResult = await fetch(
-            `${supabaseUrl}/functions/v1/update-profile-from-ai`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': authHeader || '',
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                profileData: args,
-                academicData: null
-              })
+          try {
+            const updateResponse = await fetch(
+              `${supabaseUrl}/functions/v1/update-profile-from-ai`,
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': authHeader || '',
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  profileData: args,
+                  academicData: null
+                })
+              }
+            );
+            
+            const updateResult = await updateResponse.json();
+            
+            if (!updateResult.success) {
+              console.error('Profile update failed:', updateResult.error || updateResult.errors);
+              toolResult = { 
+                success: false, 
+                message: `Update failed: ${(updateResult.errors || []).join(', ')}` 
+              };
+            } else {
+              console.log('Profile updated successfully:', updateResult.updates);
+              toolResult = { 
+                success: true, 
+                message: `Successfully updated: ${updateResult.updates.join(', ')}` 
+              };
             }
-          ).then(r => r.json()).catch(e => ({ success: false, error: e.message }));
-          
-          if (!updateResult.success) {
-            console.error('Profile update failed:', updateResult.error || updateResult.errors);
-          } else {
-            console.log('Profile updated successfully via dedicated function:', updateResult.updates);
+          } catch (error: any) {
+            console.error('Profile update exception:', error);
+            toolResult = { 
+              success: false, 
+              message: `Update error: ${error.message}` 
+            };
           }
         } else if (functionName === 'update_academic_data') {
           // Call the dedicated update function for academic data
-          const updateResult = await fetch(
-            `${supabaseUrl}/functions/v1/update-profile-from-ai`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': authHeader || '',
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                profileData: null,
-                academicData: args
-              })
+          try {
+            const updateResponse = await fetch(
+              `${supabaseUrl}/functions/v1/update-profile-from-ai`,
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': authHeader || '',
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  profileData: null,
+                  academicData: args
+                })
+              }
+            );
+            
+            const updateResult = await updateResponse.json();
+            
+            if (!updateResult.success) {
+              console.error('Academic update failed:', updateResult.error || updateResult.errors);
+              toolResult = { 
+                success: false, 
+                message: `Update failed: ${(updateResult.errors || []).join(', ')}` 
+              };
+            } else {
+              console.log('Academic data updated successfully:', updateResult.updates);
+              toolResult = { 
+                success: true, 
+                message: `Successfully updated: ${updateResult.updates.join(', ')}` 
+              };
             }
-          ).then(r => r.json()).catch(e => ({ success: false, error: e.message }));
-          
-          if (!updateResult.success) {
-            console.error('Academic update failed:', updateResult.error || updateResult.errors);
-          } else {
-            console.log('Academic data updated successfully via dedicated function:', updateResult.updates);
+          } catch (error: any) {
+            console.error('Academic update exception:', error);
+            toolResult = { 
+              success: false, 
+              message: `Update error: ${error.message}` 
+            };
           }
         }
+        
+        toolResults.push({
+          id: toolCall.id,
+          name: functionName,
+          result: toolResult
+        });
       }
+      
+      // CRITICAL FIX: If no content returned (only tool calls), make second API call
+      const rawMessage = choice.message.content || '';
+      if (!rawMessage || rawMessage.trim() === '') {
+        console.log('No content in first response, making second API call with tool results...');
+        
+        // Build messages array with tool results
+        const messagesWithToolResults = [
+          { role: 'system', content: SYSTEM_PROMPT + contextInfo },
+          ...messages.map(m => ({ role: m.role, content: m.content })),
+          { 
+            role: 'assistant',
+            content: null,
+            tool_calls: choice.message.tool_calls
+          },
+          ...toolResults.map(tr => ({
+            role: 'tool',
+            tool_call_id: tr.id,
+            name: tr.name,
+            content: JSON.stringify(tr.result)
+          }))
+        ];
+        
+        // Make second API call to get the actual text response
+        const secondResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${lovableApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: messagesWithToolResults,
+          }),
+        });
+        
+        if (secondResponse.ok) {
+          const secondData = await secondResponse.json();
+          const secondMessage = secondData.choices[0]?.message?.content || "I've processed your information.";
+          assistantMessage = secondMessage.replace(/\*/g, ''); // Remove asterisks
+          console.log('Second API call successful, got response:', assistantMessage.substring(0, 100));
+        } else {
+          console.error('Second API call failed:', secondResponse.status);
+          assistantMessage = "I've updated your information successfully!";
+        }
+      } else {
+        // Use the content from first response
+        assistantMessage = rawMessage.replace(/\*/g, ''); // Remove asterisks
+      }
+    } else {
+      // No tool calls, just use the message content
+      const rawMessage = choice.message.content || "I'm here to help!";
+      assistantMessage = rawMessage.replace(/\*/g, ''); // Remove asterisks
     }
-    
-    const rawMessage = choice.message.content || '';
-    // Post-process: Remove all asterisks (both single * and double **)
-    const assistantMessage = rawMessage.replace(/\*/g, '');
 
     // Save assistant message
     await supabaseAdmin.from('ai_messages').insert({

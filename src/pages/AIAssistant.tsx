@@ -182,10 +182,26 @@ export default function AIAssistant() {
 
     } catch (error: any) {
       console.error('Error sending message:', error);
+      
+      // Remove the failed user message from display
+      setMessages(prev => prev.slice(0, -1));
+      
+      let errorDescription = error.message || "Failed to send message";
+      
+      // Handle specific error cases
+      if (error.message?.includes('429')) {
+        errorDescription = "Too many requests. Please wait a moment and try again.";
+      } else if (error.message?.includes('402')) {
+        errorDescription = "AI service quota exceeded. Please contact support.";
+      } else if (error.message?.includes('profile')) {
+        errorDescription = "Failed to update your profile. Please try again.";
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to send message",
-        variant: "destructive"
+        description: errorDescription,
+        variant: "destructive",
+        duration: 5000,
       });
     } finally {
       setIsLoading(false);
