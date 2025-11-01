@@ -221,36 +221,24 @@ export function EnhancedSearchContainer() {
       });
     }
 
-    // Filter by application status
+    // Filter by application deadline month
     if (filters.applicationStatus && filters.applicationStatus.length > 0) {
-      const now = new Date();
       filtered = filtered.filter(program => {
-        return filters.applicationStatus.some(status => {
-          const winterDeadline = program.winter_deadline ? new Date(program.winter_deadline) : null;
-          const summerDeadline = program.summer_deadline ? new Date(program.summer_deadline) : null;
-          
-          // Determine which deadline to use based on current date
-          let currentDeadline: Date | null = null;
-          if (winterDeadline && summerDeadline) {
-            // Use the nearest future deadline
-            if (winterDeadline > now && summerDeadline > now) {
-              currentDeadline = winterDeadline < summerDeadline ? winterDeadline : summerDeadline;
-            } else if (winterDeadline > now) {
-              currentDeadline = winterDeadline;
-            } else if (summerDeadline > now) {
-              currentDeadline = summerDeadline;
-            }
-          } else {
-            currentDeadline = winterDeadline || summerDeadline;
+        const winterDeadline = program.winter_deadline ? new Date(program.winter_deadline) : null;
+        const summerDeadline = program.summer_deadline ? new Date(program.summer_deadline) : null;
+        
+        return filters.applicationStatus.some(selectedMonth => {
+          // Check if winter deadline falls in selected month
+          if (winterDeadline) {
+            const winterMonth = winterDeadline.toISOString().slice(0, 7); // 'yyyy-MM'
+            if (winterMonth === selectedMonth) return true;
           }
-
-          if (!currentDeadline) return false;
-
-          const daysUntilDeadline = Math.ceil((currentDeadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-          if (status === 'open' && daysUntilDeadline > 30) return true;
-          if (status === 'closing_soon' && daysUntilDeadline > 7 && daysUntilDeadline <= 30) return true;
-          if (status === 'urgent' && daysUntilDeadline > 0 && daysUntilDeadline <= 7) return true;
+          
+          // Check if summer deadline falls in selected month
+          if (summerDeadline) {
+            const summerMonth = summerDeadline.toISOString().slice(0, 7); // 'yyyy-MM'
+            if (summerMonth === selectedMonth) return true;
+          }
           
           return false;
         });
@@ -467,15 +455,22 @@ export function EnhancedSearchContainer() {
                       />
                     </Badge>
                   ))}
-                  {filters.applicationStatus?.map(status => (
-                    <Badge key={status} variant="secondary" className="text-xs">
-                      {status === 'open' ? 'Open Now' : status === 'closing_soon' ? 'Closing Soon' : 'Urgent'}
-                      <X
-                        className="h-3 w-3 ml-1 cursor-pointer"
-                        onClick={() => removeFilter('applicationStatus', status)}
-                      />
-                    </Badge>
-                  ))}
+                  {filters.applicationStatus?.map(month => {
+                    // Format month for display (e.g., "2025-01" -> "January 2025")
+                    const [year, monthNum] = month.split('-');
+                    const date = new Date(parseInt(year), parseInt(monthNum) - 1);
+                    const monthLabel = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                    
+                    return (
+                      <Badge key={month} variant="secondary" className="text-xs">
+                        {monthLabel}
+                        <X
+                          className="h-3 w-3 ml-1 cursor-pointer"
+                          onClick={() => removeFilter('applicationStatus', month)}
+                        />
+                      </Badge>
+                    );
+                  })}
                 </div>
               )}
             </div>

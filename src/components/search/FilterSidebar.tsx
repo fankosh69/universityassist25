@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Accordion } from '@/components/ui/accordion';
@@ -10,6 +10,7 @@ import { FilterGroup } from './FilterGroup';
 import { HierarchicalFieldSelect } from './HierarchicalFieldSelect';
 import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X, Calendar } from 'lucide-react';
 import { INSTITUTION_TYPES, CONTROL_TYPES } from '@/lib/institution-types';
+import { format, addMonths, startOfMonth } from 'date-fns';
 
 interface SearchFilters {
   degreeLevel: string;
@@ -65,6 +66,20 @@ export function FilterSidebar({
       return value !== 'all' && value !== null && value !== '';
     }).length;
   };
+
+  // Generate next 12 months for deadline filter
+  const availableMonths = useMemo(() => {
+    const months = [];
+    const now = startOfMonth(new Date());
+    for (let i = 0; i < 12; i++) {
+      const month = addMonths(now, i);
+      months.push({
+        value: format(month, 'yyyy-MM'),
+        label: format(month, 'MMMM yyyy')
+      });
+    }
+    return months;
+  }, []);
 
   return (
     <div className="h-full flex flex-col">
@@ -317,56 +332,32 @@ export function FilterSidebar({
             </div>
           </FilterGroup>
 
-          {/* Application Period */}
+          {/* Application Deadline Month */}
           <FilterGroup 
             value="deadline" 
-            title="Application Period" 
-            icon={<Clock className="h-4 w-4" />}
+            title="Application Deadline" 
+            icon={<Calendar className="h-4 w-4" />}
             activeCount={filters.applicationStatus?.length || 0}
           >
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="status-open"
-                  checked={filters.applicationStatus?.includes('open')}
-                  onCheckedChange={(checked) => {
-                    const currentStatus = filters.applicationStatus || [];
-                    const newStatus = checked 
-                      ? [...currentStatus, 'open']
-                      : currentStatus.filter(s => s !== 'open');
-                    updateFilter('applicationStatus', newStatus);
-                  }}
-                />
-                <Label htmlFor="status-open" className="text-sm font-normal cursor-pointer">Open Now</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="status-closing"
-                  checked={filters.applicationStatus?.includes('closing_soon')}
-                  onCheckedChange={(checked) => {
-                    const currentStatus = filters.applicationStatus || [];
-                    const newStatus = checked 
-                      ? [...currentStatus, 'closing_soon']
-                      : currentStatus.filter(s => s !== 'closing_soon');
-                    updateFilter('applicationStatus', newStatus);
-                  }}
-                />
-                <Label htmlFor="status-closing" className="text-sm font-normal cursor-pointer">Closing Soon</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="status-urgent"
-                  checked={filters.applicationStatus?.includes('urgent')}
-                  onCheckedChange={(checked) => {
-                    const currentStatus = filters.applicationStatus || [];
-                    const newStatus = checked 
-                      ? [...currentStatus, 'urgent']
-                      : currentStatus.filter(s => s !== 'urgent');
-                    updateFilter('applicationStatus', newStatus);
-                  }}
-                />
-                <Label htmlFor="status-urgent" className="text-sm font-normal cursor-pointer">Urgent (≤7 days)</Label>
-              </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {availableMonths.map(month => (
+                <div key={month.value} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`month-${month.value}`}
+                    checked={filters.applicationStatus?.includes(month.value)}
+                    onCheckedChange={(checked) => {
+                      const currentStatus = filters.applicationStatus || [];
+                      const newStatus = checked 
+                        ? [...currentStatus, month.value]
+                        : currentStatus.filter(s => s !== month.value);
+                      updateFilter('applicationStatus', newStatus);
+                    }}
+                  />
+                  <Label htmlFor={`month-${month.value}`} className="text-sm font-normal cursor-pointer">
+                    {month.label}
+                  </Label>
+                </div>
+              ))}
             </div>
           </FilterGroup>
         </Accordion>
