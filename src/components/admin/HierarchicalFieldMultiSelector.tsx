@@ -300,7 +300,7 @@ export const HierarchicalFieldMultiSelector = ({
           </div>
         ) : (
           <div className="space-y-1">
-            {displayedFields.map(field => renderField(field))}
+            {displayedFields.map(field => renderField(field, 1))}
           </div>
         )}
       </div>
