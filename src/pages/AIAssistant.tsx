@@ -14,11 +14,13 @@ import { Bot, Send, Loader2, CheckCircle2, Circle, GraduationCap, ExternalLink, 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import ProgramRecommendationCard from "@/components/ai/ProgramRecommendationCard";
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp?: string;
+  programs?: any[];
 }
 
 interface ProfileChecklist {
@@ -185,9 +187,31 @@ export default function AIAssistant() {
       }
 
       setConversationId(data.conversationId);
+      
+      // Parse message for program recommendations
+      const messageContent = data.message || '';
+      let programs: any[] | undefined;
+      let cleanedMessage = messageContent;
+      
+      const recommendationsMatch = messageContent.match(/:::PROGRAM_RECOMMENDATIONS:::([\s\S]*?):::END_RECOMMENDATIONS:::/);
+      if (recommendationsMatch) {
+        try {
+          const jsonStr = recommendationsMatch[1].trim();
+          const parsed = JSON.parse(jsonStr);
+          programs = parsed.programs || [];
+          console.log('Parsed program recommendations:', programs.length);
+          
+          // Remove the JSON markers from the displayed message
+          cleanedMessage = messageContent.replace(/:::PROGRAM_RECOMMENDATIONS:::[\s\S]*?:::END_RECOMMENDATIONS:::/, '').trim();
+        } catch (err) {
+          console.error('Failed to parse program recommendations JSON:', err);
+        }
+      }
+      
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: data.message
+        content: cleanedMessage,
+        programs: programs
       }]);
 
       // Refresh profile completion after each message
@@ -219,6 +243,10 @@ export default function AIAssistant() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleAskAIAboutProgram = (programName: string) => {
+    setInput(`Tell me more about the ${programName} program. What are the specific requirements and application process?`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -397,30 +425,42 @@ export default function AIAssistant() {
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
                 {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    {message.role === 'assistant' && (
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-primary text-white">
-                          <Bot className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-                    <div
-                      className={`rounded-lg p-3 max-w-[80%] ${
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap">{message.content}</p>
+                  <div key={index} className="space-y-3">
+                    <div className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      {message.role === 'assistant' && (
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-primary text-white">
+                            <Bot className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                      <div
+                        className={`rounded-lg p-3 max-w-[80%] ${
+                          message.role === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted'
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap">{message.content}</p>
+                      </div>
+                      {message.role === 'user' && (
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback>U</AvatarFallback>
+                        </Avatar>
+                      )}
                     </div>
-                    {message.role === 'user' && (
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>U</AvatarFallback>
-                      </Avatar>
+                    
+                    {/* Render program recommendation cards if present */}
+                    {message.programs && message.programs.length > 0 && (
+                      <div className="grid grid-cols-1 gap-4 ml-11 max-w-[80%]">
+                        {message.programs.map((program: any, idx: number) => (
+                          <ProgramRecommendationCard
+                            key={idx}
+                            program={program}
+                            onAskAI={handleAskAIAboutProgram}
+                          />
+                        ))}
+                      </div>
                     )}
                   </div>
                 ))}
@@ -432,7 +472,10 @@ export default function AIAssistant() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="rounded-lg p-3 bg-muted">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        <span className="text-sm text-muted-foreground">Thinking...</span>
+                      </div>
                     </div>
                   </div>
                 )}

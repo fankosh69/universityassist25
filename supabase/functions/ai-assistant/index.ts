@@ -12,6 +12,32 @@ const SYSTEM_PROMPT = `You are a helpful university admissions assistant for Uni
 
 IMPORTANT: Use plain text only. Do not use asterisks (*), underscores (_), or any markdown formatting in your responses. Write naturally without special formatting characters.
 
+=== PROGRAM RECOMMENDATIONS FORMAT ===
+
+When recommending programs to users, you MUST return structured JSON data wrapped in special markers:
+
+:::PROGRAM_RECOMMENDATIONS:::
+{
+  "programs": [
+    {
+      "program_id": "uuid",
+      "university_name": "string",
+      "university_slug": "string",
+      "program_name": "string",
+      "program_slug": "string",
+      "city": "string",
+      "match_score": 85,
+      "eligibility": "eligible|borderline|missing",
+      "why_it_fits": "Clear explanation why this program matches the student",
+      "requirements_met": ["GPA acceptable", "English proficiency ready"],
+      "requirements_missing": ["Need B2 German certificate", "ECTS verification needed"]
+    }
+  ]
+}
+:::END_RECOMMENDATIONS:::
+
+After the JSON, add conversational text explaining your recommendations.
+
 === CRITICAL TOOL CALLING RULES ===
 
 1. IMMEDIATE TOOL CALLING IS MANDATORY:
@@ -309,6 +335,23 @@ Provide specific guidance about this program, check eligibility, and answer ques
             additionalProperties: false
           }
         }
+      },
+      {
+        type: "function",
+        function: {
+          name: "query_matching_programs",
+          description: "Search for programs that match the user's preferences and profile. Use this when ready to recommend programs after collecting sufficient information.",
+          parameters: {
+            type: "object",
+            properties: {
+              degree_level: { type: "string", description: "Degree level: bachelor, master, or phd" },
+              field_of_study: { type: "string", description: "Field of study the user is interested in" },
+              preferred_cities: { type: "array", items: { type: "string" }, description: "Preferred cities" },
+              limit: { type: "number", description: "Maximum number of programs to return", default: 5 }
+            },
+            additionalProperties: false
+          }
+        }
       }
     ];
 
@@ -402,6 +445,132 @@ Provide specific guidance about this program, check eligibility, and answer ques
             
             console.log('Eligibility check result:', eligibilityResult);
             toolResult = { success: true, analysis: eligibilityResult };
+          }
+        } else if (functionName === 'query_matching_programs') {
+          // Query programs from database based on user preferences
+          try {
+            const { degree_level, field_of_study, preferred_cities, limit = 5 } = args;
+            
+            let query = supabaseAdmin
+              .from('programs')
+              .select(`
+                id,
+                name,
+                slug,
+                degree_level,
+                field_of_study,
+                minimum_gpa,
+                ects_credits,
+                language_requirements,
+                universities!inner(
+                  id,
+                  name,
+                  slug,
+                  city
+                )
+              `)
+              .eq('is_published', true)
+              .limit(limit);
+            
+            if (degree_level) {
+              query = query.ilike('degree_level', degree_level);
+            }
+            if (field_of_study) {
+              query = query.ilike('field_of_study', `%${field_of_study}%`);
+            }
+            if (preferred_cities && preferred_cities.length > 0) {
+              query = query.in('universities.city', preferred_cities);
+            }
+            
+            const { data: programs, error: programsError } = await query;
+            
+            if (programsError) throw programsError;
+            
+            // Calculate match scores for each program
+            const programsWithScores = (programs || []).map(prog => {
+              let matchScore = 50; // Base score
+              let eligibility = 'borderline';
+              const requirementsMet = [];
+              const requirementsMissing = [];
+              
+              // GPA check
+              if (academics?.gpa_raw && academics?.gpa_scale_max && academics?.gpa_min_pass) {
+                const normalizedGPA = ((academics.gpa_raw - academics.gpa_min_pass) / (academics.gpa_scale_max - academics.gpa_min_pass)) * 4.0;
+                const germanGPA = 1 + (4 - 1) * (1 - (normalizedGPA / 4.0));
+                const requiredGPA = prog.minimum_gpa || 2.5;
+                
+                if (germanGPA <= requiredGPA) {
+                  matchScore += 25;
+                  requirementsMet.push(`GPA qualifies (German: ${germanGPA.toFixed(2)})`);
+                } else {
+                  requirementsMissing.push(`GPA improvement needed (Current: ${germanGPA.toFixed(2)}, Required: ${requiredGPA})`);
+                }
+              } else {
+                requirementsMissing.push('GPA not provided');
+              }
+              
+              // Language check
+              if (prog.language_requirements && prog.language_requirements.length > 0) {
+                if (academics?.language_certificates && academics.language_certificates.length > 0) {
+                  matchScore += 15;
+                  requirementsMet.push('Language certificates provided');
+                } else {
+                  requirementsMissing.push('Language certificates required');
+                }
+              } else {
+                matchScore += 10;
+              }
+              
+              // ECTS check
+              if (prog.ects_credits) {
+                if (academics?.ects_total && academics.ects_total >= prog.ects_credits) {
+                  matchScore += 10;
+                  requirementsMet.push(`ECTS sufficient (${academics.ects_total}/${prog.ects_credits})`);
+                } else {
+                  requirementsMissing.push(`ECTS needed (Current: ${academics?.ects_total || 0}, Required: ${prog.ects_credits})`);
+                }
+              }
+              
+              // Determine eligibility
+              if (matchScore >= 75 && requirementsMissing.length === 0) {
+                eligibility = 'eligible';
+              } else if (matchScore >= 50 && requirementsMissing.length <= 2) {
+                eligibility = 'borderline';
+              } else {
+                eligibility = 'missing';
+              }
+              
+              return {
+                program_id: prog.id,
+                university_name: prog.universities.name,
+                university_slug: prog.universities.slug,
+                program_name: prog.name,
+                program_slug: prog.slug,
+                city: prog.universities.city,
+                match_score: Math.min(matchScore, 95),
+                eligibility,
+                requirements_met: requirementsMet,
+                requirements_missing: requirementsMissing,
+                why_it_fits: ''  // AI will fill this
+              };
+            });
+            
+            // Sort by match score
+            programsWithScores.sort((a, b) => b.match_score - a.match_score);
+            
+            toolResult = { 
+              success: true, 
+              programs: programsWithScores,
+              message: `Found ${programsWithScores.length} matching programs. Use these to create recommendations with :::PROGRAM_RECOMMENDATIONS::: JSON format.`
+            };
+            
+            console.log('Program query successful:', programsWithScores.length, 'programs found');
+          } catch (error: any) {
+            console.error('Program query error:', error);
+            toolResult = { 
+              success: false, 
+              message: `Failed to query programs: ${error.message}` 
+            };
           }
         } else if (functionName === 'update_profile_data') {
           // Call the dedicated update function for better reliability
