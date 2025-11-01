@@ -104,6 +104,7 @@ export default function UniversityPage() {
   }, [uni]);
 
   if (loading) return <LoadingScreen />;
+  if (!university) return <div className="flex items-center justify-center min-h-screen"><div className="text-lg">University not found</div></div>;
 
   // Parse JSONB data
   const rankingsData = university?.rankings_data ? 
