@@ -1,123 +1,259 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import Navigation from '@/components/Navigation';
 import SEOHead from '@/components/SEOHead';
-import { ExternalLink, MapPin } from 'lucide-react';
+import { UniversityHero } from '@/components/university/UniversityHero';
+import { UniversityTabs } from '@/components/university/UniversityTabs';
+import { StatisticsCard } from '@/components/university/StatisticsCard';
+import { UniversityAbout } from '@/components/university/UniversityAbout';
+import { RankingsDisplay } from '@/components/university/RankingsDisplay';
+import { FacilitiesGrid } from '@/components/university/FacilitiesGrid';
+import { CampusCard } from '@/components/university/CampusCard';
+import { PhotoGallery } from '@/components/university/PhotoGallery';
+import { TestimonialsCarousel } from '@/components/university/TestimonialsCarousel';
+import { StudentLifeSection } from '@/components/university/StudentLifeSection';
+import { AdmissionsSection } from '@/components/university/AdmissionsSection';
+import { ResearchSection } from '@/components/university/ResearchSection';
+import { ContactSection } from '@/components/university/ContactSection';
+import { Users, GraduationCap, BookOpen, TrendingUp } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import LoadingScreen from '@/components/LoadingScreen';
 
 export default function UniversityPage() {
   const { uni } = useParams();
   const [university, setUniversity] = useState<any>(null);
   const [programs, setPrograms] = useState<any[]>([]);
   const [ambassadors, setAmbassadors] = useState<any[]>([]);
+  const [campuses, setCampuses] = useState<any[]>([]);
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       if (!uni) return;
+      setLoading(true);
 
-      // Fetch university
-      const { data: uniData } = await supabase
-        .from('universities')
-        .select('*')
-        .or(`slug.eq.${uni},id.eq.${uni}`)
-        .single();
-      
-      setUniversity(uniData);
-
-      if (uniData?.id) {
-        // Fetch programs
-        const { data: programsData } = await supabase
-          .from('programs')
+      try {
+        // Fetch university
+        const { data: uniData } = await supabase
+          .from('universities')
           .select('*')
-          .eq('university_id', uniData.id)
-          .eq('published', true);
+          .or(`slug.eq.${uni},id.eq.${uni}`)
+          .single();
         
-        setPrograms(programsData || []);
+        setUniversity(uniData);
 
-        // Fetch ambassadors
-        const { data: ambassadorsData } = await supabase
-          .from('ambassadors')
-          .select('*')
-          .eq('university_id', uniData.id)
-          .eq('is_published', true);
-        
-        setAmbassadors(ambassadorsData || []);
+        if (uniData?.id) {
+          // Fetch programs
+          const { data: programsData } = await supabase
+            .from('programs')
+            .select('*')
+            .eq('university_id', uniData.id)
+            .eq('published', true);
+          
+          setPrograms(programsData || []);
+
+          // Fetch ambassadors
+          const { data: ambassadorsData } = await supabase
+            .from('ambassadors')
+            .select('*')
+            .eq('university_id', uniData.id)
+            .eq('is_published', true);
+          
+          setAmbassadors(ambassadorsData || []);
+
+          // Fetch campuses (if table exists) - wrapped in try/catch for future compatibility
+          try {
+            const { data: campusesData } = await supabase
+              .from('university_campuses' as any)
+              .select('*')
+              .eq('university_id', uniData.id)
+              .order('is_main_campus', { ascending: false });
+            
+            if (campusesData) setCampuses(campusesData);
+          } catch (error) {
+            // Table doesn't exist yet
+            console.log('Campuses table not available yet');
+          }
+
+          // Fetch testimonials (if table exists) - wrapped in try/catch for future compatibility
+          try {
+            const { data: testimonialsData } = await supabase
+              .from('university_testimonials' as any)
+              .select('*')
+              .eq('university_id', uniData.id)
+              .eq('is_approved', true)
+              .order('created_at', { ascending: false });
+            
+            if (testimonialsData) setTestimonials(testimonialsData);
+          } catch (error) {
+            // Table doesn't exist yet
+            console.log('Testimonials table not available yet');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching university data:', error);
+      } finally {
+        setLoading(false);
       }
     }
 
     fetchData();
   }, [uni]);
 
-  if (!university) return <div>Loading...</div>;
+  if (loading) return <LoadingScreen />;
+
+  // Parse JSONB data
+  const rankingsData = university?.rankings_data ? 
+    (typeof university.rankings_data === 'string' ? JSON.parse(university.rankings_data) : university.rankings_data) 
+    : {};
+  
+  const facilitiesData = university?.facilities ? 
+    (typeof university.facilities === 'string' ? JSON.parse(university.facilities) : university.facilities) 
+    : {};
+
+  const socialMedia = university?.social_media ? 
+    (typeof university.social_media === 'string' ? JSON.parse(university.social_media) : university.social_media) 
+    : {};
+
+  const photos = university?.photos ? 
+    (typeof university.photos === 'string' ? JSON.parse(university.photos) : university.photos) 
+    : [];
+
+  // Prepare rankings array
+  const rankings = [];
+  if (rankingsData.qs?.rank) {
+    rankings.push({
+      name: 'QS World University Rankings',
+      rank: rankingsData.qs.rank,
+      totalRanked: 1500,
+      score: rankingsData.qs.score,
+      year: rankingsData.qs.year,
+    });
+  }
+  if (rankingsData.the?.rank) {
+    rankings.push({
+      name: 'THE World University Rankings',
+      rank: rankingsData.the.rank,
+      totalRanked: 1904,
+      score: rankingsData.the.score,
+      year: rankingsData.the.year,
+    });
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
         title={`${university.name} | University Assist`}
-        description={`Explore programs and opportunities at ${university.name}. Connect with student ambassadors and find your perfect program.`}
+        description={university.description || `Explore programs and opportunities at ${university.name}. Connect with student ambassadors and find your perfect program.`}
       />
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">{university.name}</h1>
-          <div className="flex items-center gap-2 text-muted-foreground mb-4">
-            <MapPin className="h-4 w-4" />
-            <span>{university.city}, {university.state || 'Germany'}</span>
-          </div>
-              <div className="flex gap-2">
-                <Badge variant="outline">{university.type || 'Public University'}</Badge>
-                {university.ranking && (
-                  <Badge variant="secondary">Ranked #{university.ranking}</Badge>
+      {/* Hero Section */}
+      <UniversityHero
+        name={university.name}
+        city={university.city}
+        region={university.state}
+        website={university.website}
+        logoUrl={university.logo_url}
+        heroImageUrl={university.hero_image_url}
+        virtualTourUrl={university.virtual_tour_url}
+        quickFacts={{
+          founded: university.founded_year,
+          students: university.student_count,
+          internationalPercentage: university.international_student_percentage,
+          qsRank: rankingsData.qs?.rank,
+          programsCount: programs.length,
+          campusesCount: campuses.length || 1,
+        }}
+      />
+
+      <div className="container mx-auto px-4 md:px-6 py-12">
+        <UniversityTabs
+          programsCount={programs.length}
+          children={{
+            overview: (
+              <div className="space-y-12">
+                {/* Statistics Dashboard */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {university.student_count && (
+                    <StatisticsCard
+                      icon={Users}
+                      value={university.student_count}
+                      label="Total Students"
+                      color="primary"
+                    />
+                  )}
+                  {university.international_student_percentage && (
+                    <StatisticsCard
+                      icon={GraduationCap}
+                      value={`${university.international_student_percentage}%`}
+                      label="International Students"
+                      color="secondary"
+                    />
+                  )}
+                  <StatisticsCard
+                    icon={BookOpen}
+                    value={programs.length}
+                    label="Programs Offered"
+                    color="accent"
+                  />
+                  {university.student_staff_ratio && (
+                    <StatisticsCard
+                      icon={TrendingUp}
+                      value={`1:${university.student_staff_ratio}`}
+                      label="Student-Staff Ratio"
+                      color="primary"
+                    />
+                  )}
+                </div>
+
+                {/* About Section */}
+                <UniversityAbout
+                  description={university.description}
+                  missionStatement={university.mission_statement}
+                  researchAreas={university.research_areas}
+                  accreditations={university.accreditations}
+                  notableAlumni={university.notable_alumni}
+                />
+
+                {/* Photo Gallery */}
+                {photos.length > 0 && (
+                  <PhotoGallery photos={photos} title="Campus Gallery" />
+                )}
+
+                {/* Facilities */}
+                <FacilitiesGrid
+                  facilities={facilitiesData}
+                  studentOrganizations={university.student_organizations_count}
+                />
+
+                {/* Testimonials */}
+                {testimonials.length > 0 && (
+                  <TestimonialsCarousel testimonials={testimonials.map(t => ({
+                    id: t.id,
+                    studentName: t.student_name,
+                    studentPhoto: t.student_photo_url,
+                    nationality: t.nationality,
+                    programName: t.program_name,
+                    testimonial: t.testimonial,
+                    rating: t.rating,
+                  }))} />
                 )}
               </div>
-            </div>
-            {university.website && (
-              <a 
-                href={university.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-primary hover:underline"
-              >
-                Visit Website
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            )}
-          </div>
-        </div>
-
-        <Tabs defaultValue="programs" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="programs">Programs ({programs.length})</TabsTrigger>
-            <TabsTrigger value="ambassadors">Student Ambassadors ({ambassadors.length})</TabsTrigger>
-            <TabsTrigger value="about">About</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="programs" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {programs.map(program => (
-                <Card key={program.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{program.name}</CardTitle>
-                    <div className="flex gap-2">
-                      <Badge variant="outline">{program.degree_type}</Badge>
-                      {program.uni_assist_required && (
-                        <Badge variant="destructive" className="text-xs">Uni-Assist</Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
+            ),
+            programs: (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {programs.map(program => (
+                  <Card key={program.id} className="p-6 hover:shadow-lg transition-shadow">
+                    <h3 className="font-bold text-lg mb-3">{program.name}</h3>
                     <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                      <p>Field: {program.field_of_study}</p>
-                      <p>Duration: {program.duration_semesters} semesters</p>
-                      <p>Language: {program.language_requirements?.join(', ') || 'German'}</p>
+                      <p>🎓 {program.degree_type}</p>
+                      <p>⏱️ {program.duration_semesters} semesters</p>
+                      <p>🌐 {program.language_requirements?.join(', ') || 'German'}</p>
                       {program.semester_fees > 0 && (
-                        <p>Tuition: €{program.semester_fees}/semester</p>
+                        <p>💶 €{program.semester_fees}/semester</p>
                       )}
                     </div>
                     <a 
@@ -126,95 +262,121 @@ export default function UniversityPage() {
                     >
                       View Details →
                     </a>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
+                  </Card>
+                ))}
+              </div>
+            ),
+            admissions: (
+              <AdmissionsSection
+                applicationFee={university.application_fee_eur}
+                contactEmail={university.contact_email}
+              />
+            ),
+            studentLife: (
+              <div className="space-y-12">
+                <StudentLifeSection
+                  accommodationOptions={
+                    university.accommodation_info?.dorms?.available ? [
+                      {
+                        type: 'Student Dormitories',
+                        priceRange: university.accommodation_info?.dorms?.price_range || 'Contact for pricing',
+                        description: 'On-campus accommodation with easy access to facilities',
+                      }
+                    ] : undefined
+                  }
+                  clubs={university.clubs_and_societies}
+                />
 
-          <TabsContent value="ambassadors" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {ambassadors.map(ambassador => (
-                <Card key={ambassador.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="pt-6">
-                    <div className="text-center">
-                      {ambassador.photo_url && (
-                        <img 
-                          src={ambassador.photo_url}
-                          alt={ambassador.full_name}
-                          className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
-                          width="80"
-                          height="80"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      )}
-                      <h3 className="font-semibold text-lg mb-2">{ambassador.full_name}</h3>
-                      <div className="flex flex-wrap gap-1 justify-center mb-3">
-                        {ambassador.languages?.map((lang: string) => (
-                          <Badge key={lang} variant="secondary" className="text-xs">
-                            {lang.toUpperCase()}
-                          </Badge>
-                        ))}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                        {ambassador.testimonial}
-                      </p>
-                      <div className="flex gap-2 justify-center">
-                        <a 
-                          href={`/ambassadors/${ambassador.slug}`}
-                          className="text-primary hover:underline text-sm"
-                        >
-                          Read Story
-                        </a>
-                        {ambassador.linkedin_url && (
+                {/* Ambassadors */}
+                {ambassadors.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-2xl font-bold text-foreground">
+                      👥 Student Ambassadors
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {ambassadors.map(ambassador => (
+                        <Card key={ambassador.id} className="p-6 text-center hover:shadow-lg transition-shadow">
+                          {ambassador.photo_url && (
+                            <img 
+                              src={ambassador.photo_url}
+                              alt={ambassador.full_name}
+                              className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
+                            />
+                          )}
+                          <h4 className="font-semibold text-lg mb-2">{ambassador.full_name}</h4>
+                          <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                            {ambassador.testimonial}
+                          </p>
                           <a 
-                            href={ambassador.linkedin_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            href={`/ambassadors/${ambassador.slug}`}
                             className="text-primary hover:underline text-sm"
                           >
-                            LinkedIn
+                            Read Story →
                           </a>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="about">
-            <Card>
-              <CardHeader>
-                <CardTitle>About {university.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-semibold mb-2">Basic Information</h3>
-                    <div className="space-y-2 text-sm">
-                      <p><span className="font-medium">Location:</span> {university.city}, {university.state || 'Germany'}</p>
-                      <p><span className="font-medium">Type:</span> {university.type || 'Public University'}</p>
-                      {university.ranking && (
-                        <p><span className="font-medium">Ranking:</span> #{university.ranking}</p>
-                      )}
+                        </Card>
+                      ))}
                     </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold mb-2">Programs Offered</h3>
-                    <div className="space-y-2 text-sm">
-                      <p><span className="font-medium">Total Programs:</span> {programs.length}</p>
-                      <p><span className="font-medium">Bachelor's:</span> {programs.filter(p => p.degree_type === 'bachelor').length}</p>
-                      <p><span className="font-medium">Master's:</span> {programs.filter(p => p.degree_type === 'master').length}</p>
-                    </div>
+                )}
+              </div>
+            ),
+            research: (
+              <ResearchSection
+                researchAreas={university.research_areas}
+                partnerships={university.partnerships}
+                researchOutput={university.research_output}
+              />
+            ),
+            rankings: (
+              <RankingsDisplay
+                rankings={rankings}
+                accreditations={university.accreditations}
+                awards={university.awards_recognition}
+              />
+            ),
+            campuses: (
+              <div className="space-y-6">
+                <h2 className="text-3xl font-bold text-foreground">
+                  🗺️ Campus Locations
+                </h2>
+                {campuses.length > 0 ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {campuses.map((campus) => (
+                      <CampusCard
+                        key={campus.id}
+                        name={campus.name}
+                        address={campus.address}
+                        city={campus.city}
+                        isMainCampus={campus.is_main_campus}
+                        description={campus.description}
+                        studentCount={campus.student_count}
+                        buildingCount={campus.building_count}
+                        faculties={campus.faculties}
+                        photoUrl={campus.photo_urls?.[0]}
+                        transport={campus.public_transport}
+                      />
+                    ))}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                ) : (
+                  <Card className="p-6">
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>📍 {university.city}, {university.state || 'Germany'}</p>
+                      <p className="text-sm mt-2">Campus information will be added soon</p>
+                    </div>
+                  </Card>
+                )}
+              </div>
+            ),
+            contact: (
+              <ContactSection
+                contactEmail={university.contact_email}
+                contactPhone={university.contact_phone}
+                website={university.website}
+                socialMedia={socialMedia}
+              />
+            ),
+          }}
+        />
       </div>
     </div>
   );
