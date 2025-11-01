@@ -553,7 +553,8 @@ Provide specific guidance about this program, check eligibility, and answer ques
     return new Response(
       JSON.stringify({
         conversationId: conversation.id,
-        message: assistantMessage
+        message: assistantMessage,
+        toolResults: toolResults.length > 0 ? toolResults : undefined
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

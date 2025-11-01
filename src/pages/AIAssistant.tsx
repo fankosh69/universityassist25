@@ -171,6 +171,19 @@ export default function AIAssistant() {
 
       if (error) throw error;
 
+      // Check for tool result failures
+      if (data?.toolResults) {
+        const failures = data.toolResults.filter((tr: any) => !tr.result?.success);
+        if (failures.length > 0) {
+          console.warn('Tool execution failures:', failures);
+          toast({
+            title: "Partial Save",
+            description: "Some information couldn't be saved. The AI will continue helping you.",
+            variant: "destructive",
+          });
+        }
+      }
+
       setConversationId(data.conversationId);
       setMessages(prev => [...prev, {
         role: 'assistant',
