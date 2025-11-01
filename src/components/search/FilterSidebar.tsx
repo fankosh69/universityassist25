@@ -98,7 +98,7 @@ export function FilterSidebar({
 
       {/* Scrollable filters */}
       <div className="flex-1 overflow-y-auto">
-        <Accordion type="multiple" defaultValue={['degree', 'field', 'location']} className="w-full">
+        <Accordion type="multiple" defaultValue={[]} className="w-full">
           {/* Degree Level */}
           <FilterGroup 
             value="degree" 
