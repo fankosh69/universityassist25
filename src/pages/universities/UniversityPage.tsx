@@ -36,12 +36,17 @@ export default function UniversityPage() {
       setLoading(true);
 
       try {
-        // Fetch university
-        const { data: uniData, error: uniError } = await supabase
+        // Check if parameter looks like a UUID
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uni);
+        
+        // Query by slug or ID depending on the parameter format
+        const query = supabase
           .from('universities')
-          .select('*')
-          .or(`slug.eq.${uni},id.eq.${uni}`)
-          .maybeSingle();
+          .select('*');
+
+        const { data: uniData, error: uniError } = isUUID 
+          ? await query.eq('id', uni).maybeSingle()
+          : await query.eq('slug', uni).maybeSingle();
         
         if (uniError) {
           console.error('Error fetching university:', uniError);
