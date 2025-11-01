@@ -53,6 +53,17 @@ USER: "I have B2 German certificate from Goethe Institute"
 YOU: [IMMEDIATELY CALL update_academic_data with language_certificates: [{language: "German", level: "B2", certificate: "Goethe"}]]
 RESPONSE: "✓ Great! I've saved your B2 German certificate. That's a solid level for many programs! Do you also have an English language certificate like IELTS or TOEFL?"
 
+=== WRONG BEHAVIOR - NEVER DO THIS ===
+
+❌ WRONG: "I'll note that down..." → NO! Call the tool FIRST!
+❌ WRONG: "I'm manually holding this data..." → IMPOSSIBLE! You have no memory! Use tools!
+❌ WRONG: "Let me make sure I have this..." → Call the tool NOW, not later!
+❌ WRONG: "I've got your information..." → Only say this AFTER calling the tool successfully!
+❌ WRONG: "Thank you for confirming..." → Only after tool call!
+
+✓ CORRECT: Call update_academic_data → THEN say "✓ Got it! I've saved your GPA..."
+✓ CORRECT: Call update_profile_data → THEN say "✓ Perfect! I've saved that you're from Egypt..."
+
 === YOUR CONVERSATION FLOW ===
 
 1. Personal Background (ask 2-3 questions at a time):
@@ -309,7 +320,7 @@ Provide specific guidance about this program, check eligibility, and answer ques
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT + contextInfo },
           ...messages.map(m => ({ role: m.role, content: m.content }))
@@ -511,7 +522,7 @@ Provide specific guidance about this program, check eligibility, and answer ques
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
+            model: 'gpt-4o-mini',
             messages: messagesWithToolResults,
           }),
         });
@@ -533,6 +544,56 @@ Provide specific guidance about this program, check eligibility, and answer ques
       // No tool calls, just use the message content
       const rawMessage = choice.message.content || "I'm here to help!";
       assistantMessage = rawMessage.replace(/\*/g, ''); // Remove asterisks
+      
+      // POST-PROCESSING VALIDATION: Detect if AI should have called a tool but didn't
+      const lowerMessage = message.toLowerCase();
+      
+      // Check for GPA data
+      const gpaMatch = message.match(/(\d+\.?\d*)\s*(?:out of|\/|on)\s*(\d+\.?\d*)/i);
+      if (gpaMatch && !choice.message.tool_calls) {
+        console.warn('⚠️ AI failed to call tool for GPA data. Force-calling update_academic_data...');
+        try {
+          const [_, raw, max] = gpaMatch;
+          const updateResponse = await fetch(
+            `${supabaseUrl}/functions/v1/update-profile-from-ai`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': authHeader || '',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                profileData: null,
+                academicData: {
+                  gpa_raw: parseFloat(raw),
+                  gpa_scale_max: parseFloat(max)
+                }
+              })
+            }
+          );
+          const updateResult = await updateResponse.json();
+          if (updateResult.success) {
+            console.log('✓ Failsafe GPA save successful:', updateResult.updates);
+            assistantMessage = `✓ Got it! I've saved your GPA (${raw}/${max}). ` + assistantMessage;
+          }
+        } catch (error: any) {
+          console.error('Failsafe GPA save failed:', error);
+        }
+      }
+      
+      // Check for language certificates
+      const languageMatch = message.match(/(TestDaF|DSH|Goethe|IELTS|TOEFL|B1|B2|C1|C2)/i);
+      if (languageMatch && !choice.message.tool_calls) {
+        console.warn('⚠️ AI failed to call tool for language data. User mentioned:', languageMatch[0]);
+        // Note: We log but don't force-save because we need more context (level, certificate type)
+        assistantMessage = `I noticed you mentioned ${languageMatch[0]}. Let me confirm: what's your exact certificate level? ` + assistantMessage;
+      }
+      
+      // Check for nationality/location
+      const nationalityKeywords = ['from', 'nationality', 'country', 'citizen'];
+      if (nationalityKeywords.some(kw => lowerMessage.includes(kw)) && !choice.message.tool_calls) {
+        console.warn('⚠️ AI failed to call tool for nationality/location data');
+      }
     }
 
     // Save assistant message
