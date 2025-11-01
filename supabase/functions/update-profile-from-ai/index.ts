@@ -50,52 +50,41 @@ serve(async (req) => {
       errors: [] as string[]
     };
 
-    // Update profile data (public and private fields)
+    // Update profile data directly to profiles table
     if (profileData && Object.keys(profileData).length > 0) {
       try {
-        const publicData: Record<string, any> = {};
-        const privateData: Record<string, any> = {};
-        const academicPrefs: Record<string, any> = {};
-
-        // Map profile fields to appropriate tables
-        if (profileData.full_name) privateData.full_name = profileData.full_name;
-        if (profileData.nationality) privateData.nationality = profileData.nationality;
-        if (profileData.date_of_birth) privateData.date_of_birth = profileData.date_of_birth;
-        if (profileData.phone) privateData.phone = profileData.phone;
-        if (profileData.gender) privateData.gender = profileData.gender;
+        const updateFields: Record<string, any> = {};
         
-        if (profileData.current_education_level) publicData.education_level = profileData.current_education_level;
-        if (profileData.current_field_of_study) publicData.field_of_study = profileData.current_field_of_study;
-        if (profileData.current_institution) publicData.institution_name = profileData.current_institution;
+        // Map all profile fields directly to profiles table
+        if (profileData.full_name) updateFields.full_name = profileData.full_name;
+        if (profileData.nationality) updateFields.nationality = profileData.nationality;
+        if (profileData.phone) updateFields.phone = profileData.phone;
+        if (profileData.gender) updateFields.gender = profileData.gender;
+        if (profileData.date_of_birth) updateFields.date_of_birth = profileData.date_of_birth;
+        if (profileData.country_code) updateFields.country_code = profileData.country_code;
+        if (profileData.current_education_level) updateFields.current_education_level = profileData.current_education_level;
+        if (profileData.current_field_of_study) updateFields.current_field_of_study = profileData.current_field_of_study;
+        if (profileData.current_institution) updateFields.current_institution = profileData.current_institution;
+        if (profileData.preferred_fields) updateFields.preferred_fields = profileData.preferred_fields;
+        if (profileData.preferred_degree_type) updateFields.preferred_degree_type = profileData.preferred_degree_type;
+        if (profileData.preferred_cities) updateFields.preferred_cities = profileData.preferred_cities;
+        if (profileData.career_goals) updateFields.career_goals = profileData.career_goals;
+        if (profileData.language_certificates) updateFields.language_certificates = profileData.language_certificates;
         
-        if (profileData.preferred_fields) academicPrefs.preferred_fields = profileData.preferred_fields;
-        if (profileData.preferred_degree_type) academicPrefs.preferred_degree_type = profileData.preferred_degree_type;
-        if (profileData.preferred_cities) academicPrefs.preferred_cities = profileData.preferred_cities;
-        if (profileData.career_goals) academicPrefs.career_goals = profileData.career_goals;
+        updateFields.updated_at = new Date().toISOString();
 
-        // Use secure profile update function with authenticated client
-        const { data: updateResult, error: profileError } = await supabaseClient.rpc(
-          'secure_update_separated_profile',
-          {
-            profile_uuid: user.id,
-            public_data: Object.keys(publicData).length > 0 ? publicData : null,
-            private_data: Object.keys(privateData).length > 0 ? privateData : null,
-            academic_data: Object.keys(academicPrefs).length > 0 ? academicPrefs : null
-          }
-        );
+        // Direct update to profiles table
+        const { error: profileError } = await supabaseClient
+          .from('profiles')
+          .update(updateFields)
+          .eq('id', user.id);
 
         if (profileError) {
           console.error('Profile update error:', profileError);
           results.errors.push(`Profile update failed: ${profileError.message}`);
         } else {
-          const fieldCount = Object.keys(publicData).length + 
-                           Object.keys(privateData).length + 
-                           Object.keys(academicPrefs).length;
-          console.log('✓ Profile updated successfully:', { 
-            publicFields: Object.keys(publicData), 
-            privateFields: Object.keys(privateData),
-            academicFields: Object.keys(academicPrefs)
-          });
+          const fieldCount = Object.keys(updateFields).length;
+          console.log('✓ Profile updated successfully:', Object.keys(updateFields));
           results.updates.push(`Updated ${fieldCount} profile fields`);
         }
       } catch (error: any) {
