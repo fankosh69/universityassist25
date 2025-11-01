@@ -173,8 +173,14 @@ export function normalizeInstitutionType(rawType: string): string {
   
   // Handle various input formats
   const mappings: Record<string, string> = {
-    'uni': 'university',
+    // === IDENTITY MAPPINGS (for canonical DB values) ===
     'university': 'university',
+    'university_applied_sciences': 'university_applied_sciences',
+    'technical_university': 'technical_university',
+    'art_music_university': 'art_music_university',
+    
+    // === LEGACY/ALTERNATE FORMATS ===
+    'uni': 'university',
     'universität': 'university',
     'research university': 'university',
     'classic university': 'university',
