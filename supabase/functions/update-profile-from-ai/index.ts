@@ -73,8 +73,8 @@ serve(async (req) => {
         if (profileData.preferred_cities) academicPrefs.preferred_cities = profileData.preferred_cities;
         if (profileData.career_goals) academicPrefs.career_goals = profileData.career_goals;
 
-        // Use secure profile update function
-        const { data: updateResult, error: profileError } = await supabaseAdmin.rpc(
+        // Use secure profile update function with authenticated client
+        const { data: updateResult, error: profileError } = await supabaseClient.rpc(
           'secure_update_separated_profile',
           {
             profile_uuid: user.id,
@@ -107,7 +107,7 @@ serve(async (req) => {
     // Update academic data
     if (academicData && Object.keys(academicData).length > 0) {
       try {
-        const { data: updateResult, error: academicError } = await supabaseAdmin.rpc(
+        const { data: updateResult, error: academicError } = await supabaseClient.rpc(
           'secure_update_academic_data',
           {
             target_profile_id: user.id,
