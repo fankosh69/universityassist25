@@ -25,6 +25,8 @@ interface Program {
   degree_type: string;
   duration_semesters: number;
   semester_fees: number;
+  tuition_amount?: number;
+  tuition_fee_structure?: 'monthly' | 'semester' | 'yearly';
   university_id: string;
   winter_intake?: boolean;
   summer_intake?: boolean;
@@ -132,12 +134,15 @@ export default function AdminShortlists() {
       // Fetch programs
       const { data: programsData, error: programsError } = await supabase
         .from("programs")
-        .select("id, name, degree_type, duration_semesters, semester_fees, university_id, winter_intake, summer_intake, winter_deadline, summer_deadline, application_method, uni_assist_required")
+        .select("id, name, degree_type, duration_semesters, semester_fees, tuition_amount, tuition_fee_structure, university_id, winter_intake, summer_intake, winter_deadline, summer_deadline, application_method, uni_assist_required")
         .eq("published", true)
         .order("name");
 
       if (programsError) throw programsError;
-      setPrograms(programsData || []);
+      setPrograms((programsData || []).map(p => ({
+        ...p,
+        tuition_fee_structure: p.tuition_fee_structure as 'monthly' | 'semester' | 'yearly' | undefined
+      })));
 
       // Fetch universities
       const { data: universitiesData, error: universitiesError } = await supabase
@@ -881,7 +886,16 @@ export default function AdminShortlists() {
                             <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
                               <div>🎓 <strong>{program.degree_type}</strong></div>
                               <div>⏱️ <strong>{program.duration_semesters} semesters</strong></div>
-                              <div>💶 <strong>€{program.semester_fees}/semester</strong></div>
+                              <div>💶 <strong>
+                                {(() => {
+                                  const amount = program.tuition_amount !== undefined && program.tuition_amount !== null 
+                                    ? program.tuition_amount 
+                                    : program.semester_fees;
+                                  const structure = program.tuition_fee_structure || 'semester';
+                                  const labels = { monthly: '/month', semester: '/semester', yearly: '/year' };
+                                  return amount === 0 ? 'Free' : `€${amount.toLocaleString()}${labels[structure]}`;
+                                })()}
+                              </strong></div>
                             </div>
                             
                             <div className="flex flex-wrap gap-4 mb-4 text-sm">
