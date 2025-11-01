@@ -20,7 +20,6 @@ import OnboardingFlow from "./pages/onboarding/OnboardingFlow";
 // Lazy load secondary pages
 const Profile = lazy(() => import("./pages/Profile"));
 const Cities = lazy(() => import("./pages/Cities"));
-const CityDetail = lazy(() => import("./pages/CityDetail"));
 const Universities = lazy(() => import("./pages/Universities"));
 const ProgramDetail = lazy(() => import("./pages/ProgramDetail"));
 const CityPage = lazy(() => import("./pages/cities/CityPage"));
@@ -155,8 +154,6 @@ const App = () => {
                 <Route path="/admin/admission-requirements" element={<AdminLayout><AdminAdmissionRequirements /></AdminLayout>} />
                 <Route path="/admin/historical-data" element={<AdminLayout><AdminHistoricalData /></AdminLayout>} />
                 
-                {/* Legacy routes */}
-                <Route path="/cities/:citySlug" element={<CityDetail />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
