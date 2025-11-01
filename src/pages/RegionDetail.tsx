@@ -23,7 +23,11 @@ export default function RegionDetail() {
         .single();
       
       if (error) throw error;
-      return data;
+      return {
+        ...data,
+        gallery_images: data.gallery_images as any,
+        fun_facts: data.fun_facts as any,
+      };
     },
   });
 
@@ -57,12 +61,22 @@ export default function RegionDetail() {
         keywords={`${region?.name}, German cities, universities in ${region?.name}, study in Germany`}
       />
       
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      <div className="min-h-screen bg-background">
         <Navigation />
         
-        <main className="container mx-auto px-4 py-8 mt-16">
-          <div className="max-w-6xl mx-auto">
-            {/* Back Button */}
+        {!isLoading && region && (
+          <RegionHero
+            regionName={region.name}
+            cityCount={cities?.length || 0}
+            totalUniversities={region.total_universities}
+            totalStudents={region.total_students}
+            heroImageUrl={region.hero_image_url}
+            hashtags={region.hashtags}
+          />
+        )}
+        
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-7xl mx-auto">
             <Link to="/regions">
               <Button variant="ghost" className="mb-6">
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -70,25 +84,19 @@ export default function RegionDetail() {
               </Button>
             </Link>
 
-            {/* Header */}
-            {isLoading ? (
-              <div className="mb-12">
-                <Skeleton className="h-12 w-64 mb-4" />
-                <Skeleton className="h-6 w-96" />
-              </div>
-            ) : (
-              <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  {region?.name}
-                </h1>
-                <p className="text-lg text-muted-foreground">
-                  Explore {cities?.length || 0} cities with universities in this region
-                </p>
-              </div>
-            )}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                {!isLoading && region && (
+                  <>
+                    <RegionWelcomeSection regionName={region.name} welcomeText={region.welcome_text} />
+                    <RegionGallery galleryImages={region.gallery_images} />
+                  </>
+                )}
+                
+                <div>
+                  <h2 className="text-3xl font-bold mb-6">CITIES IN {region?.name.toUpperCase()}</h2>
 
-            {/* Cities Grid */}
-            {isLoading ? (
+                  {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <Card key={i}>
@@ -150,10 +158,22 @@ export default function RegionDetail() {
                 })}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No cities found in this region.</p>
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground">No cities found in this region.</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
+
+              <div className="space-y-6">
+                {!isLoading && region && (
+                  <>
+                    <RegionHighlightsCard highlights={region.highlights} />
+                    <RegionFactsSidebar funFacts={region.fun_facts} />
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </main>
       </div>

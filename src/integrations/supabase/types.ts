@@ -2118,26 +2118,56 @@ export type Database = {
         Row: {
           country_code: string
           created_at: string | null
+          description: string | null
+          fun_facts: Json | null
+          gallery_images: Json | null
+          hashtags: string[] | null
+          hero_image_url: string | null
+          highlights: string | null
           id: string
+          metadata: Json | null
           name: string
           slug: string
+          total_students: number | null
+          total_universities: number | null
           updated_at: string | null
+          welcome_text: string | null
         }
         Insert: {
           country_code?: string
           created_at?: string | null
+          description?: string | null
+          fun_facts?: Json | null
+          gallery_images?: Json | null
+          hashtags?: string[] | null
+          hero_image_url?: string | null
+          highlights?: string | null
           id?: string
+          metadata?: Json | null
           name: string
           slug: string
+          total_students?: number | null
+          total_universities?: number | null
           updated_at?: string | null
+          welcome_text?: string | null
         }
         Update: {
           country_code?: string
           created_at?: string | null
+          description?: string | null
+          fun_facts?: Json | null
+          gallery_images?: Json | null
+          hashtags?: string[] | null
+          hero_image_url?: string | null
+          highlights?: string | null
           id?: string
+          metadata?: Json | null
           name?: string
           slug?: string
+          total_students?: number | null
+          total_universities?: number | null
           updated_at?: string | null
+          welcome_text?: string | null
         }
         Relationships: []
       }
