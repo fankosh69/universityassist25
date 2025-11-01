@@ -13,6 +13,7 @@ import SEOUniversityPage from "@/components/SEOUniversityPage";
 import { InstitutionTypeBadge } from "@/components/InstitutionTypeBadge";
 import { useUniversityInfo } from "@/hooks/useUniversityInfo";
 import { MapPin, Globe, Users, Trophy, GraduationCap, Calendar, Euro, Clock, Building, BookOpen } from "lucide-react";
+import { formatTuitionDisplay, type TuitionStructure } from '@/lib/tuition-calculator';
 
 interface University {
   id: string;
@@ -43,6 +44,8 @@ interface Program {
   degree_level: string;
   duration_semesters: number;
   semester_fees: number;
+  tuition_amount?: number;
+  tuition_fee_structure?: TuitionStructure;
   uni_assist_required: boolean;
   slug: string;
   program_deadlines: {
@@ -96,7 +99,10 @@ export default function UniversityDetail() {
           .eq('published', true);
 
         if (programsError) throw programsError;
-        setPrograms(programsData || []);
+        setPrograms((programsData || []).map(program => ({
+          ...program,
+          tuition_fee_structure: (program.tuition_fee_structure || 'semester') as TuitionStructure
+        })));
 
         // Fetch ambassadors for this university
         const { data: ambassadorsData, error: ambassadorsError } = await supabase
@@ -376,7 +382,9 @@ export default function UniversityDetail() {
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Euro className="h-4 w-4" />
                           <span>
-                            {program.semester_fees > 0 
+                            {program.tuition_amount !== undefined && program.tuition_amount > 0
+                              ? formatTuitionDisplay(program.tuition_amount, program.tuition_fee_structure || 'semester')
+                              : program.semester_fees > 0 
                               ? `€${program.semester_fees.toLocaleString()} per semester`
                               : 'Free'
                             }

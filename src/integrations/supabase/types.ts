@@ -1461,6 +1461,8 @@ export type Database = {
           summer_application_open_date: string | null
           summer_deadline: string | null
           summer_intake: boolean | null
+          tuition_amount: number | null
+          tuition_fee_structure: string | null
           uni_assist_required: boolean | null
           university_id: string
           winter_application_open_date: string | null
@@ -1497,6 +1499,8 @@ export type Database = {
           summer_application_open_date?: string | null
           summer_deadline?: string | null
           summer_intake?: boolean | null
+          tuition_amount?: number | null
+          tuition_fee_structure?: string | null
           uni_assist_required?: boolean | null
           university_id: string
           winter_application_open_date?: string | null
@@ -1533,6 +1537,8 @@ export type Database = {
           summer_application_open_date?: string | null
           summer_deadline?: string | null
           summer_intake?: boolean | null
+          tuition_amount?: number | null
+          tuition_fee_structure?: string | null
           uni_assist_required?: boolean | null
           university_id?: string
           winter_application_open_date?: string | null

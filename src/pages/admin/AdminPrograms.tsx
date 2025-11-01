@@ -47,6 +47,8 @@ interface Program {
   duration_semesters: number;
   ects_credits?: number;
   semester_fees: number;
+  tuition_amount?: number;
+  tuition_fee_structure?: 'monthly' | 'semester' | 'yearly';
   language_of_instruction: string[];
   uni_assist_required: boolean;
   university_id: string;
@@ -61,6 +63,8 @@ interface Program {
   summer_application_open_date?: string;
   recognition_weeks_before: number;
   slug?: string;
+  created_at?: string;
+  updated_at?: string;
   universities?: {
     name: string;
     city: string;
@@ -78,6 +82,10 @@ export const AdminPrograms = () => {
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterUniversity, setFilterUniversity] = useState<string>("");
+  const [filterField, setFilterField] = useState<string>("");
+  const [sortBy, setSortBy] = useState<'name' | 'updated_at'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const {
     toast
   } = useToast();
@@ -93,6 +101,8 @@ export const AdminPrograms = () => {
     duration_semesters: number;
     ects_credits: number;
     semester_fees: number;
+    tuition_amount: number;
+    tuition_fee_structure: 'monthly' | 'semester' | 'yearly';
     language_of_instruction: string[];
     uni_assist_required: boolean;
     university_id: string;
@@ -118,6 +128,8 @@ export const AdminPrograms = () => {
     duration_semesters: 6,
     ects_credits: 180,
     semester_fees: 0,
+    tuition_amount: 0,
+    tuition_fee_structure: 'semester',
     language_of_instruction: ["de"],
     uni_assist_required: false,
     university_id: "",
@@ -155,7 +167,8 @@ export const AdminPrograms = () => {
       // Cast data to proper types
       const typedData = (data || []).map(program => ({
         ...program,
-        application_method: program.application_method as 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates'
+        application_method: program.application_method as 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates',
+        tuition_fee_structure: (program.tuition_fee_structure || 'semester') as 'monthly' | 'semester' | 'yearly'
       }));
       setPrograms(typedData);
     } catch (error: any) {
@@ -220,6 +233,9 @@ export const AdminPrograms = () => {
       const submitData = {
         ...formData,
         slug,
+        tuition_amount: formData.tuition_amount,
+        tuition_fee_structure: formData.tuition_fee_structure,
+        semester_fees: formData.tuition_amount, // Keep for backward compatibility
         winter_deadline: formData.winter_deadline ? formData.winter_deadline.toISOString().split('T')[0] : null,
         summer_deadline: formData.summer_deadline ? formData.summer_deadline.toISOString().split('T')[0] : null,
         winter_application_open_date: formData.winter_application_open_date ? formData.winter_application_open_date.toISOString().split('T')[0] : null,
@@ -331,6 +347,8 @@ export const AdminPrograms = () => {
       duration_semesters: program.duration_semesters,
       ects_credits: program.ects_credits || 180,
       semester_fees: program.semester_fees,
+      tuition_amount: program.tuition_amount || program.semester_fees,
+      tuition_fee_structure: program.tuition_fee_structure || 'semester',
       language_of_instruction: program.language_of_instruction,
       uni_assist_required: program.uni_assist_required,
       university_id: program.university_id,
@@ -361,6 +379,8 @@ export const AdminPrograms = () => {
       duration_semesters: 6,
       ects_credits: 180,
       semester_fees: 0,
+      tuition_amount: 0,
+      tuition_fee_structure: 'semester',
       language_of_instruction: ["de"],
       uni_assist_required: false,
       university_id: "",
@@ -946,7 +966,47 @@ export const AdminPrograms = () => {
       setLoading(false);
     }
   };
-  const filteredPrograms = programs.filter(program => program.name.toLowerCase().includes(searchTerm.toLowerCase()) || program.field_of_study.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredPrograms = programs
+    .filter(program => {
+      // Search filter
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const matchesSearch = program.name.toLowerCase().includes(searchLower) ||
+          program.field_of_study.toLowerCase().includes(searchLower) ||
+          program.universities?.name.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+      
+      // University filter
+      if (filterUniversity && program.university_id !== filterUniversity) {
+        return false;
+      }
+      
+      // Field filter
+      if (filterField) {
+        const fieldLower = filterField.toLowerCase();
+        const matchesField = program.field_of_study?.toLowerCase().includes(fieldLower) ||
+          program.program_fields?.some(pf => 
+            pf.field.name.toLowerCase().includes(fieldLower)
+          );
+        if (!matchesField) return false;
+      }
+      
+      return true;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+      
+      if (sortBy === 'name') {
+        comparison = a.name.localeCompare(b.name);
+      } else if (sortBy === 'updated_at') {
+        const aDate = new Date(a.updated_at || a.created_at || 0).getTime();
+        const bDate = new Date(b.updated_at || b.created_at || 0).getTime();
+        comparison = aDate - bDate;
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
   if (loading) {
     return <div className="flex items-center justify-center h-64">
         <LoadingSpinner />
@@ -966,11 +1026,50 @@ export const AdminPrograms = () => {
         </Button>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input placeholder="Search programs..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
         </div>
+        
+        <Select value={filterUniversity} onValueChange={setFilterUniversity}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="All Universities" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">All Universities</SelectItem>
+            {universities.map(uni => (
+              <SelectItem key={uni.id} value={uni.id}>{uni.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        
+        <Input 
+          placeholder="Filter by field..." 
+          value={filterField}
+          onChange={(e) => setFilterField(e.target.value)}
+          className="w-[200px]"
+        />
+        
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as 'name' | 'updated_at')}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name">Sort by Name</SelectItem>
+            <SelectItem value="updated_at">Sort by Modified</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as 'asc' | 'desc')}>
+          <SelectTrigger className="w-[120px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="asc">Ascending</SelectItem>
+            <SelectItem value="desc">Descending</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-6">
@@ -1405,12 +1504,43 @@ export const AdminPrograms = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="tuition_fees">Tuition Fees (€/year)</Label>
-                  <Input id="tuition_fees" type="number" value={formData.semester_fees} onChange={e => setFormData({
-                  ...formData,
-                  semester_fees: parseInt(e.target.value)
-                })} />
+                  <Label htmlFor="tuition_fee_structure">Tuition Fee Structure</Label>
+                  <Select
+                    value={formData.tuition_fee_structure}
+                    onValueChange={(value: 'monthly' | 'semester' | 'yearly') => setFormData({ 
+                      ...formData, 
+                      tuition_fee_structure: value 
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select fee structure" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="semester">Per Semester</SelectItem>
+                      <SelectItem value="yearly">Per Year</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="tuition_amount">
+                  Tuition Amount (€{formData.tuition_fee_structure === 'monthly' ? '/month' : formData.tuition_fee_structure === 'semester' ? '/semester' : '/year'})
+                </Label>
+                <Input 
+                  id="tuition_amount" 
+                  type="number" 
+                  value={formData.tuition_amount} 
+                  onChange={e => setFormData({
+                    ...formData,
+                    tuition_amount: parseInt(e.target.value) || 0,
+                    semester_fees: parseInt(e.target.value) || 0
+                  })} 
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter the tuition fee based on the selected structure. Equivalent amounts will be calculated automatically.
+                </p>
               </div>
             </div>
 

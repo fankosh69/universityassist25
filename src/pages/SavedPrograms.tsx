@@ -8,6 +8,7 @@ import { Bookmark, ExternalLink, Trash2, MapPin, Clock, GraduationCap } from "lu
 import Navigation from "@/components/Navigation";
 import SEOHead from "@/components/SEOHead";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { formatTuitionDisplay, type TuitionStructure } from '@/lib/tuition-calculator';
 
 interface SavedProgram {
   id: string;
@@ -19,6 +20,8 @@ interface SavedProgram {
     degree_type: string;
     duration_semesters: number;
     semester_fees: number;
+    tuition_amount?: number;
+    tuition_fee_structure?: TuitionStructure;
     application_deadline: string;
     semester_start: string;
     universities: {
@@ -55,6 +58,8 @@ const SavedPrograms = () => {
             degree_type,
             duration_semesters,
             semester_fees,
+            tuition_amount,
+            tuition_fee_structure,
             application_deadline,
             semester_start,
             universities (
@@ -67,7 +72,15 @@ const SavedPrograms = () => {
         .eq('profile_id', user.id);
 
       if (error) throw error;
-      setSavedPrograms(data || []);
+      
+      // Type assertion to handle the database response
+      setSavedPrograms((data || []).map(item => ({
+        ...item,
+        programs: {
+          ...item.programs,
+          tuition_fee_structure: (item.programs.tuition_fee_structure || 'semester') as TuitionStructure
+        }
+      })));
     } catch (error) {
       console.error('Error fetching saved programs:', error);
       toast({
@@ -178,8 +191,12 @@ const SavedPrograms = () => {
                             <Clock className="h-3 w-3 mr-1" />
                             {program.duration_semesters} semesters
                           </Badge>
-                          <Badge variant="outline" className={program.semester_fees === 0 ? "text-success border-success" : ""}>
-                            {program.semester_fees === 0 ? "Free" : `€${program.semester_fees.toLocaleString()}/semester`}
+                          <Badge variant="outline" className={(program.tuition_amount || program.semester_fees) === 0 ? "text-success border-success" : ""}>
+                            {program.tuition_amount !== undefined && program.tuition_amount !== null
+                              ? formatTuitionDisplay(program.tuition_amount, program.tuition_fee_structure || 'semester')
+                              : program.semester_fees === 0 
+                              ? 'Free' 
+                              : `€${program.semester_fees.toLocaleString()}/semester`}
                           </Badge>
                         </div>
 

@@ -2,15 +2,23 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Euro, Info, Home, ShoppingBag, Heart, Briefcase } from 'lucide-react';
+import { calculateTuitionFees, formatTuitionDisplay, type TuitionStructure } from '@/lib/tuition-calculator';
 
 interface ProgramCostsProps {
-  semesterFees: number | null;
+  tuitionAmount: number | null;
+  tuitionStructure: TuitionStructure;
   durationSemesters: number | null;
 }
 
-export function ProgramCosts({ semesterFees, durationSemesters }: ProgramCostsProps) {
-  const totalProgramCost = semesterFees && durationSemesters ? semesterFees * durationSemesters : null;
-  const isTuitionFree = !semesterFees || semesterFees === 0;
+export function ProgramCosts({ tuitionAmount, tuitionStructure, durationSemesters }: ProgramCostsProps) {
+  const tuitionCalc = tuitionAmount 
+    ? calculateTuitionFees(tuitionAmount, tuitionStructure)
+    : null;
+  
+  const isTuitionFree = !tuitionAmount || tuitionAmount === 0;
+  const totalProgramCost = tuitionCalc && durationSemesters 
+    ? tuitionCalc.semester * durationSemesters 
+    : null;
 
   // Typical semester contribution breakdown
   const semesterContribution = {
@@ -65,14 +73,47 @@ export function ProgramCosts({ semesterFees, durationSemesters }: ProgramCostsPr
                 This program is <strong className="text-green-600">tuition-free</strong>. Most public universities in Germany do not charge tuition fees for undergraduate and many graduate programs.
               </AlertDescription>
             </Alert>
-          ) : (
+          ) : tuitionCalc && (
             <div className="space-y-2">
-              <div className="flex justify-between items-center p-3 rounded-lg bg-muted">
-                <span className="text-sm">Per Semester</span>
-                <span className="font-semibold">€{semesterFees?.toLocaleString()}</span>
+              {/* Primary Fee (as entered by admin) */}
+              <div className="flex justify-between items-center p-3 rounded-lg bg-primary/10 font-semibold">
+                <span>
+                  {tuitionStructure === 'monthly' && 'Monthly Fee'}
+                  {tuitionStructure === 'semester' && 'Per Semester'}
+                  {tuitionStructure === 'yearly' && 'Annual Fee'}
+                </span>
+                <span className="text-lg">{formatTuitionDisplay(tuitionAmount!, tuitionStructure)}</span>
               </div>
+              
+              {/* Calculated Alternatives */}
+              <div className="space-y-2 pt-2 border-t">
+                <p className="text-xs text-muted-foreground mb-2">Equivalent amounts:</p>
+                
+                {tuitionStructure !== 'monthly' && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Per Month</span>
+                    <span>€{tuitionCalc.monthly.toLocaleString()}</span>
+                  </div>
+                )}
+                
+                {tuitionStructure !== 'semester' && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Per Semester (6 months)</span>
+                    <span>€{tuitionCalc.semester.toLocaleString()}</span>
+                  </div>
+                )}
+                
+                {tuitionStructure !== 'yearly' && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Per Year</span>
+                    <span>€{tuitionCalc.yearly.toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Total Program Cost */}
               {totalProgramCost && (
-                <div className="flex justify-between items-center p-3 rounded-lg bg-muted">
+                <div className="flex justify-between items-center p-3 rounded-lg bg-muted mt-3">
                   <span className="text-sm">Total Program Cost ({durationSemesters} semesters)</span>
                   <span className="font-semibold text-lg">€{totalProgramCost.toLocaleString()}</span>
                 </div>

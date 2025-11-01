@@ -225,7 +225,11 @@ export default function ProgramPage() {
             />
 
             {/* Costs */}
-            <ProgramCosts semesterFees={programData.semester_fees} durationSemesters={programData.duration_semesters} />
+            <ProgramCosts 
+              tuitionAmount={programData.tuition_amount !== undefined ? programData.tuition_amount : programData.semester_fees} 
+              tuitionStructure={programData.tuition_fee_structure || 'semester'}
+              durationSemesters={programData.duration_semesters} 
+            />
 
             {/* Contact & Apply */}
             <ProgramContact

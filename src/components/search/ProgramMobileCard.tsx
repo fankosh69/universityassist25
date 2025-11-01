@@ -8,6 +8,7 @@ import { formatProgramTitle } from '@/lib/degree-formatting';
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
 import { LanguageFlags } from '@/components/LanguageFlags';
+import { formatTuitionDisplay, type TuitionStructure } from '@/lib/tuition-calculator';
 
 interface Program {
   id: string;
@@ -17,6 +18,8 @@ interface Program {
   field_of_study: string;
   duration_semesters: number;
   semester_fees: number;
+  tuition_amount?: number;
+  tuition_fee_structure?: TuitionStructure;
   uni_assist_required: boolean;
   application_method: string;
   language_of_instruction: string[];
@@ -39,7 +42,11 @@ interface ProgramMobileCardProps {
 export function ProgramMobileCard({ program, isSaved, onSave }: ProgramMobileCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const formattedTitle = formatProgramTitle(program.degree_type, program.name);
-  const tuitionDisplay = program.semester_fees === 0 ? 'Free' : `€${program.semester_fees.toLocaleString()}/sem`;
+  const tuitionDisplay = program.tuition_amount !== undefined && program.tuition_amount !== null
+    ? formatTuitionDisplay(program.tuition_amount, program.tuition_fee_structure || 'semester').replace('/semester', '/sem').replace('/month', '/mo').replace('/year', '/yr')
+    : program.semester_fees === 0 
+    ? 'Free' 
+    : `€${program.semester_fees.toLocaleString()}/sem`;
 
   return (
     <Card className="hover:shadow-sm transition-shadow border border-border bg-background">
