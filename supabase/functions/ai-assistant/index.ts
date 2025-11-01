@@ -320,7 +320,7 @@ Provide specific guidance about this program, check eligibility, and answer ques
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-5-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT + contextInfo },
           ...messages.map(m => ({ role: m.role, content: m.content }))
@@ -522,7 +522,7 @@ Provide specific guidance about this program, check eligibility, and answer ques
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'openai/gpt-5-mini',
+            model: 'google/gemini-2.5-flash',
             messages: messagesWithToolResults,
           }),
         });
