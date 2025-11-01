@@ -28,10 +28,16 @@ export default function ProgramPage() {
   const [requirements, setRequirements] = useState<any[]>([]);
   const [studentProfile, setStudentProfile] = useState<StudentProfile | undefined>(undefined);
   const [consultationModalOpen, setConsultationModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
-      if (!program) return;
+      if (!program) {
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
 
       const { data: prog, error } = await supabase
         .from('programs')
@@ -41,6 +47,8 @@ export default function ProgramPage() {
       
       if (error || !prog) {
         console.error('Error fetching program:', error);
+        setProgramData(null);
+        setIsLoading(false);
         return;
       }
       
@@ -82,10 +90,23 @@ export default function ProgramPage() {
           });
         }
       }
+
+      setIsLoading(false);
     }
 
     fetchData();
   }, [program]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading program details...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!programData) {
     return (
