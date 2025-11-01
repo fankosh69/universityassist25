@@ -50,23 +50,35 @@ Deno.serve(async (req) => {
 
     console.log(`Fetched ${fields?.length || 0} fields`);
 
-    // Fetch program counts for each field
-    const fieldIds = fields?.map(f => f.id) || [];
+    // Fetch program counts for all fields in ONE query
     const programCounts: Record<string, number> = {};
+    
+    // Get all program-field relationships in a single query
+    const { data: programFields, error: programFieldsError } = await supabase
+      .from('program_fields_of_study')
+      .select('field_of_study_id, program_id');
 
-    // Get program counts efficiently
-    for (const fieldId of fieldIds) {
-      const { data: countData, error: countError } = await supabase
-        .rpc('count_programs_by_field', { field_id: fieldId });
-
-      if (!countError && countData !== null) {
-        programCounts[fieldId] = countData;
-      } else {
-        programCounts[fieldId] = 0;
-      }
+    if (!programFieldsError && programFields) {
+      // Count programs for each field
+      programFields.forEach(pf => {
+        programCounts[pf.field_of_study_id] = (programCounts[pf.field_of_study_id] || 0) + 1;
+      });
+      
+      // Include descendant counts using the hierarchy
+      const addDescendantCounts = (fieldId: string): number => {
+        const directCount = programCounts[fieldId] || 0;
+        const childFields = fields?.filter(f => f.parent_id === fieldId) || [];
+        const childCounts = childFields.reduce((sum, child) => sum + addDescendantCounts(child.id), 0);
+        const totalCount = directCount + childCounts;
+        programCounts[fieldId] = totalCount;
+        return totalCount;
+      };
+      
+      // Calculate counts for top-level fields first
+      fields?.filter(f => !f.parent_id).forEach(field => addDescendantCounts(field.id));
     }
 
-    console.log('Program counts calculated');
+    console.log('Program counts calculated in single query');
 
     // Build hierarchy
     const buildHierarchy = (parentId: string | null = null): FieldNode[] => {
