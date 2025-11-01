@@ -12,6 +12,7 @@ interface UniversityCardProps {
     control_type?: string;
     city?: string;
     hero_image_url?: string;
+    logo_url?: string;
   };
 }
 
@@ -29,6 +30,17 @@ export function UniversityCard({ university }: UniversityCardProps) {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
             
+            {/* Logo Overlay */}
+            {university.logo_url && (
+              <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm p-2 rounded-lg shadow-lg">
+                <img
+                  src={university.logo_url}
+                  alt={`${university.name} logo`}
+                  className="h-12 w-12 object-contain"
+                />
+              </div>
+            )}
+            
             {/* Type Badge Overlay */}
             {university.type && (
               <div className="absolute bottom-2 left-2">
@@ -39,6 +51,18 @@ export function UniversityCard({ university }: UniversityCardProps) {
         ) : (
           <div className="relative h-48 bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 flex items-center justify-center">
             <Building2 className="h-16 w-16 text-primary/40" />
+            
+            {/* Logo Overlay for non-image cards */}
+            {university.logo_url && (
+              <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm p-2 rounded-lg shadow-lg">
+                <img
+                  src={university.logo_url}
+                  alt={`${university.name} logo`}
+                  className="h-12 w-12 object-contain"
+                />
+              </div>
+            )}
+            
             {university.type && (
               <div className="absolute bottom-2 left-2">
                 <InstitutionTypeBadge type={university.type} />
