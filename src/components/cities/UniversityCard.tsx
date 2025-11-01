@@ -50,17 +50,14 @@ export function UniversityCard({ university }: UniversityCardProps) {
           </div>
         ) : (
           <div className="relative h-48 bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 flex items-center justify-center">
-            <Building2 className="h-16 w-16 text-primary/40" />
-            
-            {/* Logo Overlay for non-image cards */}
-            {university.logo_url && (
-              <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm p-2 rounded-lg shadow-lg">
-                <img
-                  src={university.logo_url}
-                  alt={`${university.name} logo`}
-                  className="h-12 w-12 object-contain"
-                />
-              </div>
+            {university.logo_url ? (
+              <img
+                src={university.logo_url}
+                alt={`${university.name} logo`}
+                className="h-32 w-32 object-contain"
+              />
+            ) : (
+              <Building2 className="h-16 w-16 text-primary/40" />
             )}
             
             {university.type && (
