@@ -37,7 +37,7 @@ interface ProgramListItemProps {
 
 export function ProgramListItem({ program, isSaved, onSave }: ProgramListItemProps) {
   const formattedTitle = formatProgramTitle(program.degree_type, program.name);
-  const tuitionDisplay = program.semester_fees === 0 ? 'Free' : `€${program.semester_fees.toLocaleString()}`;
+  const tuitionDisplay = program.semester_fees === 0 ? 'Free' : `€${program.semester_fees.toLocaleString()}/semester`;
 
   return (
     <div className="group p-4 bg-background border border-border hover:shadow-sm transition-shadow">
