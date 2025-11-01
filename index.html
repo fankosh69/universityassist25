@@ -18,7 +18,15 @@
     <!-- Preload critical CSS -->
     <link rel="modulepreload" href="/src/main.tsx">
     
-    <!-- Load fonts asynchronously to prevent render blocking -->
+    <!-- Critical inline CSS for above-the-fold content -->
+    <style>
+      /* Prevent layout shift and enable instant font rendering */
+      body { font-family: system-ui, -apple-system, sans-serif; }
+      /* Critical hero styles for immediate render */
+      .hero-section { min-height: 500px; background: linear-gradient(135deg, hsl(223, 92%, 57%), hsl(223, 92%, 67%)); }
+    </style>
+    
+    <!-- Load fonts asynchronously with swap for instant text render -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Ubuntu:wght@400;500&family=Noto+Kufi+Arabic:wght@400;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Ubuntu:wght@400;500&family=Noto+Kufi+Arabic:wght@400;600&display=swap" rel="stylesheet"></noscript>
 
