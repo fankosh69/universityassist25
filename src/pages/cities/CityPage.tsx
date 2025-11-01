@@ -13,6 +13,7 @@ import { CityWelcomeSection } from '@/components/cities/CityWelcomeSection';
 import { CityLivingSection } from '@/components/cities/CityLivingSection';
 import { CityTipsCard } from '@/components/cities/CityTipsCard';
 import { SimilarCitiesGrid } from '@/components/cities/SimilarCitiesGrid';
+import { UniversityCard } from '@/components/cities/UniversityCard';
 
 interface MapMarker {
   id: string;
@@ -193,6 +194,30 @@ export default function CityPage() {
             {/* Tips Card */}
             <CityTipsCard tips={cityData.tips} />
 
+            {/* Universities Section */}
+            <div className="my-12">
+              <h2 className="text-3xl font-bold mb-6">UNIVERSITIES IN {cityData.name.toUpperCase()}</h2>
+              {universities.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {universities.map(uni => (
+                    <UniversityCard 
+                      key={uni.id} 
+                      university={{
+                        ...uni,
+                        city: cityData.name
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    No universities found in {cityData.name}.
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
             {/* Student Ambassadors Section */}
             {ambassadors.length > 0 && (
               <div className="my-12">
@@ -259,28 +284,26 @@ export default function CityPage() {
               region={cityData.region}
             />
             
-            {/* Universities List Card */}
+            {/* Quick Stats Card */}
             <Card className="mt-8">
               <CardHeader>
-                <CardTitle>Universities ({universities.length})</CardTitle>
+                <CardTitle>Quick Stats</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {universities.map(uni => (
-                    <Link 
-                      key={uni.id}
-                      to={`/universities/${uni.slug || uni.id}`}
-                      className="block hover:bg-muted/50 rounded p-3 transition-colors border-b last:border-b-0"
-                    >
-                      <h3 className="font-semibold hover:text-primary transition-colors">{uni.name}</h3>
-                      <p className="text-sm text-muted-foreground">{uni.type}</p>
-                    </Link>
-                  ))}
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Universities</span>
+                  <span className="font-semibold">{universities.length}</span>
                 </div>
+                {cityData.student_count && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Students</span>
+                    <span className="font-semibold">{cityData.student_count.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="mt-4 pt-4 border-t">
-                  <Link to={`/universities?city=${cityData.name}`}>
+                  <Link to={`/search?city=${cityData.name}`}>
                     <Button variant="outline" className="w-full">
-                      View All Programs
+                      Search Programs
                     </Button>
                   </Link>
                 </div>
