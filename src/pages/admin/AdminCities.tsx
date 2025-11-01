@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Edit, Trash2, Search, MapPin } from "lucide-react";
+import { Plus, Edit, Trash2, Search, MapPin, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 
 interface City {
   id: string;
@@ -28,6 +30,14 @@ interface City {
   population_total?: number;
   city_type?: string;
   description?: string;
+  hero_image_url?: string;
+  hashtags?: string[];
+  welcome_text?: string;
+  living_text?: string;
+  student_count?: number;
+  tips?: string;
+  gallery_images?: any[];
+  fun_facts?: any[];
   created_at: string;
   metadata?: any;
 }
@@ -51,6 +61,14 @@ export const AdminCities = () => {
     city_type: string;
     description: string;
     website: string;
+    hero_image_url: string;
+    hashtags: string;
+    welcome_text: string;
+    living_text: string;
+    student_count: number | null;
+    tips: string;
+    gallery_images: string;
+    fun_facts: string;
   }>({
     name: "",
     region: "",
@@ -62,6 +80,14 @@ export const AdminCities = () => {
     city_type: "City",
     description: "",
     website: "",
+    hero_image_url: "",
+    hashtags: "",
+    welcome_text: "",
+    living_text: "",
+    student_count: null,
+    tips: "",
+    gallery_images: "",
+    fun_facts: "",
   });
 
   useEffect(() => {
@@ -114,12 +140,56 @@ export const AdminCities = () => {
     e.preventDefault();
     
     try {
+      // Parse hashtags and arrays
+      const hashtags = formData.hashtags
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+
+      // Parse gallery images JSON
+      let galleryImages = [];
+      if (formData.gallery_images.trim()) {
+        try {
+          galleryImages = JSON.parse(formData.gallery_images);
+        } catch (e) {
+          toast({
+            title: "Error",
+            description: "Invalid gallery images JSON format",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // Parse fun facts JSON
+      let funFacts = [];
+      if (formData.fun_facts.trim()) {
+        try {
+          funFacts = JSON.parse(formData.fun_facts);
+        } catch (e) {
+          toast({
+            title: "Error",
+            description: "Invalid fun facts JSON format",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       const submitData = {
         ...formData,
         slug: formData.slug || generateSlug(formData.name),
         lat: formData.lat || null,
         lng: formData.lng || null,
-        website: formData.website || null, // Send website separately, backend will handle metadata
+        website: formData.website || null,
+        hero_image_url: formData.hero_image_url || null,
+        hashtags: hashtags.length > 0 ? hashtags : null,
+        welcome_text: formData.welcome_text || null,
+        living_text: formData.living_text || null,
+        student_count: formData.student_count || null,
+        tips: formData.tips || null,
+        gallery_images: galleryImages.length > 0 ? galleryImages : null,
+        fun_facts: funFacts.length > 0 ? funFacts : null,
       };
 
       if (editingCity) {
@@ -224,6 +294,14 @@ export const AdminCities = () => {
       city_type: city.city_type || "City",
       description: city.description || "",
       website: (city.metadata as any)?.website || "",
+      hero_image_url: city.hero_image_url || "",
+      hashtags: city.hashtags ? city.hashtags.join(', ') : "",
+      welcome_text: city.welcome_text || "",
+      living_text: city.living_text || "",
+      student_count: city.student_count || null,
+      tips: city.tips || "",
+      gallery_images: city.gallery_images ? JSON.stringify(city.gallery_images, null, 2) : "",
+      fun_facts: city.fun_facts ? JSON.stringify(city.fun_facts, null, 2) : "",
     });
     setIsDialogOpen(true);
   };
@@ -241,6 +319,14 @@ export const AdminCities = () => {
       city_type: "City",
       description: "",
       website: "",
+      hero_image_url: "",
+      hashtags: "",
+      welcome_text: "",
+      living_text: "",
+      student_count: null,
+      tips: "",
+      gallery_images: "",
+      fun_facts: "",
     });
     setIsDialogOpen(false);
   };
@@ -349,7 +435,7 @@ export const AdminCities = () => {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingCity ? 'Edit City' : 'Add New City'}
@@ -357,6 +443,14 @@ export const AdminCities = () => {
           </DialogHeader>
           
           <form onSubmit={handleSubmit} className="space-y-4">
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                <TabsTrigger value="content">Content</TabsTrigger>
+                <TabsTrigger value="media">Media</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="basic" className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="name">City Name</Label>
@@ -507,8 +601,127 @@ export const AdminCities = () => {
                 This website will appear as a clickable link on the city page
               </p>
             </div>
+              </TabsContent>
 
-            <DialogFooter>
+              <TabsContent value="content" className="space-y-4 mt-4">
+                <div>
+                  <Label htmlFor="hashtags">Hashtags (comma-separated)</Label>
+                  <Input
+                    id="hashtags"
+                    value={formData.hashtags}
+                    onChange={(e) => setFormData({ ...formData, hashtags: e.target.value })}
+                    placeholder="#students, #vibrant, #historic"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Enter hashtags separated by commas
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="student_count">Student Count</Label>
+                  <Input
+                    id="student_count"
+                    type="number"
+                    value={formData.student_count || ""}
+                    onChange={(e) => setFormData({ ...formData, student_count: e.target.value ? parseInt(e.target.value) : null })}
+                    placeholder="e.g., 50000"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="welcome_text">Welcome Text</Label>
+                  <Textarea
+                    id="welcome_text"
+                    value={formData.welcome_text}
+                    onChange={(e) => setFormData({ ...formData, welcome_text: e.target.value })}
+                    placeholder="Welcome to [City Name]! This vibrant city..."
+                    rows={4}
+                    className="resize-y"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Introductory text for the city (use \n\n for paragraph breaks)
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="living_text">Living in City Text</Label>
+                  <Textarea
+                    id="living_text"
+                    value={formData.living_text}
+                    onChange={(e) => setFormData({ ...formData, living_text: e.target.value })}
+                    placeholder="Living in [City Name] offers..."
+                    rows={4}
+                    className="resize-y"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Description of living conditions and lifestyle (use \n\n for paragraph breaks)
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="tips">Tips</Label>
+                  <Textarea
+                    id="tips"
+                    value={formData.tips}
+                    onChange={(e) => setFormData({ ...formData, tips: e.target.value })}
+                    placeholder="Pro tip: The best time to visit..."
+                    rows={3}
+                    className="resize-y"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Helpful tips for students (use \n\n for paragraph breaks)
+                  </p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="media" className="space-y-4 mt-4">
+                <div>
+                  <Label htmlFor="hero_image_url">Hero Image URL</Label>
+                  <Input
+                    id="hero_image_url"
+                    type="url"
+                    value={formData.hero_image_url}
+                    onChange={(e) => setFormData({ ...formData, hero_image_url: e.target.value })}
+                    placeholder="https://images.unsplash.com/..."
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Large banner image for city page header
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="gallery_images">Gallery Images (JSON)</Label>
+                  <Textarea
+                    id="gallery_images"
+                    value={formData.gallery_images}
+                    onChange={(e) => setFormData({ ...formData, gallery_images: e.target.value })}
+                    placeholder='[{"url": "https://...", "caption": "City center", "credit": "Photo by..."}]'
+                    rows={6}
+                    className="font-mono text-xs resize-y"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    JSON array of gallery images with url, caption, and credit
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="fun_facts">Fun Facts (JSON)</Label>
+                  <Textarea
+                    id="fun_facts"
+                    value={formData.fun_facts}
+                    onChange={(e) => setFormData({ ...formData, fun_facts: e.target.value })}
+                    placeholder='[{"title": "Founded", "value": "805 AD"}, {"title": "Universities", "value": "3"}]'
+                    rows={6}
+                    className="font-mono text-xs resize-y"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    JSON array of fun facts with title and value
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <DialogFooter className="mt-6">
               <Button type="button" variant="outline" onClick={resetForm}>
                 Cancel
               </Button>
