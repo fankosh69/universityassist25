@@ -221,6 +221,24 @@ export default function UniversityPage() {
                   )}
                 </div>
 
+                {/* Empty State Message */}
+                {!university.description && !university.student_count && Object.keys(facilitiesData).length === 0 && photos.length === 0 && ambassadors.length === 0 && (
+                  <Card className="p-8 text-center border-dashed">
+                    <div className="text-muted-foreground">
+                      <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <h3 className="text-lg font-semibold mb-2">University Information Coming Soon</h3>
+                      <p className="text-sm max-w-md mx-auto">
+                        We're currently enriching this university's profile with detailed information about facilities, rankings, campus life, and more.
+                      </p>
+                      {programs.length > 0 && (
+                        <p className="text-sm mt-4">
+                          ✓ {programs.length} program{programs.length !== 1 ? 's' : ''} available to explore
+                        </p>
+                      )}
+                    </div>
+                  </Card>
+                )}
+
                 {/* About Section - only show if we have data */}
                 {(university.description || university.mission_statement || university.research_areas || university.accreditations || university.notable_alumni) && (
                   <UniversityAbout
@@ -318,10 +336,31 @@ export default function UniversityPage() {
               </div>
             ),
             admissions: (
-              <AdmissionsSection
-                applicationFee={university.application_fee_eur}
-                contactEmail={university.contact_email}
-              />
+              <div>
+                {!university.application_fee_eur && !university.contact_email ? (
+                  <Card className="p-8 text-center border-dashed">
+                    <div className="text-muted-foreground">
+                      <GraduationCap className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <h3 className="text-lg font-semibold mb-2">Admissions Information Coming Soon</h3>
+                      <p className="text-sm max-w-md mx-auto">
+                        We're gathering detailed admissions requirements and application procedures for this university.
+                      </p>
+                      {university.website && (
+                        <p className="text-sm mt-4">
+                          Visit <a href={university.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                            {university.website}
+                          </a> for current information
+                        </p>
+                      )}
+                    </div>
+                  </Card>
+                ) : (
+                  <AdmissionsSection
+                    applicationFee={university.application_fee_eur}
+                    contactEmail={university.contact_email}
+                  />
+                )}
+              </div>
             ),
             studentLife: (
               <div className="space-y-12">
@@ -372,18 +411,46 @@ export default function UniversityPage() {
               </div>
             ),
             research: (
-              <ResearchSection
-                researchAreas={university.research_areas}
-                partnerships={university.partnerships}
-                researchOutput={university.research_output}
-              />
+              <div>
+                {!university.research_areas && !university.partnerships && !university.research_output ? (
+                  <Card className="p-8 text-center border-dashed">
+                    <div className="text-muted-foreground">
+                      <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <h3 className="text-lg font-semibold mb-2">Research Information Coming Soon</h3>
+                      <p className="text-sm max-w-md mx-auto">
+                        We're compiling information about research areas, partnerships, and academic output.
+                      </p>
+                    </div>
+                  </Card>
+                ) : (
+                  <ResearchSection
+                    researchAreas={university.research_areas}
+                    partnerships={university.partnerships}
+                    researchOutput={university.research_output}
+                  />
+                )}
+              </div>
             ),
             rankings: (
-              <RankingsDisplay
-                rankings={rankings}
-                accreditations={university.accreditations}
-                awards={university.awards_recognition}
-              />
+              <div>
+                {rankings.length === 0 && !university.accreditations && !university.awards_recognition ? (
+                  <Card className="p-8 text-center border-dashed">
+                    <div className="text-muted-foreground">
+                      <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <h3 className="text-lg font-semibold mb-2">Rankings & Recognition Coming Soon</h3>
+                      <p className="text-sm max-w-md mx-auto">
+                        We're gathering information about this university's rankings, accreditations, and awards.
+                      </p>
+                    </div>
+                  </Card>
+                ) : (
+                  <RankingsDisplay
+                    rankings={rankings}
+                    accreditations={university.accreditations}
+                    awards={university.awards_recognition}
+                  />
+                )}
+              </div>
             ),
             campuses: (
               <div className="space-y-6">
