@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { format, startOfMonth } from 'date-fns';
 import { SearchLayout } from './SearchLayout';
 import { FilterSidebar } from './FilterSidebar';
 import { ResultsPanel } from './ResultsPanel';
@@ -141,6 +142,23 @@ export function EnhancedSearchContainer() {
 
     fetchSavedPrograms();
   }, [user]);
+
+  // Auto-clean expired deadline months
+  useEffect(() => {
+    const currentMonth = format(startOfMonth(new Date()), 'yyyy-MM');
+    
+    if (filters.applicationStatus.length > 0) {
+      const validMonths = filters.applicationStatus.filter(month => month >= currentMonth);
+      
+      // Only update if we removed any expired months
+      if (validMonths.length !== filters.applicationStatus.length) {
+        setFilters(prev => ({
+          ...prev,
+          applicationStatus: validMonths
+        }));
+      }
+    }
+  }, [filters.applicationStatus]);
 
   // Filter and search programs
   useEffect(() => {
