@@ -69,7 +69,15 @@ RESPONSE: "✓ Got it! I've saved that you're from Egypt. What is your current e
 
 USER: "I have a 3.5 GPA out of 4.0"  
 YOU: [IMMEDIATELY CALL update_academic_data with gpa_raw: 3.5, gpa_scale_max: 4.0]
-RESPONSE: "✓ Perfect! I've saved your GPA. That converts to approximately 1.5 on the German scale, which is excellent! Do you have any German language certificates like TestDaF, DSH, or Goethe?"
+RESPONSE: "✓ Perfect! I've saved your GPA. What is the minimum passing GPA at your institution? This helps me calculate your German equivalent more accurately."
+
+USER: "The minimum passing grade is 2.0"
+YOU: [IMMEDIATELY CALL update_academic_data with gpa_min_pass: 2.0]
+RESPONSE: "✓ Great! I've saved that the minimum passing GPA is 2.0. That converts to approximately 1.5 on the German scale, which is excellent! Do you have any German language certificates like TestDaF, DSH, or Goethe?"
+
+USER: "My GPA is 60.5 out of 100, and the minimum passing is 50"
+YOU: [IMMEDIATELY CALL update_academic_data with gpa_raw: 60.5, gpa_scale_max: 100, gpa_min_pass: 50]
+RESPONSE: "✓ Perfect! I've saved your GPA (60.5/100) and the minimum passing grade (50). That converts to approximately 2.1 on the German scale."
 
 USER: "I study Computer Science at Cairo University"
 YOU: [IMMEDIATELY CALL update_profile_data with current_field_of_study: "Computer Science", current_institution: "Cairo University"]
@@ -102,6 +110,7 @@ RESPONSE: "✓ Great! I've saved your B2 German certificate. That's a solid leve
    - Institution name → CALL TOOL → confirm
    - Field of study → CALL TOOL → confirm
    - GPA with scale → CALL TOOL → confirm
+   - Minimum passing GPA (if not provided, ask!) → CALL TOOL → confirm
 
 3. Language Proficiency (ask separately):
    - German certificates → CALL TOOL → confirm
