@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { User, GraduationCap, Target, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUserProfile, secureUpdateProfile } from "@/lib/secure-profile-api";
+import { GermanGPAConverter } from "@/components/GermanGPAConverter";
 
 interface ProfileData {
   full_name: string;
@@ -20,7 +21,9 @@ interface ProfileData {
   nationality?: string;
   current_education_level: string;
   current_institution?: string;
-  current_gpa?: number;
+  gpa_raw?: number;
+  gpa_scale_max?: number;
+  gpa_min_pass?: number;
   current_field_of_study?: string;
   credits_taken?: number;
   thesis_topic?: string;
@@ -59,8 +62,16 @@ const Profile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Use secure profile API
+      // Fetch profile data
       const profile = await getCurrentUserProfile();
+      
+      // Fetch academic data from student_academics table
+      const { data: academicData } = await supabase
+        .from('student_academics')
+        .select('*')
+        .eq('profile_id', user.id)
+        .single();
+
       if (profile) {
         setProfileData({
           full_name: profile.full_name || "",
@@ -69,7 +80,9 @@ const Profile = () => {
           nationality: profile.nationality || "",
           current_education_level: profile.current_education_level || "",
           current_institution: profile.current_institution || "",
-          current_gpa: profile.current_gpa || 0,
+          gpa_raw: academicData?.gpa_raw || undefined,
+          gpa_scale_max: academicData?.gpa_scale_max || undefined,
+          gpa_min_pass: academicData?.gpa_min_pass || undefined,
           current_field_of_study: profile.current_field_of_study || "",
           credits_taken: profile.credits_taken || 0,
           thesis_topic: profile.thesis_topic || "",
@@ -80,7 +93,6 @@ const Profile = () => {
           career_goals: profile.career_goals || "",
         });
       } else {
-        // Initialize with user email
         setProfileData(prev => ({ ...prev, email: user.email || "" }));
       }
     } catch (error) {
@@ -94,17 +106,36 @@ const Profile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Use secure profile update API
-      const result = await secureUpdateProfile(user.id, profileData);
+      // Separate profile data and academic data
+      const { gpa_raw, gpa_scale_max, gpa_min_pass, ...profileOnlyData } = profileData;
+
+      // Update profile data
+      const result = await secureUpdateProfile(user.id, profileOnlyData);
       
       if (!result || !result.success) {
         throw new Error(result?.message || 'Failed to update profile');
       }
 
-      toast({
-        title: "Success",
-        description: result.message,
-      });
+      // Update academic data using RPC
+      if (gpa_raw || gpa_scale_max || gpa_min_pass) {
+        const { error: academicError } = await supabase.rpc('secure_update_academic_data', {
+          target_profile_id: user.id,
+          update_data: {
+            gpa_raw,
+            gpa_scale_max,
+            gpa_min_pass,
+          }
+        });
+
+        if (academicError) {
+          console.error('Error updating academic data:', academicError);
+          toast({
+            title: "Warning",
+            description: "Profile saved but GPA data may not have been updated.",
+            variant: "destructive",
+          });
+        }
+      }
 
       // Generate matches after profile update
       try {
@@ -112,7 +143,6 @@ const Profile = () => {
         await matchingService.generateMatches(user.id);
       } catch (matchError) {
         console.error('Error generating matches:', matchError);
-        // Don't fail the profile save if matching fails
       }
 
       toast({
@@ -185,12 +215,15 @@ const Profile = () => {
   const calculateProgress = () => {
     const requiredFields = [
       'full_name', 'email', 'nationality', 'current_education_level', 
-      'current_institution', 'current_gpa', 'preferred_degree_type'
+      'current_institution', 'preferred_degree_type'
     ];
     const filledFields = requiredFields.filter(field => 
       profileData[field as keyof ProfileData] && 
       String(profileData[field as keyof ProfileData]).trim() !== ""
     ).length;
+    
+    // Check if GPA data is filled
+    const gpaFilled = profileData.gpa_raw && profileData.gpa_scale_max && profileData.gpa_min_pass ? 1 : 0;
     
     const arrayFields = ['language_certificates', 'preferred_fields', 'preferred_cities'];
     const filledArrays = arrayFields.filter(field => 
@@ -198,7 +231,7 @@ const Profile = () => {
       (profileData[field as keyof ProfileData] as string[]).length > 0
     ).length;
 
-    return ((filledFields + filledArrays) / (requiredFields.length + arrayFields.length)) * 100;
+    return ((filledFields + gpaFilled + filledArrays) / (requiredFields.length + 1 + arrayFields.length)) * 100;
   };
 
   return (
@@ -308,16 +341,36 @@ const Profile = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="gpa">GPA *</Label>
+                <Label htmlFor="gpa_raw">Your Grade/GPA *</Label>
                 <Input
-                  id="gpa"
+                  id="gpa_raw"
                   type="number"
-                  step="0.1"
-                  min="0"
-                  max="4"
-                  value={profileData.current_gpa || ""}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, current_gpa: parseFloat(e.target.value) }))}
-                  placeholder="e.g., 3.5"
+                  step="0.01"
+                  value={profileData.gpa_raw || ""}
+                  onChange={(e) => setProfileData(prev => ({ ...prev, gpa_raw: parseFloat(e.target.value) || undefined }))}
+                  placeholder="e.g., 3.5 or 85"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gpa_scale_max">Maximum Grade *</Label>
+                <Input
+                  id="gpa_scale_max"
+                  type="number"
+                  step="0.01"
+                  value={profileData.gpa_scale_max || ""}
+                  onChange={(e) => setProfileData(prev => ({ ...prev, gpa_scale_max: parseFloat(e.target.value) || undefined }))}
+                  placeholder="e.g., 4.0 or 100"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gpa_min_pass">Minimum Passing Grade *</Label>
+                <Input
+                  id="gpa_min_pass"
+                  type="number"
+                  step="0.01"
+                  value={profileData.gpa_min_pass || ""}
+                  onChange={(e) => setProfileData(prev => ({ ...prev, gpa_min_pass: parseFloat(e.target.value) || undefined }))}
+                  placeholder="e.g., 2.0 or 50"
                 />
               </div>
               <div className="space-y-2">
@@ -351,6 +404,19 @@ const Profile = () => {
                 </div>
               )}
             </div>
+
+            {/* German GPA Calculator */}
+            {profileData.gpa_raw && profileData.gpa_scale_max && profileData.gpa_min_pass && (
+              <div className="mt-6">
+                <GermanGPAConverter
+                  defaultValues={{
+                    gradeAchieved: profileData.gpa_raw,
+                    maxGrade: profileData.gpa_scale_max,
+                    minPassGrade: profileData.gpa_min_pass
+                  }}
+                />
+              </div>
+            )}
 
             {/* Language Certificates */}
             <div className="space-y-2">
