@@ -39,7 +39,9 @@ serve(async (req) => {
     console.log('Update profile request:', { 
       userId: user.id, 
       hasProfileData: !!profileData,
-      hasAcademicData: !!academicData 
+      hasAcademicData: !!academicData,
+      profileFields: profileData ? Object.keys(profileData) : [],
+      academicFields: academicData ? Object.keys(academicData) : []
     });
 
     const results = {
@@ -89,6 +91,11 @@ serve(async (req) => {
           const fieldCount = Object.keys(publicData).length + 
                            Object.keys(privateData).length + 
                            Object.keys(academicPrefs).length;
+          console.log('✓ Profile updated successfully:', { 
+            publicFields: Object.keys(publicData), 
+            privateFields: Object.keys(privateData),
+            academicFields: Object.keys(academicPrefs)
+          });
           results.updates.push(`Updated ${fieldCount} profile fields`);
         }
       } catch (error: any) {
@@ -113,6 +120,9 @@ serve(async (req) => {
           results.errors.push(`Academic update failed: ${academicError.message}`);
         } else {
           const fieldCount = Object.keys(academicData).length;
+          console.log('✓ Academic data updated successfully:', { 
+            fields: Object.keys(academicData) 
+          });
           results.updates.push(`Updated ${fieldCount} academic fields`);
         }
       } catch (error: any) {

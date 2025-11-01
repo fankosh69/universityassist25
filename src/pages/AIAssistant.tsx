@@ -44,6 +44,7 @@ export default function AIAssistant() {
   
   // Use the new granular profile completion hook
   const { completion, isLoading: isLoadingCompletion, refresh: refreshCompletion } = useProfileCompletion(userId || undefined);
+  const [previousProgress, setPreviousProgress] = useState(0);
 
   useEffect(() => {
     checkAuth();
@@ -56,6 +57,18 @@ export default function AIAssistant() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Show toast when profile completion increases
+  useEffect(() => {
+    if (completion.overallProgress > previousProgress && previousProgress > 0) {
+      toast({
+        title: "✓ Profile Updated!",
+        description: `Your profile is now ${completion.overallProgress}% complete`,
+        duration: 2000,
+      });
+    }
+    setPreviousProgress(completion.overallProgress);
+  }, [completion.overallProgress]);
 
   const scrollToBottom = () => {
     if (scrollRef.current) {

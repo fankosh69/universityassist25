@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.send-program-shortlist]
 verify_jwt = true
+
+[functions.update-profile-from-ai]
+verify_jwt = true

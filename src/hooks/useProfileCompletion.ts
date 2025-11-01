@@ -120,23 +120,33 @@ export function useProfileCompletion(userId?: string) {
         gpa: !!(academics?.gpa_raw && academics?.gpa_scale_max),
       };
 
-      // Check language skills
-      const languageCerts = (academics?.language_certificates as any[]) || [];
+      // Check language skills - handle both array and JSONB properly
+      const languageCerts = Array.isArray(academics?.language_certificates) 
+        ? academics.language_certificates 
+        : [];
+      
       const languageItems = {
         germanCertificate: languageCerts.some((cert: any) => 
-          cert.language?.toLowerCase().includes('german') || 
-          cert.language?.toLowerCase().includes('deutsch')
+          cert?.language?.toLowerCase()?.includes('german') || 
+          cert?.language?.toLowerCase()?.includes('deutsch')
         ),
         englishCertificate: languageCerts.some((cert: any) => 
-          cert.language?.toLowerCase().includes('english')
+          cert?.language?.toLowerCase()?.includes('english')
         ),
       };
 
-      // Check preferences (stored in profiles table)
+      // Check preferences - handle arrays properly
+      const preferredFields = Array.isArray(profile?.preferred_fields) 
+        ? profile.preferred_fields 
+        : [];
+      const preferredCities = Array.isArray(profile?.preferred_cities) 
+        ? profile.preferred_cities 
+        : [];
+
       const preferenceItems = {
         degreeType: !!(profile?.preferred_degree_type),
-        preferredFields: !!(profile?.preferred_fields && (profile.preferred_fields as any[]).length > 0),
-        preferredCities: !!(profile?.preferred_cities && (profile.preferred_cities as any[]).length > 0),
+        preferredFields: preferredFields.length > 0,
+        preferredCities: preferredCities.length > 0,
         careerGoals: !!(profile?.career_goals),
       };
 
