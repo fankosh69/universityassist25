@@ -15,7 +15,8 @@ import Navigation from "@/components/Navigation";
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
 import { INSTITUTION_TYPES } from '@/lib/institution-types';
-import { MapPin, Building, Trophy, Globe, Search, GraduationCap } from "lucide-react";
+import { MapPin, Building, Trophy, Globe, Search, GraduationCap, Grid3x3, List, Map as MapIcon } from "lucide-react";
+import { UniversityCard } from "@/components/university/UniversityCard";
 
 interface University {
   id: string;
@@ -37,6 +38,9 @@ interface University {
   search_doc?: any;
   fts?: unknown;
   external_refs?: any;
+  student_count?: number;
+  international_student_percentage?: number;
+  founded_year?: number;
 }
 
 export default function Universities() {
@@ -53,6 +57,8 @@ export default function Universities() {
   const [regions, setRegions] = useState<string[]>([]);
   const [types, setTypes] = useState<string[]>([]);
   const [controlTypes, setControlTypes] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [sortBy, setSortBy] = useState<string>("name");
 
   useEffect(() => {
     const fetchUniversities = async () => {
@@ -145,8 +151,28 @@ export default function Universities() {
       filtered = filtered.filter(university => university.region === selectedRegion);
     }
 
-    setFilteredUniversities(filtered);
-  }, [searchTerm, selectedType, selectedControlType, selectedCity, selectedRegion, universities]);
+    // Sort universities
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "name-desc":
+          return b.name.localeCompare(a.name);
+        case "ranking":
+          return (a.ranking || 9999) - (b.ranking || 9999);
+        case "programs":
+          return (b.program_count || 0) - (a.program_count || 0);
+        case "students":
+          return (b.student_count || 0) - (a.student_count || 0);
+        case "founded":
+          return (a.founded_year || 9999) - (b.founded_year || 9999);
+        default:
+          return 0;
+      }
+    });
+
+    setFilteredUniversities(sorted);
+  }, [searchTerm, selectedType, selectedControlType, selectedCity, selectedRegion, universities, sortBy]);
 
   if (loading) {
     return (
@@ -206,9 +232,9 @@ export default function Universities() {
         </div>
 
         {/* Search and Filters */}
-        <Card className="mb-8">
+        <Card className="mb-6">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -285,6 +311,46 @@ export default function Universities() {
                 Clear Filters
               </Button>
             </div>
+            
+            {/* Sort and View Options */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Sort by:</span>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">Name (A-Z)</SelectItem>
+                    <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                    <SelectItem value="ranking">Best Ranked</SelectItem>
+                    <SelectItem value="programs">Most Programs</SelectItem>
+                    <SelectItem value="students">Most Students</SelectItem>
+                    <SelectItem value="founded">Oldest First</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">View:</span>
+                <div className="flex gap-1">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "outline"}
+                    size="icon"
+                    onClick={() => setViewMode("grid")}
+                  >
+                    <Grid3x3 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "outline"}
+                    size="icon"
+                    onClick={() => setViewMode("list")}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -298,92 +364,17 @@ export default function Universities() {
           </p>
         </div>
 
-        {/* Universities Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        {/* Universities Grid/List */}
+        <div className={viewMode === "grid" 
+          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12" 
+          : "space-y-4 mb-12"
+        }>
           {filteredUniversities.map((university) => (
-            <Card key={university.id} className="hover:shadow-lg transition-shadow group">
-              <CardHeader>
-                <div className="flex items-start gap-4">
-                   {university.logo_url && (
-                     <div className="flex-shrink-0">
-                        <img 
-                          src={university.logo_url} 
-                          alt={`${university.name} logo`}
-                          className="w-16 h-16 object-contain rounded-lg bg-white p-2 shadow-sm border"
-                          width="64"
-                          height="64"
-                          loading="lazy"
-                          decoding="async"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                     </div>
-                   )}
-                  <div className="flex-1">
-                     <CardTitle className="text-lg mb-2 group-hover:text-primary transition-colors">
-                       {university.name?.replace(/[^\x00-\x7F]/g, "") || university.name}
-                     </CardTitle>
-                     <div className="flex items-center gap-2 text-muted-foreground mb-3">
-                       <MapPin className="h-4 w-4" />
-                        <Link 
-                          to={`/cities/${slugify(university.city)}`}
-                          className="text-sm hover:text-primary transition-colors"
-                        >
-                          {university.city?.replace(/[^\x00-\x7F]/g, "") || university.city}
-                        </Link>
-                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {university.type && (
-                        <InstitutionTypeBadge type={university.type} useShort />
-                      )}
-                      {university.control_type && (
-                        <ControlTypeBadge type={university.control_type} useShort />
-                      )}
-                      {university.ranking && (
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          <Trophy className="h-3 w-3" />
-                          #{university.ranking}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {university.program_count && university.program_count > 0 && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <GraduationCap className="h-4 w-4 text-primary" />
-                      <span>
-                        {university.program_count} available {university.program_count === 1 ? 'program' : 'programs'}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {university.website && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Globe className="h-4 w-4" />
-                      <a 
-                        href={university.website} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="hover:text-primary truncate"
-                      >
-                        Official Website
-                      </a>
-                    </div>
-                  )}
-                  
-                  <div className="pt-3 flex gap-2">
-                    <Link to={`/universities/${university.slug}`} className="flex-1">
-                      <Button className="w-full">View Details</Button>
-                    </Link>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <UniversityCard 
+              key={university.id} 
+              university={university} 
+              variant={viewMode}
+            />
           ))}
         </div>
 

@@ -10,6 +10,17 @@ interface University {
   keywords?: string[];
   lat?: number;
   lng?: number;
+  founded_year?: number;
+  student_count?: number;
+  international_student_percentage?: number;
+  description?: string;
+  logo_url?: string;
+  rankings_data?: {
+    qs?: { rank?: number; year?: number; score?: number };
+    the?: { rank?: number; year?: number; score?: number };
+  };
+  accreditations?: string[];
+  program_count?: number;
 }
 
 interface SEOUniversityPageProps {
@@ -27,6 +38,7 @@ export default function SEOUniversityPage({ university }: SEOUniversityPageProps
     "@context": "https://schema.org",
     "@type": "CollegeOrUniversity",
     "name": university.name,
+    "description": university.description || `${university.name} is a higher education institution located in ${cityName}, Germany.`,
     "address": {
       "@type": "PostalAddress",
       "addressLocality": university.city,
@@ -39,8 +51,55 @@ export default function SEOUniversityPage({ university }: SEOUniversityPageProps
     } : undefined,
     "url": university.website,
     "sameAs": `https://universityassist.com/universities/${university.slug}`,
-    "description": `${university.name} is a higher education institution located in ${cityName}, Germany.`
+    "foundingDate": university.founded_year ? `${university.founded_year}` : undefined,
+    "numberOfStudents": university.student_count ? {
+      "@type": "QuantitativeValue",
+      "value": university.student_count
+    } : undefined,
+    "logo": university.logo_url,
+    "aggregateRating": university.rankings_data?.qs?.score ? {
+      "@type": "AggregateRating",
+      "ratingValue": university.rankings_data.qs.score,
+      "bestRating": 100,
+      "ratingCount": 1
+    } : undefined,
+    "accreditationStatus": university.accreditations?.length ? university.accreditations.join(", ") : undefined
   };
+
+  // Breadcrumb schema
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://universityassist.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Universities",
+        "item": "https://universityassist.com/universities"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": university.name,
+        "item": `https://universityassist.com/universities/${university.slug}`
+      }
+    ]
+  };
+
+  // ItemList schema for programs (if available)
+  const programsSchema = university.program_count ? {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": `Academic Programs at ${university.name}`,
+    "description": `Explore ${university.program_count} programs offered at ${university.name}`,
+    "numberOfItems": university.program_count
+  } : null;
 
   return (
     <>
@@ -59,6 +118,8 @@ export default function SEOUniversityPage({ university }: SEOUniversityPageProps
       </Helmet>
       
       <JsonLd data={universitySchema} />
+      <JsonLd data={breadcrumbSchema} />
+      {programsSchema && <JsonLd data={programsSchema} />}
     </>
   );
 }
