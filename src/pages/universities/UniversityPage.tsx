@@ -110,7 +110,7 @@ export default function UniversityPage() {
   if (loading) return <LoadingScreen />;
   if (!university) return <div className="flex items-center justify-center min-h-screen"><div className="text-lg">University not found</div></div>;
 
-  // Parse JSONB data
+  // Parse JSONB data - handle missing fields gracefully
   const rankingsData = university?.rankings_data ? 
     (typeof university.rankings_data === 'string' ? JSON.parse(university.rankings_data) : university.rankings_data) 
     : {};
@@ -159,16 +159,16 @@ export default function UniversityPage() {
       <UniversityHero
         name={university.name}
         city={university.city}
-        region={university.state}
+        region={university.region}
         website={university.website}
         logoUrl={university.logo_url}
         heroImageUrl={university.hero_image_url}
         virtualTourUrl={university.virtual_tour_url}
         quickFacts={{
-          founded: university.founded_year,
-          students: university.student_count,
-          internationalPercentage: university.international_student_percentage,
-          qsRank: rankingsData.qs?.rank,
+          founded: university.founded_year || null,
+          students: university.student_count || null,
+          internationalPercentage: university.international_student_percentage || null,
+          qsRank: rankingsData.qs?.rank || null,
           programsCount: programs.length,
           campusesCount: campuses.length || 1,
         }}
@@ -198,12 +198,14 @@ export default function UniversityPage() {
                       color="secondary"
                     />
                   )}
-                  <StatisticsCard
-                    icon={BookOpen}
-                    value={programs.length}
-                    label="Programs Offered"
-                    color="accent"
-                  />
+                  {programs.length > 0 && (
+                    <StatisticsCard
+                      icon={BookOpen}
+                      value={programs.length}
+                      label="Programs Offered"
+                      color="accent"
+                    />
+                  )}
                   {university.student_staff_ratio && (
                     <StatisticsCard
                       icon={TrendingUp}
@@ -214,25 +216,29 @@ export default function UniversityPage() {
                   )}
                 </div>
 
-                {/* About Section */}
-                <UniversityAbout
-                  description={university.description}
-                  missionStatement={university.mission_statement}
-                  researchAreas={university.research_areas}
-                  accreditations={university.accreditations}
-                  notableAlumni={university.notable_alumni}
-                />
+                {/* About Section - only show if we have data */}
+                {(university.description || university.mission_statement || university.research_areas || university.accreditations || university.notable_alumni) && (
+                  <UniversityAbout
+                    description={university.description}
+                    missionStatement={university.mission_statement}
+                    researchAreas={university.research_areas}
+                    accreditations={university.accreditations}
+                    notableAlumni={university.notable_alumni}
+                  />
+                )}
 
                 {/* Photo Gallery */}
                 {photos.length > 0 && (
                   <PhotoGallery photos={photos} title="Campus Gallery" />
                 )}
 
-                {/* Facilities */}
-                <FacilitiesGrid
-                  facilities={facilitiesData}
-                  studentOrganizations={university.student_organizations_count}
-                />
+                {/* Facilities - only show if we have data */}
+                {(Object.keys(facilitiesData).length > 0 || university.student_organizations_count) && (
+                  <FacilitiesGrid
+                    facilities={facilitiesData}
+                    studentOrganizations={university.student_organizations_count}
+                  />
+                )}
 
                 {/* Student Ambassadors */}
                 {ambassadors.length > 0 && (
