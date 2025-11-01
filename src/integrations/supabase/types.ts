@@ -181,8 +181,11 @@ export type Database = {
           collected_data: Json | null
           created_at: string | null
           id: string
+          parent_conversation_id: string | null
           profile_completion_progress: Json | null
           profile_id: string | null
+          session_date: string | null
+          session_number: number | null
           status: string | null
           title: string | null
           updated_at: string | null
@@ -191,8 +194,11 @@ export type Database = {
           collected_data?: Json | null
           created_at?: string | null
           id?: string
+          parent_conversation_id?: string | null
           profile_completion_progress?: Json | null
           profile_id?: string | null
+          session_date?: string | null
+          session_number?: number | null
           status?: string | null
           title?: string | null
           updated_at?: string | null
@@ -201,13 +207,23 @@ export type Database = {
           collected_data?: Json | null
           created_at?: string | null
           id?: string
+          parent_conversation_id?: string | null
           profile_completion_progress?: Json | null
           profile_id?: string | null
+          session_date?: string | null
+          session_number?: number | null
           status?: string | null
           title?: string | null
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "ai_conversations_parent_conversation_id_fkey"
+            columns: ["parent_conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ai_conversations_profile_id_fkey"
             columns: ["profile_id"]
@@ -225,6 +241,7 @@ export type Database = {
           id: string
           metadata: Json | null
           role: string
+          search_vector: unknown
         }
         Insert: {
           content: string
@@ -233,6 +250,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           role: string
+          search_vector?: unknown
         }
         Update: {
           content?: string
@@ -241,6 +259,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           role?: string
+          search_vector?: unknown
         }
         Relationships: [
           {
