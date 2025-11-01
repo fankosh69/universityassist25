@@ -129,38 +129,51 @@ export const AdminUniversities = () => {
     
     try {
       const submitData = {
-        ...formData,
+        name: formData.name,
+        city: formData.city,
         city_id: formData.city_id || null,
+        website: formData.website,
+        logo_url: formData.logo_url,
+        type: formData.type,
+        control_type: formData.control_type,
         ranking: formData.ranking || null,
         lat: formData.lat || null,
         lng: formData.lng || null,
       };
 
+      console.log('Saving university with data:', submitData);
+
       if (editingUniversity) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('universities')
           .update(submitData)
-          .eq('id', editingUniversity.id);
+          .eq('id', editingUniversity.id)
+          .select();
 
         if (error) throw error;
+        console.log('Updated university:', data);
+        
         toast({
           title: "Success",
-          description: "University updated successfully",
+          description: `University updated successfully. Type: ${data?.[0]?.type}`,
         });
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('universities')
-          .insert(submitData);
+          .insert(submitData)
+          .select();
 
         if (error) throw error;
+        console.log('Created university:', data);
+        
         toast({
           title: "Success",
-          description: "University created successfully",
+          description: `University created successfully. Type: ${data?.[0]?.type}`,
         });
       }
 
       resetForm();
-      fetchUniversities();
+      await fetchUniversities();
     } catch (error) {
       console.error('Error saving university:', error);
       toast({
@@ -319,6 +332,10 @@ export const AdminUniversities = () => {
                     {university.control_type && (
                       <ControlTypeBadge type={university.control_type} />
                     )}
+                    {/* Debug info */}
+                    <span className="text-xs text-muted-foreground">
+                      (DB: {university.type})
+                    </span>
                   </div>
                 )}
                 
@@ -438,7 +455,10 @@ export const AdminUniversities = () => {
                 <Label htmlFor="type">Institution Type</Label>
                 <Select 
                   value={formData.type} 
-                  onValueChange={(value) => setFormData({ ...formData, type: value })}
+                  onValueChange={(value) => {
+                    console.log('Institution type changed to:', value);
+                    setFormData({ ...formData, type: value });
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select institution type" />
