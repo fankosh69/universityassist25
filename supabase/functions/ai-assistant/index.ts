@@ -12,9 +12,18 @@ const SYSTEM_PROMPT = `You are a helpful university admissions assistant for Uni
 
 IMPORTANT: Use plain text only. Do not use asterisks (*), underscores (_), or any markdown formatting in your responses. Write naturally without special formatting characters.
 
-CRITICAL: Whenever you collect new information about the user, immediately call the appropriate tool to save it:
-- Use "update_profile_data" for personal info, nationality, education level, institution, field of study, career goals, preferences
-- Use "update_academic_data" for GPA, grades, language certificates, ECTS credits, curriculum details
+CRITICAL DATA COLLECTION BEHAVIOR:
+1. Whenever the user provides ANY personal, academic, or preference information, you MUST IMMEDIATELY call the appropriate tool
+2. ALWAYS confirm to the user when you've saved their information (e.g., "Got it! I've saved that information.")
+3. Call tools proactively - don't wait to collect all information before saving
+4. Use "update_profile_data" for: name, nationality, DOB, education level, institution, field of study, career goals, city preferences, degree preferences
+5. Use "update_academic_data" for: GPA scores, language certificates (German/English), ECTS credits, curriculum type, target intake
+
+EXAMPLES OF WHEN TO CALL TOOLS:
+- User says "I'm Egyptian" → Call update_profile_data with nationality: "Egypt"
+- User says "My GPA is 3.5 out of 4.0" → Call update_academic_data with gpa_raw: 3.5, gpa_scale_max: 4.0
+- User says "I have B2 German certificate" → Call update_academic_data with language_certificates
+- User says "I'm interested in Berlin and Munich" → Call update_profile_data with preferred_cities
 
 Your goal is to guide students through a structured conversation to:
 1. Complete their profile with essential information
@@ -376,94 +385,48 @@ Provide specific guidance about this program, check eligibility, and answer ques
           
           console.log('Eligibility check result:', eligibilityResult);
         } else if (functionName === 'update_profile_data') {
-          // Map fields to match the secure profile structure
-          const publicData: Record<string, any> = {};
-          const privateData: Record<string, any> = {};
-          const academicData: Record<string, any> = {};
+          // Call the dedicated update function for better reliability
+          const updateResult = await fetch(
+            `${supabaseUrl}/functions/v1/update-profile-from-ai`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': authHeader || '',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                profileData: args,
+                academicData: null
+              })
+            }
+          ).then(r => r.json()).catch(e => ({ success: false, error: e.message }));
           
-          // Map legacy field names to new structure
-          if (args.current_education_level) publicData.education_level = args.current_education_level;
-          if (args.current_field_of_study) publicData.field_of_study = args.current_field_of_study;
-          if (args.current_institution) publicData.institution_name = args.current_institution;
-          
-          // Private fields
-          if (args.nationality) privateData.nationality = args.nationality;
-          if (args.full_name) privateData.full_name = args.full_name;
-          
-          // Academic preference fields
-          if (args.preferred_fields) academicData.preferred_fields = args.preferred_fields;
-          if (args.preferred_degree_type) academicData.preferred_degree_type = args.preferred_degree_type;
-          if (args.preferred_cities) academicData.preferred_cities = args.preferred_cities;
-          if (args.career_goals) academicData.career_goals = args.career_goals;
-          
-          // Use secure profile update function
-          const { data: updateResult, error: profileError } = await supabaseAdmin
-            .rpc('secure_update_separated_profile', {
-              profile_uuid: user.id,
-              public_data: Object.keys(publicData).length > 0 ? publicData : null,
-              private_data: Object.keys(privateData).length > 0 ? privateData : null,
-              academic_data: Object.keys(academicData).length > 0 ? academicData : null
-            });
-          
-          if (profileError) {
-            console.error('Error updating profile via RPC:', profileError);
+          if (!updateResult.success) {
+            console.error('Profile update failed:', updateResult.error || updateResult.errors);
           } else {
-            console.log('Profile updated successfully:', updateResult);
+            console.log('Profile updated successfully via dedicated function:', updateResult.updates);
           }
         } else if (functionName === 'update_academic_data') {
-          // Normalize target_intake to match expected format (e.g., "winter_2025" or "summer_2026")
-          let normalizedIntake = args.target_intake;
-          if (normalizedIntake && !normalizedIntake.includes('_')) {
-            // Convert "Summer" to "summer_2026" format
-            const season = normalizedIntake.toLowerCase();
-            const currentYear = new Date().getFullYear();
-            const nextYear = currentYear + 1;
-            normalizedIntake = `${season}_${nextYear}`;
-          }
-          
-          const academicData = {
-            ...args,
-            target_intake: normalizedIntake,
-            profile_id: user.id
-          };
-          
-          // Check if academic record exists
-          const { data: existing } = await supabaseAdmin
-            .from('student_academics')
-            .select('profile_id')
-            .eq('profile_id', user.id)
-            .maybeSingle();
-          
-          if (existing) {
-            // Update existing record
-            const { error: academicError } = await supabaseAdmin
-              .from('student_academics')
-              .update({
-                ...academicData,
-                updated_at: new Date().toISOString()
+          // Call the dedicated update function for academic data
+          const updateResult = await fetch(
+            `${supabaseUrl}/functions/v1/update-profile-from-ai`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': authHeader || '',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                profileData: null,
+                academicData: args
               })
-              .eq('profile_id', user.id);
-            
-            if (academicError) {
-              console.error('Error updating academic data:', academicError);
-            } else {
-              console.log('Academic data updated successfully');
             }
+          ).then(r => r.json()).catch(e => ({ success: false, error: e.message }));
+          
+          if (!updateResult.success) {
+            console.error('Academic update failed:', updateResult.error || updateResult.errors);
           } else {
-            // Insert new record
-            const { error: academicError } = await supabaseAdmin
-              .from('student_academics')
-              .insert({
-                ...academicData,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              });
-            
-            if (academicError) {
-              console.error('Error inserting academic data:', academicError);
-            } else {
-              console.log('Academic data inserted successfully');
-            }
+            console.log('Academic data updated successfully via dedicated function:', updateResult.updates);
           }
         }
       }

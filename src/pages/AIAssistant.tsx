@@ -7,10 +7,13 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Bot, Send, Loader2, CheckCircle2, Circle, GraduationCap, ExternalLink } from "lucide-react";
+import { Bot, Send, Loader2, CheckCircle2, Circle, GraduationCap, ExternalLink, User, BookOpen, Languages, Target } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useProfileCompletion } from "@/hooks/useProfileCompletion";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -34,16 +37,13 @@ export default function AIAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [programData, setProgramData] = useState<any>(null);
   const programId = searchParams.get('program_id');
-
-  const [checklist, setChecklist] = useState<ProfileChecklist>({
-    personalInfo: false,
-    academicBackground: false,
-    languageSkills: false,
-    preferences: false
-  });
+  
+  // Use the new granular profile completion hook
+  const { completion, isLoading: isLoadingCompletion, refresh: refreshCompletion } = useProfileCompletion(userId || undefined);
 
   useEffect(() => {
     checkAuth();
@@ -75,26 +75,7 @@ export default function AIAssistant() {
       return;
     }
     setIsAuthenticated(true);
-    
-    // Check profile completion
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .single();
-
-    const { data: academics } = await supabase
-      .from('student_academics')
-      .select('*')
-      .eq('profile_id', session.user.id)
-      .single();
-
-    setChecklist({
-      personalInfo: !!(profile?.full_name && profile?.nationality && profile?.date_of_birth),
-      academicBackground: !!(profile?.current_education_level && profile?.current_field_of_study && academics?.gpa_raw),
-      languageSkills: !!(academics?.language_certificates && (academics.language_certificates as any[]).length > 0),
-      preferences: !!(profile?.preferred_fields && profile?.preferred_cities)
-    });
+    setUserId(session.user.id);
   };
 
   const loadProgramData = async () => {
@@ -183,8 +164,8 @@ export default function AIAssistant() {
         content: data.message
       }]);
 
-      // Refresh checklist after each message
-      await checkAuth();
+      // Refresh profile completion after each message
+      await refreshCompletion();
 
     } catch (error: any) {
       console.error('Error sending message:', error);
@@ -251,29 +232,110 @@ export default function AIAssistant() {
               </Card>
             )}
 
-            {/* Profile Completion Checklist */}
+            {/* Enhanced Profile Completion Card */}
             <Card className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Bot className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">Profile Completion</h3>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">Profile Completion</h3>
+                </div>
+                <Badge variant={completion.overallProgress === 100 ? "default" : "secondary"}>
+                  {completion.overallProgress}%
+                </Badge>
               </div>
-              <div className="space-y-3">
-                <ChecklistItem 
-                  completed={checklist.personalInfo}
-                  label="Personal Information"
-                />
-                <ChecklistItem 
-                  completed={checklist.academicBackground}
-                  label="Academic Background"
-                />
-                <ChecklistItem 
-                  completed={checklist.languageSkills}
-                  label="Language Skills"
-                />
-                <ChecklistItem 
-                  completed={checklist.preferences}
-                  label="Study Preferences"
-                />
+              
+              <Progress value={completion.overallProgress} className="mb-4" />
+              
+              <div className="space-y-2">
+                {/* Personal Information */}
+                <Collapsible>
+                  <CollapsibleTrigger className="w-full">
+                    <div className="flex items-center gap-2 hover:bg-accent/50 p-2 rounded-md transition-colors">
+                      {completion.personalInfo.completed ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      )}
+                      <User className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                      <span className={`text-sm flex-1 text-left ${completion.personalInfo.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
+                        Personal Information
+                      </span>
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pl-8 pt-2 space-y-1">
+                    <SubCheckItem completed={completion.personalInfo.items.fullName} label="Full Name" />
+                    <SubCheckItem completed={completion.personalInfo.items.nationality} label="Nationality" />
+                    <SubCheckItem completed={completion.personalInfo.items.dateOfBirth} label="Date of Birth" />
+                    <SubCheckItem completed={completion.personalInfo.items.contact} label="Contact Info" />
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Academic Background */}
+                <Collapsible>
+                  <CollapsibleTrigger className="w-full">
+                    <div className="flex items-center gap-2 hover:bg-accent/50 p-2 rounded-md transition-colors">
+                      {completion.academicBackground.completed ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      )}
+                      <BookOpen className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                      <span className={`text-sm flex-1 text-left ${completion.academicBackground.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
+                        Academic Background
+                      </span>
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pl-8 pt-2 space-y-1">
+                    <SubCheckItem completed={completion.academicBackground.items.educationLevel} label="Education Level" />
+                    <SubCheckItem completed={completion.academicBackground.items.institution} label="Institution" />
+                    <SubCheckItem completed={completion.academicBackground.items.fieldOfStudy} label="Field of Study" />
+                    <SubCheckItem completed={completion.academicBackground.items.gpa} label="GPA/Grades" />
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Language Skills */}
+                <Collapsible>
+                  <CollapsibleTrigger className="w-full">
+                    <div className="flex items-center gap-2 hover:bg-accent/50 p-2 rounded-md transition-colors">
+                      {completion.languageSkills.completed ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      )}
+                      <Languages className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                      <span className={`text-sm flex-1 text-left ${completion.languageSkills.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
+                        Language Skills
+                      </span>
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pl-8 pt-2 space-y-1">
+                    <SubCheckItem completed={completion.languageSkills.items.germanCertificate} label="German Certificate" />
+                    <SubCheckItem completed={completion.languageSkills.items.englishCertificate} label="English Certificate" />
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Study Preferences */}
+                <Collapsible>
+                  <CollapsibleTrigger className="w-full">
+                    <div className="flex items-center gap-2 hover:bg-accent/50 p-2 rounded-md transition-colors">
+                      {completion.preferences.completed ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      )}
+                      <Target className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                      <span className={`text-sm flex-1 text-left ${completion.preferences.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
+                        Study Preferences
+                      </span>
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pl-8 pt-2 space-y-1">
+                    <SubCheckItem completed={completion.preferences.items.degreeType} label="Degree Type" />
+                    <SubCheckItem completed={completion.preferences.items.preferredFields} label="Preferred Fields" />
+                    <SubCheckItem completed={completion.preferences.items.preferredCities} label="Preferred Cities" />
+                    <SubCheckItem completed={completion.preferences.items.careerGoals} label="Career Goals" />
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             </Card>
           </div>
@@ -371,15 +433,11 @@ export default function AIAssistant() {
   );
 }
 
-function ChecklistItem({ completed, label }: { completed: boolean; label: string }) {
+function SubCheckItem({ completed, label }: { completed: boolean; label: string }) {
   return (
     <div className="flex items-center gap-2">
-      {completed ? (
-        <CheckCircle2 className="h-4 w-4 text-green-600" />
-      ) : (
-        <Circle className="h-4 w-4 text-muted-foreground" />
-      )}
-      <span className={`text-sm ${completed ? 'text-foreground' : 'text-muted-foreground'}`}>
+      <div className={`h-1.5 w-1.5 rounded-full ${completed ? 'bg-green-600' : 'bg-muted-foreground'}`} />
+      <span className={`text-xs ${completed ? 'text-foreground' : 'text-muted-foreground'}`}>
         {label}
       </span>
     </div>
