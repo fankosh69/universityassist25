@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Settings,
   MapPin,
@@ -18,7 +20,8 @@ import {
   ClipboardCheck,
   Database,
   Network,
-  Mail
+  Mail,
+  MessageSquare
 } from "lucide-react";
 
 import {
@@ -42,6 +45,7 @@ const adminMenuItems = [
   { title: "Programs", url: "/admin/programs", icon: GraduationCap },
   { title: "Fields of Study", url: "/admin/fields-of-study", icon: Network },
   { title: "Program Shortlists", url: "/admin/shortlists", icon: Mail },
+  { title: "Program Inquiries", url: "/admin/program-inquiries", icon: MessageSquare },
   { title: "Admission Requirements", url: "/admin/admission-requirements", icon: ClipboardCheck },
   { title: "Service Packages", url: "/admin/packages", icon: Package },
   { title: "Design", url: "/admin/design", icon: Palette },
@@ -56,6 +60,19 @@ export function AdminSidebar() {
   const location = useLocation();
   const { t } = useTranslation('common');
   const currentPath = location.pathname;
+
+  // Fetch pending inquiries count
+  const { data: inquiriesCount } = useQuery({
+    queryKey: ["inquiries-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("program_inquiries")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending");
+      return count || 0;
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
 
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
@@ -86,6 +103,7 @@ export function AdminSidebar() {
               
               {adminMenuItems.map((item) => {
                 const isActiveItem = isActive(item.url);
+                const showBadge = item.url === "/admin/program-inquiries" && inquiriesCount && inquiriesCount > 0;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
@@ -99,7 +117,16 @@ export function AdminSidebar() {
                         }`}
                       >
                         <item.icon className="h-4 w-4" />
-                        {state === "expanded" && <span>{item.title}</span>}
+                        {state === "expanded" && (
+                          <span className="flex items-center gap-2">
+                            {item.title}
+                            {showBadge && (
+                              <Badge variant="destructive" className="h-5 px-1.5 text-xs">
+                                {inquiriesCount}
+                              </Badge>
+                            )}
+                          </span>
+                        )}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

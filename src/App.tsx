@@ -52,6 +52,7 @@ const AdminAdmissionRequirements = lazy(() => import("./pages/admin/AdminAdmissi
 const AdminHistoricalData = lazy(() => import("./pages/admin/AdminHistoricalData"));
 const AdminFieldsOfStudy = lazy(() => import("./pages/admin/AdminFieldsOfStudy"));
 const AdminShortlists = lazy(() => import("./pages/admin/AdminShortlists"));
+const AdminProgramInquiries = lazy(() => import("./pages/admin/AdminProgramInquiries"));
 
 const queryClient = new QueryClient();
 
@@ -153,6 +154,7 @@ const App = () => {
                 <Route path="/admin/sitemap" element={<AdminLayout><AdminSitemap /></AdminLayout>} />
                 <Route path="/admin/admission-requirements" element={<AdminLayout><AdminAdmissionRequirements /></AdminLayout>} />
                 <Route path="/admin/historical-data" element={<AdminLayout><AdminHistoricalData /></AdminLayout>} />
+                <Route path="/admin/program-inquiries" element={<AdminLayout><AdminProgramInquiries /></AdminLayout>} />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>

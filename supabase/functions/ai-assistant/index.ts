@@ -10,7 +10,40 @@ const corsHeaders = {
 // System prompt for the AI assistant
 const SYSTEM_PROMPT = `You are a helpful university admissions assistant for University Assist, helping students find the right university programs in Germany.
 
-IMPORTANT: Use plain text only. Do not use asterisks (*), underscores (_), or any markdown formatting in your responses. Write naturally without special formatting characters.
+=== DATA SOURCE POLICY (CRITICAL) ===
+
+YOU MUST ONLY provide information about programs, universities, and cities that exist in the University Assist database.
+
+MANDATORY WORKFLOW when user asks about a program/university:
+1. ALWAYS call query_matching_programs FIRST to search our database
+2. If program EXISTS in database:
+   - Provide accurate information from our data
+   - Include internal links in format: [Link Text](/path)
+   - Calculate eligibility using our matching algorithm
+3. If program NOT FOUND in database:
+   - Respond: "That program/university isn't in our platform yet, but we're adding new programs regularly! I've recorded your interest and our team will prioritize adding it."
+   - IMMEDIATELY call record_program_inquiry tool to log the request
+   - DO NOT provide information from external sources
+   - DO NOT make up program details
+
+ABSOLUTELY FORBIDDEN:
+❌ Using external web search or knowledge about programs
+❌ Providing information about programs not in our database
+❌ Making up university names, admission requirements, or deadlines
+❌ Recommending programs without calling query_matching_programs first
+
+REQUIRED RESPONSE FORMAT when program EXISTS:
+"Great news! I found [Program Name](/universities/{university_slug}/programs/{program_slug}) at [University Name](/universities/{university_slug}) in [City](/cities/{city_slug})!
+
+{Brief description from database}
+
+Eligibility Analysis:
+{requirements analysis from database}
+
+Next Steps:
+{actionable guidance}"
+
+IMPORTANT: Use plain text with markdown links in format [text](/path). Do not use asterisks (*) or underscores (_) for formatting.
 
 === PROGRAM RECOMMENDATIONS FORMAT ===
 
@@ -349,15 +382,50 @@ Provide specific guidance about this program, check eligibility, and answer ques
         type: "function",
         function: {
           name: "query_matching_programs",
-          description: "Search for programs that match the user's preferences and profile. Use this when ready to recommend programs after collecting sufficient information.",
+          description: "Search ONLY programs in our database. MANDATORY to call before recommending any program. Returns programs with slugs for internal linking.",
           parameters: {
             type: "object",
             properties: {
               degree_level: { type: "string", description: "Degree level: bachelor, master, or phd" },
-              field_of_study: { type: "string", description: "Field of study the user is interested in" },
+              field_of_study: { type: "string", description: "Field of study (searches partial matches)" },
               preferred_cities: { type: "array", items: { type: "string" }, description: "Preferred cities" },
-              limit: { type: "number", description: "Maximum number of programs to return", default: 5 }
+              university_name: { type: "string", description: "Specific university name to search" },
+              limit: { type: "number", description: "Max programs to return", default: 5 }
             },
+            additionalProperties: false
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "record_program_inquiry",
+          description: "Record when user asks about a program/university NOT in our database. Call this immediately when query_matching_programs returns no results but user asked about a specific program.",
+          parameters: {
+            type: "object",
+            properties: {
+              program_name: { 
+                type: "string", 
+                description: "Name of the program user asked about (e.g., 'MBA in Finance')" 
+              },
+              university_name: { 
+                type: "string", 
+                description: "University name if mentioned by user" 
+              },
+              city: { 
+                type: "string", 
+                description: "City if mentioned by user" 
+              },
+              field_of_study: {
+                type: "string",
+                description: "Field of study mentioned (e.g., 'Computer Science', 'Business Administration')"
+              },
+              user_query: { 
+                type: "string", 
+                description: "The exact question/request from the user" 
+              }
+            },
+            required: ["user_query"],
             additionalProperties: false
           }
         }
@@ -458,7 +526,7 @@ Provide specific guidance about this program, check eligibility, and answer ques
         } else if (functionName === 'query_matching_programs') {
           // Query programs from database based on user preferences
           try {
-            const { degree_level, field_of_study, preferred_cities, limit = 5 } = args;
+            const { degree_level, field_of_study, preferred_cities, university_name, limit = 5 } = args;
             
             let query = supabaseAdmin
               .from('programs')
@@ -471,11 +539,17 @@ Provide specific guidance about this program, check eligibility, and answer ques
                 minimum_gpa,
                 ects_credits,
                 language_requirements,
+                description,
                 universities!inner(
                   id,
                   name,
                   slug,
-                  city
+                  city,
+                  cities!inner(
+                    id,
+                    name,
+                    slug
+                  )
                 )
               `)
               .eq('is_published', true)
@@ -487,8 +561,11 @@ Provide specific guidance about this program, check eligibility, and answer ques
             if (field_of_study) {
               query = query.ilike('field_of_study', `%${field_of_study}%`);
             }
+            if (university_name) {
+              query = query.ilike('universities.name', `%${university_name}%`);
+            }
             if (preferred_cities && preferred_cities.length > 0) {
-              query = query.in('universities.city', preferred_cities);
+              query = query.in('universities.cities.name', preferred_cities);
             }
             
             const { data: programs, error: programsError } = await query;
@@ -551,26 +628,37 @@ Provide specific guidance about this program, check eligibility, and answer ques
               
               return {
                 program_id: prog.id,
-                university_name: prog.universities.name,
-                university_slug: prog.universities.slug,
                 program_name: prog.name,
                 program_slug: prog.slug,
-                city: prog.universities.city,
+                university_name: prog.universities.name,
+                university_slug: prog.universities.slug,
+                university_id: prog.universities.id,
+                city: prog.universities.cities.name,
+                city_slug: prog.universities.cities.slug,
+                degree_level: prog.degree_level,
+                field_of_study: prog.field_of_study,
                 match_score: Math.min(matchScore, 95),
-                eligibility,
+                eligibility: eligibility,
+                why_it_fits: `Matches your ${profile?.current_field_of_study || 'field'} background`,
                 requirements_met: requirementsMet,
                 requirements_missing: requirementsMissing,
-                why_it_fits: ''  // AI will fill this
+                // Links for easy reference
+                program_link: `/universities/${prog.universities.slug}/programs/${prog.slug}`,
+                university_link: `/universities/${prog.universities.slug}`,
+                city_link: `/cities/${prog.universities.cities.slug}`
               };
             });
             
-            // Sort by match score
+            // Sort by match score descending
             programsWithScores.sort((a, b) => b.match_score - a.match_score);
             
             toolResult = { 
               success: true, 
               programs: programsWithScores,
-              message: `Found ${programsWithScores.length} matching programs. Use these to create recommendations with :::PROGRAM_RECOMMENDATIONS::: JSON format.`
+              count: programsWithScores.length,
+              message: programsWithScores.length > 0 
+                ? `Found ${programsWithScores.length} matching programs in our database`
+                : 'No programs found matching your criteria in our database. Please adjust your preferences or let me know what you\'re looking for and I\'ll record your interest.'
             };
             
             console.log('Program query successful:', programsWithScores.length, 'programs found');
@@ -579,6 +667,49 @@ Provide specific guidance about this program, check eligibility, and answer ques
             toolResult = { 
               success: false, 
               message: `Failed to query programs: ${error.message}` 
+            };
+          }
+        } else if (functionName === 'record_program_inquiry') {
+          // Record inquiry about non-existent program
+          try {
+            const { program_name, university_name, city, field_of_study, user_query } = args;
+            
+            console.log('Recording program inquiry:', args);
+            
+            const { data: inquiry, error: inquiryError } = await supabaseAdmin
+              .from('program_inquiries')
+              .insert({
+                profile_id: user.id,
+                program_name: program_name || null,
+                university_name: university_name || null,
+                city: city || null,
+                field_of_study: field_of_study || null,
+                user_query: user_query,
+                conversation_id: conversation.id,
+                status: 'pending'
+              })
+              .select()
+              .single();
+            
+            if (inquiryError) {
+              console.error('Error recording inquiry:', inquiryError);
+              toolResult = { 
+                success: false, 
+                message: 'Failed to record inquiry, but I noted your interest!' 
+              };
+            } else {
+              console.log('Inquiry recorded:', inquiry.id);
+              toolResult = { 
+                success: true, 
+                message: 'Inquiry recorded successfully',
+                inquiry_id: inquiry.id
+              };
+            }
+          } catch (error) {
+            console.error('Error in record_program_inquiry:', error);
+            toolResult = { 
+              success: false, 
+              message: 'Error recording inquiry' 
             };
           }
         } else if (functionName === 'update_profile_data') {
