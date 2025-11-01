@@ -37,11 +37,15 @@ export default function UniversityPage() {
 
       try {
         // Fetch university
-        const { data: uniData } = await supabase
+        const { data: uniData, error: uniError } = await supabase
           .from('universities')
           .select('*')
           .or(`slug.eq.${uni},id.eq.${uni}`)
-          .single();
+          .maybeSingle();
+        
+        if (uniError) {
+          console.error('Error fetching university:', uniError);
+        }
         
         setUniversity(uniData);
 
