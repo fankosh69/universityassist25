@@ -2554,66 +2554,162 @@ export type Database = {
       }
       universities: {
         Row: {
+          academic_staff_count: number | null
+          accommodation_info: Json | null
+          accreditations: string[] | null
+          application_fee_eur: number | null
+          awards_recognition: Json | null
           city: string
           city_id: string | null
+          clubs_and_societies: string[] | null
+          contact_email: string | null
+          contact_phone: string | null
           control_type: string | null
           created_at: string
+          data_quality_score: number | null
+          description: string | null
+          enrichment_source: string | null
           external_refs: Json | null
+          facilities: Json | null
+          founded_year: number | null
           fts: unknown
+          hero_image_url: string | null
           id: string
+          international_student_percentage: number | null
           keywords: string[] | null
+          language_support: string[] | null
+          last_enriched_at: string | null
           lat: number | null
           lng: number | null
           logo_url: string | null
+          mission_statement: string | null
           name: string
+          notable_alumni: string[] | null
+          partnerships: string[] | null
+          photos: Json | null
           ranking: number | null
+          rankings_data: Json | null
           region: string | null
           region_id: string | null
+          research_areas: string[] | null
+          research_output: Json | null
           search_doc: Json | null
+          semester_dates: Json | null
           slug: string | null
+          social_media: Json | null
+          state: string | null
+          student_count: number | null
+          student_organizations_count: number | null
+          student_staff_ratio: number | null
           type: string | null
+          video_url: string | null
+          virtual_tour_url: string | null
           website: string | null
         }
         Insert: {
+          academic_staff_count?: number | null
+          accommodation_info?: Json | null
+          accreditations?: string[] | null
+          application_fee_eur?: number | null
+          awards_recognition?: Json | null
           city: string
           city_id?: string | null
+          clubs_and_societies?: string[] | null
+          contact_email?: string | null
+          contact_phone?: string | null
           control_type?: string | null
           created_at?: string
+          data_quality_score?: number | null
+          description?: string | null
+          enrichment_source?: string | null
           external_refs?: Json | null
+          facilities?: Json | null
+          founded_year?: number | null
           fts?: unknown
+          hero_image_url?: string | null
           id?: string
+          international_student_percentage?: number | null
           keywords?: string[] | null
+          language_support?: string[] | null
+          last_enriched_at?: string | null
           lat?: number | null
           lng?: number | null
           logo_url?: string | null
+          mission_statement?: string | null
           name: string
+          notable_alumni?: string[] | null
+          partnerships?: string[] | null
+          photos?: Json | null
           ranking?: number | null
+          rankings_data?: Json | null
           region?: string | null
           region_id?: string | null
+          research_areas?: string[] | null
+          research_output?: Json | null
           search_doc?: Json | null
+          semester_dates?: Json | null
           slug?: string | null
+          social_media?: Json | null
+          state?: string | null
+          student_count?: number | null
+          student_organizations_count?: number | null
+          student_staff_ratio?: number | null
           type?: string | null
+          video_url?: string | null
+          virtual_tour_url?: string | null
           website?: string | null
         }
         Update: {
+          academic_staff_count?: number | null
+          accommodation_info?: Json | null
+          accreditations?: string[] | null
+          application_fee_eur?: number | null
+          awards_recognition?: Json | null
           city?: string
           city_id?: string | null
+          clubs_and_societies?: string[] | null
+          contact_email?: string | null
+          contact_phone?: string | null
           control_type?: string | null
           created_at?: string
+          data_quality_score?: number | null
+          description?: string | null
+          enrichment_source?: string | null
           external_refs?: Json | null
+          facilities?: Json | null
+          founded_year?: number | null
           fts?: unknown
+          hero_image_url?: string | null
           id?: string
+          international_student_percentage?: number | null
           keywords?: string[] | null
+          language_support?: string[] | null
+          last_enriched_at?: string | null
           lat?: number | null
           lng?: number | null
           logo_url?: string | null
+          mission_statement?: string | null
           name?: string
+          notable_alumni?: string[] | null
+          partnerships?: string[] | null
+          photos?: Json | null
           ranking?: number | null
+          rankings_data?: Json | null
           region?: string | null
           region_id?: string | null
+          research_areas?: string[] | null
+          research_output?: Json | null
           search_doc?: Json | null
+          semester_dates?: Json | null
           slug?: string | null
+          social_media?: Json | null
+          state?: string | null
+          student_count?: number | null
+          student_organizations_count?: number | null
+          student_staff_ratio?: number | null
           type?: string | null
+          video_url?: string | null
+          virtual_tour_url?: string | null
           website?: string | null
         }
         Relationships: [
@@ -2636,6 +2732,203 @@ export type Database = {
             columns: ["region_id"]
             isOneToOne: false
             referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      university_campuses: {
+        Row: {
+          address: string | null
+          building_count: number | null
+          city: string
+          created_at: string | null
+          description: string | null
+          facilities: Json | null
+          faculties: string[] | null
+          id: string
+          is_main_campus: boolean | null
+          lat: number | null
+          lng: number | null
+          map_embed_url: string | null
+          name: string
+          photo_urls: Json | null
+          postal_code: string | null
+          public_transport: Json | null
+          student_count: number | null
+          university_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          building_count?: number | null
+          city: string
+          created_at?: string | null
+          description?: string | null
+          facilities?: Json | null
+          faculties?: string[] | null
+          id?: string
+          is_main_campus?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          map_embed_url?: string | null
+          name: string
+          photo_urls?: Json | null
+          postal_code?: string | null
+          public_transport?: Json | null
+          student_count?: number | null
+          university_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          building_count?: number | null
+          city?: string
+          created_at?: string | null
+          description?: string | null
+          facilities?: Json | null
+          faculties?: string[] | null
+          id?: string
+          is_main_campus?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          map_embed_url?: string | null
+          name?: string
+          photo_urls?: Json | null
+          postal_code?: string | null
+          public_transport?: Json | null
+          student_count?: number | null
+          university_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "university_campuses_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      university_faculties: {
+        Row: {
+          campus_id: string | null
+          contact_email: string | null
+          created_at: string | null
+          dean_name: string | null
+          description: string | null
+          id: string
+          name: string
+          name_ar: string | null
+          name_de: string | null
+          programs_count: number | null
+          university_id: string
+          updated_at: string | null
+          website_url: string | null
+        }
+        Insert: {
+          campus_id?: string | null
+          contact_email?: string | null
+          created_at?: string | null
+          dean_name?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          name_ar?: string | null
+          name_de?: string | null
+          programs_count?: number | null
+          university_id: string
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          campus_id?: string | null
+          contact_email?: string | null
+          created_at?: string | null
+          dean_name?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          name_ar?: string | null
+          name_de?: string | null
+          programs_count?: number | null
+          university_id?: string
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "university_faculties_campus_id_fkey"
+            columns: ["campus_id"]
+            isOneToOne: false
+            referencedRelation: "university_campuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "university_faculties_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      university_testimonials: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          id: string
+          is_approved: boolean | null
+          nationality: string | null
+          program_name: string | null
+          rating: number | null
+          student_name: string
+          student_photo_url: string | null
+          testimonial: string
+          university_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          id?: string
+          is_approved?: boolean | null
+          nationality?: string | null
+          program_name?: string | null
+          rating?: number | null
+          student_name: string
+          student_photo_url?: string | null
+          testimonial: string
+          university_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          id?: string
+          is_approved?: boolean | null
+          nationality?: string | null
+          program_name?: string | null
+          rating?: number | null
+          student_name?: string
+          student_photo_url?: string | null
+          testimonial?: string
+          university_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "university_testimonials_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "university_testimonials_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
             referencedColumns: ["id"]
           },
         ]
