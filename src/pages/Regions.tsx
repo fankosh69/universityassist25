@@ -14,7 +14,6 @@ interface Region {
 }
 
 export default function Regions() {
-  const { t } = useTranslation();
 
   const { data: regions, isLoading } = useQuery({
     queryKey: ["regions"],

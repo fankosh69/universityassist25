@@ -5,13 +5,16 @@ import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Building2, Users, ArrowLeft } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import SEOHead from "@/components/SEOHead";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RegionHero } from "@/components/regions/RegionHero";
+import { RegionWelcomeSection } from "@/components/regions/RegionWelcomeSection";
+import { RegionHighlightsCard } from "@/components/regions/RegionHighlightsCard";
+import { RegionGallery } from "@/components/regions/RegionGallery";
+import { RegionFactsSidebar } from "@/components/regions/RegionFactsSidebar";
 
 export default function RegionDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const { t } = useTranslation();
 
   const { data: region, isLoading: regionLoading } = useQuery({
     queryKey: ["region", slug],
