@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -133,15 +133,28 @@ export const HierarchicalFieldMultiSelector = ({
           ...node,
           children: filteredChildren
         });
-        
-        // Auto-expand nodes that match or have matching children
-        if (matches || filteredChildren.length > 0) {
-          setExpandedItems(prev => new Set([...prev, node.id]));
-        }
       }
     }
 
     return filtered;
+  };
+
+  const getExpandableIds = (nodes: FieldNode[], term: string): string[] => {
+    if (!term) return [];
+    
+    const lowerTerm = term.toLowerCase();
+    const ids: string[] = [];
+
+    for (const node of nodes) {
+      const matches = node.name.toLowerCase().includes(lowerTerm);
+      const childIds = getExpandableIds(node.children, term);
+      
+      if (matches || childIds.length > 0) {
+        ids.push(node.id, ...childIds);
+      }
+    }
+
+    return ids;
   };
 
   const renderField = (field: FieldNode, level: number = 1): JSX.Element => {
@@ -239,7 +252,18 @@ export const HierarchicalFieldMultiSelector = ({
     );
   };
 
-  const displayedFields = filterFields(fields, searchTerm);
+  const displayedFields = useMemo(() => 
+    filterFields(fields, searchTerm), 
+    [fields, searchTerm]
+  );
+
+  useEffect(() => {
+    if (searchTerm) {
+      const idsToExpand = getExpandableIds(fields, searchTerm);
+      setExpandedItems(new Set(idsToExpand));
+    }
+  }, [fields, searchTerm]);
+
   const selectedFields = selectedFieldIds
     .map(id => findFieldById(fields, id))
     .filter(Boolean) as FieldNode[];
