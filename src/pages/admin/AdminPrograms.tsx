@@ -82,7 +82,7 @@ export const AdminPrograms = () => {
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterUniversity, setFilterUniversity] = useState<string>("");
+  const [filterUniversity, setFilterUniversity] = useState<string>("all");
   const [filterField, setFilterField] = useState<string>("");
   const [sortBy, setSortBy] = useState<'name' | 'updated_at'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -978,7 +978,7 @@ export const AdminPrograms = () => {
       }
       
       // University filter
-      if (filterUniversity && program.university_id !== filterUniversity) {
+      if (filterUniversity && filterUniversity !== "all" && program.university_id !== filterUniversity) {
         return false;
       }
       
@@ -1037,7 +1037,7 @@ export const AdminPrograms = () => {
             <SelectValue placeholder="All Universities" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Universities</SelectItem>
+            <SelectItem value="all">All Universities</SelectItem>
             {universities.map(uni => (
               <SelectItem key={uni.id} value={uni.id}>{uni.name}</SelectItem>
             ))}
