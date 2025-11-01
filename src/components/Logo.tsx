@@ -4,9 +4,10 @@ interface LogoProps {
   className?: string;
   showText?: boolean;
   variant?: "default" | "white" | "dark";
+  loading?: "lazy" | "eager";
 }
 
-const Logo = ({ className = "", showText = false, variant = "default" }: LogoProps) => {
+const Logo = ({ className = "", showText = false, variant = "default", loading = "lazy" }: LogoProps) => {
   return (
     <Link 
       to="/" 
@@ -19,7 +20,7 @@ const Logo = ({ className = "", showText = false, variant = "default" }: LogoPro
         className="h-10 w-auto object-contain max-w-[160px]"
         width="160"
         height="40"
-        loading="lazy"
+        loading={loading}
         decoding="async"
       />
       {showText && (

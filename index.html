@@ -15,6 +15,9 @@
     <!-- Preload critical hero image for LCP -->
     <link rel="preload" as="image" href="/src/assets/hero-image-optimized.webp" type="image/webp" fetchpriority="high">
     
+    <!-- Preload critical CSS -->
+    <link rel="modulepreload" href="/src/main.tsx">
+    
     <!-- Load fonts asynchronously to prevent render blocking -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Ubuntu:wght@400;500&family=Noto+Kufi+Arabic:wght@400;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Ubuntu:wght@400;500&family=Noto+Kufi+Arabic:wght@400;600&display=swap" rel="stylesheet"></noscript>

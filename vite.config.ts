@@ -20,6 +20,17 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    target: 'es2020'
+    target: 'es2020',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
+          'vendor-query': ['@tanstack/react-query'],
+        },
+      },
+    },
+    cssCodeSplit: true,
+    minify: 'esbuild',
   },
 }));
