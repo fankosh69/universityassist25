@@ -8,12 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminProvider } from "@/contexts/AdminContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
 import Search from "./pages/Search";
 import SavedPrograms from "./pages/SavedPrograms";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 import LoadingSpinner from "./components/LoadingSpinner";
+import DashboardEnhanced from "./pages/DashboardEnhanced";
+import OnboardingFlow from "./pages/onboarding/OnboardingFlow";
 
 // Lazy load secondary pages
 const Profile = lazy(() => import("./pages/Profile"));
@@ -34,6 +35,7 @@ const Impressum = lazy(() => import("./pages/Impressum"));
 const Regions = lazy(() => import("./pages/Regions"));
 const RegionDetail = lazy(() => import("./pages/RegionDetail"));
 const AdmissionsNavigator = lazy(() => import("./pages/AdmissionsNavigator"));
+const DocumentsPage = lazy(() => import("./pages/DocumentsPage"));
 
 // Lazy load admin pages
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
@@ -104,7 +106,15 @@ const App = () => {
                 />
                 <Route 
                   path="/dashboard" 
-                  element={user ? <Dashboard /> : <Navigate to="/auth" />} 
+                  element={user ? <DashboardEnhanced /> : <Navigate to="/auth" />} 
+                />
+                <Route 
+                  path="/onboarding" 
+                  element={user ? <OnboardingFlow /> : <Navigate to="/auth" />} 
+                />
+                <Route 
+                  path="/documents" 
+                  element={user ? <DocumentsPage /> : <Navigate to="/auth" />} 
                 />
                 <Route 
                   path="/saved" 

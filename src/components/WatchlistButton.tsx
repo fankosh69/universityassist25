@@ -68,10 +68,31 @@ export default function WatchlistButton({
 
         setWatched(true);
         onToggle?.(true);
-        toast({
-          title: t('watchlist.added'),
-          description: t('watchlist.added_desc')
-        });
+
+        // Check watchlist count and award XP/badge
+        const { count } = await supabase
+          .from('watchlist')
+          .select('*', { count: 'exact', head: true })
+          .eq('profile_id', user.id);
+
+        if (count === 3) {
+          const { GamificationService } = await import('@/services/gamification');
+          await GamificationService.awardXP(user.id, {
+            eventType: 'WATCHLIST_3_PROGRAMS',
+            description: 'Added 3 programs to watchlist'
+          });
+          await GamificationService.awardBadge(user.id, 'deadline_guardian');
+          
+          toast({
+            title: '🎉 Deadline Guardian Badge Earned!',
+            description: '+30 XP for adding 3 programs to your watchlist',
+          });
+        } else {
+          toast({
+            title: t('watchlist.added'),
+            description: t('watchlist.added_desc')
+          });
+        }
       }
     } catch (error) {
       console.error('Error toggling watchlist:', error);
