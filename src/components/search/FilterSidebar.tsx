@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { FilterGroup } from './FilterGroup';
 import { HierarchicalFieldSelect } from './HierarchicalFieldSelect';
-import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X, Calendar } from 'lucide-react';
+import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X, Calendar, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { INSTITUTION_TYPES, CONTROL_TYPES } from '@/lib/institution-types';
 import { format, addMonths, startOfMonth } from 'date-fns';
 
@@ -169,8 +170,24 @@ export function FilterSidebar({
                 <Label htmlFor="tuition-all" className="text-sm cursor-pointer">Any Amount</Label>
               </div>
               <div className="flex items-center space-x-2 mb-2">
-                <RadioGroupItem value="0" id="tuition-free" />
-                <Label htmlFor="tuition-free" className="text-sm cursor-pointer">Free Only</Label>
+                <RadioGroupItem value="1500" id="tuition-free" />
+                <Label htmlFor="tuition-free" className="text-sm cursor-pointer flex items-center gap-1.5">
+                  Free (incl. semester contribution)
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-[280px] text-xs">
+                        <p>
+                          Most German public universities charge only semester contributions (€100-€350) 
+                          for administration and student services, not actual tuition. Programs up to 
+                          €1,500/semester are considered "free" in this filter.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </Label>
               </div>
               <div className="flex items-center space-x-2 mb-2">
                 <RadioGroupItem value="1000" id="tuition-1k" />
