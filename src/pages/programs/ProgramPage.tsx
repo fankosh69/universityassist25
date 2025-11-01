@@ -171,6 +171,8 @@ export default function ProgramPage() {
               durationSemesters={programData.duration_semesters}
               startDates={{ winter: programData.winter_intake ? 'October' : undefined, summer: programData.summer_intake ? 'April' : undefined }}
               languages={programData.language_of_instruction || ['German']}
+              tuitionAmount={programData.tuition_amount}
+              tuitionFeeStructure={programData.tuition_fee_structure}
               tuitionFees={programData.semester_fees}
               ectsCredits={programData.ects_credits}
               nextDeadline={nextDeadline}

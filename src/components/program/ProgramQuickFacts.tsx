@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, Globe, Euro, Award, FileCheck, GraduationCap, Monitor } from 'lucide-react';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
+import { formatTuitionDisplay, type TuitionStructure } from '@/lib/tuition-calculator';
 
 interface ProgramQuickFactsProps {
   durationSemesters: number | null;
@@ -11,7 +12,9 @@ interface ProgramQuickFactsProps {
     summer?: string;
   };
   languages: string[];
-  tuitionFees: number | null;
+  tuitionFees?: number | null;
+  tuitionAmount?: number | null;
+  tuitionFeeStructure?: TuitionStructure;
   ectsCredits: number | null;
   nextDeadline?: Date;
   applicationMethod: string;
@@ -25,6 +28,8 @@ export function ProgramQuickFacts({
   startDates,
   languages,
   tuitionFees,
+  tuitionAmount,
+  tuitionFeeStructure,
   ectsCredits,
   nextDeadline,
   applicationMethod,
@@ -33,6 +38,10 @@ export function ProgramQuickFacts({
   programUrl,
 }: ProgramQuickFactsProps) {
   const { t } = useTranslation();
+
+  // Determine which tuition values to use (new fields take priority)
+  const displayTuitionAmount = tuitionAmount !== undefined && tuitionAmount !== null ? tuitionAmount : tuitionFees;
+  const displayTuitionStructure = tuitionFeeStructure || 'semester';
 
   const getDeliveryModeLabel = (mode?: string) => {
     switch (mode) {
@@ -116,10 +125,10 @@ export function ProgramQuickFacts({
             <div className="space-y-0.5">
               <p className="text-xs text-muted-foreground">Tuition Fees</p>
               <p className="text-sm font-medium">
-                {tuitionFees === 0 || !tuitionFees ? (
+                {displayTuitionAmount === 0 || !displayTuitionAmount ? (
                   <span className="text-green-600">Tuition-free</span>
                 ) : (
-                  `€${tuitionFees.toLocaleString()}/semester`
+                  formatTuitionDisplay(displayTuitionAmount, displayTuitionStructure)
                 )}
               </p>
             </div>
