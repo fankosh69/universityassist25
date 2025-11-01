@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import CityMap from '@/components/CityMap';
 import Navigation from '@/components/Navigation';
-import SEOHead from '@/components/SEOHead';
+import SEOCityPage from '@/components/SEOCityPage';
 
 interface MapMarker {
   id: string;
@@ -18,6 +18,7 @@ export default function CityPage() {
   const { city } = useParams();
   const [cityData, setCityData] = useState<any>(null);
   const [universities, setUniversities] = useState<any[]>([]);
+  const [ambassadors, setAmbassadors] = useState<any[]>([]);
   const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,6 +55,18 @@ export default function CityPage() {
         }
 
         setUniversities(allUnis || []);
+
+        // Fetch ambassadors for this city
+        const { data: cityAmbassadors, error: ambassadorError } = await supabase
+          .from('ambassadors')
+          .select('*, universities(name, slug)')
+          .eq('city_id', cityInfo.id)
+          .eq('is_published', true)
+          .limit(6);
+        
+        if (!ambassadorError && cityAmbassadors) {
+          setAmbassadors(cityAmbassadors);
+        }
 
         // Create map markers - only include universities with valid coordinates
         const validUnis = (allUnis || []).filter(uni => 
@@ -114,9 +127,9 @@ export default function CityPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead 
-        title={`Study in ${cityData.name} | University Assist`}
-        description={`Discover universities and programs in ${cityData.name}, Germany. Find your perfect study destination.`}
+      <SEOCityPage 
+        city={cityData}
+        universities={universities}
       />
       <Navigation />
       
@@ -139,6 +152,46 @@ export default function CityPage() {
             Explore {universities.length} universities and their programs
           </p>
         </div>
+
+        {/* Student Ambassadors Section */}
+        {ambassadors.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-3xl font-bold mb-6">👥 Student Ambassadors in {cityData.name}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {ambassadors.map(ambassador => (
+                <Card key={ambassador.id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    {ambassador.photo_url && (
+                      <img 
+                        src={ambassador.photo_url}
+                        alt={ambassador.full_name}
+                        className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
+                      />
+                    )}
+                    <h3 className="font-semibold text-lg text-center mb-2">{ambassador.full_name}</h3>
+                    <p className="text-sm text-muted-foreground text-center mb-2">
+                      {ambassador.universities?.name || 'Student Ambassador'}
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                      {ambassador.testimonial}
+                    </p>
+                    <Link 
+                      to={`/ambassadors/${ambassador.slug}`}
+                      className="text-primary hover:underline text-sm block text-center"
+                    >
+                      Read Story →
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <div className="text-center mt-6">
+              <Link to="/ambassadors" className="text-primary hover:underline">
+                View All Student Ambassadors →
+              </Link>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">

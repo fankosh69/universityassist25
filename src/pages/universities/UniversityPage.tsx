@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Navigation from '@/components/Navigation';
-import SEOHead from '@/components/SEOHead';
+import SEOUniversityPage from '@/components/SEOUniversityPage';
 import { UniversityHero } from '@/components/university/UniversityHero';
 import { UniversityTabs } from '@/components/university/UniversityTabs';
 import { StatisticsCard } from '@/components/university/StatisticsCard';
@@ -18,6 +18,7 @@ import { ResearchSection } from '@/components/university/ResearchSection';
 import { ContactSection } from '@/components/university/ContactSection';
 import { Users, GraduationCap, BookOpen, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
 import LoadingScreen from '@/components/LoadingScreen';
 
 export default function UniversityPage() {
@@ -144,9 +145,8 @@ export default function UniversityPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead 
-        title={`${university.name} | University Assist`}
-        description={university.description || `Explore programs and opportunities at ${university.name}. Connect with student ambassadors and find your perfect program.`}
+      <SEOUniversityPage 
+        university={university}
       />
       <Navigation />
       
@@ -228,6 +228,41 @@ export default function UniversityPage() {
                   facilities={facilitiesData}
                   studentOrganizations={university.student_organizations_count}
                 />
+
+                {/* Student Ambassadors */}
+                {ambassadors.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-2xl font-bold text-foreground">
+                      👥 Student Ambassadors
+                    </h3>
+                    <p className="text-muted-foreground mb-6">
+                      Connect with current students at {university.name} and hear their experiences
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {ambassadors.slice(0, 6).map(ambassador => (
+                        <Card key={ambassador.id} className="p-6 text-center hover:shadow-lg transition-shadow">
+                          {ambassador.photo_url && (
+                            <img 
+                              src={ambassador.photo_url}
+                              alt={ambassador.full_name}
+                              className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
+                            />
+                          )}
+                          <h4 className="font-semibold text-lg mb-2">{ambassador.full_name}</h4>
+                          <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                            {ambassador.testimonial}
+                          </p>
+                          <Link 
+                            to={`/ambassadors/${ambassador.slug}`}
+                            className="text-primary hover:underline text-sm"
+                          >
+                            Read Story →
+                          </Link>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Testimonials */}
                 {testimonials.length > 0 && (

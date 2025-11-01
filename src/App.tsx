@@ -21,7 +21,6 @@ const Profile = lazy(() => import("./pages/Profile"));
 const Cities = lazy(() => import("./pages/Cities"));
 const CityDetail = lazy(() => import("./pages/CityDetail"));
 const Universities = lazy(() => import("./pages/Universities"));
-const UniversityDetail = lazy(() => import("./pages/UniversityDetail"));
 const ProgramDetail = lazy(() => import("./pages/ProgramDetail"));
 const CityPage = lazy(() => import("./pages/cities/CityPage"));
 const UniversityPage = lazy(() => import("./pages/universities/UniversityPage"));
