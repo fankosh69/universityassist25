@@ -254,16 +254,23 @@ export type Database = {
       }
       ambassadors: {
         Row: {
+          approved_at: string | null
+          arrival_date: string | null
           city_id: string | null
+          consent_date: string | null
+          consent_given: boolean | null
           created_at: string | null
           full_name: string
           id: string
           is_published: boolean | null
           languages: string[] | null
           linkedin_url: string | null
+          nationality: string | null
           photo_url: string | null
           profile_id: string | null
+          program_name: string | null
           slug: string
+          status: string | null
           study_programs: string[] | null
           testimonial: string | null
           university_id: string | null
@@ -271,16 +278,23 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          approved_at?: string | null
+          arrival_date?: string | null
           city_id?: string | null
+          consent_date?: string | null
+          consent_given?: boolean | null
           created_at?: string | null
           full_name: string
           id?: string
           is_published?: boolean | null
           languages?: string[] | null
           linkedin_url?: string | null
+          nationality?: string | null
           photo_url?: string | null
           profile_id?: string | null
+          program_name?: string | null
           slug: string
+          status?: string | null
           study_programs?: string[] | null
           testimonial?: string | null
           university_id?: string | null
@@ -288,16 +302,23 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          approved_at?: string | null
+          arrival_date?: string | null
           city_id?: string | null
+          consent_date?: string | null
+          consent_given?: boolean | null
           created_at?: string | null
           full_name?: string
           id?: string
           is_published?: boolean | null
           languages?: string[] | null
           linkedin_url?: string | null
+          nationality?: string | null
           photo_url?: string | null
           profile_id?: string | null
+          program_name?: string | null
           slug?: string
+          status?: string | null
           study_programs?: string[] | null
           testimonial?: string | null
           university_id?: string | null
@@ -376,6 +397,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      applications: {
+        Row: {
+          created_at: string | null
+          id: string
+          intake_term: string | null
+          intake_year: number | null
+          profile_id: string
+          program_id: string
+          status: string | null
+          submitted_at: string | null
+          university_visible: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          intake_term?: string | null
+          intake_year?: number | null
+          profile_id: string
+          program_id: string
+          status?: string | null
+          submitted_at?: string | null
+          university_visible?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          intake_term?: string | null
+          intake_year?: number | null
+          profile_id?: string
+          program_id?: string
+          status?: string | null
+          submitted_at?: string | null
+          university_visible?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       audit_logs: {
         Row: {
@@ -467,6 +535,45 @@ export type Database = {
           nationality?: string | null
           phone?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      badges: {
+        Row: {
+          code: string
+          created_at: string | null
+          description_ar: string | null
+          description_de: string | null
+          description_en: string | null
+          icon: string | null
+          id: string
+          title_ar: string | null
+          title_de: string | null
+          title_en: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description_ar?: string | null
+          description_de?: string | null
+          description_en?: string | null
+          icon?: string | null
+          id?: string
+          title_ar?: string | null
+          title_de?: string | null
+          title_en: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description_ar?: string | null
+          description_de?: string | null
+          description_en?: string | null
+          icon?: string | null
+          id?: string
+          title_ar?: string | null
+          title_de?: string | null
+          title_en?: string
         }
         Relationships: []
       }
@@ -681,6 +788,48 @@ export type Database = {
           },
         ]
       }
+      counselor_students: {
+        Row: {
+          assigned_at: string | null
+          cohort_year: number | null
+          counselor_id: string
+          id: string
+          school_name: string | null
+          student_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          cohort_year?: number | null
+          counselor_id: string
+          id?: string
+          school_name?: string | null
+          student_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          cohort_year?: number | null
+          counselor_id?: string
+          id?: string
+          school_name?: string | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "counselor_students_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "counselor_students_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_extractions: {
         Row: {
           admin_corrections: Json | null
@@ -736,6 +885,50 @@ export type Database = {
             columns: ["document_id"]
             isOneToOne: false
             referencedRelation: "student_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          profile_id: string
+          status: string | null
+          uploaded_at: string | null
+        }
+        Insert: {
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          profile_id: string
+          status?: string | null
+          uploaded_at?: string | null
+        }
+        Update: {
+          document_type?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          profile_id?: string
+          status?: string | null
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1108,6 +1301,85 @@ export type Database = {
           },
         ]
       }
+      language_proficiency: {
+        Row: {
+          cefr_level: string | null
+          certificate_url: string | null
+          created_at: string | null
+          id: string
+          language: string
+          profile_id: string
+          test_score: string | null
+          test_type: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          cefr_level?: string | null
+          certificate_url?: string | null
+          created_at?: string | null
+          id?: string
+          language: string
+          profile_id: string
+          test_score?: string | null
+          test_type?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          cefr_level?: string | null
+          certificate_url?: string | null
+          created_at?: string | null
+          id?: string
+          language?: string
+          profile_id?: string
+          test_score?: string | null
+          test_type?: string | null
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "language_proficiency_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      location_events: {
+        Row: {
+          city: string | null
+          country_code: string
+          detected_at: string | null
+          detection_method: string | null
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          city?: string | null
+          country_code: string
+          detected_at?: string | null
+          detection_method?: string | null
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          city?: string | null
+          country_code?: string
+          detected_at?: string | null
+          detection_method?: string | null
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "location_events_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matches: {
         Row: {
           compatibility_score: number
@@ -1159,8 +1431,143 @@ export type Database = {
           },
         ]
       }
+      message_outbox: {
+        Row: {
+          body: string
+          created_at: string | null
+          id: string
+          message_type: string | null
+          recipient_email: string | null
+          recipient_id: string | null
+          recipient_phone: string | null
+          sent_at: string | null
+          status: string | null
+          subject: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          id?: string
+          message_type?: string | null
+          recipient_email?: string | null
+          recipient_id?: string | null
+          recipient_phone?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          id?: string
+          message_type?: string | null
+          recipient_email?: string | null
+          recipient_id?: string | null
+          recipient_phone?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_outbox_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_templates: {
+        Row: {
+          body_html: string
+          body_text: string | null
+          created_at: string | null
+          id: string
+          name: string
+          subject: string | null
+          template_type: string | null
+          variables: Json | null
+        }
+        Insert: {
+          body_html: string
+          body_text?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          subject?: string | null
+          template_type?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          body_html?: string
+          body_text?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          subject?: string | null
+          template_type?: string | null
+          variables?: Json | null
+        }
+        Relationships: []
+      }
+      ocr_extractions: {
+        Row: {
+          created_at: string | null
+          document_id: string
+          ects_mapping: Json | null
+          extracted_text: Json | null
+          id: string
+          needs_review: boolean | null
+          quality_score: number | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          table_data: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_id: string
+          ects_mapping?: Json | null
+          extracted_text?: Json | null
+          id?: string
+          needs_review?: boolean | null
+          quality_score?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          table_data?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          document_id?: string
+          ects_mapping?: Json | null
+          extracted_text?: Json | null
+          id?: string
+          needs_review?: boolean | null
+          quality_score?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          table_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocr_extractions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_extractions_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          avatar_url: string | null
           career_goals: string | null
           country_code: string | null
           created_at: string
@@ -1174,16 +1581,25 @@ export type Database = {
           full_name: string | null
           gender: string | null
           id: string
+          is_minor: boolean | null
           language_certificates: string[] | null
+          last_activity_date: string | null
+          level: number | null
           nationality: string | null
+          parent_consent_given: boolean | null
           phone: string | null
           preferred_cities: string[] | null
           preferred_degree_type: string | null
           preferred_fields: string[] | null
+          preferred_language: string | null
+          role: string
+          streak_days: number | null
           thesis_topic: string | null
           updated_at: string
+          xp_points: number | null
         }
         Insert: {
+          avatar_url?: string | null
           career_goals?: string | null
           country_code?: string | null
           created_at?: string
@@ -1197,16 +1613,25 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id: string
+          is_minor?: boolean | null
           language_certificates?: string[] | null
+          last_activity_date?: string | null
+          level?: number | null
           nationality?: string | null
+          parent_consent_given?: boolean | null
           phone?: string | null
           preferred_cities?: string[] | null
           preferred_degree_type?: string | null
           preferred_fields?: string[] | null
+          preferred_language?: string | null
+          role?: string
+          streak_days?: number | null
           thesis_topic?: string | null
           updated_at?: string
+          xp_points?: number | null
         }
         Update: {
+          avatar_url?: string | null
           career_goals?: string | null
           country_code?: string | null
           created_at?: string
@@ -1220,14 +1645,22 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id?: string
+          is_minor?: boolean | null
           language_certificates?: string[] | null
+          last_activity_date?: string | null
+          level?: number | null
           nationality?: string | null
+          parent_consent_given?: boolean | null
           phone?: string | null
           preferred_cities?: string[] | null
           preferred_degree_type?: string | null
           preferred_fields?: string[] | null
+          preferred_language?: string | null
+          role?: string
+          streak_days?: number | null
           thesis_topic?: string | null
           updated_at?: string
+          xp_points?: number | null
         }
         Relationships: []
       }
@@ -1346,6 +1779,56 @@ export type Database = {
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      program_matches_v2: {
+        Row: {
+          calculated_at: string | null
+          ects_score: number | null
+          eligibility_status: string | null
+          gap_analysis: Json | null
+          gpa_score: number | null
+          id: string
+          intake_score: number | null
+          language_score: number | null
+          match_score: number | null
+          profile_id: string
+          program_id: string
+        }
+        Insert: {
+          calculated_at?: string | null
+          ects_score?: number | null
+          eligibility_status?: string | null
+          gap_analysis?: Json | null
+          gpa_score?: number | null
+          id?: string
+          intake_score?: number | null
+          language_score?: number | null
+          match_score?: number | null
+          profile_id: string
+          program_id: string
+        }
+        Update: {
+          calculated_at?: string | null
+          ects_score?: number | null
+          eligibility_status?: string | null
+          gap_analysis?: Json | null
+          gpa_score?: number | null
+          id?: string
+          intake_score?: number | null
+          language_score?: number | null
+          match_score?: number | null
+          profile_id?: string
+          program_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_matches_v2_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1980,6 +2463,56 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          profile_id: string
+          program_id: string | null
+          reminder_sent: boolean | null
+          task_type: string | null
+          title: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          profile_id: string
+          program_id?: string | null
+          reminder_sent?: boolean | null
+          task_type?: string | null
+          title: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          profile_id?: string
+          program_id?: string | null
+          reminder_sent?: boolean | null
+          task_type?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       testsprite_tests: {
         Row: {
           created_at: string
@@ -2181,6 +2714,42 @@ export type Database = {
           },
         ]
       }
+      user_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string | null
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string | null
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string | null
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badges_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -2239,6 +2808,41 @@ export type Database = {
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      xp_events: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          event_type: string
+          id: string
+          profile_id: string
+          xp_earned: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          event_type: string
+          id?: string
+          profile_id: string
+          xp_earned: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          event_type?: string
+          id?: string
+          profile_id?: string
+          xp_earned?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "xp_events_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
