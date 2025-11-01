@@ -10,11 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Bot, Send, Loader2, CheckCircle2, Circle, GraduationCap, ExternalLink, User, BookOpen, Languages, Target } from "lucide-react";
+import { Bot, Send, Loader2, CheckCircle2, Circle, GraduationCap, ExternalLink, User, BookOpen, Languages, Target, Menu } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import ProgramRecommendationCard from "@/components/ai/ProgramRecommendationCard";
+import { ChatHistorySidebar } from "@/components/ai/ChatHistorySidebar";
+import { SessionPromptDialog } from "@/components/ai/SessionPromptDialog";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -43,6 +46,9 @@ export default function AIAssistant() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [programData, setProgramData] = useState<any>(null);
   const programId = searchParams.get('program_id');
+  const [showSessionPrompt, setShowSessionPrompt] = useState(false);
+  const [lastConversation, setLastConversation] = useState<any>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Use the new granular profile completion hook
   const { completion, isLoading: isLoadingCompletion, refresh: refreshCompletion } = useProfileCompletion(userId || undefined);
@@ -115,43 +121,100 @@ export default function AIAssistant() {
     if (!session) return;
 
     // Get most recent active conversation
-    const { data: conversation } = await supabase
+    const { data: conversation, error } = await supabase
       .from('ai_conversations')
-      .select('id')
+      .select('id, updated_at, session_date, ai_messages(count)')
       .eq('profile_id', session.user.id)
       .eq('status', 'active')
       .order('updated_at', { ascending: false })
       .limit(1)
       .single();
 
-    if (conversation) {
-      setConversationId(conversation.id);
+    if (conversation && !error) {
+      setLastConversation(conversation);
+      
+      // Check if conversation is older than today - prompt to continue or start new
+      const conversationDate = new Date(conversation.session_date || conversation.updated_at);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      conversationDate.setHours(0, 0, 0, 0);
+      
+      const messageCount = Array.isArray(conversation.ai_messages) 
+        ? conversation.ai_messages.length 
+        : 0;
 
-      // Load messages
-      const { data: messagesData } = await supabase
-        .from('ai_messages')
-        .select('role, content, created_at')
-        .eq('conversation_id', conversation.id)
-        .order('created_at', { ascending: true });
-
-      if (messagesData) {
-        setMessages(messagesData.map(m => ({
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-          timestamp: m.created_at
-        })));
+      if (conversationDate < today && messageCount > 0) {
+        // Show session prompt dialog
+        setShowSessionPrompt(true);
+      } else {
+        // Continue with current conversation
+        loadMessages(conversation.id);
       }
     } else {
-      // Start with welcome message
-      const welcomeMsg = programData
-        ? `Hi! I'm your University Assist AI advisor. I see you're interested in ${programData.name} at ${programData.universities.name}. I can help you understand the requirements, check your eligibility, and guide you through the application process. How can I help you today?`
-        : "Hi! I'm your University Assist AI advisor. I'm here to help you find the perfect university program in Germany. Let's start by getting to know you better. What's your name?";
-      
-      setMessages([{
-        role: 'assistant',
-        content: welcomeMsg
-      }]);
+      // Start fresh with welcome message
+      startNewConversation();
     }
+  };
+
+  const loadMessages = async (convId: string) => {
+    setConversationId(convId);
+
+    const { data: messagesData } = await supabase
+      .from('ai_messages')
+      .select('role, content, created_at')
+      .eq('conversation_id', convId)
+      .order('created_at', { ascending: true });
+
+    if (messagesData) {
+      setMessages(messagesData.map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+        timestamp: m.created_at
+      })));
+    }
+  };
+
+  const startNewConversation = () => {
+    setConversationId(null);
+    const welcomeMsg = programData
+      ? `Hi! I'm your University Assist AI advisor. I see you're interested in ${programData.name} at ${programData.universities.name}. I can help you understand the requirements, check your eligibility, and guide you through the application process. How can I help you today?`
+      : "Hi! I'm your University Assist AI advisor. I'm here to help you find the perfect university program in Germany. Let's start by getting to know you better. What's your name?";
+    
+    setMessages([{
+      role: 'assistant',
+      content: welcomeMsg
+    }]);
+  };
+
+  const handleContinuePreviousChat = () => {
+    setShowSessionPrompt(false);
+    if (lastConversation) {
+      loadMessages(lastConversation.id);
+    }
+  };
+
+  const handleStartNewSession = async () => {
+    setShowSessionPrompt(false);
+    
+    // Archive the old conversation by updating its status
+    if (lastConversation) {
+      await supabase
+        .from('ai_conversations')
+        .update({ status: 'archived' })
+        .eq('id', lastConversation.id);
+    }
+    
+    startNewConversation();
+  };
+
+  const handleSelectConversation = async (convId: string) => {
+    loadMessages(convId);
+    setSidebarOpen(false);
+  };
+
+  const handleNewChat = () => {
+    startNewConversation();
+    setSidebarOpen(false);
   };
 
   const sendMessage = async () => {
@@ -269,11 +332,22 @@ export default function AIAssistant() {
       />
       <Navigation />
 
+      {/* Session Prompt Dialog */}
+      {lastConversation && (
+        <SessionPromptDialog
+          open={showSessionPrompt}
+          lastSessionDate={lastConversation.session_date || lastConversation.updated_at}
+          messageCount={Array.isArray(lastConversation.ai_messages) ? lastConversation.ai_messages.length : 0}
+          onContinue={handleContinuePreviousChat}
+          onStartNew={handleStartNewSession}
+        />
+      )}
+
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           
-          {/* Sidebar */}
-          <div className="space-y-4">
+          {/* Desktop Sidebar - Hidden on mobile */}
+          <div className="hidden lg:block space-y-4">
             {/* Program Context Card */}
             {programData && (
               <Card className="p-6">
@@ -301,8 +375,16 @@ export default function AIAssistant() {
                 </div>
               </Card>
             )}
-
-            {/* Enhanced Profile Completion Card */}
+            
+            <Card className="h-[calc(100vh-12rem)]">
+              <ChatHistorySidebar
+                currentConversationId={conversationId}
+                onSelectConversation={handleSelectConversation}
+                onNewChat={handleNewChat}
+              />
+            </Card>
+            
+            {/* Profile Completion Card */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -317,7 +399,7 @@ export default function AIAssistant() {
               <Progress value={completion.overallProgress} className="mb-4" />
               
               <div className="space-y-2">
-                {/* Personal Information */}
+                {/* ... keep existing code (Personal Information, Academic Background, Language Skills, Study Preferences sections) */}
                 <Collapsible>
                   <CollapsibleTrigger className="w-full">
                     <div className="flex items-center gap-2 hover:bg-accent/50 p-2 rounded-md transition-colors">
@@ -340,7 +422,6 @@ export default function AIAssistant() {
                   </CollapsibleContent>
                 </Collapsible>
 
-                {/* Academic Background */}
                 <Collapsible>
                   <CollapsibleTrigger className="w-full">
                     <div className="flex items-center gap-2 hover:bg-accent/50 p-2 rounded-md transition-colors">
@@ -363,7 +444,6 @@ export default function AIAssistant() {
                   </CollapsibleContent>
                 </Collapsible>
 
-                {/* Language Skills */}
                 <Collapsible>
                   <CollapsibleTrigger className="w-full">
                     <div className="flex items-center gap-2 hover:bg-accent/50 p-2 rounded-md transition-colors">
@@ -384,7 +464,6 @@ export default function AIAssistant() {
                   </CollapsibleContent>
                 </Collapsible>
 
-                {/* Study Preferences */}
                 <Collapsible>
                   <CollapsibleTrigger className="w-full">
                     <div className="flex items-center gap-2 hover:bg-accent/50 p-2 rounded-md transition-colors">
@@ -412,14 +491,32 @@ export default function AIAssistant() {
 
           {/* Chat Interface */}
           <Card className="lg:col-span-3 flex flex-col h-[calc(100vh-12rem)]">
-            <div className="p-4 border-b">
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Bot className="h-6 w-6 text-primary" />
-                University Assistant
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Let me help you find the perfect program in Germany
-              </p>
+            <div className="p-4 border-b flex items-center gap-3">
+              {/* Mobile Sidebar Trigger */}
+              <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="lg:hidden">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-80">
+                  <ChatHistorySidebar
+                    currentConversationId={conversationId}
+                    onSelectConversation={handleSelectConversation}
+                    onNewChat={handleNewChat}
+                  />
+                </SheetContent>
+              </Sheet>
+
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold flex items-center gap-2">
+                  <Bot className="h-6 w-6 text-primary" />
+                  University Assistant
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Let me help you find the perfect program in Germany
+                </p>
+              </div>
             </div>
 
             <ScrollArea className="flex-1 p-4">

@@ -199,6 +199,65 @@ export function useProfileCompletion(userId?: string) {
 
   useEffect(() => {
     checkCompletion();
+
+    // Set up real-time subscriptions for profile and academic data
+    const setupRealtimeSubscriptions = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const targetUserId = userId || user?.id;
+
+      if (!targetUserId) return;
+
+      // Subscribe to profiles table changes
+      const profileChannel = supabase
+        .channel(`profile_changes_${targetUserId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${targetUserId}`
+          },
+          () => {
+            console.log('Profile updated via realtime, refreshing completion...');
+            checkCompletion();
+          }
+        )
+        .subscribe();
+
+      // Subscribe to student_academics table changes
+      const academicsChannel = supabase
+        .channel(`academics_changes_${targetUserId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'student_academics',
+            filter: `profile_id=eq.${targetUserId}`
+          },
+          () => {
+            console.log('Academic data updated via realtime, refreshing completion...');
+            checkCompletion();
+          }
+        )
+        .subscribe();
+
+      return { profileChannel, academicsChannel };
+    };
+
+    let channels: { profileChannel: any; academicsChannel: any } | undefined;
+
+    setupRealtimeSubscriptions().then(result => {
+      channels = result;
+    });
+
+    return () => {
+      if (channels) {
+        supabase.removeChannel(channels.profileChannel);
+        supabase.removeChannel(channels.academicsChannel);
+      }
+    };
   }, [userId]);
 
   return { completion, isLoading, refresh: checkCompletion };
