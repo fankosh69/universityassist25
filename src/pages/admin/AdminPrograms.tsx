@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LanguageFlags } from "@/components/LanguageFlags";
 import { getDeadlineStatus, getApplicationMethodInfo, getStatusColor } from "@/lib/deadline-utils";
 import { slugify } from "@/lib/slug";
+import { formatTuitionDisplay } from "@/lib/tuition-calculator";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
@@ -1135,7 +1136,16 @@ export const AdminPrograms = () => {
                   </div>
                 )}
                 
-                <div><strong>Semester Fees:</strong> €{program.semester_fees}/semester</div>
+                <div>
+                  <strong>Semester Fees:</strong>{' '}
+                  {(() => {
+                    const amount = program.tuition_amount !== undefined && program.tuition_amount !== null 
+                      ? program.tuition_amount 
+                      : program.semester_fees;
+                    const structure = program.tuition_fee_structure || 'semester';
+                    return amount === 0 ? 'Free' : formatTuitionDisplay(amount, structure);
+                  })()}
+                </div>
                 
                 <div>
                   <strong>Intake:</strong> 
