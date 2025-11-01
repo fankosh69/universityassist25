@@ -24,6 +24,12 @@ interface Program {
   application_method: string;
   language_of_instruction: string[];
   slug: string;
+  winter_intake: boolean;
+  summer_intake: boolean;
+  winter_deadline: string | null;
+  summer_deadline: string | null;
+  winter_application_open_date: string | null;
+  summer_application_open_date: string | null;
   universities: {
     name: string;
     city: string;
@@ -43,6 +49,8 @@ interface SearchFilters {
   duration: string;
   institutionType: string;
   controlType: string;
+  intake: string[];
+  applicationStatus: string[];
 }
 
 export function EnhancedSearchContainer() {
@@ -65,7 +73,9 @@ export function EnhancedSearchContainer() {
     uniAssistRequired: 'all',
     duration: 'all',
     institutionType: 'all',
-    controlType: 'all'
+    controlType: 'all',
+    intake: [],
+    applicationStatus: []
   });
 
   // Get unique filter options
@@ -195,6 +205,58 @@ export function EnhancedSearchContainer() {
       });
     }
 
+    // Filter by intake
+    if (filters.intake && filters.intake.length > 0) {
+      filtered = filtered.filter(program => {
+        return filters.intake.some(intakeOption => {
+          if (intakeOption === 'both') {
+            return program.winter_intake && program.summer_intake;
+          } else if (intakeOption === 'winter-only') {
+            return program.winter_intake && !program.summer_intake;
+          } else if (intakeOption === 'summer-only') {
+            return !program.winter_intake && program.summer_intake;
+          }
+          return false;
+        });
+      });
+    }
+
+    // Filter by application status
+    if (filters.applicationStatus && filters.applicationStatus.length > 0) {
+      const now = new Date();
+      filtered = filtered.filter(program => {
+        return filters.applicationStatus.some(status => {
+          const winterDeadline = program.winter_deadline ? new Date(program.winter_deadline) : null;
+          const summerDeadline = program.summer_deadline ? new Date(program.summer_deadline) : null;
+          
+          // Determine which deadline to use based on current date
+          let currentDeadline: Date | null = null;
+          if (winterDeadline && summerDeadline) {
+            // Use the nearest future deadline
+            if (winterDeadline > now && summerDeadline > now) {
+              currentDeadline = winterDeadline < summerDeadline ? winterDeadline : summerDeadline;
+            } else if (winterDeadline > now) {
+              currentDeadline = winterDeadline;
+            } else if (summerDeadline > now) {
+              currentDeadline = summerDeadline;
+            }
+          } else {
+            currentDeadline = winterDeadline || summerDeadline;
+          }
+
+          if (!currentDeadline) return false;
+
+          const daysUntilDeadline = Math.ceil((currentDeadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+          if (status === 'open' && daysUntilDeadline > 30) return true;
+          if (status === 'closing_soon' && daysUntilDeadline > 7 && daysUntilDeadline <= 30) return true;
+          if (status === 'urgent' && daysUntilDeadline > 0 && daysUntilDeadline <= 7) return true;
+          
+          return false;
+        });
+      });
+    }
+
     setPrograms(filtered);
   }, [searchQuery, filters, allPrograms]);
 
@@ -249,13 +311,15 @@ export function EnhancedSearchContainer() {
       uniAssistRequired: 'all',
       duration: 'all',
       institutionType: 'all',
-      controlType: 'all'
+      controlType: 'all',
+      intake: [],
+      applicationStatus: []
     });
     setSearchQuery('');
   };
 
   const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
-    if (key === 'fieldOfStudyIds') {
+    if (key === 'fieldOfStudyIds' || key === 'intake' || key === 'applicationStatus') {
       return Array.isArray(value) && value.length > 0;
     }
     return value !== 'all' && value !== null && value !== '';
@@ -263,15 +327,27 @@ export function EnhancedSearchContainer() {
 
   const getActiveFilterCount = () => {
     return Object.entries(filters).filter(([key, value]) => {
-      if (key === 'fieldOfStudyIds') {
+      if (key === 'fieldOfStudyIds' || key === 'intake' || key === 'applicationStatus') {
         return Array.isArray(value) && value.length > 0;
       }
       return value !== 'all' && value !== null && value !== '';
     }).length;
   };
 
-  const removeFilter = (key: keyof SearchFilters) => {
-    setFilters(prev => ({ ...prev, [key]: 'all' }));
+  const removeFilter = (key: keyof SearchFilters, value?: string) => {
+    if (value && (key === 'intake' || key === 'applicationStatus' || key === 'fieldOfStudyIds')) {
+      // Remove specific value from array filter
+      setFilters(prev => ({
+        ...prev,
+        [key]: (prev[key] as string[]).filter(v => v !== value)
+      }));
+    } else {
+      // Clear entire filter
+      setFilters(prev => ({
+        ...prev,
+        [key]: (key === 'fieldOfStudyIds' || key === 'intake' || key === 'applicationStatus') ? [] : 'all'
+      }));
+    }
   };
 
   if (loading) {
@@ -382,6 +458,24 @@ export function EnhancedSearchContainer() {
                       />
                     </Badge>
                   )}
+                  {filters.intake?.map(intake => (
+                    <Badge key={intake} variant="secondary" className="text-xs">
+                      {intake === 'both' ? 'Both Intakes' : intake === 'winter-only' ? 'Winter Only' : 'Summer Only'}
+                      <X
+                        className="h-3 w-3 ml-1 cursor-pointer"
+                        onClick={() => removeFilter('intake', intake)}
+                      />
+                    </Badge>
+                  ))}
+                  {filters.applicationStatus?.map(status => (
+                    <Badge key={status} variant="secondary" className="text-xs">
+                      {status === 'open' ? 'Open Now' : status === 'closing_soon' ? 'Closing Soon' : 'Urgent'}
+                      <X
+                        className="h-3 w-3 ml-1 cursor-pointer"
+                        onClick={() => removeFilter('applicationStatus', status)}
+                      />
+                    </Badge>
+                  ))}
                 </div>
               )}
             </div>

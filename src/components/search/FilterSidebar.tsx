@@ -5,9 +5,10 @@ import { Accordion } from '@/components/ui/accordion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FilterGroup } from './FilterGroup';
 import { HierarchicalFieldSelect } from './HierarchicalFieldSelect';
-import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X } from 'lucide-react';
+import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X, Calendar } from 'lucide-react';
 import { INSTITUTION_TYPES, CONTROL_TYPES } from '@/lib/institution-types';
 
 interface SearchFilters {
@@ -20,6 +21,8 @@ interface SearchFilters {
   duration: string;
   institutionType: string;
   controlType: string;
+  intake: string[];
+  applicationStatus: string[];
 }
 
 interface FilterOptions {
@@ -56,7 +59,7 @@ export function FilterSidebar({
 
   const getActiveFilterCount = () => {
     return Object.entries(filters).filter(([key, value]) => {
-      if (key === 'fieldOfStudyIds') {
+      if (key === 'fieldOfStudyIds' || key === 'intake' || key === 'applicationStatus') {
         return Array.isArray(value) && value.length > 0;
       }
       return value !== 'all' && value !== null && value !== '';
@@ -259,6 +262,112 @@ export function FilterSidebar({
                 <Label htmlFor="uniassist-vpd" className="text-sm cursor-pointer">Uni-Assist VPD Required</Label>
               </div>
             </RadioGroup>
+          </FilterGroup>
+
+          {/* Intake Period */}
+          <FilterGroup 
+            value="intake" 
+            title="Intake Period" 
+            icon={<Calendar className="h-4 w-4" />}
+            activeCount={filters.intake?.length || 0}
+          >
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="intake-both"
+                  checked={filters.intake?.includes('both')}
+                  onCheckedChange={(checked) => {
+                    const currentIntake = filters.intake || [];
+                    const newIntake = checked 
+                      ? [...currentIntake, 'both']
+                      : currentIntake.filter(i => i !== 'both');
+                    updateFilter('intake', newIntake);
+                  }}
+                />
+                <Label htmlFor="intake-both" className="text-sm font-normal cursor-pointer">Both Intakes</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="intake-winter"
+                  checked={filters.intake?.includes('winter-only')}
+                  onCheckedChange={(checked) => {
+                    const currentIntake = filters.intake || [];
+                    const newIntake = checked 
+                      ? [...currentIntake, 'winter-only']
+                      : currentIntake.filter(i => i !== 'winter-only');
+                    updateFilter('intake', newIntake);
+                  }}
+                />
+                <Label htmlFor="intake-winter" className="text-sm font-normal cursor-pointer">Winter Only</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="intake-summer"
+                  checked={filters.intake?.includes('summer-only')}
+                  onCheckedChange={(checked) => {
+                    const currentIntake = filters.intake || [];
+                    const newIntake = checked 
+                      ? [...currentIntake, 'summer-only']
+                      : currentIntake.filter(i => i !== 'summer-only');
+                    updateFilter('intake', newIntake);
+                  }}
+                />
+                <Label htmlFor="intake-summer" className="text-sm font-normal cursor-pointer">Summer Only</Label>
+              </div>
+            </div>
+          </FilterGroup>
+
+          {/* Application Period */}
+          <FilterGroup 
+            value="deadline" 
+            title="Application Period" 
+            icon={<Clock className="h-4 w-4" />}
+            activeCount={filters.applicationStatus?.length || 0}
+          >
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="status-open"
+                  checked={filters.applicationStatus?.includes('open')}
+                  onCheckedChange={(checked) => {
+                    const currentStatus = filters.applicationStatus || [];
+                    const newStatus = checked 
+                      ? [...currentStatus, 'open']
+                      : currentStatus.filter(s => s !== 'open');
+                    updateFilter('applicationStatus', newStatus);
+                  }}
+                />
+                <Label htmlFor="status-open" className="text-sm font-normal cursor-pointer">Open Now</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="status-closing"
+                  checked={filters.applicationStatus?.includes('closing_soon')}
+                  onCheckedChange={(checked) => {
+                    const currentStatus = filters.applicationStatus || [];
+                    const newStatus = checked 
+                      ? [...currentStatus, 'closing_soon']
+                      : currentStatus.filter(s => s !== 'closing_soon');
+                    updateFilter('applicationStatus', newStatus);
+                  }}
+                />
+                <Label htmlFor="status-closing" className="text-sm font-normal cursor-pointer">Closing Soon</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="status-urgent"
+                  checked={filters.applicationStatus?.includes('urgent')}
+                  onCheckedChange={(checked) => {
+                    const currentStatus = filters.applicationStatus || [];
+                    const newStatus = checked 
+                      ? [...currentStatus, 'urgent']
+                      : currentStatus.filter(s => s !== 'urgent');
+                    updateFilter('applicationStatus', newStatus);
+                  }}
+                />
+                <Label htmlFor="status-urgent" className="text-sm font-normal cursor-pointer">Urgent (≤7 days)</Label>
+              </div>
+            </div>
           </FilterGroup>
         </Accordion>
       </div>
