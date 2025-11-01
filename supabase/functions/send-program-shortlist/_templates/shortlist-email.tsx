@@ -28,6 +28,8 @@ interface ShortlistEmailProps {
     degree_type: string;
     duration_semesters: number;
     semester_fees: number;
+    tuition_amount?: number;
+    tuition_fee_structure?: 'monthly' | 'semester' | 'yearly';
     winter_intake?: boolean;
     summer_intake?: boolean;
     winter_deadline?: string;
@@ -147,7 +149,16 @@ export const ShortlistEmail = ({
                 ⏱️ <strong>{program.duration_semesters} semesters</strong>
               </Text>
               <Text style={detailItem}>
-                💶 <strong>€{program.semester_fees}/semester</strong>
+                💶 <strong>
+                  {(() => {
+                    const amount = program.tuition_amount !== undefined && program.tuition_amount !== null 
+                      ? program.tuition_amount 
+                      : program.semester_fees;
+                    const structure = program.tuition_fee_structure || 'semester';
+                    const labels = { monthly: '/month', semester: '/semester', yearly: '/year' };
+                    return amount === 0 ? 'Free' : `€${amount.toLocaleString()}${labels[structure]}`;
+                  })()}
+                </strong>
               </Text>
               <Text style={detailItem}>
                 📅 <strong>Intake:</strong>{' '}
