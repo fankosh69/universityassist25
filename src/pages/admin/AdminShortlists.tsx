@@ -689,6 +689,93 @@ export default function AdminShortlists() {
     }
   };
 
+  const sendExistingDraft = async () => {
+    if (!editingShortlist || !validateRecipient() || selectedPrograms.length === 0) {
+      toast({
+        title: "Missing information",
+        description: "Please complete all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Update shortlist with current form data
+      const shortlistData: any = {
+        title,
+        message,
+        recipient_type: recipientType,
+        cc_recipients: ccRecipients,
+      };
+
+      if (recipientType === 'internal') {
+        shortlistData.student_profile_id = selectedStudent;
+        shortlistData.recipient_email = null;
+        shortlistData.recipient_name = null;
+      } else {
+        shortlistData.recipient_email = externalEmail;
+        shortlistData.recipient_name = externalName;
+        shortlistData.student_profile_id = null;
+      }
+
+      const { error: updateError } = await supabase
+        .from("program_shortlists")
+        .update(shortlistData)
+        .eq("id", editingShortlist);
+
+      if (updateError) throw updateError;
+
+      // Delete existing programs
+      const { error: deleteError } = await supabase
+        .from("shortlist_programs")
+        .delete()
+        .eq("shortlist_id", editingShortlist);
+
+      if (deleteError) throw deleteError;
+
+      // Insert updated programs
+      const programsToInsert = selectedPrograms.map((sp, index) => ({
+        shortlist_id: editingShortlist,
+        program_id: sp.program.id,
+        staff_notes: sp.staff_notes,
+        sort_order: index,
+      }));
+
+      const { error: programsError } = await supabase
+        .from("shortlist_programs")
+        .insert(programsToInsert);
+
+      if (programsError) throw programsError;
+
+      // Send email via edge function
+      const { error: sendError } = await supabase.functions.invoke(
+        "send-program-shortlist",
+        {
+          body: { shortlistId: editingShortlist },
+        }
+      );
+
+      if (sendError) throw sendError;
+
+      toast({
+        title: "Shortlist sent!",
+        description: "The recipient will receive the recommendations by email",
+      });
+
+      resetForm();
+      fetchShortlists();
+    } catch (error: any) {
+      toast({
+        title: "Error sending shortlist",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredPrograms = programs.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -974,7 +1061,7 @@ export default function AdminShortlists() {
                   <Button
                     onClick={updateDraft}
                     disabled={loading || !validateRecipient() || selectedPrograms.length === 0}
-                    variant="default"
+                    variant="outline"
                   >
                     {loading ? (
                       <>
@@ -989,8 +1076,33 @@ export default function AdminShortlists() {
                     )}
                   </Button>
                   <Button
-                    onClick={resetForm}
+                    onClick={() => setShowPreview(true)}
+                    disabled={!validateRecipient() || selectedPrograms.length === 0}
                     variant="outline"
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    Preview
+                  </Button>
+                  <Button
+                    onClick={sendExistingDraft}
+                    disabled={loading || !validateRecipient() || selectedPrograms.length === 0}
+                    variant="default"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4" />
+                        Send Shortlist
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={resetForm}
+                    variant="ghost"
                   >
                     Cancel
                   </Button>
