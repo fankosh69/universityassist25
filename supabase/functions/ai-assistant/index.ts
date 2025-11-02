@@ -572,6 +572,18 @@ Provide specific guidance about this program, check eligibility, and answer ques
             
             console.log('Searching universities for:', university_name);
             
+            // Extract primary search word (ignore common words) for fuzzy matching
+            const commonWords = ['university', 'college', 'school', 'of', 'the', 'at', 'in'];
+            const searchWords = university_name
+              .toLowerCase()
+              .split(/\s+/)
+              .filter(word => word.length > 2 && !commonWords.includes(word));
+
+            const primaryWord = searchWords[0] || university_name;
+            
+            console.log(`Primary search word extracted: "${primaryWord}" from "${university_name}"`);
+            
+            // Multi-level search: exact → partial → word-level
             const { data: universities, error: uniError } = await supabaseAdmin
               .from('universities')
               .select(`
@@ -587,7 +599,7 @@ Provide specific guidance about this program, check eligibility, and answer ques
                   slug
                 )
               `)
-              .or(`name.ilike.%${university_name}%,slug.ilike.%${university_name.toLowerCase().replace(/\s+/g, '-')}%`)
+              .or(`name.ilike.${university_name},name.ilike.%${university_name}%,name.ilike.${primaryWord}%,slug.ilike.%${university_name.toLowerCase().replace(/\s+/g, '-')}%`)
               .limit(5);
             
             if (uniError) {
@@ -600,14 +612,42 @@ Provide specific guidance about this program, check eligibility, and answer ques
               };
             } else {
               console.log(`Found ${universities?.length || 0} universities`);
+              
+              // FAILSAFE: Auto-record inquiry when no universities found
+              if (!universities || universities.length === 0) {
+                console.log('No universities found - auto-recording missing university inquiry');
+                try {
+                  const { data: inquiry, error: inquiryError } = await supabaseAdmin
+                    .from('program_inquiries')
+                    .insert({
+                      profile_id: user.id,
+                      university_name: university_name,
+                      user_query: message || `User searched for: ${university_name}`,
+                      conversation_id: conversation.id,
+                      status: 'pending'
+                    })
+                    .select()
+                    .single();
+                    
+                  if (inquiryError) {
+                    console.error('Failed to auto-record inquiry:', inquiryError);
+                  } else {
+                    console.log('✅ Auto-recorded missing university inquiry:', inquiry?.id);
+                  }
+                } catch (err) {
+                  console.error('Error in auto-recording inquiry:', err);
+                }
+              }
+              
               toolResult = { 
                 success: true,
                 found: universities && universities.length > 0,
                 universities: universities || [],
                 count: universities?.length || 0,
+                inquiry_recorded: universities && universities.length === 0,
                 message: universities && universities.length > 0 
                   ? `Found ${universities.length} matching universities: ${universities.map(u => `${u.name} in ${u.cities.name}`).join(', ')}`
-                  : 'No universities found with that name'
+                  : 'No universities found with that name. Your interest has been recorded!'
               };
             }
           } catch (error) {
@@ -798,13 +838,41 @@ Provide specific guidance about this program, check eligibility, and answer ques
             // Sort by match score descending
             programsWithScores.sort((a, b) => b.match_score - a.match_score);
             
+            // FAILSAFE: Auto-record program inquiry when user asks for specific field but no programs exist
+            if (programsWithScores.length === 0 && field_of_study) {
+              console.log('No programs found for field - auto-recording program inquiry');
+              try {
+                const { data: inquiry, error: inquiryError } = await supabaseAdmin
+                  .from('program_inquiries')
+                  .insert({
+                    profile_id: user.id,
+                    university_name: university || null,
+                    field_of_study: field_of_study,
+                    user_query: message || `User searched for ${field_of_study} programs`,
+                    conversation_id: conversation.id,
+                    status: 'pending'
+                  })
+                  .select()
+                  .single();
+                  
+                if (inquiryError) {
+                  console.error('Failed to auto-record program inquiry:', inquiryError);
+                } else {
+                  console.log('✅ Auto-recorded program inquiry:', inquiry?.id);
+                }
+              } catch (err) {
+                console.error('Error in auto-recording program inquiry:', err);
+              }
+            }
+            
             toolResult = { 
               success: true, 
               programs: programsWithScores,
               count: programsWithScores.length,
+              inquiry_recorded: programsWithScores.length === 0 && field_of_study,
               message: programsWithScores.length > 0 
                 ? `Found ${programsWithScores.length} matching programs in our database`
-                : 'No programs found matching your criteria in our database'
+                : 'No programs found matching your criteria in our database. Your interest has been recorded!'
             };
             
             console.log('Program query successful:', programsWithScores.length, 'programs found');
