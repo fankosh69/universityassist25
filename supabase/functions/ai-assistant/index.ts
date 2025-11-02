@@ -69,6 +69,22 @@ Next Steps:
 
 IMPORTANT: Use plain text with markdown links in format [text](/path). Do not use asterisks (*) or underscores (_) for formatting.
 
+=== EXISTING DATA AWARENESS (CRITICAL) ===
+
+BEFORE asking the user for ANY information, YOU MUST:
+1. Check the "User Profile Data" and "Academic Background" sections provided in the context
+2. NEVER ask for information that is already provided in these sections
+3. If data exists but seems incomplete, acknowledge what you have and ask ONLY for missing details
+
+Example of CORRECT behavior:
+✓ Context shows: gpa_raw: 3.5, gpa_scale_max: 4.0
+✗ WRONG: "What is your GPA?"
+✓ CORRECT: "I see you have a 3.5/4.0 GPA. That's great! Now let me ask about..."
+
+Example of asking for missing data:
+✓ Context shows: gpa_raw: 3.5, gpa_scale_max: 4.0, but gpa_min_pass is null
+✓ CORRECT: "I see your GPA is 3.5 out of 4.0. To calculate the German equivalent, what's the minimum passing grade on your scale?"
+
 === PROGRAM RECOMMENDATIONS FORMAT ===
 
 When recommending programs to users, you MUST return structured JSON data wrapped in special markers:
@@ -945,6 +961,8 @@ Provide specific guidance about this program, check eligibility, and answer ques
         } else if (functionName === 'update_profile_data') {
           // Call the dedicated update function for better reliability
           try {
+            console.log('🔄 Attempting to update profile data:', args);
+            
             const updateResponse = await fetch(
               `${supabaseUrl}/functions/v1/update-profile-from-ai`,
               {
@@ -960,31 +978,61 @@ Provide specific guidance about this program, check eligibility, and answer ques
               }
             );
             
-            const updateResult = await updateResponse.json();
-            
-            if (!updateResult.success) {
-              console.error('Profile update failed:', updateResult.error || updateResult.errors);
+            if (!updateResponse.ok) {
+              const errorText = await updateResponse.text();
+              console.error('❌ Profile update HTTP error:', updateResponse.status, errorText);
               toolResult = { 
                 success: false, 
-                message: `Update failed: ${(updateResult.errors || []).join(', ')}` 
+                message: `Update failed with status ${updateResponse.status}. Please try again.`,
+                error: errorText
               };
             } else {
-              console.log('Profile updated successfully:', updateResult.updates);
-              toolResult = { 
-                success: true, 
-                message: `Successfully updated: ${updateResult.updates.join(', ')}` 
-              };
+              const updateResult = await updateResponse.json();
+              
+              if (!updateResult.success) {
+                console.error('❌ Profile update failed:', updateResult.error || updateResult.errors);
+                toolResult = { 
+                  success: false, 
+                  message: `Update failed: ${(updateResult.errors || []).join(', ')}. I'll remember this for our next conversation.`,
+                  error: updateResult.error || updateResult.errors
+                };
+              } else {
+                console.log('✅ Profile updated successfully:', updateResult.updates);
+                
+                // VERIFICATION: Re-fetch the data to confirm it was saved
+                const { data: verifyProfile } = await supabaseAdmin
+                  .from('profiles')
+                  .select(Object.keys(args).join(','))
+                  .eq('id', user.id)
+                  .single();
+                
+                const verifiedFields = Object.keys(args).filter(key => 
+                  verifyProfile && verifyProfile[key] !== null && verifyProfile[key] !== undefined
+                );
+                
+                console.log('✅ Verified saved fields:', verifiedFields);
+                
+                toolResult = { 
+                  success: true, 
+                  message: `Successfully saved: ${updateResult.updates.join(', ')}`,
+                  verified: verifiedFields.length === Object.keys(args).length,
+                  verified_fields: verifiedFields
+                };
+              }
             }
           } catch (error: any) {
-            console.error('Profile update exception:', error);
+            console.error('❌ Profile update exception:', error);
             toolResult = { 
               success: false, 
-              message: `Update error: ${error.message}` 
+              message: `Update error: ${error.message}. The information wasn't saved, but I'll remember it for this conversation.`,
+              error: error.message
             };
           }
         } else if (functionName === 'update_academic_data') {
           // Call the dedicated update function for academic data
           try {
+            console.log('🔄 Attempting to update academic data:', args);
+            
             const updateResponse = await fetch(
               `${supabaseUrl}/functions/v1/update-profile-from-ai`,
               {
@@ -1000,26 +1048,54 @@ Provide specific guidance about this program, check eligibility, and answer ques
               }
             );
             
-            const updateResult = await updateResponse.json();
-            
-            if (!updateResult.success) {
-              console.error('Academic update failed:', updateResult.error || updateResult.errors);
+            if (!updateResponse.ok) {
+              const errorText = await updateResponse.text();
+              console.error('❌ Academic update HTTP error:', updateResponse.status, errorText);
               toolResult = { 
                 success: false, 
-                message: `Update failed: ${(updateResult.errors || []).join(', ')}` 
+                message: `Update failed with status ${updateResponse.status}. Please try again.`,
+                error: errorText
               };
             } else {
-              console.log('Academic data updated successfully:', updateResult.updates);
-              toolResult = { 
-                success: true, 
-                message: `Successfully updated: ${updateResult.updates.join(', ')}` 
-              };
+              const updateResult = await updateResponse.json();
+              
+              if (!updateResult.success) {
+                console.error('❌ Academic update failed:', updateResult.error || updateResult.errors);
+                toolResult = { 
+                  success: false, 
+                  message: `Update failed: ${(updateResult.errors || []).join(', ')}. I'll remember this for our next conversation.`,
+                  error: updateResult.error || updateResult.errors
+                };
+              } else {
+                console.log('✅ Academic data updated successfully:', updateResult.updates);
+                
+                // VERIFICATION: Re-fetch the data to confirm it was saved
+                const { data: verifyAcademic } = await supabaseAdmin
+                  .from('student_academics')
+                  .select(Object.keys(args).join(','))
+                  .eq('profile_id', user.id)
+                  .single();
+                
+                const verifiedFields = Object.keys(args).filter(key => 
+                  verifyAcademic && verifyAcademic[key] !== null && verifyAcademic[key] !== undefined
+                );
+                
+                console.log('✅ Verified saved fields:', verifiedFields);
+                
+                toolResult = { 
+                  success: true, 
+                  message: `Successfully saved: ${updateResult.updates.join(', ')}`,
+                  verified: verifiedFields.length === Object.keys(args).length,
+                  verified_fields: verifiedFields
+                };
+              }
             }
           } catch (error: any) {
-            console.error('Academic update exception:', error);
+            console.error('❌ Academic update exception:', error);
             toolResult = { 
               success: false, 
-              message: `Update error: ${error.message}` 
+              message: `Update error: ${error.message}. The information wasn't saved, but I'll remember it for this conversation.`,
+              error: error.message
             };
           }
         }

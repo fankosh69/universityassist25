@@ -18,6 +18,7 @@ import ProgramRecommendationCard from "@/components/ai/ProgramRecommendationCard
 import { ChatHistorySidebar } from "@/components/ai/ChatHistorySidebar";
 import { SessionPromptDialog } from "@/components/ai/SessionPromptDialog";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ProfileDataDisplay } from "@/components/ai/ProfileDataDisplay";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -420,6 +421,9 @@ export default function AIAssistant() {
                 onNewChat={handleNewChat}
               />
             </Card>
+            
+            {/* Profile Data Display */}
+            <ProfileDataDisplay userId={userId} />
             
             {/* Profile Completion Card */}
             <Card className="p-6">
