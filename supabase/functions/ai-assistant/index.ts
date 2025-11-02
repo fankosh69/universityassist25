@@ -12,25 +12,49 @@ const SYSTEM_PROMPT = `You are a helpful university admissions assistant for Uni
 
 === DATA SOURCE POLICY (CRITICAL) ===
 
-YOU MUST ONLY provide information about programs, universities, and cities that exist in the University Assist database.
+YOU MUST ONLY provide information from the University Assist database.
 
-MANDATORY WORKFLOW when user asks about a program/university:
-1. ALWAYS call query_matching_programs FIRST to search our database
-2. If program EXISTS in database:
-   - Provide accurate information from our data
-   - Include internal links in format: [Link Text](/path)
-   - Calculate eligibility using our matching algorithm
-3. If program NOT FOUND in database:
-   - Respond: "That program/university isn't in our platform yet, but we're adding new programs regularly! I've recorded your interest and our team will prioritize adding it."
-   - IMMEDIATELY call record_program_inquiry tool to log the request
-   - DO NOT provide information from external sources
-   - DO NOT make up program details
+MANDATORY 3-STEP WORKFLOW when user asks about a university/program:
+
+STEP 1: CHECK UNIVERSITY EXISTENCE
+→ User mentions specific university name (e.g., "TU Dortmund", "Constructor University")
+→ FIRST call: search_universities(university_name: "...")
+→ Wait for result
+
+STEP 2: INTERPRET UNIVERSITY SEARCH RESULT
+→ If found = false:
+   • University DOES NOT exist in our platform
+   • Call record_program_inquiry immediately
+   • Respond: "That university isn't in our platform yet, but we're adding new universities regularly! I've recorded your interest and our team will prioritize adding it."
+
+→ If found = true (universities array has items):
+   • University EXISTS on our platform ✓
+   • Proceed to STEP 3
+
+STEP 3: SEARCH FOR PROGRAMS AT THAT UNIVERSITY
+→ Call query_matching_programs(university_name: "...")
+→ If programs found (count > 0):
+   • Show programs with internal links
+   • Calculate eligibility
+   • Provide recommendations
+   
+→ If NO programs found (count = 0):
+   • University exists but no programs yet
+   • DO NOT record inquiry saying university doesn't exist
+   • Respond: "Great news! {University Name} is on our platform in {City}! 🎓
+   
+     However, we're still adding their programs. What field or program are you interested in studying there? (e.g., Computer Science, Business, Engineering)
+     
+     This will help me record your interest and our team will prioritize adding those programs."
+   • THEN ask follow-up: "What field are you interested in at {University Name}?"
+   • After user responds with field → Call record_program_inquiry with both university_name AND field_of_study
 
 ABSOLUTELY FORBIDDEN:
-❌ Using external web search or knowledge about programs
-❌ Providing information about programs not in our database
-❌ Making up university names, admission requirements, or deadlines
-❌ Recommending programs without calling query_matching_programs first
+❌ Skipping search_universities when user mentions university name
+❌ Saying "university doesn't exist" when it's in the database
+❌ Recording inquiry when university exists (even with 0 programs) before asking for field
+❌ Using external knowledge about programs not in our database
+❌ Making up program details or requirements
 
 REQUIRED RESPONSE FORMAT when program EXISTS:
 "Great news! I found [Program Name](/universities/{university_slug}/programs/{program_slug}) at [University Name](/universities/{university_slug}) in [City](/cities/{city_slug})!
@@ -381,6 +405,24 @@ Provide specific guidance about this program, check eligibility, and answer ques
       {
         type: "function",
         function: {
+          name: "search_universities",
+          description: "Search for universities by name to check if they exist on our platform. CALL THIS FIRST when user mentions a specific university name.",
+          parameters: {
+            type: "object",
+            properties: {
+              university_name: { 
+                type: "string", 
+                description: "Name or partial name of university (e.g., 'TU Dortmund', 'Constructor', 'RWTH')" 
+              }
+            },
+            required: ["university_name"],
+            additionalProperties: false
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
           name: "query_matching_programs",
           description: "Search ONLY programs in our database. MANDATORY to call before recommending any program. Returns programs with slugs for internal linking.",
           parameters: {
@@ -523,10 +565,92 @@ Provide specific guidance about this program, check eligibility, and answer ques
             console.log('Eligibility check result:', eligibilityResult);
             toolResult = { success: true, analysis: eligibilityResult };
           }
+        } else if (functionName === 'search_universities') {
+          // Search for universities by name to check existence
+          try {
+            const { university_name } = args;
+            
+            console.log('Searching universities for:', university_name);
+            
+            const { data: universities, error: uniError } = await supabaseAdmin
+              .from('universities')
+              .select(`
+                id,
+                name,
+                slug,
+                city,
+                institution_type,
+                control_type,
+                website,
+                cities!inner(
+                  name,
+                  slug
+                )
+              `)
+              .or(`name.ilike.%${university_name}%,slug.ilike.%${university_name.toLowerCase().replace(/\s+/g, '-')}%`)
+              .limit(5);
+            
+            if (uniError) {
+              console.error('University search error:', uniError);
+              toolResult = { 
+                success: false, 
+                error: uniError.message,
+                universities: [],
+                found: false
+              };
+            } else {
+              console.log(`Found ${universities?.length || 0} universities`);
+              toolResult = { 
+                success: true,
+                found: universities && universities.length > 0,
+                universities: universities || [],
+                count: universities?.length || 0,
+                message: universities && universities.length > 0 
+                  ? `Found ${universities.length} matching universities: ${universities.map(u => `${u.name} in ${u.cities.name}`).join(', ')}`
+                  : 'No universities found with that name'
+              };
+            }
+          } catch (error) {
+            console.error('Error in search_universities:', error);
+            toolResult = { 
+              success: false, 
+              error: error.message,
+              universities: [],
+              found: false
+            };
+          }
         } else if (functionName === 'query_matching_programs') {
           // Query programs from database based on user preferences
           try {
             const { degree_level, field_of_study, preferred_cities, university_name, limit = 5 } = args;
+            
+            console.log('Querying programs with filters:', { degree_level, field_of_study, preferred_cities, university_name, limit });
+            
+            // If university_name is specified, get university IDs first
+            let universityIds: string[] | null = null;
+            if (university_name) {
+              const { data: unis, error: uniError } = await supabaseAdmin
+                .from('universities')
+                .select('id, name')
+                .ilike('name', `%${university_name}%`);
+              
+              if (uniError) {
+                console.error('Error fetching university IDs:', uniError);
+              } else if (unis && unis.length > 0) {
+                universityIds = unis.map(u => u.id);
+                console.log(`Found ${universityIds.length} universities matching "${university_name}": ${unis.map(u => u.name).join(', ')}`);
+              } else {
+                console.log(`No universities found matching "${university_name}"`);
+                // Return empty result if university name was specified but not found
+                toolResult = {
+                  success: true,
+                  programs: [],
+                  count: 0,
+                  message: 'No programs found - the specified university was not found in our database'
+                };
+                continue; // Skip to next tool call
+              }
+            }
             
             let query = supabaseAdmin
               .from('programs')
@@ -561,19 +685,41 @@ Provide specific guidance about this program, check eligibility, and answer ques
             if (field_of_study) {
               query = query.ilike('field_of_study', `%${field_of_study}%`);
             }
-            if (university_name) {
-              query = query.ilike('universities.name', `%${university_name}%`);
+            if (universityIds && universityIds.length > 0) {
+              query = query.in('university_id', universityIds);
             }
             if (preferred_cities && preferred_cities.length > 0) {
-              query = query.in('universities.cities.name', preferred_cities);
+              // Note: Can't filter on nested cities.name with .in(), will filter in code
             }
             
             const { data: programs, error: programsError } = await query;
             
-            if (programsError) throw programsError;
+            if (programsError) {
+              console.error('Program query error:', programsError);
+              toolResult = { 
+                success: false, 
+                error: programsError.message,
+                programs: [],
+                count: 0
+              };
+              continue;
+            }
+            
+            console.log(`Query returned ${programs?.length || 0} programs`);
+            
+            // Filter by city if specified
+            let filteredPrograms = programs || [];
+            if (preferred_cities && preferred_cities.length > 0) {
+              filteredPrograms = filteredPrograms.filter(p => 
+                preferred_cities.some(city => 
+                  p.universities?.cities?.name?.toLowerCase().includes(city.toLowerCase())
+                )
+              );
+              console.log(`After city filter: ${filteredPrograms.length} programs`);
+            }
             
             // Calculate match scores for each program
-            const programsWithScores = (programs || []).map(prog => {
+            const programsWithScores = filteredPrograms.map(prog => {
               let matchScore = 50; // Base score
               let eligibility = 'borderline';
               const requirementsMet = [];
@@ -658,7 +804,7 @@ Provide specific guidance about this program, check eligibility, and answer ques
               count: programsWithScores.length,
               message: programsWithScores.length > 0 
                 ? `Found ${programsWithScores.length} matching programs in our database`
-                : 'No programs found matching your criteria in our database. Please adjust your preferences or let me know what you\'re looking for and I\'ll record your interest.'
+                : 'No programs found matching your criteria in our database'
             };
             
             console.log('Program query successful:', programsWithScores.length, 'programs found');
@@ -666,44 +812,56 @@ Provide specific guidance about this program, check eligibility, and answer ques
             console.error('Program query error:', error);
             toolResult = { 
               success: false, 
-              message: `Failed to query programs: ${error.message}` 
+              error: error.message,
+              programs: [],
+              count: 0
             };
           }
         } else if (functionName === 'record_program_inquiry') {
-          // Record inquiry about non-existent program
+          // Record inquiry about non-existent program/university
           try {
             const { program_name, university_name, city, field_of_study, user_query } = args;
             
             console.log('Recording program inquiry:', args);
             
-            const { data: inquiry, error: inquiryError } = await supabaseAdmin
-              .from('program_inquiries')
-              .insert({
-                profile_id: user.id,
-                program_name: program_name || null,
-                university_name: university_name || null,
-                city: city || null,
-                field_of_study: field_of_study || null,
-                user_query: user_query,
-                conversation_id: conversation.id,
-                status: 'pending'
-              })
-              .select()
-              .single();
-            
-            if (inquiryError) {
-              console.error('Error recording inquiry:', inquiryError);
+            // Validation: Don't record if university exists but user hasn't specified field yet
+            if (university_name && !field_of_study && !program_name) {
+              console.log('Skipping inquiry - university exists, need to ask for field first');
               toolResult = { 
                 success: false, 
-                message: 'Failed to record inquiry, but I noted your interest!' 
+                message: 'Need more information before recording inquiry',
+                skip_reason: 'university_exists_need_field'
               };
             } else {
-              console.log('Inquiry recorded:', inquiry.id);
-              toolResult = { 
-                success: true, 
-                message: 'Inquiry recorded successfully',
-                inquiry_id: inquiry.id
-              };
+              const { data: inquiry, error: inquiryError } = await supabaseAdmin
+                .from('program_inquiries')
+                .insert({
+                  profile_id: user.id,
+                  program_name: program_name || null,
+                  university_name: university_name || null,
+                  city: city || null,
+                  field_of_study: field_of_study || null,
+                  user_query: user_query,
+                  conversation_id: conversation.id,
+                  status: 'pending'
+                })
+                .select()
+                .single();
+              
+              if (inquiryError) {
+                console.error('Error recording inquiry:', inquiryError);
+                toolResult = { 
+                  success: false, 
+                  message: 'Failed to record inquiry, but I noted your interest!' 
+                };
+              } else {
+                console.log('Inquiry recorded successfully:', inquiry.id);
+                toolResult = { 
+                  success: true, 
+                  message: 'Inquiry recorded successfully',
+                  inquiry_id: inquiry.id
+                };
+              }
             }
           } catch (error) {
             console.error('Error in record_program_inquiry:', error);
