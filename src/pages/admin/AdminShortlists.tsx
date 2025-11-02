@@ -41,6 +41,7 @@ interface University {
   name: string;
   slug: string;
   city_id: string;
+  logo_url?: string;
 }
 
 interface ShortlistProgram {
@@ -1226,6 +1227,14 @@ export default function AdminShortlists() {
                         
                         return (
                           <div key={program.id} className="border rounded-lg p-6 bg-card">
+                            {university.logo_url && (
+                              <img
+                                src={university.logo_url}
+                                alt={`${university.name} logo`}
+                                className="h-12 w-auto object-contain mb-4"
+                              />
+                            )}
+                            
                             <h3 className="text-xl font-semibold mb-2">{program.name}</h3>
                             
                             <p className="text-muted-foreground mb-4">
