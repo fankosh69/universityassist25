@@ -579,7 +579,7 @@ Provide specific guidance about this program, check eligibility, and answer ques
                 name,
                 slug,
                 city,
-                institution_type,
+                type,
                 control_type,
                 website,
                 cities!inner(
