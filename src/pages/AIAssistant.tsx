@@ -156,6 +156,35 @@ export default function AIAssistant() {
     }
   };
 
+  const markConversationAsRead = async (convId: string) => {
+    if (!userId) return;
+    
+    // Get the latest assistant message in this conversation
+    const { data: latestMessage } = await supabase
+      .from('ai_messages')
+      .select('id, created_at')
+      .eq('conversation_id', convId)
+      .eq('role', 'assistant')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (!latestMessage) return;
+    
+    // Upsert the read record
+    await supabase
+      .from('ai_conversation_reads')
+      .upsert({
+        profile_id: userId,
+        conversation_id: convId,
+        last_read_message_id: latestMessage.id,
+        last_read_at: latestMessage.created_at,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'profile_id,conversation_id'
+      });
+  };
+
   const loadMessages = async (convId: string) => {
     setConversationId(convId);
 
@@ -172,6 +201,9 @@ export default function AIAssistant() {
         timestamp: m.created_at
       })));
     }
+
+    // Mark conversation as read after loading messages
+    await markConversationAsRead(convId);
   };
 
   const startNewConversation = () => {
@@ -208,7 +240,7 @@ export default function AIAssistant() {
   };
 
   const handleSelectConversation = async (convId: string) => {
-    loadMessages(convId);
+    await loadMessages(convId);
     setSidebarOpen(false);
   };
 
@@ -276,6 +308,11 @@ export default function AIAssistant() {
         content: cleanedMessage,
         programs: programs
       }]);
+
+      // Mark conversation as read after receiving new message
+      if (data.conversationId) {
+        await markConversationAsRead(data.conversationId);
+      }
 
       // Refresh profile completion after each message
       await refreshCompletion();

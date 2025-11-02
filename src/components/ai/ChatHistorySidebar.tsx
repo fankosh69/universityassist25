@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Search, MessageSquarePlus, Clock, Calendar, Trash2 } from "lucide-react";
 import { format, isToday, isYesterday, isThisWeek } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -14,7 +13,7 @@ interface Conversation {
   title: string;
   session_date: string;
   updated_at: string;
-  message_count?: number;
+  unread_count?: number;
 }
 
 interface ChatHistorySidebarProps {
@@ -48,17 +47,39 @@ export function ChatHistorySidebar({
         title,
         session_date,
         updated_at,
-        ai_messages!inner(count)
+        created_at
       `)
       .eq('profile_id', user.id)
       .order('updated_at', { ascending: false });
 
     if (!error && data) {
-      const conversationsWithCount = data.map(conv => ({
-        ...conv,
-        message_count: conv.ai_messages?.length || 0
-      }));
-      setConversations(conversationsWithCount);
+      // Calculate unread counts for each conversation
+      const conversationsWithUnread = await Promise.all(
+        data.map(async (conv) => {
+          // Get the last read timestamp
+          const { data: readData } = await supabase
+            .from('ai_conversation_reads')
+            .select('last_read_at')
+            .eq('profile_id', user.id)
+            .eq('conversation_id', conv.id)
+            .maybeSingle();
+
+          // Count unread assistant messages
+          const { count } = await supabase
+            .from('ai_messages')
+            .select('id', { count: 'exact', head: true })
+            .eq('conversation_id', conv.id)
+            .eq('role', 'assistant')
+            .gt('created_at', readData?.last_read_at || conv.created_at);
+
+          return {
+            ...conv,
+            unread_count: count || 0
+          };
+        })
+      );
+      
+      setConversations(conversationsWithUnread);
     }
     setIsLoading(false);
   };
@@ -129,32 +150,38 @@ export function ChatHistorySidebar({
       <div key={title} className="mb-4">
         <h3 className="text-xs font-semibold text-muted-foreground mb-2 px-2">{title}</h3>
         <div className="space-y-1">
-          {items.map(conv => (
-            <button
-              key={conv.id}
-              onClick={() => onSelectConversation(conv.id)}
-              className={`w-full text-left p-3 rounded-lg transition-colors ${
-                currentConversationId === conv.id
-                  ? 'bg-primary/10 text-primary border border-primary/20'
-                  : 'hover:bg-accent/50'
-              }`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-sm font-medium line-clamp-1 flex-1">
-                  {conv.title || 'New Conversation'}
-                </span>
-                {conv.message_count && conv.message_count > 0 && (
-                  <Badge variant="secondary" className="text-xs">
-                    {conv.message_count}
-                  </Badge>
-                )}
-              </div>
-              <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                {format(new Date(conv.updated_at), 'HH:mm')}
-              </div>
-            </button>
-          ))}
+          {items.map(conv => {
+            const hasUnread = (conv.unread_count || 0) > 0;
+            
+            return (
+              <button
+                key={conv.id}
+                onClick={() => onSelectConversation(conv.id)}
+                className={`w-full text-left p-3 rounded-lg transition-colors ${
+                  currentConversationId === conv.id
+                    ? 'bg-primary/10 text-primary border border-primary/20'
+                    : hasUnread
+                    ? 'bg-accent border border-accent-foreground/10 hover:bg-accent/80'
+                    : 'hover:bg-accent/50'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className={`text-sm flex-1 line-clamp-1 ${
+                    hasUnread ? 'font-semibold' : 'font-medium'
+                  }`}>
+                    {conv.title || 'New Conversation'}
+                  </span>
+                  {hasUnread && (
+                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse flex-shrink-0 mt-1.5" />
+                  )}
+                </div>
+                <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  {format(new Date(conv.updated_at), 'HH:mm')}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     );

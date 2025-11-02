@@ -176,6 +176,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_conversation_reads: {
+        Row: {
+          conversation_id: string
+          created_at: string | null
+          id: string
+          last_read_at: string | null
+          last_read_message_id: string | null
+          profile_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          last_read_at?: string | null
+          last_read_message_id?: string | null
+          profile_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          last_read_at?: string | null
+          last_read_message_id?: string | null
+          profile_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_conversation_reads_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_conversation_reads_last_read_message_id_fkey"
+            columns: ["last_read_message_id"]
+            isOneToOne: false
+            referencedRelation: "ai_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_conversations: {
         Row: {
           collected_data: Json | null
