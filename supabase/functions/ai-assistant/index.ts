@@ -552,7 +552,7 @@ Provide specific guidance about this program, check eligibility, and answer ques
                   )
                 )
               `)
-              .eq('is_published', true)
+              .eq('published', true)
               .limit(limit);
             
             if (degree_level) {
