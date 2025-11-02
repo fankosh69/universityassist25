@@ -380,8 +380,8 @@ export default function AIAssistant() {
         />
       )}
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 max-w-[1600px] mx-auto">
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           
           {/* Desktop Sidebar - Hidden on mobile */}
           <div className="hidden lg:block space-y-4">
@@ -527,7 +527,7 @@ export default function AIAssistant() {
           </div>
 
           {/* Chat Interface */}
-          <Card className="lg:col-span-5 flex flex-col h-[calc(100vh-12rem)]">
+          <Card className="lg:col-span-3 flex flex-col h-[calc(100vh-8rem)]">
             <div className="p-4 border-b flex items-center gap-3">
               {/* Mobile Sidebar Trigger */}
               <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
