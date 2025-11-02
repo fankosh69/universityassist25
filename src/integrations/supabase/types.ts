@@ -1781,6 +1781,82 @@ export type Database = {
           },
         ]
       }
+      program_inquiries: {
+        Row: {
+          admin_notes: string | null
+          city: string | null
+          conversation_id: string | null
+          created_at: string | null
+          field_of_study: string | null
+          id: string
+          inquiry_date: string | null
+          profile_id: string | null
+          program_name: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          university_name: string | null
+          updated_at: string | null
+          user_query: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          city?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          field_of_study?: string | null
+          id?: string
+          inquiry_date?: string | null
+          profile_id?: string | null
+          program_name?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          university_name?: string | null
+          updated_at?: string | null
+          user_query: string
+        }
+        Update: {
+          admin_notes?: string | null
+          city?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          field_of_study?: string | null
+          id?: string
+          inquiry_date?: string | null
+          profile_id?: string | null
+          program_name?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          university_name?: string | null
+          updated_at?: string | null
+          user_query?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_inquiries_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_inquiries_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_inquiries_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       program_matches: {
         Row: {
           components: Json | null
@@ -3226,6 +3302,27 @@ export type Database = {
           region: string | null
           slug: string | null
           uni_count: number | null
+        }
+        Relationships: []
+      }
+      program_inquiries_summary: {
+        Row: {
+          admin_notes: string | null
+          city: string | null
+          created_at: string | null
+          field_of_study: string | null
+          id: string | null
+          inquiry_date: string | null
+          program_name: string | null
+          reviewed_at: string | null
+          reviewed_by_name: string | null
+          similar_count: number | null
+          status: string | null
+          university_name: string | null
+          user_email: string | null
+          user_name: string | null
+          user_nationality: string | null
+          user_query: string | null
         }
         Relationships: []
       }

@@ -23,6 +23,7 @@ import {
   Mail,
   MessageSquare
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 import {
   Sidebar,
