@@ -65,7 +65,13 @@ interface Shortlist {
   recipient_email?: string;
   recipient_name?: string;
   cc_recipients?: CCRecipient[];
+  delivery_status?: string;
+  delivery_error?: string;
+  delivered_at?: string | null;
+  opened_at?: string | null;
+  cc_delivery_status?: Array<{ email: string; status: string; delivered_at?: string }>;
   student: Student;
+  programs?: ShortlistProgram[];
 }
 
 export default function AdminShortlists() {
@@ -88,6 +94,10 @@ export default function AdminShortlists() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [currentUserName, setCurrentUserName] = useState<string>("Your Advisor");
+  const [editingShortlist, setEditingShortlist] = useState<string | null>(null);
+  const [viewingShortlist, setViewingShortlist] = useState<Shortlist | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<string>("create");
   
   // CC recipients state
   const [ccRecipients, setCcRecipients] = useState<CCRecipient[]>([]);
@@ -178,19 +188,63 @@ export default function AdminShortlists() {
 
       if (error) throw error;
 
-      // Fetch student details separately for internal recipients
+      // Fetch student details and programs for each shortlist
       const enrichedData = await Promise.all(
         (data || []).map(async (shortlist) => {
+          // Fetch programs for this shortlist
+          const { data: shortlistPrograms } = await supabase
+            .from("shortlist_programs")
+            .select(`
+              staff_notes,
+              sort_order,
+              program:programs(
+                id,
+                name,
+                degree_type,
+                duration_semesters,
+                semester_fees,
+                tuition_amount,
+                tuition_fee_structure,
+                winter_intake,
+                summer_intake,
+                winter_deadline,
+                summer_deadline,
+                application_method,
+                uni_assist_required,
+                university:universities(
+                  id,
+                  name,
+                  slug,
+                  city_id,
+                  city:cities(name)
+                )
+              )
+            `)
+            .eq("shortlist_id", shortlist.id)
+            .order("sort_order");
+
+          const programs: ShortlistProgram[] = (shortlistPrograms || []).map((sp: any) => ({
+            program: {
+              ...sp.program,
+              university: sp.program.university,
+              city_name: sp.program.university.city?.name,
+            },
+            staff_notes: sp.staff_notes,
+            sort_order: sp.sort_order,
+          }));
+
           if (shortlist.recipient_type === 'external') {
             return {
               ...shortlist,
               recipient_type: 'external' as const,
               cc_recipients: (shortlist.cc_recipients as unknown as CCRecipient[]) || [],
+              cc_delivery_status: (shortlist.cc_delivery_status as unknown as Array<{ email: string; status: string; delivered_at?: string }>) || [],
               student: {
                 id: "",
                 full_name: shortlist.recipient_name,
                 email: shortlist.recipient_email,
               },
+              programs,
             };
           }
 
@@ -204,7 +258,9 @@ export default function AdminShortlists() {
             ...shortlist,
             recipient_type: 'internal' as const,
             cc_recipients: (shortlist.cc_recipients as unknown as CCRecipient[]) || [],
+            cc_delivery_status: (shortlist.cc_delivery_status as unknown as Array<{ email: string; status: string; delivered_at?: string }>) || [],
             student: student || { id: "", full_name: "Unknown", email: "" },
+            programs,
           };
         })
       );
@@ -427,6 +483,7 @@ export default function AdminShortlists() {
   };
 
   const resetForm = () => {
+    setEditingShortlist(null);
     setRecipientType("internal");
     setSelectedStudent("");
     setExternalEmail("");
@@ -489,9 +546,157 @@ export default function AdminShortlists() {
     setCcRecipients(ccRecipients.filter((_, i) => i !== index));
   };
 
+  const loadDraftForEditing = (shortlist: Shortlist) => {
+    setEditingShortlist(shortlist.id);
+    setRecipientType(shortlist.recipient_type);
+    if (shortlist.recipient_type === 'internal') {
+      setSelectedStudent(shortlist.student.id);
+    } else {
+      setExternalEmail(shortlist.student.email);
+      setExternalName(shortlist.student.full_name);
+    }
+    setTitle(shortlist.title);
+    setMessage(shortlist.message || "");
+    setCcRecipients(shortlist.cc_recipients || []);
+    setSelectedPrograms(shortlist.programs || []);
+    setActiveTab("create");
+  };
+
+  const cloneShortlist = async (shortlist: Shortlist) => {
+    // Load the shortlist data but without the ID so it creates a new one
+    setEditingShortlist(null);
+    setRecipientType(shortlist.recipient_type);
+    if (shortlist.recipient_type === 'internal') {
+      setSelectedStudent(shortlist.student.id);
+    } else {
+      setExternalEmail(shortlist.student.email);
+      setExternalName(shortlist.student.full_name);
+    }
+    setTitle(shortlist.title + " (Copy)");
+    setMessage(shortlist.message || "");
+    setCcRecipients(shortlist.cc_recipients || []);
+    setSelectedPrograms(shortlist.programs || []);
+    setActiveTab("create");
+    
+    toast({
+      title: "Shortlist cloned",
+      description: "You can now edit and save/send the cloned shortlist",
+    });
+  };
+
+  const deleteShortlist = async (shortlistId: string) => {
+    if (!confirm("Are you sure you want to delete this shortlist? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("program_shortlists")
+        .delete()
+        .eq("id", shortlistId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Shortlist deleted",
+        description: "The shortlist has been permanently deleted",
+      });
+
+      fetchShortlists();
+    } catch (error: any) {
+      toast({
+        title: "Error deleting shortlist",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateDraft = async () => {
+    if (!editingShortlist || !validateRecipient() || selectedPrograms.length === 0) {
+      toast({
+        title: "Missing information",
+        description: "Please complete all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Update shortlist
+      const shortlistData: any = {
+        title,
+        message,
+        recipient_type: recipientType,
+        cc_recipients: ccRecipients,
+      };
+
+      if (recipientType === 'internal') {
+        shortlistData.student_profile_id = selectedStudent;
+        shortlistData.recipient_email = null;
+        shortlistData.recipient_name = null;
+      } else {
+        shortlistData.recipient_email = externalEmail;
+        shortlistData.recipient_name = externalName;
+        shortlistData.student_profile_id = null;
+      }
+
+      const { error: updateError } = await supabase
+        .from("program_shortlists")
+        .update(shortlistData)
+        .eq("id", editingShortlist);
+
+      if (updateError) throw updateError;
+
+      // Delete existing programs
+      const { error: deleteError } = await supabase
+        .from("shortlist_programs")
+        .delete()
+        .eq("shortlist_id", editingShortlist);
+
+      if (deleteError) throw deleteError;
+
+      // Insert updated programs
+      const programsToInsert = selectedPrograms.map((sp, index) => ({
+        shortlist_id: editingShortlist,
+        program_id: sp.program.id,
+        staff_notes: sp.staff_notes,
+        sort_order: index,
+      }));
+
+      const { error: programsError } = await supabase
+        .from("shortlist_programs")
+        .insert(programsToInsert);
+
+      if (programsError) throw programsError;
+
+      toast({
+        title: "Draft updated",
+        description: "Your changes have been saved",
+      });
+
+      resetForm();
+      fetchShortlists();
+    } catch (error: any) {
+      toast({
+        title: "Error updating draft",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredPrograms = programs.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const filteredShortlists = shortlists.filter(s => {
+    if (filterStatus === "all") return true;
+    return s.status === filterStatus;
+  });
 
   return (
     <AdminLayout>
@@ -503,9 +708,11 @@ export default function AdminShortlists() {
           </p>
         </div>
 
-        <Tabs defaultValue="create" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
-            <TabsTrigger value="create">Create New</TabsTrigger>
+            <TabsTrigger value="create">
+              {editingShortlist ? "Edit Shortlist" : "Create New"}
+            </TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
 
@@ -762,47 +969,77 @@ export default function AdminShortlists() {
 
             {/* Actions */}
             <div className="flex gap-3">
-              <Button
-                onClick={saveDraft}
-                disabled={loading || !validateRecipient() || selectedPrograms.length === 0}
-                variant="outline"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Save Draft
-                  </>
-                )}
-              </Button>
-              <Button
-                onClick={() => setShowPreview(true)}
-                disabled={!validateRecipient() || selectedPrograms.length === 0}
-                variant="outline"
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                Preview
-              </Button>
-              <Button
-                onClick={sendShortlist}
-                disabled={loading || !validateRecipient() || selectedPrograms.length === 0}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Send className="mr-2 h-4 w-4" />
-                    {recipientType === 'external' ? 'Send Email' : 'Send to Student'}
-                  </>
-                )}
-              </Button>
+              {editingShortlist ? (
+                <>
+                  <Button
+                    onClick={updateDraft}
+                    disabled={loading || !validateRecipient() || selectedPrograms.length === 0}
+                    variant="default"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Update Draft
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={resetForm}
+                    variant="outline"
+                  >
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    onClick={saveDraft}
+                    disabled={loading || !validateRecipient() || selectedPrograms.length === 0}
+                    variant="outline"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save Draft
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => setShowPreview(true)}
+                    disabled={!validateRecipient() || selectedPrograms.length === 0}
+                    variant="outline"
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    Preview
+                  </Button>
+                  <Button
+                    onClick={sendShortlist}
+                    disabled={loading || !validateRecipient() || selectedPrograms.length === 0}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4" />
+                        {recipientType === 'external' ? 'Send Email' : 'Send to Student'}
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
             </div>
 
             {/* Preview Dialog */}
@@ -960,39 +1197,243 @@ export default function AdminShortlists() {
           <TabsContent value="history">
             <Card>
               <CardHeader>
-                <CardTitle>Sent Shortlists</CardTitle>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Shortlist History</CardTitle>
+                    <CardDescription>Manage all your shortlists</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={filterStatus === "all" ? "default" : "outline"}
+                      onClick={() => setFilterStatus("all")}
+                    >
+                      All ({shortlists.length})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={filterStatus === "draft" ? "default" : "outline"}
+                      onClick={() => setFilterStatus("draft")}
+                    >
+                      Drafts ({shortlists.filter(s => s.status === "draft").length})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={filterStatus === "sent" ? "default" : "outline"}
+                      onClick={() => setFilterStatus("sent")}
+                    >
+                      Sent ({shortlists.filter(s => s.status === "sent").length})
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {shortlists.map((shortlist) => (
-                    <Card key={shortlist.id}>
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-semibold">{shortlist.title}</h4>
-                              <Badge variant={shortlist.recipient_type === 'external' ? 'secondary' : 'default'}>
-                                {shortlist.recipient_type === 'external' ? 'External' : 'Student'}
-                              </Badge>
+                {filteredShortlists.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No shortlists found
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredShortlists.map((shortlist) => (
+                      <Card key={shortlist.id}>
+                        <CardContent className="pt-6">
+                          <div className="space-y-4">
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-1 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h4 className="font-semibold">{shortlist.title}</h4>
+                                  <Badge variant={shortlist.status === "sent" ? "default" : "secondary"}>
+                                    {shortlist.status}
+                                  </Badge>
+                                  <Badge variant={shortlist.recipient_type === 'external' ? 'outline' : 'secondary'}>
+                                    {shortlist.recipient_type === 'external' ? 'External' : 'Student'}
+                                  </Badge>
+                                  {shortlist.status === "sent" && shortlist.delivery_status && (
+                                    <Badge variant={
+                                      shortlist.delivery_status === 'delivered' ? 'default' :
+                                      shortlist.delivery_status === 'failed' ? 'destructive' :
+                                      'secondary'
+                                    }>
+                                      {shortlist.delivery_status}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  <strong>To:</strong> {shortlist.student?.full_name || "Unknown"}
+                                  {shortlist.student?.email && ` (${shortlist.student.email})`}
+                                </p>
+                                {shortlist.cc_recipients && shortlist.cc_recipients.length > 0 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    <strong>CC:</strong> {shortlist.cc_recipients.map(cc => cc.name).join(', ')}
+                                  </p>
+                                )}
+                                <p className="text-xs text-muted-foreground">
+                                  <strong>Programs:</strong> {shortlist.programs?.length || 0}
+                                </p>
+                                <div className="flex gap-4 text-xs text-muted-foreground">
+                                  <span>Created: {new Date(shortlist.created_at).toLocaleDateString()}</span>
+                                  {shortlist.sent_at && (
+                                    <span>Sent: {new Date(shortlist.sent_at).toLocaleDateString()}</span>
+                                  )}
+                                  {shortlist.delivered_at && (
+                                    <span>Delivered: {new Date(shortlist.delivered_at).toLocaleDateString()}</span>
+                                  )}
+                                  {shortlist.opened_at && (
+                                    <span>Opened: {new Date(shortlist.opened_at).toLocaleDateString()}</span>
+                                  )}
+                                </div>
+                                {shortlist.delivery_error && (
+                                  <p className="text-xs text-destructive mt-2">
+                                    <strong>Error:</strong> {shortlist.delivery_error}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setViewingShortlist(shortlist)}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
+                                </Button>
+                                {shortlist.status === "draft" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => loadDraftForEditing(shortlist)}
+                                  >
+                                    Edit
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => cloneShortlist(shortlist)}
+                                >
+                                  Clone
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => deleteShortlist(shortlist.id)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                              To: {shortlist.student?.full_name || "Unknown"}
-                              {shortlist.student?.email && ` (${shortlist.student.email})`}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(shortlist.created_at).toLocaleDateString()}
-                            </p>
                           </div>
-                          <Badge variant={shortlist.status === "sent" ? "default" : "secondary"}>
-                            {shortlist.status}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
+
+            {/* View Shortlist Dialog */}
+            <Dialog open={!!viewingShortlist} onOpenChange={() => setViewingShortlist(null)}>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{viewingShortlist?.title}</DialogTitle>
+                  <DialogDescription>
+                    {viewingShortlist?.status === 'sent' ? 'Sent shortlist preview' : 'Draft preview'}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                {viewingShortlist && (
+                  <div className="border rounded-lg bg-background">
+                    {/* Email Header */}
+                    <div className="bg-primary p-5 rounded-t-lg">
+                      <img 
+                        src="/lovable-uploads/logo-white-transparent.png" 
+                        alt="University Assist" 
+                        className="h-12 mx-auto"
+                      />
+                    </div>
+                    
+                    {/* Email Body */}
+                    <div className="bg-card p-6">
+                      <h1 className="text-2xl font-semibold mb-4">
+                        Hi {viewingShortlist.student.full_name}! 👋
+                      </h1>
+                      
+                      <p className="mb-4">
+                        <strong>{currentUserName}</strong> has carefully curated these programs for you:
+                      </p>
+                      
+                      {viewingShortlist.message && (
+                        <div className="bg-primary/10 border-l-4 border-primary p-4 mb-4 italic">
+                          {viewingShortlist.message}
+                        </div>
+                      )}
+
+                      {viewingShortlist.cc_recipients && viewingShortlist.cc_recipients.length > 0 && (
+                        <div className="bg-muted/50 rounded p-3 mb-4 text-sm">
+                          <p className="font-semibold mb-1">📧 CC Recipients:</p>
+                          <div className="space-y-1">
+                            {viewingShortlist.cc_recipients.map((cc, idx) => {
+                              const ccStatus = viewingShortlist.cc_delivery_status?.find(ccd => ccd.email === cc.email);
+                              return (
+                                <div key={idx} className="flex items-center justify-between">
+                                  <span className="text-muted-foreground">{cc.name} ({cc.email})</span>
+                                  {ccStatus && (
+                                    <Badge variant={ccStatus.status === 'delivered' ? 'default' : 'secondary'} className="text-xs">
+                                      {ccStatus.status}
+                                    </Badge>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Programs List */}
+                      <div className="space-y-6">
+                        {viewingShortlist.programs?.map((prog, idx) => {
+                          const program = prog.program;
+                          const university = prog.program.university;
+                          const cityName = prog.program.city_name;
+                          
+                          return (
+                            <div key={program.id} className="border rounded-lg p-6 bg-card">
+                              <h3 className="text-xl font-semibold mb-2">{program.name}</h3>
+                              
+                              <p className="text-muted-foreground mb-4">
+                                📍 {university.name}, {cityName || 'Germany'}
+                              </p>
+                              
+                              <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
+                                <div>🎓 <strong>{program.degree_type}</strong></div>
+                                <div>⏱️ <strong>{program.duration_semesters} semesters</strong></div>
+                                <div>💶 <strong>
+                                  {(() => {
+                                    const amount = program.tuition_amount !== undefined && program.tuition_amount !== null 
+                                      ? program.tuition_amount 
+                                      : program.semester_fees;
+                                    const structure = program.tuition_fee_structure || 'semester';
+                                    const labels = { monthly: '/month', semester: '/semester', yearly: '/year' };
+                                    return amount === 0 ? 'Free' : `€${amount.toLocaleString()}${labels[structure]}`;
+                                  })()}
+                                </strong></div>
+                              </div>
+                              
+                              {prog.staff_notes && (
+                                <div className="bg-muted rounded p-3 mb-4">
+                                  <p className="font-semibold text-sm mb-1">💡 Why this program?</p>
+                                  <p className="text-sm">{prog.staff_notes}</p>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
         </Tabs>
       </div>

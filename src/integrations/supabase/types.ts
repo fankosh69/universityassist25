@@ -2031,11 +2031,16 @@ export type Database = {
       }
       program_shortlists: {
         Row: {
+          cc_delivery_status: Json | null
           cc_recipients: Json | null
           created_at: string | null
           created_by: string
+          delivered_at: string | null
+          delivery_error: string | null
+          delivery_status: string | null
           id: string
           message: string | null
+          opened_at: string | null
           recipient_email: string | null
           recipient_name: string | null
           recipient_type: string | null
@@ -2046,11 +2051,16 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          cc_delivery_status?: Json | null
           cc_recipients?: Json | null
           created_at?: string | null
           created_by: string
+          delivered_at?: string | null
+          delivery_error?: string | null
+          delivery_status?: string | null
           id?: string
           message?: string | null
+          opened_at?: string | null
           recipient_email?: string | null
           recipient_name?: string | null
           recipient_type?: string | null
@@ -2061,11 +2071,16 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          cc_delivery_status?: Json | null
           cc_recipients?: Json | null
           created_at?: string | null
           created_by?: string
+          delivered_at?: string | null
+          delivery_error?: string | null
+          delivery_status?: string | null
           id?: string
           message?: string | null
+          opened_at?: string | null
           recipient_email?: string | null
           recipient_name?: string | null
           recipient_type?: string | null
