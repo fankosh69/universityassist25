@@ -833,6 +833,10 @@ Provide specific guidance about this program, check eligibility, and answer ques
                 skip_reason: 'university_exists_need_field'
               };
             } else {
+              // Use the provided user_query, or fall back to the original message
+              // This ensures we always have a value for the NOT NULL constraint
+              const queryToRecord = user_query || message || 'User inquiry about program';
+              
               const { data: inquiry, error: inquiryError } = await supabaseAdmin
                 .from('program_inquiries')
                 .insert({
@@ -841,7 +845,7 @@ Provide specific guidance about this program, check eligibility, and answer ques
                   university_name: university_name || null,
                   city: city || null,
                   field_of_study: field_of_study || null,
-                  user_query: user_query,
+                  user_query: queryToRecord,
                   conversation_id: conversation.id,
                   status: 'pending'
                 })
