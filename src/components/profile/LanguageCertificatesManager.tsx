@@ -16,26 +16,50 @@ interface LanguageCertificatesManagerProps {
 
 export function LanguageCertificatesManager({ certificates, onChange }: LanguageCertificatesManagerProps) {
   const [isAdding, setIsAdding] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [selectedType, setSelectedType] = useState<LanguageProofType | ''>('');
   const [formData, setFormData] = useState<Partial<LanguageCertificate>>({});
 
   const resetForm = () => {
     setIsAdding(false);
+    setSelectedLanguage('');
     setSelectedType('');
     setFormData({});
   };
 
   const addCertificate = () => {
-    if (!selectedType) return;
+    if (!selectedType || !selectedLanguage) return;
 
     const newCert: LanguageCertificate = {
-      language: 'English',
+      language: selectedLanguage,
       proof_type: selectedType,
       ...formData
     };
 
     onChange([...certificates, newCert]);
     resetForm();
+  };
+
+  // Get available certificate types based on selected language
+  const getAvailableCertTypes = (language: string) => {
+    if (language === 'English') {
+      return [
+        { value: 'moi', label: 'MOI (Studies in English)' },
+        { value: 'ielts_academic', label: 'IELTS Academic' },
+        { value: 'toefl_ibt', label: 'TOEFL iBT' },
+        { value: 'pte_academic', label: 'PTE Academic' }
+      ];
+    } else if (language === 'German') {
+      return [
+        { value: 'other', label: 'TestDaF' },
+        { value: 'other', label: 'DSH' },
+        { value: 'other', label: 'Goethe-Zertifikat' }
+      ];
+    } else {
+      return [
+        { value: 'other', label: 'Language Certificate' }
+      ];
+    }
   };
 
   const removeCertificate = (index: number) => {
@@ -60,9 +84,9 @@ export function LanguageCertificatesManager({ certificates, onChange }: Language
   return (
     <Card>
       <CardHeader>
-        <CardTitle>English Language Certificates</CardTitle>
+        <CardTitle>Language Certificates</CardTitle>
         <CardDescription>
-          Add your English language proficiency certificates. You can have multiple types.
+          Add your language proficiency certificates. Multiple certificates can be added.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -77,7 +101,7 @@ export function LanguageCertificatesManager({ certificates, onChange }: Language
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       {getProofTypeIcon(cert.proof_type)}
-                      <span className="font-medium">{getProofTypeName(cert.proof_type)}</span>
+                      <span className="font-medium">{cert.language} - {getProofTypeName(cert.proof_type)}</span>
                     </div>
                     
                     {cert.proof_type === 'moi' && cert.moi_details && (
@@ -140,23 +164,51 @@ export function LanguageCertificatesManager({ certificates, onChange }: Language
           </Button>
         ) : (
           <Card className="p-4 space-y-4">
+            {/* Language Selection */}
             <div className="space-y-2">
-              <Label htmlFor="proof-type">Proof Type</Label>
+              <Label htmlFor="language">Language</Label>
               <Select
-                value={selectedType}
-                onValueChange={(value) => setSelectedType(value as LanguageProofType)}
+                value={selectedLanguage}
+                onValueChange={(value) => {
+                  setSelectedLanguage(value);
+                  setSelectedType(''); // Reset certificate type when language changes
+                }}
               >
-                <SelectTrigger id="proof-type">
-                  <SelectValue placeholder="Select proof type" />
+                <SelectTrigger id="language" className="bg-background">
+                  <SelectValue placeholder="Select language" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="moi">MOI (Studies in English)</SelectItem>
-                  <SelectItem value="ielts_academic">IELTS Academic</SelectItem>
-                  <SelectItem value="toefl_ibt">TOEFL iBT</SelectItem>
-                  <SelectItem value="pte_academic">PTE Academic</SelectItem>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="English">English</SelectItem>
+                  <SelectItem value="German">German</SelectItem>
+                  <SelectItem value="French">French</SelectItem>
+                  <SelectItem value="Spanish">Spanish</SelectItem>
+                  <SelectItem value="Arabic">Arabic</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Certificate Type Selection - Only shown after language is selected */}
+            {selectedLanguage && (
+              <div className="space-y-2">
+                <Label htmlFor="proof-type">Certificate Type</Label>
+                <Select
+                  value={selectedType}
+                  onValueChange={(value) => setSelectedType(value as LanguageProofType)}
+                >
+                  <SelectTrigger id="proof-type" className="bg-background">
+                    <SelectValue placeholder="Select certificate type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    {getAvailableCertTypes(selectedLanguage).map((cert) => (
+                      <SelectItem key={cert.value} value={cert.value}>
+                        {cert.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* MOI Form */}
             {selectedType === 'moi' && (
@@ -363,7 +415,7 @@ export function LanguageCertificatesManager({ certificates, onChange }: Language
             )}
 
             <div className="flex gap-2">
-              <Button onClick={addCertificate} disabled={!selectedType}>
+              <Button onClick={addCertificate} disabled={!selectedType || !selectedLanguage}>
                 Add Certificate
               </Button>
               <Button onClick={resetForm} variant="outline">
