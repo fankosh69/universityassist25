@@ -2104,6 +2104,7 @@ export type Database = {
           description: string | null
           duration_semesters: number
           ects_credits: number | null
+          english_language_requirements: Json | null
           field_of_study: string
           field_of_study_id: string | null
           id: string
@@ -2142,6 +2143,7 @@ export type Database = {
           description?: string | null
           duration_semesters: number
           ects_credits?: number | null
+          english_language_requirements?: Json | null
           field_of_study: string
           field_of_study_id?: string | null
           id?: string
@@ -2180,6 +2182,7 @@ export type Database = {
           description?: string | null
           duration_semesters?: number
           ects_credits?: number | null
+          english_language_requirements?: Json | null
           field_of_study?: string
           field_of_study_id?: string | null
           id?: string

@@ -19,6 +19,8 @@ import { ControlTypeBadge } from '@/components/ControlTypeBadge';
 import { MapPin, GraduationCap, BookOpen, FileCheck, Info, CheckCircle2, XCircle } from 'lucide-react';
 import { formatProgramTitle } from '@/lib/degree-formatting';
 import type { StudentProfile, ProgramRequirements } from '@/lib/matching';
+import { EnglishLanguageRequirementsCard } from '@/components/program/EnglishLanguageRequirementsCard';
+import type { EnglishLanguageRequirements } from '@/types/language-requirements';
 
 export default function ProgramPage() {
   const { uni, program } = useParams();
@@ -226,6 +228,13 @@ export default function ProgramPage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* English Language Requirements */}
+            {programData.language_of_instruction?.includes('en') && programData.english_language_requirements && (
+              <EnglishLanguageRequirementsCard 
+                requirements={programData.english_language_requirements as EnglishLanguageRequirements} 
+              />
+            )}
 
             {/* Application Timeline */}
             <ProgramApplicationTimeline

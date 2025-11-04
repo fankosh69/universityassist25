@@ -25,6 +25,8 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { HierarchicalFieldMultiSelector } from "@/components/admin/HierarchicalFieldMultiSelector";
+import { EnglishLanguageRequirementsForm } from "@/components/admin/EnglishLanguageRequirementsForm";
+import type { EnglishLanguageRequirements } from "@/types/language-requirements";
 
 interface ProgramField {
   field_of_study_id: string;
@@ -117,6 +119,7 @@ export const AdminPrograms = () => {
     winter_application_open_date: Date | null;
     summer_application_open_date: Date | null;
     recognition_weeks_before: number;
+    english_language_requirements: EnglishLanguageRequirements | null;
   }>({
     name: "",
     description: "",
@@ -143,7 +146,8 @@ export const AdminPrograms = () => {
     summer_deadline: null,
     winter_application_open_date: null,
     summer_application_open_date: null,
-    recognition_weeks_before: 10
+    recognition_weeks_before: 10,
+    english_language_requirements: null
   });
   useEffect(() => {
     fetchPrograms();
@@ -240,7 +244,8 @@ export const AdminPrograms = () => {
         winter_deadline: formData.winter_deadline ? formData.winter_deadline.toISOString().split('T')[0] : null,
         summer_deadline: formData.summer_deadline ? formData.summer_deadline.toISOString().split('T')[0] : null,
         winter_application_open_date: formData.winter_application_open_date ? formData.winter_application_open_date.toISOString().split('T')[0] : null,
-        summer_application_open_date: formData.summer_application_open_date ? formData.summer_application_open_date.toISOString().split('T')[0] : null
+        summer_application_open_date: formData.summer_application_open_date ? formData.summer_application_open_date.toISOString().split('T')[0] : null,
+        english_language_requirements: formData.english_language_requirements as any
       };
 
       // Remove fields that belong to the junction table, not the programs table
@@ -394,7 +399,8 @@ export const AdminPrograms = () => {
       summer_deadline: null,
       winter_application_open_date: null,
       summer_application_open_date: null,
-      recognition_weeks_before: 10
+      recognition_weeks_before: 10,
+      english_language_requirements: null
     });
     setIsDialogOpen(false);
   };
@@ -1492,10 +1498,17 @@ export const AdminPrograms = () => {
                     🇬🇧 English
                   </Label>
                 </div>
-              </div>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 gap-4">
+          {/* English Language Requirements */}
+          <EnglishLanguageRequirementsForm
+            value={formData.english_language_requirements}
+            onChange={(value) => setFormData({ ...formData, english_language_requirements: value })}
+            isEnglishTaught={formData.language_of_instruction.includes('en')}
+          />
+
+          <div className="grid grid-cols-1 gap-4">
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="duration_semesters">Duration (Semesters)</Label>

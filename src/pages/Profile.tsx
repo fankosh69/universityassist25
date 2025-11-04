@@ -13,6 +13,8 @@ import { User, GraduationCap, Target, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUserProfile, secureUpdateProfile } from "@/lib/secure-profile-api";
 import { GermanGPAConverter } from "@/components/GermanGPAConverter";
+import { LanguageCertificatesManager } from "@/components/profile/LanguageCertificatesManager";
+import type { LanguageCertificate } from "@/types/language-requirements";
 
 interface ProfileData {
   full_name: string;
@@ -27,7 +29,7 @@ interface ProfileData {
   current_field_of_study?: string;
   credits_taken?: number;
   thesis_topic?: string;
-  language_certificates: string[];
+  language_certificates: LanguageCertificate[];
   preferred_fields: string[];
   preferred_degree_type: string;
   preferred_cities: string[];
@@ -418,33 +420,14 @@ const Profile = () => {
               </div>
             )}
 
-            {/* Language Certificates */}
-            <div className="space-y-2">
-              <Label>Language Certificates</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={newLanguageCert}
-                  onChange={(e) => setNewLanguageCert(e.target.value)}
-                  placeholder="e.g., IELTS 7.0, TOEFL 100, TestDaF TDN4"
-                />
-                <Button type="button" onClick={addLanguageCertificate} size="sm">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {profileData.language_certificates.map((cert, index) => (
-                  <Badge key={index} variant="secondary" className="gap-1">
-                    {cert}
-                    <X 
-                      className="h-3 w-3 cursor-pointer" 
-                      onClick={() => removeLanguageCertificate(cert)}
-                    />
-                  </Badge>
-                ))}
-              </div>
-            </div>
           </CardContent>
         </Card>
+
+        {/* Language Certificates */}
+        <LanguageCertificatesManager
+          certificates={profileData.language_certificates || []}
+          onChange={(certs) => setProfileData(prev => ({ ...prev, language_certificates: certs }))}
+        />
 
         {/* Study Preferences */}
         <Card className="shadow-soft">
