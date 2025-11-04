@@ -1,14 +1,14 @@
-import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, MapPin, Clock, Euro, Globe } from 'lucide-react';
+import { Heart, MapPin, Clock, Euro, Globe, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatProgramTitle } from '@/lib/degree-formatting';
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
 import { LanguageFlags } from '@/components/LanguageFlags';
 import { formatTuitionDisplay, type TuitionStructure } from '@/lib/tuition-calculator';
+import type { EnglishLanguageRequirements } from '@/types/language-requirements';
 
 interface Program {
   id: string;
@@ -24,6 +24,7 @@ interface Program {
   application_method: string;
   language_of_instruction: string[];
   slug: string;
+  english_language_requirements?: EnglishLanguageRequirements;
   universities: {
     name: string;
     city: string;
@@ -46,6 +47,9 @@ export function ProgramCard({ program, isSaved, onSave }: ProgramCardProps) {
     : program.semester_fees === 0 
     ? 'Free' 
     : `€${program.semester_fees.toLocaleString()}/semester`;
+
+  const isEnglishTaught = program.language_of_instruction?.includes('en');
+  const englishReqs = program.english_language_requirements;
 
   return (
     <Card className="group hover:shadow-md transition-shadow border border-border bg-background">
@@ -121,6 +125,36 @@ export function ProgramCard({ program, isSaved, onSave }: ProgramCardProps) {
             </Badge>
           )}
         </div>
+
+        {/* English Language Proof Badges */}
+        {isEnglishTaught && englishReqs && (
+          <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border">
+            {englishReqs.accepts_moi && (
+              <Badge variant="secondary" className="text-xs">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                MOI
+              </Badge>
+            )}
+            {englishReqs.ielts_academic?.required && (
+              <Badge variant="secondary" className="text-xs">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                IELTS {englishReqs.ielts_academic.overall_min}+
+              </Badge>
+            )}
+            {englishReqs.toefl_ibt?.required && (
+              <Badge variant="secondary" className="text-xs">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                TOEFL {englishReqs.toefl_ibt.overall_min}+
+              </Badge>
+            )}
+            {englishReqs.pte_academic?.required && (
+              <Badge variant="secondary" className="text-xs">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                PTE {englishReqs.pte_academic.overall_min}+
+              </Badge>
+            )}
+          </div>
+        )}
 
         {/* View details button */}
         <Link to={`/universities/${program.universities.slug}/programs/${program.slug}`}>

@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, MapPin, Clock, Euro, Globe, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, MapPin, Clock, Euro, Globe, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatProgramTitle } from '@/lib/degree-formatting';
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
 import { LanguageFlags } from '@/components/LanguageFlags';
 import { formatTuitionDisplay, type TuitionStructure } from '@/lib/tuition-calculator';
+import type { EnglishLanguageRequirements } from '@/types/language-requirements';
 
 interface Program {
   id: string;
@@ -24,6 +25,7 @@ interface Program {
   application_method: string;
   language_of_instruction: string[];
   slug: string;
+  english_language_requirements?: EnglishLanguageRequirements;
   universities: {
     name: string;
     city: string;
@@ -47,6 +49,9 @@ export function ProgramMobileCard({ program, isSaved, onSave }: ProgramMobileCar
     : program.semester_fees === 0 
     ? 'Free' 
     : `€${program.semester_fees.toLocaleString()}/sem`;
+
+  const isEnglishTaught = program.language_of_instruction?.includes('en');
+  const englishReqs = program.english_language_requirements;
 
   return (
     <Card className="hover:shadow-sm transition-shadow border border-border bg-background">
@@ -117,6 +122,34 @@ export function ProgramMobileCard({ program, isSaved, onSave }: ProgramMobileCar
                 <Badge variant="outline" className="text-xs">
                   Uni-Assist
                 </Badge>
+              )}
+              {isEnglishTaught && englishReqs && (
+                <>
+                  {englishReqs.accepts_moi && (
+                    <Badge variant="secondary" className="text-xs">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      MOI
+                    </Badge>
+                  )}
+                  {englishReqs.ielts_academic?.required && (
+                    <Badge variant="secondary" className="text-xs">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      IELTS {englishReqs.ielts_academic.overall_min}+
+                    </Badge>
+                  )}
+                  {englishReqs.toefl_ibt?.required && (
+                    <Badge variant="secondary" className="text-xs">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      TOEFL {englishReqs.toefl_ibt.overall_min}+
+                    </Badge>
+                  )}
+                  {englishReqs.pte_academic?.required && (
+                    <Badge variant="secondary" className="text-xs">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      PTE {englishReqs.pte_academic.overall_min}+
+                    </Badge>
+                  )}
+                </>
               )}
             </div>
 

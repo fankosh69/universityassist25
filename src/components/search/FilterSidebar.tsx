@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { FilterGroup } from './FilterGroup';
 import { HierarchicalFieldSelect } from './HierarchicalFieldSelect';
-import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X, Calendar, Info } from 'lucide-react';
+import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X, Calendar, Info, Languages } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { INSTITUTION_TYPES, CONTROL_TYPES } from '@/lib/institution-types';
 import { format, addMonths, startOfMonth } from 'date-fns';
@@ -25,6 +25,10 @@ interface SearchFilters {
   controlType: string;
   intake: string[];
   applicationStatus: string[];
+  acceptsMOI: boolean;
+  acceptsIELTS: boolean;
+  acceptsTOEFL: boolean;
+  acceptsPTE: boolean;
 }
 
 interface FilterOptions {
@@ -63,6 +67,9 @@ export function FilterSidebar({
     return Object.entries(filters).filter(([key, value]) => {
       if (key === 'fieldOfStudyIds' || key === 'intake' || key === 'applicationStatus') {
         return Array.isArray(value) && value.length > 0;
+      }
+      if (key === 'acceptsMOI' || key === 'acceptsIELTS' || key === 'acceptsTOEFL' || key === 'acceptsPTE') {
+        return value === true;
       }
       return value !== 'all' && value !== null && value !== '';
     }).length;
@@ -375,6 +382,81 @@ export function FilterSidebar({
                   </Label>
                 </div>
               ))}
+            </div>
+          </FilterGroup>
+
+          {/* English Language Proof */}
+          <FilterGroup 
+            value="language-proof" 
+            title="English Language Proof" 
+            icon={<Languages className="h-4 w-4" />}
+            activeCount={
+              (filters.acceptsMOI ? 1 : 0) +
+              (filters.acceptsIELTS ? 1 : 0) +
+              (filters.acceptsTOEFL ? 1 : 0) +
+              (filters.acceptsPTE ? 1 : 0)
+            }
+          >
+            <div className="space-y-3">
+              {/* MOI Checkbox with Tooltip */}
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="accepts-moi"
+                  checked={filters.acceptsMOI}
+                  onCheckedChange={(checked) => updateFilter('acceptsMOI', checked)}
+                />
+                <div className="flex-1">
+                  <Label htmlFor="accepts-moi" className="text-sm font-medium flex items-center gap-1.5 cursor-pointer">
+                    Accepts MOI Certificate
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p>Medium of Instruction (MOI) Certificate proves your degree was taught entirely in English. Often accepted as proof of English proficiency without IELTS/TOEFL scores.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </Label>
+                </div>
+              </div>
+              
+              {/* IELTS Checkbox */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="accepts-ielts"
+                  checked={filters.acceptsIELTS}
+                  onCheckedChange={(checked) => updateFilter('acceptsIELTS', checked)}
+                />
+                <Label htmlFor="accepts-ielts" className="text-sm cursor-pointer">
+                  Accepts IELTS Academic
+                </Label>
+              </div>
+              
+              {/* TOEFL Checkbox */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="accepts-toefl"
+                  checked={filters.acceptsTOEFL}
+                  onCheckedChange={(checked) => updateFilter('acceptsTOEFL', checked)}
+                />
+                <Label htmlFor="accepts-toefl" className="text-sm cursor-pointer">
+                  Accepts TOEFL iBT
+                </Label>
+              </div>
+              
+              {/* PTE Checkbox */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="accepts-pte"
+                  checked={filters.acceptsPTE}
+                  onCheckedChange={(checked) => updateFilter('acceptsPTE', checked)}
+                />
+                <Label htmlFor="accepts-pte" className="text-sm cursor-pointer">
+                  Accepts PTE Academic
+                </Label>
+              </div>
             </div>
           </FilterGroup>
         </Accordion>

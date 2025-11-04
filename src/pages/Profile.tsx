@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { User, GraduationCap, Target, Plus, X } from "lucide-react";
+import { User, GraduationCap, Target, Plus, X, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUserProfile, secureUpdateProfile } from "@/lib/secure-profile-api";
 import { GermanGPAConverter } from "@/components/GermanGPAConverter";
@@ -407,10 +407,23 @@ const Profile = () => {
         </Card>
 
         {/* Language Certificates */}
-        <LanguageCertificatesManager
-          certificates={profileData.language_certificates || []}
-          onChange={(certs) => setProfileData(prev => ({ ...prev, language_certificates: certs }))}
-        />
+        <Card className="shadow-soft">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              Language Certificates
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-2">
+              Add your English language proof (MOI, IELTS, TOEFL, or PTE). Multiple certificates can be added.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <LanguageCertificatesManager
+              certificates={profileData.language_certificates || []}
+              onChange={(certs) => setProfileData(prev => ({ ...prev, language_certificates: certs }))}
+            />
+          </CardContent>
+        </Card>
 
         {/* Study Preferences */}
         <Card className="shadow-soft">

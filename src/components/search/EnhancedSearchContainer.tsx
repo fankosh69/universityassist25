@@ -52,6 +52,10 @@ interface SearchFilters {
   controlType: string;
   intake: string[];
   applicationStatus: string[];
+  acceptsMOI: boolean;
+  acceptsIELTS: boolean;
+  acceptsTOEFL: boolean;
+  acceptsPTE: boolean;
 }
 
 export function EnhancedSearchContainer() {
@@ -76,7 +80,11 @@ export function EnhancedSearchContainer() {
     institutionType: 'all',
     controlType: 'all',
     intake: [],
-    applicationStatus: []
+    applicationStatus: [],
+    acceptsMOI: false,
+    acceptsIELTS: false,
+    acceptsTOEFL: false,
+    acceptsPTE: false
   });
 
   // Get unique filter options
@@ -223,6 +231,21 @@ export function EnhancedSearchContainer() {
       });
     }
 
+    // Filter by English Language Proof
+    if (filters.acceptsMOI || filters.acceptsIELTS || filters.acceptsTOEFL || filters.acceptsPTE) {
+      filtered = filtered.filter(program => {
+        const englishReqs = (program as any).english_language_requirements;
+        if (!englishReqs || !program.language_of_instruction?.includes('en')) return false;
+        
+        return (
+          (filters.acceptsMOI && englishReqs.accepts_moi) ||
+          (filters.acceptsIELTS && englishReqs.ielts_academic?.required) ||
+          (filters.acceptsTOEFL && englishReqs.toefl_ibt?.required) ||
+          (filters.acceptsPTE && englishReqs.pte_academic?.required)
+        );
+      });
+    }
+
     // Filter by intake
     if (filters.intake && filters.intake.length > 0) {
       filtered = filtered.filter(program => {
@@ -319,7 +342,11 @@ export function EnhancedSearchContainer() {
       institutionType: 'all',
       controlType: 'all',
       intake: [],
-      applicationStatus: []
+      applicationStatus: [],
+      acceptsMOI: false,
+      acceptsIELTS: false,
+      acceptsTOEFL: false,
+      acceptsPTE: false
     });
     setSearchQuery('');
   };
@@ -328,6 +355,9 @@ export function EnhancedSearchContainer() {
     if (key === 'fieldOfStudyIds' || key === 'intake' || key === 'applicationStatus') {
       return Array.isArray(value) && value.length > 0;
     }
+    if (key === 'acceptsMOI' || key === 'acceptsIELTS' || key === 'acceptsTOEFL' || key === 'acceptsPTE') {
+      return value === true;
+    }
     return value !== 'all' && value !== null && value !== '';
   }) || searchQuery.trim() !== '';
 
@@ -335,6 +365,9 @@ export function EnhancedSearchContainer() {
     return Object.entries(filters).filter(([key, value]) => {
       if (key === 'fieldOfStudyIds' || key === 'intake' || key === 'applicationStatus') {
         return Array.isArray(value) && value.length > 0;
+      }
+      if (key === 'acceptsMOI' || key === 'acceptsIELTS' || key === 'acceptsTOEFL' || key === 'acceptsPTE') {
+        return value === true;
       }
       return value !== 'all' && value !== null && value !== '';
     }).length;
@@ -349,10 +382,14 @@ export function EnhancedSearchContainer() {
       }));
     } else {
       // Clear entire filter
-      setFilters(prev => ({
-        ...prev,
-        [key]: (key === 'fieldOfStudyIds' || key === 'intake' || key === 'applicationStatus') ? [] : 'all'
-      }));
+      if (key === 'acceptsMOI' || key === 'acceptsIELTS' || key === 'acceptsTOEFL' || key === 'acceptsPTE') {
+        setFilters(prev => ({ ...prev, [key]: false }));
+      } else {
+        setFilters(prev => ({
+          ...prev,
+          [key]: (key === 'fieldOfStudyIds' || key === 'intake' || key === 'applicationStatus') ? [] : 'all'
+        }));
+      }
     }
   };
 
@@ -489,6 +526,42 @@ export function EnhancedSearchContainer() {
                       </Badge>
                     );
                   })}
+                  {filters.acceptsMOI && (
+                    <Badge variant="secondary" className="text-xs">
+                      Accepts MOI
+                      <X
+                        className="h-3 w-3 ml-1 cursor-pointer"
+                        onClick={() => removeFilter('acceptsMOI')}
+                      />
+                    </Badge>
+                  )}
+                  {filters.acceptsIELTS && (
+                    <Badge variant="secondary" className="text-xs">
+                      Accepts IELTS
+                      <X
+                        className="h-3 w-3 ml-1 cursor-pointer"
+                        onClick={() => removeFilter('acceptsIELTS')}
+                      />
+                    </Badge>
+                  )}
+                  {filters.acceptsTOEFL && (
+                    <Badge variant="secondary" className="text-xs">
+                      Accepts TOEFL
+                      <X
+                        className="h-3 w-3 ml-1 cursor-pointer"
+                        onClick={() => removeFilter('acceptsTOEFL')}
+                      />
+                    </Badge>
+                  )}
+                  {filters.acceptsPTE && (
+                    <Badge variant="secondary" className="text-xs">
+                      Accepts PTE
+                      <X
+                        className="h-3 w-3 ml-1 cursor-pointer"
+                        onClick={() => removeFilter('acceptsPTE')}
+                      />
+                    </Badge>
+                  )}
                 </div>
               )}
             </div>
