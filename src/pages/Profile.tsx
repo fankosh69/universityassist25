@@ -49,7 +49,6 @@ const Profile = () => {
     preferred_cities: [],
   });
   const [loading, setLoading] = useState(false);
-  const [newLanguageCert, setNewLanguageCert] = useState("");
   const [newPreferredField, setNewPreferredField] = useState("");
   const [newPreferredCity, setNewPreferredCity] = useState("");
   const { toast } = useToast();
@@ -88,7 +87,7 @@ const Profile = () => {
           current_field_of_study: profile.current_field_of_study || "",
           credits_taken: profile.credits_taken || 0,
           thesis_topic: profile.thesis_topic || "",
-          language_certificates: profile.language_certificates || [],
+          language_certificates: [],
           preferred_fields: profile.preferred_fields || [],
           preferred_degree_type: profile.preferred_degree_type || "",
           preferred_cities: profile.preferred_cities || [],
@@ -163,22 +162,6 @@ const Profile = () => {
     }
   };
 
-  const addLanguageCertificate = () => {
-    if (newLanguageCert && !profileData.language_certificates.includes(newLanguageCert)) {
-      setProfileData(prev => ({
-        ...prev,
-        language_certificates: [...prev.language_certificates, newLanguageCert]
-      }));
-      setNewLanguageCert("");
-    }
-  };
-
-  const removeLanguageCertificate = (cert: string) => {
-    setProfileData(prev => ({
-      ...prev,
-      language_certificates: prev.language_certificates.filter(c => c !== cert)
-    }));
-  };
 
   const addPreferredField = () => {
     if (newPreferredField && !profileData.preferred_fields.includes(newPreferredField)) {

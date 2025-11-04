@@ -367,7 +367,8 @@ export const AdminPrograms = () => {
       summer_deadline: program.summer_deadline ? new Date(program.summer_deadline) : null,
       winter_application_open_date: program.winter_application_open_date ? new Date(program.winter_application_open_date) : null,
       summer_application_open_date: program.summer_application_open_date ? new Date(program.summer_application_open_date) : null,
-      recognition_weeks_before: program.recognition_weeks_before || 10
+      recognition_weeks_before: program.recognition_weeks_before || 10,
+      english_language_requirements: (program as any).english_language_requirements || null
     });
     setIsDialogOpen(true);
   };
