@@ -12,8 +12,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Users, Building2, Navigation, ExternalLink, Eye, EyeOff } from 'lucide-react';
+import { MapPin, Users, Building2, Navigation, ExternalLink, Eye, EyeOff, Filter } from 'lucide-react';
 import { Toggle } from '@/components/ui/toggle';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import {
   fetchNearbyAmenities,
   groupAmenitiesByCategory,
@@ -62,6 +70,9 @@ export function CampusDetailModal({
   const [hoveredAmenity, setHoveredAmenity] = useState<string | null>(null);
   const [showAmenityMarkers, setShowAmenityMarkers] = useState(true);
   const [amenitiesError, setAmenitiesError] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<Set<NearbyAmenity['category']>>(
+    new Set(['restaurant', 'cafe', 'grocery', 'pharmacy', 'library', 'bank'])
+  );
 
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
@@ -171,7 +182,7 @@ export function CampusDetailModal({
     loadAmenities();
   }, [selectedCampus, isMapLoaded]);
 
-  // Add/remove amenity markers based on toggle and amenities data
+  // Add/remove amenity markers based on toggle, amenities data, and selected categories
   useEffect(() => {
     if (!map.current || !isMapLoaded) return;
 
@@ -183,7 +194,12 @@ export function CampusDetailModal({
     if (showAmenityMarkers && amenities) {
       const allAmenities = Object.values(amenities).flat();
       
-      allAmenities.forEach((amenity) => {
+      // Filter amenities by selected categories
+      const filteredAmenities = allAmenities.filter(amenity => 
+        selectedCategories.has(amenity.category)
+      );
+      
+      filteredAmenities.forEach((amenity) => {
         const amenityIcon = L.divIcon({
           className: 'custom-amenity-marker',
           html: `<div style="background-color: hsl(var(--secondary)); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.3);">${getCategoryIcon(amenity.category)}</div>`,
@@ -202,7 +218,7 @@ export function CampusDetailModal({
         amenityMarkersRef.current.push(marker);
       });
     }
-  }, [showAmenityMarkers, amenities, isMapLoaded]);
+  }, [showAmenityMarkers, amenities, isMapLoaded, selectedCategories]);
 
   // Handle amenity hover
   const handleAmenityHover = (amenity: NearbyAmenity | null) => {
@@ -228,6 +244,22 @@ export function CampusDetailModal({
   }, [selectedCampus]);
 
   if (!selectedCampus) return null;
+
+  // Toggle category filter
+  const toggleCategory = (category: NearbyAmenity['category']) => {
+    const newCategories = new Set(selectedCategories);
+    if (newCategories.has(category)) {
+      newCategories.delete(category);
+    } else {
+      newCategories.add(category);
+    }
+    setSelectedCategories(newCategories);
+  };
+
+  // All available categories
+  const allCategories: NearbyAmenity['category'][] = [
+    'restaurant', 'cafe', 'grocery', 'pharmacy', 'library', 'bank'
+  ];
 
   const facilityIcons = {
     'Library': '📚',
@@ -290,27 +322,63 @@ export function CampusDetailModal({
                 </div>
               )}
               
-              {/* Map Controls - Toggle Amenities */}
+              {/* Map Controls - Toggle Amenities & Filter */}
               {isMapLoaded && (
-                <div className="absolute top-4 right-4 z-[1000] bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border p-2">
-                  <Toggle
-                    pressed={showAmenityMarkers}
-                    onPressedChange={setShowAmenityMarkers}
-                    aria-label="Toggle amenity markers"
-                    className="gap-2"
-                  >
-                    {showAmenityMarkers ? (
-                      <>
-                        <Eye className="h-4 w-4" />
-                        <span className="text-xs font-medium">Amenities</span>
-                      </>
-                    ) : (
-                      <>
-                        <EyeOff className="h-4 w-4" />
-                        <span className="text-xs font-medium">Amenities</span>
-                      </>
-                    )}
-                  </Toggle>
+                <div className="absolute top-4 right-4 z-[1000] flex gap-2">
+                  <div className="bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border p-2">
+                    <Toggle
+                      pressed={showAmenityMarkers}
+                      onPressedChange={setShowAmenityMarkers}
+                      aria-label="Toggle amenity markers"
+                      className="gap-2"
+                    >
+                      {showAmenityMarkers ? (
+                        <>
+                          <Eye className="h-4 w-4" />
+                          <span className="text-xs font-medium">Amenities</span>
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="h-4 w-4" />
+                          <span className="text-xs font-medium">Amenities</span>
+                        </>
+                      )}
+                    </Toggle>
+                  </div>
+                  
+                  <div className="bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="px-3 py-2 hover:bg-accent rounded-lg transition-colors flex items-center gap-2">
+                          <Filter className="h-4 w-4" />
+                          <span className="text-xs font-medium">Filter</span>
+                          {selectedCategories.size < allCategories.length && (
+                            <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                              {selectedCategories.size}
+                            </Badge>
+                          )}
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent 
+                        align="end" 
+                        className="w-56 bg-background border shadow-lg z-[1001]"
+                      >
+                        <DropdownMenuLabel>Amenity Categories</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {allCategories.map((category) => (
+                          <DropdownMenuCheckboxItem
+                            key={category}
+                            checked={selectedCategories.has(category)}
+                            onCheckedChange={() => toggleCategory(category)}
+                            className="cursor-pointer"
+                          >
+                            <span className="mr-2">{getCategoryIcon(category)}</span>
+                            {getCategoryLabel(category)}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               )}
             </div>
@@ -374,34 +442,43 @@ export function CampusDetailModal({
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {Object.entries(amenities).map(([category, items]) =>
-                        items.length > 0 ? (
-                          <div key={category}>
-                            <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                              {getCategoryIcon(category as NearbyAmenity['category'])} {getCategoryLabel(category as NearbyAmenity['category'])}
-                            </h4>
-                            <div className="space-y-2">
-                              {items.slice(0, 3).map((amenity) => (
-                                <button
-                                  key={amenity.id}
-                                  onClick={() => handleAmenityHover(amenity)}
-                                  onMouseEnter={() => setHoveredAmenity(amenity.id)}
-                                  onMouseLeave={() => setHoveredAmenity(null)}
-                                  className={`w-full flex items-start justify-between p-3 rounded-lg border transition-all cursor-pointer hover:bg-accent hover:scale-[1.02] active:scale-[0.98] ${
-                                    hoveredAmenity === amenity.id && "bg-primary/10 border-primary/50"
-                                  }`}
-                                >
-                                  <div className="flex-1 min-w-0 text-left">
-                                    <p className="font-medium text-sm truncate">{amenity.name}</p>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      {formatDistance(amenity.distance)} away
-                                    </p>
-                                  </div>
-                                </button>
-                              ))}
+                      {Object.entries(amenities)
+                        .filter(([category]) => selectedCategories.has(category as NearbyAmenity['category']))
+                        .map(([category, items]) =>
+                          items.length > 0 ? (
+                            <div key={category}>
+                              <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                                {getCategoryIcon(category as NearbyAmenity['category'])} {getCategoryLabel(category as NearbyAmenity['category'])}
+                              </h4>
+                              <div className="space-y-2">
+                                {items.slice(0, 3).map((amenity) => (
+                                  <button
+                                    key={amenity.id}
+                                    onClick={() => handleAmenityHover(amenity)}
+                                    onMouseEnter={() => setHoveredAmenity(amenity.id)}
+                                    onMouseLeave={() => setHoveredAmenity(null)}
+                                    className={`w-full flex items-start justify-between p-3 rounded-lg border transition-all cursor-pointer hover:bg-accent hover:scale-[1.02] active:scale-[0.98] ${
+                                      hoveredAmenity === amenity.id && "bg-primary/10 border-primary/50"
+                                    }`}
+                                  >
+                                    <div className="flex-1 min-w-0 text-left">
+                                      <p className="font-medium text-sm truncate">{amenity.name}</p>
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {formatDistance(amenity.distance)} away
+                                      </p>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        ) : null
+                          ) : null
+                        )}
+                      {Object.entries(amenities).filter(([category]) => 
+                        selectedCategories.has(category as NearbyAmenity['category'])
+                      ).every(([_, items]) => items.length === 0) && (
+                        <p className="text-sm text-muted-foreground text-center">
+                          No amenities found for selected categories
+                        </p>
                       )}
                     </div>
                   )}
