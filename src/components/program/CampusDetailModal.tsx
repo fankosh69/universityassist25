@@ -70,8 +70,12 @@ export function CampusDetailModal({
   const [hoveredAmenity, setHoveredAmenity] = useState<string | null>(null);
   const [showAmenityMarkers, setShowAmenityMarkers] = useState(true);
   const [amenitiesError, setAmenitiesError] = useState(false);
+  // Start with all categories selected by default
+  const allCategories: NearbyAmenity['category'][] = [
+    'restaurant', 'cafe', 'grocery', 'pharmacy', 'library', 'bank'
+  ];
   const [selectedCategories, setSelectedCategories] = useState<Set<NearbyAmenity['category']>>(
-    new Set(['restaurant', 'cafe', 'grocery', 'pharmacy', 'library', 'bank'])
+    new Set(allCategories)
   );
 
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -96,7 +100,7 @@ export function CampusDetailModal({
       if (!mapContainer.current) return;
 
       try {
-        map.current = L.map(mapContainer.current, {
+        const newMap = L.map(mapContainer.current, {
           center: [selectedCampus.lat!, selectedCampus.lng!],
           zoom: 14,
           scrollWheelZoom: true,
@@ -105,15 +109,7 @@ export function CampusDetailModal({
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 19,
-        }).addTo(map.current);
-
-        // Force map to resize after initialization
-        setTimeout(() => {
-          if (map.current) {
-            map.current.invalidateSize();
-            setIsMapLoaded(true);
-          }
-        }, 200);
+        }).addTo(newMap);
 
         // Add main campus marker
         const campusIcon = L.divIcon({
@@ -126,7 +122,7 @@ export function CampusDetailModal({
         const mainMarker = L.marker([selectedCampus.lat!, selectedCampus.lng!], {
           icon: campusIcon,
         })
-          .addTo(map.current)
+          .addTo(newMap)
           .bindPopup(
             selectedCampus.name 
               ? `<b>${selectedCampus.name}</b><br/>${selectedCampus.city || ''}` 
@@ -134,10 +130,20 @@ export function CampusDetailModal({
           );
 
         markers.current = [mainMarker];
+        map.current = newMap;
+
+        // Force map to resize and mark as loaded
+        setTimeout(() => {
+          if (map.current) {
+            map.current.invalidateSize();
+            setIsMapLoaded(true);
+          }
+        }, 100);
       } catch (error) {
         console.error('Error initializing map:', error);
+        setIsMapLoaded(true); // Mark as loaded even on error to prevent infinite loading
       }
-    }, 150);
+    }, 100);
 
     return () => {
       clearTimeout(timeoutId);
@@ -256,10 +262,6 @@ export function CampusDetailModal({
     setSelectedCategories(newCategories);
   };
 
-  // All available categories
-  const allCategories: NearbyAmenity['category'][] = [
-    'restaurant', 'cafe', 'grocery', 'pharmacy', 'library', 'bank'
-  ];
 
   const facilityIcons = {
     'Library': '📚',
