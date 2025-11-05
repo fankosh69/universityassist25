@@ -3042,7 +3042,7 @@ export type Database = {
           map_embed_url: string | null
           migrated_from_university_id: string | null
           migration_notes: string | null
-          name: string
+          name: string | null
           phone: string | null
           photo_urls: Json | null
           postal_code: string | null
@@ -3070,7 +3070,7 @@ export type Database = {
           map_embed_url?: string | null
           migrated_from_university_id?: string | null
           migration_notes?: string | null
-          name: string
+          name?: string | null
           phone?: string | null
           photo_urls?: Json | null
           postal_code?: string | null
@@ -3098,7 +3098,7 @@ export type Database = {
           map_embed_url?: string | null
           migrated_from_university_id?: string | null
           migration_notes?: string | null
-          name?: string
+          name?: string | null
           phone?: string | null
           photo_urls?: Json | null
           postal_code?: string | null
