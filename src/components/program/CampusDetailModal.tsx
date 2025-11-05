@@ -116,7 +116,11 @@ export function CampusDetailModal({
           icon: campusIcon,
         })
           .addTo(map.current)
-          .bindPopup(`<b>${selectedCampus.name}</b><br/>${selectedCampus.city}`);
+          .bindPopup(
+            selectedCampus.name 
+              ? `<b>${selectedCampus.name}</b><br/>${selectedCampus.city || ''}` 
+              : `<b>Campus</b><br/>${selectedCampus.city || ''}`
+          );
 
         markers.current = [mainMarker];
       } catch (error) {
