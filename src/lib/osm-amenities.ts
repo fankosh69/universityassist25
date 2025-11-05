@@ -52,38 +52,53 @@ function categorizePOI(tags: any): NearbyAmenity['category'] {
   return 'other';
 }
 
-// Fetch nearby amenities using OpenStreetMap Overpass API
+// Fetch nearby amenities using OpenStreetMap Overpass API with retry logic
 export async function fetchNearbyAmenities(
   lat: number, 
   lng: number, 
   radiusMeters: number = 1000
 ): Promise<NearbyAmenity[]> {
-  try {
-    // Build Overpass QL query for nearby amenities
-    const query = `
-      [out:json][timeout:25];
-      (
-        node["amenity"~"restaurant|cafe|fast_food|food_court|pharmacy|library|bank|atm"](around:${radiusMeters},${lat},${lng});
-        node["shop"~"supermarket|convenience|grocery"](around:${radiusMeters},${lat},${lng});
-      );
-      out body;
-      >;
-      out skel qt;
-    `;
+  // Alternative Overpass API endpoints (try in order)
+  const endpoints = [
+    'https://lz4.overpass-api.de/api/interpreter',
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter'
+  ];
 
-    const response = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      body: `data=${encodeURIComponent(query)}`,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
+  // Build Overpass QL query for nearby amenities
+  const query = `
+    [out:json][timeout:15];
+    (
+      node["amenity"~"restaurant|cafe|fast_food|food_court|pharmacy|library|bank|atm"](around:${radiusMeters},${lat},${lng});
+      node["shop"~"supermarket|convenience|grocery"](around:${radiusMeters},${lat},${lng});
+    );
+    out body;
+    >;
+    out skel qt;
+  `;
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch amenities from Overpass API');
-    }
+  // Try each endpoint with timeout
+  for (let endpointIndex = 0; endpointIndex < endpoints.length; endpointIndex++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-    const data = await response.json();
+      const response = await fetch(endpoints[endpointIndex], {
+        method: 'POST',
+        body: `data=${encodeURIComponent(query)}`,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
     const amenities: NearbyAmenity[] = [];
 
     for (const element of data.elements || []) {
@@ -114,14 +129,23 @@ export async function fetchNearbyAmenities(
       }
     }
 
-    // Sort by distance
-    amenities.sort((a, b) => a.distance - b.distance);
+      // Sort by distance
+      amenities.sort((a, b) => a.distance - b.distance);
 
-    return amenities;
-  } catch (error) {
-    console.error('Error fetching amenities from Overpass API:', error);
-    return [];
+      return amenities;
+    } catch (error) {
+      console.warn(`Overpass API endpoint ${endpointIndex + 1} failed:`, error);
+      // Continue to next endpoint
+      if (endpointIndex === endpoints.length - 1) {
+        // All endpoints failed
+        console.error('All Overpass API endpoints failed:', error);
+        return [];
+      }
+    }
   }
+
+  // Fallback: return empty array if all attempts fail
+  return [];
 }
 
 // Group amenities by category and limit per category
