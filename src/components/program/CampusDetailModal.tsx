@@ -91,11 +91,27 @@ export function CampusDetailModal({
     }
   }, [isOpen, campuses, initialCampusId]);
 
+  // Reset map loaded state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      console.log('Modal closed, resetting map state');
+      setIsMapLoaded(false);
+    }
+  }, [isOpen]);
+
   // Initialize map when modal opens
   useEffect(() => {
-    if (!mapContainer.current || !selectedCampus || map.current) return;
+    // Validate coordinates before proceeding
+    if (!selectedCampus?.lat || !selectedCampus?.lng) {
+      console.warn('Invalid campus coordinates:', selectedCampus);
+      return;
+    }
 
-    // Initialize Leaflet map with delay to ensure container is rendered
+    if (!mapContainer.current || map.current) return;
+
+    console.log('Initializing map for campus:', selectedCampus.name || selectedCampus.city);
+
+    // Single timeout for map initialization
     const timeoutId = setTimeout(() => {
       if (!mapContainer.current) return;
 
@@ -132,18 +148,15 @@ export function CampusDetailModal({
         markers.current = [mainMarker];
         map.current = newMap;
 
-        // Force map to resize and mark as loaded
-        setTimeout(() => {
-          if (map.current) {
-            map.current.invalidateSize();
-            setIsMapLoaded(true);
-          }
-        }, 100);
+        // Immediately resize and mark as loaded
+        newMap.invalidateSize();
+        setIsMapLoaded(true);
+        console.log('Map loaded successfully');
       } catch (error) {
         console.error('Error initializing map:', error);
         setIsMapLoaded(true); // Mark as loaded even on error to prevent infinite loading
       }
-    }, 100);
+    }, 150);
 
     return () => {
       clearTimeout(timeoutId);
@@ -152,7 +165,7 @@ export function CampusDetailModal({
         map.current = null;
         markers.current = [];
         amenityMarkersRef.current = [];
-        setIsMapLoaded(false);
+        // DON'T reset isMapLoaded here - only reset on modal close
       }
     };
   }, [selectedCampus]);
