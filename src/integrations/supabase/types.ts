@@ -1599,6 +1599,39 @@ export type Database = {
         }
         Relationships: []
       }
+      migration_audit: {
+        Row: {
+          actual_count: number | null
+          created_at: string | null
+          details: Json | null
+          expected_count: number | null
+          id: string
+          migration_phase: string
+          status: string | null
+          validation_type: string
+        }
+        Insert: {
+          actual_count?: number | null
+          created_at?: string | null
+          details?: Json | null
+          expected_count?: number | null
+          id?: string
+          migration_phase: string
+          status?: string | null
+          validation_type: string
+        }
+        Update: {
+          actual_count?: number | null
+          created_at?: string | null
+          details?: Json | null
+          expected_count?: number | null
+          id?: string
+          migration_phase?: string
+          status?: string | null
+          validation_type?: string
+        }
+        Relationships: []
+      }
       ocr_extractions: {
         Row: {
           created_at: string | null
@@ -1751,6 +1784,48 @@ export type Database = {
           xp_points?: number | null
         }
         Relationships: []
+      }
+      program_campuses: {
+        Row: {
+          auto_migrated: boolean | null
+          campus_id: string
+          created_at: string | null
+          id: string
+          migration_date: string | null
+          program_id: string
+        }
+        Insert: {
+          auto_migrated?: boolean | null
+          campus_id: string
+          created_at?: string | null
+          id?: string
+          migration_date?: string | null
+          program_id: string
+        }
+        Update: {
+          auto_migrated?: boolean | null
+          campus_id?: string
+          created_at?: string | null
+          id?: string
+          migration_date?: string | null
+          program_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_campuses_campus_id_fkey"
+            columns: ["campus_id"]
+            isOneToOne: false
+            referencedRelation: "university_campuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_campuses_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       program_deadlines: {
         Row: {
