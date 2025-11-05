@@ -63,7 +63,11 @@ export function CampusDetailModal({
   onClose,
   initialCampusId,
 }: CampusDetailModalProps) {
-  const [selectedCampus, setSelectedCampus] = useState<Campus | null>(null);
+  // Initialize selectedCampus immediately to avoid race conditions
+  const [selectedCampus, setSelectedCampus] = useState<Campus | null>(() => {
+    if (campuses.length === 0) return null;
+    return campuses.find(c => c.id === initialCampusId) || campuses[0];
+  });
   const [amenities, setAmenities] = useState<Record<string, NearbyAmenity[]>>({});
   const [isLoadingAmenities, setIsLoadingAmenities] = useState(false);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
@@ -83,13 +87,17 @@ export function CampusDetailModal({
   const markers = useRef<L.Marker[]>([]);
   const amenityMarkersRef = useRef<L.Marker[]>([]);
 
-  // Set initial selected campus
+  // Update selectedCampus only if it needs to change
   useEffect(() => {
     if (isOpen && campuses.length > 0) {
       const initial = campuses.find(c => c.id === initialCampusId) || campuses[0];
-      setSelectedCampus(initial);
+      // Only update if different (prevents unnecessary re-renders)
+      if (initial?.id !== selectedCampus?.id) {
+        console.log('Updating selected campus to:', initial.name || initial.city);
+        setSelectedCampus(initial);
+      }
     }
-  }, [isOpen, campuses, initialCampusId]);
+  }, [isOpen, campuses, initialCampusId, selectedCampus?.id]);
 
   // Reset map loaded state when modal closes
   useEffect(() => {
@@ -262,7 +270,24 @@ export function CampusDetailModal({
     }
   }, [selectedCampus]);
 
-  if (!selectedCampus) return null;
+  // Only return null if modal is closed AND no campus selected
+  if (!selectedCampus && !isOpen) return null;
+  
+  // Show loading state if modal is open but campus not ready
+  if (!selectedCampus && isOpen) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-6xl h-[85vh]">
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+              <p className="text-sm text-muted-foreground">Loading campus information...</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   // Toggle category filter
   const toggleCategory = (category: NearbyAmenity['category']) => {
