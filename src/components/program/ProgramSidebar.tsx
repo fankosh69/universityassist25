@@ -7,6 +7,7 @@ import EligibilityPanel from '@/components/EligibilityPanel';
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
 import { AskAIButton } from '@/components/program/AskAIButton';
+import { ProgramCampusLocation } from '@/components/program/ProgramCampusLocation';
 import { Share2, Printer, Calendar, ExternalLink, MapPin, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
@@ -28,6 +29,7 @@ interface ProgramSidebarProps {
     control_type: string;
     website?: string;
   };
+  campuses?: any[];
   nextDeadline?: Date;
   onConsultationClick?: () => void;
   className?: string;
@@ -39,6 +41,7 @@ export function ProgramSidebar({
   studentProfile,
   programRequirements,
   university,
+  campuses,
   nextDeadline,
   onConsultationClick,
   className,
@@ -129,6 +132,11 @@ export function ProgramSidebar({
         studentProfile={studentProfile}
         programRequirements={programRequirements}
       />
+
+      {/* Campus Location */}
+      {campuses && campuses.length > 0 && (
+        <ProgramCampusLocation campuses={campuses} />
+      )}
 
       {/* Important Dates */}
       {nextDeadline && (

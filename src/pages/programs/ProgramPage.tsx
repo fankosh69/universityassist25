@@ -26,6 +26,7 @@ export default function ProgramPage() {
   const { uni, program } = useParams();
   const [programData, setProgramData] = useState<any>(null);
   const [university, setUniversity] = useState<any>(null);
+  const [campuses, setCampuses] = useState<any[]>([]);
   const [deadlines, setDeadlines] = useState<any[]>([]);
   const [requirements, setRequirements] = useState<any[]>([]);
   const [studentProfile, setStudentProfile] = useState<StudentProfile | undefined>(undefined);
@@ -66,13 +67,33 @@ export default function ProgramPage() {
       setProgramData(prog);
 
       if (prog?.id) {
-        const [deadlinesRes, reqRes] = await Promise.all([
+        const [deadlinesRes, reqRes, campusesRes] = await Promise.all([
           supabase.from('program_deadlines').select('*').eq('program_id', prog.id),
-          supabase.from('program_requirements').select('*').eq('program_id', prog.id)
+          supabase.from('program_requirements').select('*').eq('program_id', prog.id),
+          supabase
+            .from('program_campuses')
+            .select(`
+              campus_id,
+              university_campuses (
+                id,
+                name,
+                city,
+                lat,
+                lng,
+                is_main_campus,
+                facilities,
+                student_count
+              )
+            `)
+            .eq('program_id', prog.id)
         ]);
         
         setDeadlines(deadlinesRes.data || []);
         setRequirements(reqRes.data || []);
+        
+        // Extract campus data from the join
+        const campusData = campusesRes.data?.map((pc: any) => pc.university_campuses).filter(Boolean) || [];
+        setCampuses(campusData);
       }
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -293,6 +314,7 @@ export default function ProgramPage() {
                 control_type: university?.control_type,
                 website: university?.website
               }}
+              campuses={campuses}
               nextDeadline={nextDeadline}
               onConsultationClick={() => setConsultationModalOpen(true)}
             />
