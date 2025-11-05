@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { MapPin, Building2, Users, Navigation as NavigationIcon } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
+import { CampusDetailModal } from './CampusDetailModal';
 
 interface Campus {
   id: string;
@@ -26,6 +28,7 @@ export function ProgramCampusLocation({ campuses }: ProgramCampusLocationProps) 
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapboxToken, setMapboxToken] = useState<string | null>(null);
   const [isLoadingToken, setIsLoadingToken] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Get primary campus (main campus or first one)
   const primaryCampus = campuses.find(c => c.is_main_campus) || campuses[0];
@@ -119,7 +122,7 @@ export function ProgramCampusLocation({ campuses }: ProgramCampusLocationProps) 
           </div>
         )}
 
-        {/* Mini Map */}
+        {/* Mini Map - Clickable */}
         {primaryCampus.lat && primaryCampus.lng && (
           <div className="relative">
             {isLoadingToken && (
@@ -130,7 +133,17 @@ export function ProgramCampusLocation({ campuses }: ProgramCampusLocationProps) 
             {!isLoadingToken && mapboxToken && (
               <div 
                 ref={mapContainer} 
-                className="h-32 rounded-md border border-border overflow-hidden"
+                onClick={() => setIsModalOpen(true)}
+                className="h-32 rounded-md border border-border overflow-hidden cursor-pointer hover:border-primary transition-colors"
+                role="button"
+                tabIndex={0}
+                aria-label="Click to explore campus location"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setIsModalOpen(true);
+                  }
+                }}
               />
             )}
             {!isLoadingToken && !mapboxToken && (
@@ -138,20 +151,20 @@ export function ProgramCampusLocation({ campuses }: ProgramCampusLocationProps) 
                 <p className="text-xs text-muted-foreground">Map unavailable</p>
               </div>
             )}
-            
-            {/* View on Google Maps link */}
-            {primaryCampus.lat && primaryCampus.lng && (
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${primaryCampus.lat},${primaryCampus.lng}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute bottom-2 right-2 bg-background/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs hover:bg-background transition-colors flex items-center gap-1 shadow-sm"
-              >
-                <NavigationIcon className="h-3 w-3" />
-                View on Map
-              </a>
-            )}
           </div>
+        )}
+
+        {/* Explore Location Button */}
+        {primaryCampus.lat && primaryCampus.lng && mapboxToken && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setIsModalOpen(true)}
+            className="w-full"
+          >
+            <MapPin className="h-4 w-4 mr-2" />
+            Explore Campus Location
+          </Button>
         )}
 
         {/* Student Count */}
@@ -196,6 +209,17 @@ export function ProgramCampusLocation({ campuses }: ProgramCampusLocationProps) 
           </div>
         )}
       </CardContent>
+
+      {/* Campus Detail Modal */}
+      {mapboxToken && (
+        <CampusDetailModal
+          campuses={campuses}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          initialCampusId={primaryCampus.id}
+          mapboxToken={mapboxToken}
+        />
+      )}
     </Card>
   );
 }
