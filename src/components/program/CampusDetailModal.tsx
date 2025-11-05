@@ -75,12 +75,16 @@ export function CampusDetailModal({
     if (!isOpen || !mapContainer.current || !selectedCampus?.lat || !selectedCampus?.lng) return;
     if (map.current) return; // Map already initialized
 
-    // Create Leaflet map
-    map.current = L.map(mapContainer.current, {
-      center: [selectedCampus.lat, selectedCampus.lng],
-      zoom: 15,
-      zoomControl: true,
-    });
+    // Small delay to ensure container is rendered with dimensions
+    setTimeout(() => {
+      if (!mapContainer.current) return;
+      
+      // Create Leaflet map
+      map.current = L.map(mapContainer.current, {
+        center: [selectedCampus.lat, selectedCampus.lng],
+        zoom: 15,
+        zoomControl: true,
+      });
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -96,11 +100,15 @@ export function CampusDetailModal({
       iconAnchor: [12, 24],
     });
 
-    const mainMarker = L.marker([selectedCampus.lat, selectedCampus.lng], { icon: customIcon })
-      .addTo(map.current)
-      .bindPopup(`<strong>${selectedCampus.name || 'Campus'}</strong><br>${selectedCampus.city || ''}`);
-    
-    markers.current.push(mainMarker);
+      const mainMarker = L.marker([selectedCampus.lat, selectedCampus.lng], { icon: customIcon })
+        .addTo(map.current)
+        .bindPopup(`<strong>${selectedCampus.name || 'Campus'}</strong><br>${selectedCampus.city || ''}`);
+      
+      markers.current.push(mainMarker);
+
+      // Force map to recalculate size
+      map.current.invalidateSize();
+    }, 100);
 
     return () => {
       if (map.current) {
@@ -207,40 +215,39 @@ export function CampusDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] p-0 overflow-hidden">
-        <div className="flex flex-col h-full">
-          <DialogHeader className="px-6 py-4 border-b">
-            <DialogTitle>Campus Location & Nearby Amenities</DialogTitle>
-          </DialogHeader>
+      <DialogContent className="max-w-6xl h-[90vh] p-0 overflow-hidden flex flex-col">
+        <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
+          <DialogTitle>Campus Location & Nearby Amenities</DialogTitle>
+        </DialogHeader>
 
-          {campuses.length > 1 && (
-            <Tabs 
-              value={selectedCampus.id} 
-              onValueChange={(id) => {
-                const campus = campuses.find(c => c.id === id);
-                if (campus) setSelectedCampus(campus);
-              }}
-              className="px-6 pt-4"
-            >
-              <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${campuses.length}, 1fr)` }}>
-                {campuses.map((campus) => (
-                  <TabsTrigger key={campus.id} value={campus.id}>
-                    {campus.name || campus.city}
-                    {campus.is_main_campus && <Badge variant="secondary" className="ml-2 text-xs">Main</Badge>}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          )}
+        {campuses.length > 1 && (
+          <Tabs 
+            value={selectedCampus.id} 
+            onValueChange={(id) => {
+              const campus = campuses.find(c => c.id === id);
+              if (campus) setSelectedCampus(campus);
+            }}
+            className="px-6 pt-4 flex-shrink-0"
+          >
+            <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${campuses.length}, 1fr)` }}>
+              {campuses.map((campus) => (
+                <TabsTrigger key={campus.id} value={campus.id}>
+                  {campus.name || campus.city}
+                  {campus.is_main_campus && <Badge variant="secondary" className="ml-2 text-xs">Main</Badge>}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        )}
 
-          <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden min-h-0">
             {/* Map Section */}
-            <div className="flex-1 relative">
-              <div ref={mapContainer} className="absolute inset-0" />
+            <div className="flex-1 relative min-h-0">
+              <div ref={mapContainer} className="absolute inset-0 w-full h-full" />
             </div>
 
             {/* Details Sidebar */}
-            <div className="w-80 border-l overflow-y-auto bg-background">
+            <div className="w-80 border-l overflow-y-auto bg-background flex-shrink-0">
               <div className="p-6 space-y-6">
                 {/* Campus Info */}
                 <div>
@@ -301,19 +308,20 @@ export function CampusDetailModal({
                             </h4>
                             <div className="space-y-2">
                               {items.map((amenity) => (
-                                <div
+                                <button
                                   key={amenity.id}
                                   onMouseEnter={() => handleAmenityHover(amenity)}
                                   onMouseLeave={() => handleAmenityHover(null)}
-                                  className={`p-2 rounded-md border cursor-pointer transition-colors ${
+                                  onClick={() => handleAmenityHover(amenity)}
+                                  className={`w-full p-3 rounded-md border cursor-pointer transition-all text-left ${
                                     hoveredAmenity === amenity.id 
-                                      ? 'bg-accent border-primary' 
-                                      : 'hover:bg-accent/50'
+                                      ? 'bg-primary/10 border-primary shadow-sm scale-[1.02]' 
+                                      : 'hover:bg-accent/50 hover:border-accent'
                                   }`}
                                 >
                                   <p className="text-sm font-medium">{amenity.name}</p>
                                   <p className="text-xs text-muted-foreground">{formatDistance(amenity.distance)}</p>
-                                </div>
+                                </button>
                               ))}
                             </div>
                           </div>
@@ -368,7 +376,6 @@ export function CampusDetailModal({
               </div>
             </div>
           </div>
-        </div>
       </DialogContent>
     </Dialog>
   );
