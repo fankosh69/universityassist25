@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Users, Building2, Navigation, ExternalLink } from 'lucide-react';
+import { MapPin, Users, Building2, Navigation, ExternalLink, Eye, EyeOff } from 'lucide-react';
+import { Toggle } from '@/components/ui/toggle';
 import {
   fetchNearbyAmenities,
   groupAmenitiesByCategory,
@@ -57,6 +58,7 @@ export function CampusDetailModal({
   const [amenities, setAmenities] = useState<Record<string, NearbyAmenity[]>>({});
   const [isLoadingAmenities, setIsLoadingAmenities] = useState(false);
   const [hoveredAmenity, setHoveredAmenity] = useState<string | null>(null);
+  const [showAmenityMarkers, setShowAmenityMarkers] = useState(true);
 
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
@@ -135,7 +137,7 @@ export function CampusDetailModal({
         setAmenities(grouped);
 
         // Add amenity markers to map
-        if (map.current) {
+        if (map.current && showAmenityMarkers) {
           // Clear existing amenity markers (keep campus marker)
           markers.current.slice(1).forEach(marker => marker.remove());
           markers.current = markers.current.slice(0, 1);
@@ -170,7 +172,18 @@ export function CampusDetailModal({
     }
 
     loadAmenities();
-  }, [selectedCampus]);
+  }, [selectedCampus, showAmenityMarkers]);
+
+  // Toggle amenity markers visibility
+  useEffect(() => {
+    if (!map.current) return;
+    
+    if (!showAmenityMarkers) {
+      // Remove all amenity markers (keep campus marker)
+      markers.current.slice(1).forEach(marker => marker.remove());
+      markers.current = markers.current.slice(0, 1);
+    }
+  }, [showAmenityMarkers]);
 
   // Handle amenity hover
   const handleAmenityHover = (amenity: NearbyAmenity | null) => {
@@ -244,6 +257,28 @@ export function CampusDetailModal({
             {/* Map Section */}
             <div className="flex-1 relative min-h-0">
               <div ref={mapContainer} className="absolute inset-0 w-full h-full" />
+              
+              {/* Map Controls - Toggle Amenities */}
+              <div className="absolute top-4 right-4 z-[1000] bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border p-2">
+                <Toggle
+                  pressed={showAmenityMarkers}
+                  onPressedChange={setShowAmenityMarkers}
+                  aria-label="Toggle amenity markers"
+                  className="gap-2"
+                >
+                  {showAmenityMarkers ? (
+                    <>
+                      <Eye className="h-4 w-4" />
+                      <span className="text-xs font-medium">Amenities</span>
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff className="h-4 w-4" />
+                      <span className="text-xs font-medium">Amenities</span>
+                    </>
+                  )}
+                </Toggle>
+              </div>
             </div>
 
             {/* Details Sidebar */}
