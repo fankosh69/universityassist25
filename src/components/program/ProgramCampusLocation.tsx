@@ -2,11 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Building2, Users, Navigation as NavigationIcon } from 'lucide-react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import { supabase } from '@/integrations/supabase/client';
+import { MapPin, Building2, Users } from 'lucide-react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { CampusDetailModal } from './CampusDetailModal';
+
+// Fix for default marker icons in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
 
 interface Campus {
   id: string;
@@ -25,55 +32,52 @@ interface ProgramCampusLocationProps {
 
 export function ProgramCampusLocation({ campuses }: ProgramCampusLocationProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
-  const [isLoadingToken, setIsLoadingToken] = useState(true);
+  const map = useRef<L.Map | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Get primary campus (main campus or first one)
   const primaryCampus = campuses.find(c => c.is_main_campus) || campuses[0];
 
   useEffect(() => {
-    async function fetchMapboxToken() {
-      try {
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        if (error) throw error;
-        if (data?.token) {
-          setMapboxToken(data.token);
-        }
-      } catch (error) {
-        console.error('Error fetching Mapbox token:', error);
-      } finally {
-        setIsLoadingToken(false);
-      }
-    }
-    fetchMapboxToken();
-  }, []);
-
-  useEffect(() => {
-    if (!mapContainer.current || !mapboxToken || !primaryCampus?.lat || !primaryCampus?.lng) return;
+    if (!mapContainer.current || !primaryCampus?.lat || !primaryCampus?.lng) return;
     if (map.current) return; // Initialize map only once
 
-    mapboxgl.accessToken = mapboxToken;
-
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [primaryCampus.lng, primaryCampus.lat],
+    // Create Leaflet map
+    map.current = L.map(mapContainer.current, {
+      center: [primaryCampus.lat, primaryCampus.lng],
       zoom: 13,
-      interactive: false,
+      zoomControl: false,
+      dragging: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      boxZoom: false,
+      keyboard: false,
       attributionControl: false,
     });
 
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap',
+    }).addTo(map.current);
+
     // Add marker
-    new mapboxgl.Marker({ color: '#2E57F6' })
-      .setLngLat([primaryCampus.lng, primaryCampus.lat])
+    const customIcon = L.divIcon({
+      className: 'custom-mini-marker',
+      html: '<div style="background-color: #2E57F6; width: 20px; height: 20px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+      iconSize: [20, 20],
+      iconAnchor: [10, 20],
+    });
+
+    L.marker([primaryCampus.lat, primaryCampus.lng], { icon: customIcon })
       .addTo(map.current);
 
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
     };
-  }, [mapboxToken, primaryCampus]);
+  }, [primaryCampus]);
 
   if (!campuses || campuses.length === 0) {
     return null;
@@ -124,38 +128,24 @@ export function ProgramCampusLocation({ campuses }: ProgramCampusLocationProps) 
 
         {/* Mini Map - Clickable */}
         {primaryCampus.lat && primaryCampus.lng && (
-          <div className="relative">
-            {isLoadingToken && (
-              <div className="h-32 rounded-md bg-muted animate-pulse flex items-center justify-center">
-                <p className="text-xs text-muted-foreground">Loading map...</p>
-              </div>
-            )}
-            {!isLoadingToken && mapboxToken && (
-              <div 
-                ref={mapContainer} 
-                onClick={() => setIsModalOpen(true)}
-                className="h-32 rounded-md border border-border overflow-hidden cursor-pointer hover:border-primary transition-colors"
-                role="button"
-                tabIndex={0}
-                aria-label="Click to explore campus location"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setIsModalOpen(true);
-                  }
-                }}
-              />
-            )}
-            {!isLoadingToken && !mapboxToken && (
-              <div className="h-32 rounded-md bg-muted flex items-center justify-center">
-                <p className="text-xs text-muted-foreground">Map unavailable</p>
-              </div>
-            )}
-          </div>
+          <div 
+            ref={mapContainer} 
+            onClick={() => setIsModalOpen(true)}
+            className="h-32 rounded-md border border-border overflow-hidden cursor-pointer hover:border-primary transition-colors"
+            role="button"
+            tabIndex={0}
+            aria-label="Click to explore campus location"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setIsModalOpen(true);
+              }
+            }}
+          />
         )}
 
         {/* Explore Location Button */}
-        {primaryCampus.lat && primaryCampus.lng && mapboxToken && (
+        {primaryCampus.lat && primaryCampus.lng && (
           <Button 
             variant="outline" 
             size="sm"
@@ -211,15 +201,12 @@ export function ProgramCampusLocation({ campuses }: ProgramCampusLocationProps) 
       </CardContent>
 
       {/* Campus Detail Modal */}
-      {mapboxToken && (
-        <CampusDetailModal
-          campuses={campuses}
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          initialCampusId={primaryCampus.id}
-          mapboxToken={mapboxToken}
-        />
-      )}
+      <CampusDetailModal
+        campuses={campuses}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        initialCampusId={primaryCampus.id}
+      />
     </Card>
   );
 }

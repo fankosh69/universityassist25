@@ -1,4 +1,4 @@
-// Helper functions for fetching nearby amenities and transit using Mapbox APIs
+// Helper functions for fetching nearby amenities using OpenStreetMap Overpass API
 
 export interface NearbyAmenity {
   id: string;
@@ -36,59 +36,79 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
   return R * c;
 }
 
-// Categorize POI based on Mapbox category
-function categorizePOI(properties: any): NearbyAmenity['category'] {
-  const category = properties.category?.toLowerCase() || '';
-  const name = properties.text?.toLowerCase() || '';
+// Categorize POI based on OpenStreetMap tags
+function categorizePOI(tags: any): NearbyAmenity['category'] {
+  const amenity = tags.amenity?.toLowerCase() || '';
+  const shop = tags.shop?.toLowerCase() || '';
+  const name = tags.name?.toLowerCase() || '';
   
-  if (category.includes('restaurant') || category.includes('food') || name.includes('restaurant')) return 'restaurant';
-  if (category.includes('cafe') || category.includes('coffee') || name.includes('cafe')) return 'cafe';
-  if (category.includes('grocery') || category.includes('supermarket') || name.includes('grocery')) return 'grocery';
-  if (category.includes('pharmacy') || name.includes('pharmacy') || name.includes('apotheke')) return 'pharmacy';
-  if (category.includes('library') || name.includes('library') || name.includes('bibliothek')) return 'library';
-  if (category.includes('bank') || name.includes('bank')) return 'bank';
+  if (amenity === 'restaurant' || amenity === 'food_court' || amenity === 'fast_food') return 'restaurant';
+  if (amenity === 'cafe' || amenity === 'coffee_shop') return 'cafe';
+  if (shop === 'supermarket' || shop === 'convenience' || shop === 'grocery') return 'grocery';
+  if (amenity === 'pharmacy' || shop === 'pharmacy') return 'pharmacy';
+  if (amenity === 'library') return 'library';
+  if (amenity === 'bank' || amenity === 'atm') return 'bank';
   
   return 'other';
 }
 
-// Fetch nearby amenities using Mapbox Geocoding API
+// Fetch nearby amenities using OpenStreetMap Overpass API
 export async function fetchNearbyAmenities(
   lat: number, 
   lng: number, 
-  mapboxToken: string,
   radiusMeters: number = 1000
 ): Promise<NearbyAmenity[]> {
   try {
-    const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?` +
-      `types=poi&limit=50&proximity=${lng},${lat}&access_token=${mapboxToken}`
-    );
+    // Build Overpass QL query for nearby amenities
+    const query = `
+      [out:json][timeout:25];
+      (
+        node["amenity"~"restaurant|cafe|fast_food|food_court|pharmacy|library|bank|atm"](around:${radiusMeters},${lat},${lng});
+        node["shop"~"supermarket|convenience|grocery"](around:${radiusMeters},${lat},${lng});
+      );
+      out body;
+      >;
+      out skel qt;
+    `;
+
+    const response = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: `data=${encodeURIComponent(query)}`,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch amenities');
+      throw new Error('Failed to fetch amenities from Overpass API');
     }
 
     const data = await response.json();
     const amenities: NearbyAmenity[] = [];
 
-    for (const feature of data.features || []) {
-      const [featureLng, featureLat] = feature.center;
-      const distance = calculateDistance(lat, lng, featureLat, featureLng);
+    for (const element of data.elements || []) {
+      if (element.type !== 'node' || !element.lat || !element.lon) continue;
+      
+      const distance = calculateDistance(lat, lng, element.lat, element.lon);
       
       // Only include POIs within the specified radius
       if (distance <= radiusMeters) {
-        const category = categorizePOI(feature.properties);
+        const category = categorizePOI(element.tags || {});
         
         // Filter to only relevant categories
         if (category !== 'other') {
           amenities.push({
-            id: feature.id,
-            name: feature.text,
+            id: element.id.toString(),
+            name: element.tags?.name || 'Unnamed',
             category,
-            lat: featureLat,
-            lng: featureLng,
+            lat: element.lat,
+            lng: element.lon,
             distance: Math.round(distance),
-            address: feature.place_name,
+            address: [
+              element.tags?.['addr:street'],
+              element.tags?.['addr:housenumber'],
+              element.tags?.['addr:city']
+            ].filter(Boolean).join(' '),
           });
         }
       }
@@ -99,7 +119,7 @@ export async function fetchNearbyAmenities(
 
     return amenities;
   } catch (error) {
-    console.error('Error fetching amenities:', error);
+    console.error('Error fetching amenities from Overpass API:', error);
     return [];
   }
 }
