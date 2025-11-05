@@ -3027,9 +3027,12 @@ export type Database = {
         Row: {
           address: string | null
           building_count: number | null
+          campus_slug: string | null
           city: string
+          city_id: string | null
           created_at: string | null
           description: string | null
+          email: string | null
           facilities: Json | null
           faculties: string[] | null
           id: string
@@ -3037,20 +3040,27 @@ export type Database = {
           lat: number | null
           lng: number | null
           map_embed_url: string | null
+          migrated_from_university_id: string | null
+          migration_notes: string | null
           name: string
+          phone: string | null
           photo_urls: Json | null
           postal_code: string | null
           public_transport: Json | null
           student_count: number | null
           university_id: string
           updated_at: string | null
+          website_url: string | null
         }
         Insert: {
           address?: string | null
           building_count?: number | null
+          campus_slug?: string | null
           city: string
+          city_id?: string | null
           created_at?: string | null
           description?: string | null
+          email?: string | null
           facilities?: Json | null
           faculties?: string[] | null
           id?: string
@@ -3058,20 +3068,27 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           map_embed_url?: string | null
+          migrated_from_university_id?: string | null
+          migration_notes?: string | null
           name: string
+          phone?: string | null
           photo_urls?: Json | null
           postal_code?: string | null
           public_transport?: Json | null
           student_count?: number | null
           university_id: string
           updated_at?: string | null
+          website_url?: string | null
         }
         Update: {
           address?: string | null
           building_count?: number | null
+          campus_slug?: string | null
           city?: string
+          city_id?: string | null
           created_at?: string | null
           description?: string | null
+          email?: string | null
           facilities?: Json | null
           faculties?: string[] | null
           id?: string
@@ -3079,15 +3096,33 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           map_embed_url?: string | null
+          migrated_from_university_id?: string | null
+          migration_notes?: string | null
           name?: string
+          phone?: string | null
           photo_urls?: Json | null
           postal_code?: string | null
           public_transport?: Json | null
           student_count?: number | null
           university_id?: string
           updated_at?: string | null
+          website_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "university_campuses_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "university_campuses_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "city_stats"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "university_campuses_university_id_fkey"
             columns: ["university_id"]
