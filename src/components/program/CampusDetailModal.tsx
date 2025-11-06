@@ -87,17 +87,13 @@ export function CampusDetailModal({
   const markers = useRef<L.Marker[]>([]);
   const amenityMarkersRef = useRef<L.Marker[]>([]);
 
-  // Update selectedCampus only if it needs to change
+  // Update selectedCampus when modal opens or initialCampusId changes
   useEffect(() => {
     if (isOpen && campuses.length > 0) {
       const initial = campuses.find(c => c.id === initialCampusId) || campuses[0];
-      // Only update if different (prevents unnecessary re-renders)
-      if (initial?.id !== selectedCampus?.id) {
-        console.log('Updating selected campus to:', initial.name || initial.city);
-        setSelectedCampus(initial);
-      }
+      setSelectedCampus(initial);
     }
-  }, [isOpen, campuses, initialCampusId, selectedCampus?.id]);
+  }, [isOpen, campuses, initialCampusId]);
 
   // Reset map loaded state when modal closes
   useEffect(() => {
@@ -107,19 +103,24 @@ export function CampusDetailModal({
     }
   }, [isOpen]);
 
-  // Initialize map when modal opens
+  // Initialize map only once when modal opens and has valid coordinates
   useEffect(() => {
-    // Validate coordinates before proceeding
+    if (!isOpen) return;
     if (!selectedCampus?.lat || !selectedCampus?.lng) {
       console.warn('Invalid campus coordinates:', selectedCampus);
       return;
     }
+    if (!mapContainer.current) return;
+    
+    // Clean up existing map if any
+    if (map.current) {
+      map.current.remove();
+      map.current = null;
+    }
 
-    if (!mapContainer.current || map.current) return;
+    console.log('Initializing map for:', selectedCampus.name || selectedCampus.city);
+    setIsMapLoaded(false);
 
-    console.log('Initializing map for campus:', selectedCampus.name || selectedCampus.city);
-
-    // Single timeout for map initialization
     const timeoutId = setTimeout(() => {
       if (!mapContainer.current) return;
 
@@ -135,7 +136,6 @@ export function CampusDetailModal({
           maxZoom: 19,
         }).addTo(newMap);
 
-        // Add main campus marker
         const campusIcon = L.divIcon({
           className: 'custom-campus-marker',
           html: '<div style="background-color: hsl(var(--primary)); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🎓</div>',
@@ -156,27 +156,33 @@ export function CampusDetailModal({
         markers.current = [mainMarker];
         map.current = newMap;
 
-        // Immediately resize and mark as loaded
-        newMap.invalidateSize();
-        setIsMapLoaded(true);
-        console.log('Map loaded successfully');
+        setTimeout(() => {
+          newMap.invalidateSize();
+          setIsMapLoaded(true);
+          console.log('Map loaded successfully');
+        }, 100);
       } catch (error) {
         console.error('Error initializing map:', error);
-        setIsMapLoaded(true); // Mark as loaded even on error to prevent infinite loading
+        setIsMapLoaded(true);
       }
-    }, 150);
+    }, 200);
 
     return () => {
       clearTimeout(timeoutId);
-      if (map.current) {
+    };
+  }, [isOpen, selectedCampus?.lat, selectedCampus?.lng, selectedCampus?.name, selectedCampus?.city]);
+
+  // Cleanup map when modal closes
+  useEffect(() => {
+    return () => {
+      if (!isOpen && map.current) {
         map.current.remove();
         map.current = null;
         markers.current = [];
         amenityMarkersRef.current = [];
-        // DON'T reset isMapLoaded here - only reset on modal close
       }
     };
-  }, [selectedCampus]);
+  }, [isOpen]);
 
   // Fetch nearby amenities when campus changes (ONCE - not affected by toggle)
   useEffect(() => {
