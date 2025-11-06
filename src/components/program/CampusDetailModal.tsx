@@ -100,22 +100,14 @@ export function CampusDetailModal({
     }
   }, [isOpen]);
 
-  // Initialize map only once when modal opens and has valid coordinates
+  // Initialize map ONCE when modal opens
   useEffect(() => {
-    if (!isOpen) return;
-    if (!selectedCampus?.lat || !selectedCampus?.lng) {
-      console.warn('Invalid campus coordinates:', selectedCampus);
-      return;
-    }
-    if (!mapContainer.current) return;
+    if (!isOpen || !mapContainer.current) return;
     
-    // Clean up existing map if any
-    if (map.current) {
-      map.current.remove();
-      map.current = null;
-    }
+    // Only create map if it doesn't exist
+    if (map.current) return;
 
-    console.log('Initializing map for:', selectedCampus.name || selectedCampus.city);
+    console.log('Creating map instance');
     setIsMapLoaded(false);
 
     const timeoutId = setTimeout(() => {
@@ -123,7 +115,7 @@ export function CampusDetailModal({
 
       try {
         const newMap = L.map(mapContainer.current, {
-          center: [selectedCampus.lat!, selectedCampus.lng!],
+          center: [49.798294, 10.004028], // Default center of Germany, will be updated by campus effect
           zoom: 14,
           scrollWheelZoom: true,
         });
@@ -133,33 +125,15 @@ export function CampusDetailModal({
           maxZoom: 19,
         }).addTo(newMap);
 
-        const campusIcon = L.divIcon({
-          className: 'custom-campus-marker',
-          html: '<div style="background-color: hsl(var(--primary)); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🎓</div>',
-          iconSize: [32, 32],
-          iconAnchor: [16, 16],
-        });
-
-        const mainMarker = L.marker([selectedCampus.lat!, selectedCampus.lng!], {
-          icon: campusIcon,
-        })
-          .addTo(newMap)
-          .bindPopup(
-            selectedCampus.name 
-              ? `<b>${selectedCampus.name}</b><br/>${selectedCampus.city || ''}` 
-              : `<b>Campus</b><br/>${selectedCampus.city || ''}`
-          );
-
-        markers.current = [mainMarker];
         map.current = newMap;
 
         setTimeout(() => {
           newMap.invalidateSize();
           setIsMapLoaded(true);
-          console.log('Map loaded successfully');
+          console.log('Map initialized successfully');
         }, 100);
       } catch (error) {
-        console.error('Error initializing map:', error);
+        console.error('Error creating map:', error);
         setIsMapLoaded(true);
       }
     }, 200);
@@ -167,7 +141,7 @@ export function CampusDetailModal({
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isOpen, selectedCampus?.lat, selectedCampus?.lng, selectedCampus?.name, selectedCampus?.city]);
+  }, [isOpen]); // Only depend on isOpen!
 
   // Cleanup map when modal closes
   useEffect(() => {
@@ -266,12 +240,39 @@ export function CampusDetailModal({
     }
   };
 
-  // Update map center when campus changes
+  // Update map view and markers when campus changes (don't recreate map!)
   useEffect(() => {
-    if (map.current && selectedCampus?.lat && selectedCampus?.lng) {
-      map.current.setView([selectedCampus.lat, selectedCampus.lng], 15, { animate: true });
-    }
-  }, [selectedCampus]);
+    if (!map.current || !isMapLoaded || !selectedCampus?.lat || !selectedCampus?.lng) return;
+
+    console.log('Updating map for campus:', selectedCampus.name || selectedCampus.city);
+
+    // Remove old campus markers
+    markers.current.forEach(marker => marker.remove());
+    markers.current = [];
+
+    // Update map center with smooth animation
+    map.current.setView([selectedCampus.lat, selectedCampus.lng], 14, { animate: true });
+
+    // Add new campus marker
+    const campusIcon = L.divIcon({
+      className: 'custom-campus-marker',
+      html: '<div style="background-color: hsl(var(--primary)); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🎓</div>',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+    });
+
+    const mainMarker = L.marker([selectedCampus.lat, selectedCampus.lng], {
+      icon: campusIcon,
+    })
+      .addTo(map.current)
+      .bindPopup(
+        selectedCampus.name 
+          ? `<b>${selectedCampus.name}</b><br/>${selectedCampus.city || ''}` 
+          : `<b>Campus</b><br/>${selectedCampus.city || ''}`
+      );
+
+    markers.current = [mainMarker];
+  }, [selectedCampus?.id, selectedCampus?.lat, selectedCampus?.lng, selectedCampus?.name, selectedCampus?.city, isMapLoaded]);
 
   // Only return null if modal is closed AND no campus selected
   if (!selectedCampus && !isOpen) return null;
