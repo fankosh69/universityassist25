@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
@@ -63,11 +63,8 @@ export function CampusDetailModal({
   onClose,
   initialCampusId,
 }: CampusDetailModalProps) {
-  // Initialize selectedCampus immediately to avoid race conditions
-  const [selectedCampus, setSelectedCampus] = useState<Campus | null>(() => {
-    if (campuses.length === 0) return null;
-    return campuses.find(c => c.id === initialCampusId) || campuses[0];
-  });
+  // Use activeCampusId state for tab switching, derive selectedCampus synchronously
+  const [activeCampusId, setActiveCampusId] = useState<string | null>(null);
   const [amenities, setAmenities] = useState<Record<string, NearbyAmenity[]>>({});
   const [isLoadingAmenities, setIsLoadingAmenities] = useState(false);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
@@ -87,19 +84,19 @@ export function CampusDetailModal({
   const markers = useRef<L.Marker[]>([]);
   const amenityMarkersRef = useRef<L.Marker[]>([]);
 
-  // Update selectedCampus when modal opens or initialCampusId changes
-  useEffect(() => {
-    if (isOpen && campuses.length > 0) {
-      const initial = campuses.find(c => c.id === initialCampusId) || campuses[0];
-      setSelectedCampus(initial);
-    }
-  }, [isOpen, campuses, initialCampusId]);
+  // Derive selectedCampus synchronously using useMemo - eliminates all race conditions
+  const selectedCampus = useMemo(() => {
+    if (!isOpen || campuses.length === 0) return null;
+    const targetId = activeCampusId || initialCampusId;
+    return campuses.find(c => c.id === targetId) || campuses[0];
+  }, [isOpen, campuses, initialCampusId, activeCampusId]);
 
-  // Reset map loaded state when modal closes
+  // Reset states when modal closes
   useEffect(() => {
     if (!isOpen) {
       console.log('Modal closed, resetting map state');
       setIsMapLoaded(false);
+      setActiveCampusId(null);
     }
   }, [isOpen]);
 
@@ -336,10 +333,7 @@ export function CampusDetailModal({
         {campuses.length > 1 && (
           <Tabs 
             value={selectedCampus.id} 
-            onValueChange={(id) => {
-              const campus = campuses.find(c => c.id === id);
-              if (campus) setSelectedCampus(campus);
-            }}
+            onValueChange={setActiveCampusId}
             className="px-6 pt-4 flex-shrink-0"
           >
             <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${campuses.length}, 1fr)` }}>
