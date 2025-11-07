@@ -179,10 +179,11 @@ export function CampusDetailModal({
       return;
     }
 
-    // Container is now available, trigger map initialization
+    // Fix #4: Wait for dialog animation to complete (350ms) before initializing map
     const timer = setTimeout(() => {
+      console.log('🎬 Dialog animation complete, initializing map');
       initializeMap();
-    }, 50);
+    }, 350);
 
     return () => clearTimeout(timer);
   }, [isOpen, mapContainer.current]);
