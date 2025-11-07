@@ -62,26 +62,38 @@ export function CampusDetailModal({
   // Reset states when modal closes
   useEffect(() => {
     if (!isOpen) {
-      console.log('Modal closed, resetting map state');
+      console.log('🔴 Modal closed, resetting map state');
       setIsMapLoaded(false);
       setActiveCampusId(null);
+    } else {
+      console.log('🟢 Modal opened');
     }
   }, [isOpen]);
 
   // Initialize map ONCE when modal opens
   useEffect(() => {
-    if (!isOpen || !mapContainer.current) return;
+    if (!isOpen || !mapContainer.current) {
+      console.log('⏸️ Skipping map init:', { isOpen, hasContainer: !!mapContainer.current });
+      return;
+    }
     
     // Only create map if it doesn't exist
-    if (map.current) return;
+    if (map.current) {
+      console.log('ℹ️ Map already exists, skipping creation');
+      return;
+    }
 
-    console.log('Creating map instance');
+    console.log('🗺️ Creating map instance');
     setIsMapLoaded(false);
 
     const timeoutId = setTimeout(() => {
-      if (!mapContainer.current) return;
+      if (!mapContainer.current) {
+        console.log('❌ Map container disappeared');
+        return;
+      }
 
       try {
+        console.log('📍 Initializing Leaflet map...');
         const newMap = L.map(mapContainer.current, {
           center: [49.798294, 10.004028], // Default center of Germany, will be updated by campus effect
           zoom: 14,
@@ -94,14 +106,15 @@ export function CampusDetailModal({
         }).addTo(newMap);
 
         map.current = newMap;
+        console.log('✅ Map instance created');
 
         setTimeout(() => {
           newMap.invalidateSize();
           setIsMapLoaded(true);
-          console.log('Map initialized successfully');
+          console.log('✅ Map initialized successfully');
         }, 100);
       } catch (error) {
-        console.error('Error creating map:', error);
+        console.error('❌ Error creating map:', error);
         setIsMapLoaded(true);
       }
     }, 200);
@@ -111,10 +124,29 @@ export function CampusDetailModal({
     };
   }, [isOpen]); // Only depend on isOpen!
 
+  // 🎯 PRIMARY FIX: Force map to recalculate size after modal opens
+  useEffect(() => {
+    if (isOpen && map.current && !isMapLoaded) {
+      console.log('🔧 Attempting to invalidate map size...');
+      // Small delay to ensure modal transition is complete
+      const timer = setTimeout(() => {
+        if (map.current) {
+          console.log('📐 Invalidating map size');
+          map.current.invalidateSize();
+          setIsMapLoaded(true);
+          console.log('✅ Map size invalidated and set to loaded');
+        }
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, isMapLoaded]);
+
   // Cleanup map when modal closes
   useEffect(() => {
     return () => {
-      if (!isOpen && map.current) {
+      if (map.current) {
+        console.log('🧹 Cleaning up map instance');
         map.current.remove();
         map.current = null;
         markers.current = [];
@@ -124,9 +156,16 @@ export function CampusDetailModal({
 
   // Update map view and markers when campus changes (don't recreate map!)
   useEffect(() => {
-    if (!map.current || !isMapLoaded || !selectedCampus?.lat || !selectedCampus?.lng) return;
+    if (!map.current || !isMapLoaded || !selectedCampus?.lat || !selectedCampus?.lng) {
+      console.log('⏸️ Skipping campus update:', { 
+        hasMap: !!map.current, 
+        isMapLoaded, 
+        hasCoords: !!(selectedCampus?.lat && selectedCampus?.lng) 
+      });
+      return;
+    }
 
-    console.log('Updating map for campus:', selectedCampus.name || selectedCampus.city);
+    console.log('🎯 Updating map for campus:', selectedCampus.name || selectedCampus.city);
 
     // Remove old campus markers
     markers.current.forEach(marker => marker.remove());
@@ -154,6 +193,7 @@ export function CampusDetailModal({
       );
 
     markers.current = [mainMarker];
+    console.log('✅ Campus marker added');
   }, [selectedCampus?.id, selectedCampus?.lat, selectedCampus?.lng, selectedCampus?.name, selectedCampus?.city, isMapLoaded]);
 
   // Only return null if modal is closed AND no campus selected
