@@ -60,6 +60,7 @@ export function CampusDetailModal({
   const [mapLoadFailed, setMapLoadFailed] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [isMapVisible, setIsMapVisible] = useState(false); // Fix #5: Track map visibility for loading overlay
+  const [manualLoadRequested, setManualLoadRequested] = useState(false); // Manual load trigger
 
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -167,8 +168,38 @@ export function CampusDetailModal({
       setMapLoadFailed(false);
       setIsMapReady(false);
       setIsMapVisible(false); // Fix #5: Reset visibility state
+      setManualLoadRequested(false); // Reset manual load
     }
   }, [isOpen]);
+
+  // Manual map load handler
+  const handleManualLoad = () => {
+    console.log('🖱️ Manual map load requested');
+    setManualLoadRequested(true);
+    
+    // Force immediate initialization
+    if (mapContainer.current && !mapInstance.current) {
+      initializeMap();
+      
+      // Force visibility after a short delay
+      setTimeout(() => {
+        setIsMapVisible(true);
+        if (mapInstance.current) {
+          mapInstance.current.invalidateSize(true);
+        }
+      }, 500);
+    } else if (mapInstance.current) {
+      // Map already exists, just force repaint
+      const container = mapContainer.current;
+      if (container) {
+        container.style.display = 'none';
+        container.offsetHeight;
+        container.style.display = 'block';
+      }
+      mapInstance.current.invalidateSize(true);
+      setIsMapVisible(true);
+    }
+  };
 
   // Wait for container to become available when modal opens
   useEffect(() => {
@@ -344,12 +375,24 @@ export function CampusDetailModal({
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ height: '600px' }}>
           <div className="lg:col-span-2 relative rounded-lg overflow-hidden border" style={{ height: '600px' }}>
-            {/* Fix #5: Loading overlay while map is initializing */}
+            {/* Fix #5: Loading overlay with manual load button */}
             {!isMapVisible && !mapLoadFailed && (
               <div className="absolute inset-0 z-[1500] bg-background/80 backdrop-blur-sm flex items-center justify-center">
-                <div className="text-center">
-                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-primary" />
-                  <span className="text-sm text-muted-foreground">Loading map...</span>
+                <div className="text-center space-y-4">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-3">Loading map...</p>
+                    {!manualLoadRequested && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleManualLoad}
+                      >
+                        <MapPin className="w-4 h-4 mr-2" />
+                        Show Map Now
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
