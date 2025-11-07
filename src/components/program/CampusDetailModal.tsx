@@ -116,7 +116,21 @@ export function CampusDetailModal({
 
       map.whenReady(() => {
         console.log('✅ Map ready');
-        // Multiple invalidateSize calls at staggered intervals to account for dialog animation
+        
+        // Fix #1: Force browser repaint by triggering reflow
+        const container = mapContainer.current;
+        if (container) {
+          // Reading offsetHeight forces a reflow
+          const height = container.offsetHeight;
+          console.log('🔄 Forcing reflow, height:', height);
+          
+          // Force repaint by toggling display property
+          container.style.display = 'none';
+          container.offsetHeight; // Trigger another reflow
+          container.style.display = 'block';
+        }
+        
+        // Then do invalidateSize calls at staggered intervals
         setTimeout(() => {
           map.invalidateSize(true);
           // Manually redraw all tile layers
@@ -313,7 +327,9 @@ export function CampusDetailModal({
                 width: '100%', 
                 height: '600px',
                 position: 'relative',
-                zIndex: 1
+                zIndex: 1,
+                transform: 'translateZ(0)', // Fix #2: Create new stacking context
+                willChange: 'transform', // Fix #2: Hint to browser about transforms
               }}
               className="leaflet-container"
             />
