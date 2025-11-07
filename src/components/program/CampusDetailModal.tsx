@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
@@ -12,16 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Users, Building2, Navigation, ExternalLink, Eye, EyeOff, Filter } from 'lucide-react';
+import { MapPin, Users, Building2, Navigation, ExternalLink, Eye, EyeOff } from 'lucide-react';
 import { Toggle } from '@/components/ui/toggle';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
 import {
   fetchNearbyAmenities,
   groupAmenitiesByCategory,
@@ -63,59 +55,38 @@ export function CampusDetailModal({
   onClose,
   initialCampusId,
 }: CampusDetailModalProps) {
-  // Use activeCampusId state for tab switching, derive selectedCampus synchronously
-  const [activeCampusId, setActiveCampusId] = useState<string | null>(null);
+  const [selectedCampus, setSelectedCampus] = useState<Campus | null>(null);
   const [amenities, setAmenities] = useState<Record<string, NearbyAmenity[]>>({});
   const [isLoadingAmenities, setIsLoadingAmenities] = useState(false);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [hoveredAmenity, setHoveredAmenity] = useState<string | null>(null);
   const [showAmenityMarkers, setShowAmenityMarkers] = useState(true);
   const [amenitiesError, setAmenitiesError] = useState(false);
-  // Start with all categories selected by default
-  const allCategories: NearbyAmenity['category'][] = [
-    'restaurant', 'cafe', 'grocery', 'pharmacy', 'library', 'bank'
-  ];
-  const [selectedCategories, setSelectedCategories] = useState<Set<NearbyAmenity['category']>>(
-    new Set(allCategories)
-  );
 
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const markers = useRef<L.Marker[]>([]);
   const amenityMarkersRef = useRef<L.Marker[]>([]);
 
-  // Derive selectedCampus synchronously using useMemo - eliminates all race conditions
-  const selectedCampus = useMemo(() => {
-    if (!isOpen || campuses.length === 0) return null;
-    const targetId = activeCampusId || initialCampusId;
-    return campuses.find(c => c.id === targetId) || campuses[0];
-  }, [isOpen, campuses, initialCampusId, activeCampusId]);
-
-  // Reset states when modal closes
+  // Set initial selected campus
   useEffect(() => {
-    if (!isOpen) {
-      console.log('Modal closed, resetting map state');
-      setIsMapLoaded(false);
-      setActiveCampusId(null);
+    if (isOpen && campuses.length > 0) {
+      const initial = campuses.find(c => c.id === initialCampusId) || campuses[0];
+      setSelectedCampus(initial);
     }
-  }, [isOpen]);
+  }, [isOpen, campuses, initialCampusId]);
 
-  // Initialize map ONCE when modal opens
+  // Initialize map when modal opens
   useEffect(() => {
-    if (!isOpen || !mapContainer.current) return;
-    
-    // Only create map if it doesn't exist
-    if (map.current) return;
+    if (!mapContainer.current || !selectedCampus || map.current) return;
 
-    console.log('Creating map instance');
-    setIsMapLoaded(false);
-
+    // Initialize Leaflet map with delay to ensure container is rendered
     const timeoutId = setTimeout(() => {
       if (!mapContainer.current) return;
 
       try {
-        const newMap = L.map(mapContainer.current, {
-          center: [49.798294, 10.004028], // Default center of Germany, will be updated by campus effect
+        map.current = L.map(mapContainer.current, {
+          center: [selectedCampus.lat!, selectedCampus.lng!],
           zoom: 14,
           scrollWheelZoom: true,
         });
@@ -123,37 +94,51 @@ export function CampusDetailModal({
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 19,
-        }).addTo(newMap);
+        }).addTo(map.current);
 
-        map.current = newMap;
-
+        // Force map to resize after initialization
         setTimeout(() => {
-          newMap.invalidateSize();
-          setIsMapLoaded(true);
-          console.log('Map initialized successfully');
-        }, 100);
+          if (map.current) {
+            map.current.invalidateSize();
+            setIsMapLoaded(true);
+          }
+        }, 200);
+
+        // Add main campus marker
+        const campusIcon = L.divIcon({
+          className: 'custom-campus-marker',
+          html: '<div style="background-color: hsl(var(--primary)); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🎓</div>',
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+
+        const mainMarker = L.marker([selectedCampus.lat!, selectedCampus.lng!], {
+          icon: campusIcon,
+        })
+          .addTo(map.current)
+          .bindPopup(
+            selectedCampus.name 
+              ? `<b>${selectedCampus.name}</b><br/>${selectedCampus.city || ''}` 
+              : `<b>Campus</b><br/>${selectedCampus.city || ''}`
+          );
+
+        markers.current = [mainMarker];
       } catch (error) {
-        console.error('Error creating map:', error);
-        setIsMapLoaded(true);
+        console.error('Error initializing map:', error);
       }
-    }, 200);
+    }, 150);
 
     return () => {
       clearTimeout(timeoutId);
-    };
-  }, [isOpen]); // Only depend on isOpen!
-
-  // Cleanup map when modal closes
-  useEffect(() => {
-    return () => {
-      if (!isOpen && map.current) {
+      if (map.current) {
         map.current.remove();
         map.current = null;
         markers.current = [];
         amenityMarkersRef.current = [];
+        setIsMapLoaded(false);
       }
     };
-  }, [isOpen]);
+  }, [selectedCampus]);
 
   // Fetch nearby amenities when campus changes (ONCE - not affected by toggle)
   useEffect(() => {
@@ -186,7 +171,7 @@ export function CampusDetailModal({
     loadAmenities();
   }, [selectedCampus, isMapLoaded]);
 
-  // Add/remove amenity markers based on toggle, amenities data, and selected categories
+  // Add/remove amenity markers based on toggle and amenities data
   useEffect(() => {
     if (!map.current || !isMapLoaded) return;
 
@@ -198,12 +183,7 @@ export function CampusDetailModal({
     if (showAmenityMarkers && amenities) {
       const allAmenities = Object.values(amenities).flat();
       
-      // Filter amenities by selected categories
-      const filteredAmenities = allAmenities.filter(amenity => 
-        selectedCategories.has(amenity.category)
-      );
-      
-      filteredAmenities.forEach((amenity) => {
+      allAmenities.forEach((amenity) => {
         const amenityIcon = L.divIcon({
           className: 'custom-amenity-marker',
           html: `<div style="background-color: hsl(var(--secondary)); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.3);">${getCategoryIcon(amenity.category)}</div>`,
@@ -222,7 +202,7 @@ export function CampusDetailModal({
         amenityMarkersRef.current.push(marker);
       });
     }
-  }, [showAmenityMarkers, amenities, isMapLoaded, selectedCategories]);
+  }, [showAmenityMarkers, amenities, isMapLoaded]);
 
   // Handle amenity hover
   const handleAmenityHover = (amenity: NearbyAmenity | null) => {
@@ -240,70 +220,14 @@ export function CampusDetailModal({
     }
   };
 
-  // Update map view and markers when campus changes (don't recreate map!)
+  // Update map center when campus changes
   useEffect(() => {
-    if (!map.current || !isMapLoaded || !selectedCampus?.lat || !selectedCampus?.lng) return;
-
-    console.log('Updating map for campus:', selectedCampus.name || selectedCampus.city);
-
-    // Remove old campus markers
-    markers.current.forEach(marker => marker.remove());
-    markers.current = [];
-
-    // Update map center with smooth animation
-    map.current.setView([selectedCampus.lat, selectedCampus.lng], 14, { animate: true });
-
-    // Add new campus marker
-    const campusIcon = L.divIcon({
-      className: 'custom-campus-marker',
-      html: '<div style="background-color: hsl(var(--primary)); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🎓</div>',
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
-    });
-
-    const mainMarker = L.marker([selectedCampus.lat, selectedCampus.lng], {
-      icon: campusIcon,
-    })
-      .addTo(map.current)
-      .bindPopup(
-        selectedCampus.name 
-          ? `<b>${selectedCampus.name}</b><br/>${selectedCampus.city || ''}` 
-          : `<b>Campus</b><br/>${selectedCampus.city || ''}`
-      );
-
-    markers.current = [mainMarker];
-  }, [selectedCampus?.id, selectedCampus?.lat, selectedCampus?.lng, selectedCampus?.name, selectedCampus?.city, isMapLoaded]);
-
-  // Only return null if modal is closed AND no campus selected
-  if (!selectedCampus && !isOpen) return null;
-  
-  // Show loading state if modal is open but campus not ready
-  if (!selectedCampus && isOpen) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl h-[85vh]">
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-              <p className="text-sm text-muted-foreground">Loading campus information...</p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // Toggle category filter
-  const toggleCategory = (category: NearbyAmenity['category']) => {
-    const newCategories = new Set(selectedCategories);
-    if (newCategories.has(category)) {
-      newCategories.delete(category);
-    } else {
-      newCategories.add(category);
+    if (map.current && selectedCampus?.lat && selectedCampus?.lng) {
+      map.current.setView([selectedCampus.lat, selectedCampus.lng], 15, { animate: true });
     }
-    setSelectedCategories(newCategories);
-  };
+  }, [selectedCampus]);
 
+  if (!selectedCampus) return null;
 
   const facilityIcons = {
     'Library': '📚',
@@ -334,7 +258,10 @@ export function CampusDetailModal({
         {campuses.length > 1 && (
           <Tabs 
             value={selectedCampus.id} 
-            onValueChange={setActiveCampusId}
+            onValueChange={(id) => {
+              const campus = campuses.find(c => c.id === id);
+              if (campus) setSelectedCampus(campus);
+            }}
             className="px-6 pt-4 flex-shrink-0"
           >
             <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${campuses.length}, 1fr)` }}>
@@ -363,63 +290,27 @@ export function CampusDetailModal({
                 </div>
               )}
               
-              {/* Map Controls - Toggle Amenities & Filter */}
+              {/* Map Controls - Toggle Amenities */}
               {isMapLoaded && (
-                <div className="absolute top-4 right-4 z-[1000] flex gap-2">
-                  <div className="bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border p-2">
-                    <Toggle
-                      pressed={showAmenityMarkers}
-                      onPressedChange={setShowAmenityMarkers}
-                      aria-label="Toggle amenity markers"
-                      className="gap-2"
-                    >
-                      {showAmenityMarkers ? (
-                        <>
-                          <Eye className="h-4 w-4" />
-                          <span className="text-xs font-medium">Amenities</span>
-                        </>
-                      ) : (
-                        <>
-                          <EyeOff className="h-4 w-4" />
-                          <span className="text-xs font-medium">Amenities</span>
-                        </>
-                      )}
-                    </Toggle>
-                  </div>
-                  
-                  <div className="bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="px-3 py-2 hover:bg-accent rounded-lg transition-colors flex items-center gap-2">
-                          <Filter className="h-4 w-4" />
-                          <span className="text-xs font-medium">Filter</span>
-                          {selectedCategories.size < allCategories.length && (
-                            <Badge variant="secondary" className="h-5 px-1.5 text-xs">
-                              {selectedCategories.size}
-                            </Badge>
-                          )}
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent 
-                        align="end" 
-                        className="w-56 bg-background border shadow-lg z-[1001]"
-                      >
-                        <DropdownMenuLabel>Amenity Categories</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        {allCategories.map((category) => (
-                          <DropdownMenuCheckboxItem
-                            key={category}
-                            checked={selectedCategories.has(category)}
-                            onCheckedChange={() => toggleCategory(category)}
-                            className="cursor-pointer"
-                          >
-                            <span className="mr-2">{getCategoryIcon(category)}</span>
-                            {getCategoryLabel(category)}
-                          </DropdownMenuCheckboxItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                <div className="absolute top-4 right-4 z-[1000] bg-background/95 backdrop-blur-sm rounded-lg shadow-lg border p-2">
+                  <Toggle
+                    pressed={showAmenityMarkers}
+                    onPressedChange={setShowAmenityMarkers}
+                    aria-label="Toggle amenity markers"
+                    className="gap-2"
+                  >
+                    {showAmenityMarkers ? (
+                      <>
+                        <Eye className="h-4 w-4" />
+                        <span className="text-xs font-medium">Amenities</span>
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="h-4 w-4" />
+                        <span className="text-xs font-medium">Amenities</span>
+                      </>
+                    )}
+                  </Toggle>
                 </div>
               )}
             </div>
@@ -483,43 +374,34 @@ export function CampusDetailModal({
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {Object.entries(amenities)
-                        .filter(([category]) => selectedCategories.has(category as NearbyAmenity['category']))
-                        .map(([category, items]) =>
-                          items.length > 0 ? (
-                            <div key={category}>
-                              <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                                {getCategoryIcon(category as NearbyAmenity['category'])} {getCategoryLabel(category as NearbyAmenity['category'])}
-                              </h4>
-                              <div className="space-y-2">
-                                {items.slice(0, 3).map((amenity) => (
-                                  <button
-                                    key={amenity.id}
-                                    onClick={() => handleAmenityHover(amenity)}
-                                    onMouseEnter={() => setHoveredAmenity(amenity.id)}
-                                    onMouseLeave={() => setHoveredAmenity(null)}
-                                    className={`w-full flex items-start justify-between p-3 rounded-lg border transition-all cursor-pointer hover:bg-accent hover:scale-[1.02] active:scale-[0.98] ${
-                                      hoveredAmenity === amenity.id && "bg-primary/10 border-primary/50"
-                                    }`}
-                                  >
-                                    <div className="flex-1 min-w-0 text-left">
-                                      <p className="font-medium text-sm truncate">{amenity.name}</p>
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        {formatDistance(amenity.distance)} away
-                                      </p>
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
+                      {Object.entries(amenities).map(([category, items]) =>
+                        items.length > 0 ? (
+                          <div key={category}>
+                            <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                              {getCategoryIcon(category as NearbyAmenity['category'])} {getCategoryLabel(category as NearbyAmenity['category'])}
+                            </h4>
+                            <div className="space-y-2">
+                              {items.slice(0, 3).map((amenity) => (
+                                <button
+                                  key={amenity.id}
+                                  onClick={() => handleAmenityHover(amenity)}
+                                  onMouseEnter={() => setHoveredAmenity(amenity.id)}
+                                  onMouseLeave={() => setHoveredAmenity(null)}
+                                  className={`w-full flex items-start justify-between p-3 rounded-lg border transition-all cursor-pointer hover:bg-accent hover:scale-[1.02] active:scale-[0.98] ${
+                                    hoveredAmenity === amenity.id && "bg-primary/10 border-primary/50"
+                                  }`}
+                                >
+                                  <div className="flex-1 min-w-0 text-left">
+                                    <p className="font-medium text-sm truncate">{amenity.name}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      {formatDistance(amenity.distance)} away
+                                    </p>
+                                  </div>
+                                </button>
+                              ))}
                             </div>
-                          ) : null
-                        )}
-                      {Object.entries(amenities).filter(([category]) => 
-                        selectedCategories.has(category as NearbyAmenity['category'])
-                      ).every(([_, items]) => items.length === 0) && (
-                        <p className="text-sm text-muted-foreground text-center">
-                          No amenities found for selected categories
-                        </p>
+                          </div>
+                        ) : null
                       )}
                     </div>
                   )}
