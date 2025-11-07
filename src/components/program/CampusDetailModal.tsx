@@ -59,6 +59,7 @@ export function CampusDetailModal({
   const [activeCampusId, setActiveCampusId] = useState<string | null>(null);
   const [mapLoadFailed, setMapLoadFailed] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [isMapVisible, setIsMapVisible] = useState(false); // Fix #5: Track map visibility for loading overlay
 
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -165,6 +166,7 @@ export function CampusDetailModal({
       setActiveCampusId(null);
       setMapLoadFailed(false);
       setIsMapReady(false);
+      setIsMapVisible(false); // Fix #5: Reset visibility state
     }
   }, [isOpen]);
 
@@ -218,7 +220,11 @@ export function CampusDetailModal({
             if (container) {
               container.style.opacity = '0.99';
               requestAnimationFrame(() => {
-                if (container) container.style.opacity = '1';
+                if (container) {
+                  container.style.opacity = '1';
+                  // Fix #5: Mark map as visible once repaint is done
+                  setIsMapVisible(true);
+                }
               });
             }
             
@@ -338,6 +344,16 @@ export function CampusDetailModal({
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ height: '600px' }}>
           <div className="lg:col-span-2 relative rounded-lg overflow-hidden border" style={{ height: '600px' }}>
+            {/* Fix #5: Loading overlay while map is initializing */}
+            {!isMapVisible && !mapLoadFailed && (
+              <div className="absolute inset-0 z-[1500] bg-background/80 backdrop-blur-sm flex items-center justify-center">
+                <div className="text-center">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-primary" />
+                  <span className="text-sm text-muted-foreground">Loading map...</span>
+                </div>
+              </div>
+            )}
+            
             {mapLoadFailed && (
               <div className="absolute inset-0 z-[2000] bg-background/80 backdrop-blur-sm flex items-center justify-center">
                 <div className="text-center p-6 bg-card rounded-lg shadow-lg max-w-md">
