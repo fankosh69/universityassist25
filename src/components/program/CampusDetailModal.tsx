@@ -57,20 +57,12 @@ export function CampusDetailModal({
   console.log('🔵 CampusDetailModal rendered', { isOpen, campusCount: campuses.length });
   
   const [activeCampusId, setActiveCampusId] = useState<string | null>(null);
-  const [amenities, setAmenities] = useState<NearbyAmenity[]>([]);
-  const [isLoadingAmenities, setIsLoadingAmenities] = useState(false);
-  const [showAmenities, setShowAmenities] = useState(true);
-  const [hoveredAmenity, setHoveredAmenity] = useState<string | null>(null);
-  const [activeFilters, setActiveFilters] = useState<Set<string>>(
-    new Set(['restaurant', 'cafe', 'grocery', 'pharmacy', 'library', 'bank'])
-  );
   const [mapLoadFailed, setMapLoadFailed] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
 
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const campusMarkerRef = useRef<L.Marker | null>(null);
-  const amenityMarkersRef = useRef<Map<string, L.Marker>>(new Map());
 
   const selectedCampus = useMemo(() => {
     if (!isOpen || campuses.length === 0) return null;
@@ -156,11 +148,7 @@ export function CampusDetailModal({
         mapInstance.current = null;
       }
       campusMarkerRef.current = null;
-      amenityMarkersRef.current.clear();
       setActiveCampusId(null);
-      setAmenities([]);
-      setShowAmenities(true);
-      setHoveredAmenity(null);
       setMapLoadFailed(false);
       setIsMapReady(false);
     }
@@ -236,115 +224,6 @@ export function CampusDetailModal({
     campusMarkerRef.current = marker;
   }, [isMapReady, selectedCampus?.id, selectedCampus?.lat, selectedCampus?.lng]);
 
-  // Fetch amenities
-  useEffect(() => {
-    if (!selectedCampus?.lat || !selectedCampus?.lng || !mapInstance.current) return;
-
-    setIsLoadingAmenities(true);
-
-    fetchNearbyAmenities(selectedCampus.lat, selectedCampus.lng, 1000)
-      .then((fetchedAmenities) => {
-        setAmenities(fetchedAmenities);
-      })
-      .catch((error) => {
-        console.error('Error fetching amenities:', error);
-        setAmenities([]);
-      })
-      .finally(() => {
-        setIsLoadingAmenities(false);
-      });
-  }, [selectedCampus?.id]);
-
-  // Manage amenity markers
-  useEffect(() => {
-    if (!isMapReady || !mapInstance.current) return;
-
-    // Force a map repaint even if no amenities to ensure proper rendering
-    console.log('🎨 Forcing map repaint via amenity effect');
-    mapInstance.current.invalidateSize(true);
-
-    // Clear all amenity markers
-    amenityMarkersRef.current.forEach(marker => marker.remove());
-    amenityMarkersRef.current.clear();
-
-    if (!showAmenities || amenities.length === 0) return;
-
-    // Add filtered markers
-    const filteredAmenities = amenities.filter(a => activeFilters.has(a.category));
-
-    filteredAmenities.forEach((amenity) => {
-      const icon = L.divIcon({
-        className: 'custom-amenity-marker',
-        html: `<div style="font-size: 30px;">${getCategoryIcon(amenity.category)}</div>`,
-        iconSize: [30, 30],
-        iconAnchor: [15, 15],
-      });
-
-      const marker = L.marker([amenity.lat, amenity.lng], { icon })
-        .addTo(mapInstance.current!)
-        .bindPopup(
-          `<strong>${amenity.name}</strong><br/>${getCategoryLabel(amenity.category)}<br/>📍 ${formatDistance(amenity.distance)} walking`
-        );
-
-      marker.on('mouseover', () => setHoveredAmenity(amenity.id));
-      marker.on('mouseout', () => setHoveredAmenity(null));
-      marker.on('click', () => {
-        if (mapInstance.current) {
-          mapInstance.current.setView([amenity.lat, amenity.lng], 16, { 
-            animate: true,
-            duration: 0.5 
-          });
-        }
-      });
-
-      amenityMarkersRef.current.set(amenity.id, marker);
-    });
-  }, [isMapReady, amenities, showAmenities, activeFilters]);
-
-  // Handle hover highlighting
-  useEffect(() => {
-    amenityMarkersRef.current.forEach(marker => {
-      const element = marker.getElement();
-      if (element) {
-        element.style.transform = hoveredAmenity && marker === amenityMarkersRef.current.get(hoveredAmenity) 
-          ? 'scale(1.3)' 
-          : 'scale(1)';
-        element.style.transition = 'transform 0.2s';
-      }
-    });
-  }, [hoveredAmenity]);
-
-  const toggleFilter = (category: NearbyAmenity['category']) => {
-    setActiveFilters(prev => {
-      const newFilters = new Set(prev);
-      if (newFilters.has(category)) {
-        newFilters.delete(category);
-      } else {
-        newFilters.add(category);
-      }
-      return newFilters;
-    });
-  };
-
-  const handleAmenityClick = (amenity: NearbyAmenity) => {
-    if (mapInstance.current) {
-      mapInstance.current.setView([amenity.lat, amenity.lng], 17, {
-        animate: true,
-        duration: 0.5
-      });
-      const marker = amenityMarkersRef.current.get(amenity.id);
-      if (marker) marker.openPopup();
-    }
-  };
-
-  const groupedAmenities = useMemo(() => {
-    return amenities.reduce((acc, amenity) => {
-      if (!acc[amenity.category]) acc[amenity.category] = [];
-      acc[amenity.category].push(amenity);
-      return acc;
-    }, {} as Record<string, NearbyAmenity[]>);
-  }, [amenities]);
-
   const facilityIcons: Record<string, string> = {
     'Library': '📚',
     'Sports': '⚽',
@@ -382,10 +261,10 @@ export function CampusDetailModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
-            Campus Location & Nearby Amenities
+            Campus Location
           </DialogTitle>
           <DialogDescription>
-            Explore the campus location, nearby amenities, and facilities
+            Explore the campus location and facilities
           </DialogDescription>
         </DialogHeader>
 
@@ -428,40 +307,8 @@ export function CampusDetailModal({
               </div>
             )}
             
-            <div className="absolute top-2 left-2 z-[1000] flex flex-col gap-2">
-              <Toggle
-                pressed={showAmenities}
-                onPressedChange={setShowAmenities}
-                className="bg-white shadow-md"
-              >
-                {showAmenities ? '🗺️ Hide Amenities' : '🗺️ Show Amenities'}
-              </Toggle>
-
-              {showAmenities && (
-                <div className="bg-white rounded-lg shadow-md p-2 max-w-[200px]">
-                  <p className="text-xs font-semibold mb-2">Filter by:</p>
-                  {(['restaurant', 'cafe', 'grocery', 'pharmacy', 'library', 'bank'] as const).map(category => (
-                    <Toggle
-                      key={category}
-                      pressed={activeFilters.has(category)}
-                      onPressedChange={() => toggleFilter(category)}
-                      size="sm"
-                      variant="outline"
-                      className="w-full justify-start text-xs mb-1"
-                    >
-                      {getCategoryIcon(category)}
-                      <span className="ml-1">{getCategoryLabel(category)}</span>
-                      <Badge variant="secondary" className="ml-auto">
-                        {groupedAmenities[category]?.length || 0}
-                      </Badge>
-                    </Toggle>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div 
-              ref={mapContainer} 
+            <div
+              ref={mapContainer}
               style={{ 
                 width: '100%', 
                 height: '600px',
@@ -502,60 +349,6 @@ export function CampusDetailModal({
                       </Badge>
                     ))}
                   </div>
-                </div>
-              )}
-
-              {showAmenities && (
-                <div>
-                  <h4 className="font-semibold text-sm mb-2">
-                    Nearby Amenities
-                    {isLoadingAmenities && (
-                      <Loader2 className="w-4 h-4 animate-spin inline ml-2" />
-                    )}
-                  </h4>
-
-                  {isLoadingAmenities && (
-                    <p className="text-sm text-muted-foreground">Loading nearby amenities...</p>
-                  )}
-
-                  {!isLoadingAmenities && amenities.length === 0 && (
-                    <p className="text-sm text-muted-foreground">No amenities found nearby</p>
-                  )}
-
-                  {!isLoadingAmenities && amenities.length > 0 && (
-                    <div className="space-y-3">
-                      {Object.entries(groupedAmenities)
-                        .filter(([category]) => activeFilters.has(category as NearbyAmenity['category']))
-                        .map(([category, items]) => (
-                          <div key={category}>
-                            <h5 className="text-xs font-semibold mb-1 flex items-center gap-1">
-                              {getCategoryIcon(category as NearbyAmenity['category'])}
-                              {getCategoryLabel(category as NearbyAmenity['category'])}
-                            </h5>
-                            <div className="space-y-1">
-                              {items.slice(0, 5).map((amenity) => (
-                                <button
-                                  key={amenity.id}
-                                  onClick={() => handleAmenityClick(amenity)}
-                                  onMouseEnter={() => setHoveredAmenity(amenity.id)}
-                                  onMouseLeave={() => setHoveredAmenity(null)}
-                                  className={`w-full text-left p-2 rounded-md border transition-all ${
-                                    hoveredAmenity === amenity.id
-                                      ? 'bg-primary/10 border-primary scale-105'
-                                      : 'bg-muted/50 hover:bg-muted border-transparent'
-                                  }`}
-                                >
-                                  <div className="font-medium text-sm">{amenity.name}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    📍 {formatDistance(amenity.distance)} • ~{Math.round(amenity.distance / 80)} min walk
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  )}
                 </div>
               )}
 
