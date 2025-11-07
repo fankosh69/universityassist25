@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MapPin, Users, Building2, Navigation, ExternalLink, Loader2 } from 'lucide-react';
+import { MapPin, Users, Building2, Navigation, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { 
   fetchNearbyAmenities, 
   formatDistance, 
@@ -62,6 +62,7 @@ export function CampusDetailModal({
   const [activeFilters, setActiveFilters] = useState<Set<string>>(
     new Set(['restaurant', 'cafe', 'grocery', 'pharmacy', 'library', 'bank'])
   );
+  const [mapLoadFailed, setMapLoadFailed] = useState(false);
 
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -88,15 +89,26 @@ export function CampusDetailModal({
       setAmenities([]);
       setShowAmenities(true);
       setHoveredAmenity(null);
+      setMapLoadFailed(false);
       return;
     }
 
     // Initialize map when modal opens
     if (!mapContainer.current || mapInstance.current) return;
 
-    // CRITICAL: Wait for dialog animation (200ms) + buffer
+    // CRITICAL: Wait for dialog animation (200ms) + extra buffer
     const initTimer = setTimeout(() => {
       if (!mapContainer.current) return;
+
+      // Check if container is visible
+      const isVisible = mapContainer.current.offsetWidth > 0 && mapContainer.current.offsetHeight > 0;
+      if (!isVisible) {
+        console.warn('⚠️ Map container not visible yet');
+        setMapLoadFailed(true);
+        return;
+      }
+
+      console.log('🗺️ Starting map initialization...');
 
       try {
         const map = L.map(mapContainer.current, {
@@ -113,27 +125,57 @@ export function CampusDetailModal({
           errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
         });
 
+        // Track tile loading
+        tileLayer.on('loading', () => {
+          console.log('🔄 Tiles loading...');
+        });
+
+        tileLayer.on('load', () => {
+          console.log('✅ Tiles loaded successfully!');
+          setMapLoadFailed(false);
+          clearTimeout(failureTimeout);
+        });
+
         tileLayer.on('tileerror', (error) => {
-          console.warn('Tile loading error:', error);
+          console.error('❌ Tile loading error:', error);
         });
 
         tileLayer.addTo(map);
         mapInstance.current = map;
 
-        // Force multiple redraws to ensure tiles load
-        const resizeDelays = [50, 150, 300, 500, 800];
-        resizeDelays.forEach(delay => {
+        // Set failure timeout
+        const failureTimeout = setTimeout(() => {
+          console.error('⏱️ Map tiles failed to load within 5 seconds');
+          setMapLoadFailed(true);
+        }, 5000);
+
+        // Use whenReady event
+        map.whenReady(() => {
+          console.log('🗺️ Map is ready');
+          
           setTimeout(() => {
             if (map) {
               map.invalidateSize(true);
+              console.log('📐 Map size invalidated');
             }
-          }, delay);
+          }, 100);
+
+          // Additional redraws
+          const resizeDelays = [200, 400, 700, 1000];
+          resizeDelays.forEach(delay => {
+            setTimeout(() => {
+              if (map) {
+                map.invalidateSize(true);
+              }
+            }, delay);
+          });
         });
 
       } catch (error) {
-        console.error('Map initialization error:', error);
+        console.error('💥 Map initialization error:', error);
+        setMapLoadFailed(true);
       }
-    }, 400);
+    }, 500);
 
     return () => clearTimeout(initTimer);
   }, [isOpen]);
@@ -341,6 +383,30 @@ export function CampusDetailModal({
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ height: '600px' }}>
           <div className="lg:col-span-2 relative rounded-lg overflow-hidden border" style={{ height: '600px' }}>
+            {mapLoadFailed && (
+              <div className="absolute inset-0 z-[2000] bg-background/80 backdrop-blur-sm flex items-center justify-center">
+                <div className="text-center p-6 bg-card rounded-lg shadow-lg max-w-md">
+                  <AlertCircle className="w-12 h-12 mx-auto mb-4 text-destructive" />
+                  <h3 className="font-semibold text-lg mb-2">Map Loading Failed</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Unable to load the interactive map. Please check your internet connection or try again.
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      setMapLoadFailed(false);
+                      if (mapInstance.current) {
+                        mapInstance.current.remove();
+                        mapInstance.current = null;
+                      }
+                      window.location.reload();
+                    }}
+                  >
+                    Retry
+                  </Button>
+                </div>
+              </div>
+            )}
+            
             <div className="absolute top-2 left-2 z-[1000] flex flex-col gap-2">
               <Toggle
                 pressed={showAmenities}
