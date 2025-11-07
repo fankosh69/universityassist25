@@ -201,24 +201,13 @@ export function CampusDetailModal({
     }
   };
 
-  // Wait for container to become available when modal opens
+  // Wait for container to become available when modal opens - REMOVED automatic loading
+  // Users will click "Show Map Now" button instead
   useEffect(() => {
-    console.log('🟢 Container watch effect triggered', { 
+    console.log('🟢 Modal opened, waiting for manual map load', { 
       isOpen, 
       hasContainer: !!mapContainer.current 
     });
-    
-    if (!isOpen || !mapContainer.current) {
-      return;
-    }
-
-    // Fix #4: Wait for dialog animation to complete (350ms) before initializing map
-    const timer = setTimeout(() => {
-      console.log('🎬 Dialog animation complete, initializing map');
-      initializeMap();
-    }, 350);
-
-    return () => clearTimeout(timer);
   }, [isOpen, mapContainer.current]);
 
   // Final size recalculation after map is ready
@@ -375,23 +364,23 @@ export function CampusDetailModal({
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ height: '600px' }}>
           <div className="lg:col-span-2 relative rounded-lg overflow-hidden border" style={{ height: '600px' }}>
-            {/* Fix #5: Loading overlay with manual load button */}
+            {/* Manual load button - automatic loading doesn't work */}
             {!isMapVisible && !mapLoadFailed && (
-              <div className="absolute inset-0 z-[1500] bg-background/80 backdrop-blur-sm flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+              <div className="absolute inset-0 z-[1500] bg-muted/50 flex items-center justify-center">
+                <div className="text-center space-y-3 p-6 bg-card rounded-lg shadow-lg border">
+                  <MapPin className="w-12 h-12 mx-auto text-primary" />
                   <div>
-                    <p className="text-sm text-muted-foreground mb-3">Loading map...</p>
-                    {!manualLoadRequested && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={handleManualLoad}
-                      >
-                        <MapPin className="w-4 h-4 mr-2" />
-                        Show Map Now
-                      </Button>
-                    )}
+                    <h3 className="font-semibold mb-2">Campus Location Map</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Click below to load the interactive map
+                    </p>
+                    <Button 
+                      onClick={handleManualLoad}
+                      className="gap-2"
+                    >
+                      <MapPin className="w-4 h-4" />
+                      Show Map
+                    </Button>
                   </div>
                 </div>
               </div>
