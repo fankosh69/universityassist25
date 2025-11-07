@@ -183,7 +183,7 @@ export function CampusDetailModal({
       const timer = setTimeout(() => {
         mapInstance.current?.invalidateSize(true);
         console.log('🔄 Final map size recalculation');
-      }, 300);
+      }, 1000); // Increased delay to account for slower dialog animations
       return () => clearTimeout(timer);
     }
   }, [isMapReady]);
@@ -249,6 +249,10 @@ export function CampusDetailModal({
   // Manage amenity markers
   useEffect(() => {
     if (!isMapReady || !mapInstance.current) return;
+
+    // Force a map repaint even if no amenities to ensure proper rendering
+    console.log('🎨 Forcing map repaint via amenity effect');
+    mapInstance.current.invalidateSize(true);
 
     // Clear all amenity markers
     amenityMarkersRef.current.forEach(marker => marker.remove());
