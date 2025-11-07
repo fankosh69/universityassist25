@@ -65,6 +65,7 @@ export function CampusDetailModal({
     new Set(['restaurant', 'cafe', 'grocery', 'pharmacy', 'library', 'bank'])
   );
   const [mapLoadFailed, setMapLoadFailed] = useState(false);
+  const [isMapReady, setIsMapReady] = useState(false);
 
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -124,6 +125,7 @@ export function CampusDetailModal({
       map.whenReady(() => {
         console.log('✅ Map ready');
         setTimeout(() => map.invalidateSize(true), 50);
+        setIsMapReady(true);
       });
 
     } catch (error) {
@@ -147,6 +149,7 @@ export function CampusDetailModal({
       setShowAmenities(true);
       setHoveredAmenity(null);
       setMapLoadFailed(false);
+      setIsMapReady(false);
     }
   }, [isOpen]);
 
@@ -171,7 +174,7 @@ export function CampusDetailModal({
 
   // Update campus marker and view
   useEffect(() => {
-    if (!mapInstance.current || !selectedCampus?.lat || !selectedCampus?.lng) return;
+    if (!isMapReady || !mapInstance.current || !selectedCampus?.lat || !selectedCampus?.lng) return;
 
     // Remove old campus marker
     if (campusMarkerRef.current) {
@@ -206,7 +209,7 @@ export function CampusDetailModal({
       );
 
     campusMarkerRef.current = marker;
-  }, [selectedCampus?.id, selectedCampus?.lat, selectedCampus?.lng]);
+  }, [isMapReady, selectedCampus?.id, selectedCampus?.lat, selectedCampus?.lng]);
 
   // Fetch amenities
   useEffect(() => {
@@ -229,7 +232,7 @@ export function CampusDetailModal({
 
   // Manage amenity markers
   useEffect(() => {
-    if (!mapInstance.current) return;
+    if (!isMapReady || !mapInstance.current) return;
 
     // Clear all amenity markers
     amenityMarkersRef.current.forEach(marker => marker.remove());
@@ -267,7 +270,7 @@ export function CampusDetailModal({
 
       amenityMarkersRef.current.set(amenity.id, marker);
     });
-  }, [amenities, showAmenities, activeFilters]);
+  }, [isMapReady, amenities, showAmenities, activeFilters]);
 
   // Handle hover highlighting
   useEffect(() => {
