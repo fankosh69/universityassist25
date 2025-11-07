@@ -47,11 +47,13 @@ export function CampusDetailModal({
 }: CampusDetailModalProps) {
   const [activeCampusId, setActiveCampusId] = useState<string | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [hasTimeout, setHasTimeout] = useState(false);
 
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const campusMarkerRef = useRef<L.Marker | null>(null);
   const isInitializing = useRef(false);
+  const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Derive selectedCampus synchronously using useMemo - eliminates all race conditions
   const selectedCampus = useMemo(() => {
@@ -77,14 +79,57 @@ export function CampusDetailModal({
         campusMarkerRef.current = null;
       }
       
+      // Clear load timeout
+      if (loadTimeoutRef.current) {
+        clearTimeout(loadTimeoutRef.current);
+        loadTimeoutRef.current = null;
+      }
+      
       // Reset state
       setIsMapLoaded(false);
       setActiveCampusId(null);
+      setHasTimeout(false);
       isInitializing.current = false;
     } else {
       console.log('🟢 Modal opened');
     }
   }, [isOpen]);
+
+  // 10-second timeout to show error if map doesn't load
+  useEffect(() => {
+    if (isOpen && !isMapLoaded) {
+      console.log('⏱️ Starting 10-second load timeout');
+      loadTimeoutRef.current = setTimeout(() => {
+        if (!isMapLoaded) {
+          console.log('⏰ Map load timeout reached');
+          setHasTimeout(true);
+        }
+      }, 10000);
+
+      return () => {
+        if (loadTimeoutRef.current) {
+          clearTimeout(loadTimeoutRef.current);
+          loadTimeoutRef.current = null;
+        }
+      };
+    }
+  }, [isOpen, isMapLoaded]);
+
+  // Retry function
+  const handleRetry = () => {
+    console.log('🔄 Retrying map initialization');
+    
+    // Cleanup existing map
+    if (map.current) {
+      map.current.remove();
+      map.current = null;
+    }
+    
+    // Reset all states
+    setHasTimeout(false);
+    setIsMapLoaded(false);
+    isInitializing.current = false;
+  };
 
   // Initialize map ONCE when modal opens
   useEffect(() => {
@@ -275,13 +320,30 @@ export function CampusDetailModal({
             <div className="flex-1 relative min-h-0">
               <div ref={mapContainer} className="absolute inset-0 w-full h-full rounded-l-lg" style={{ minHeight: '500px' }} />
               
-              {/* Loading overlay */}
+              {/* Loading/Error overlay */}
               {!isMapLoaded && (
                 <div className="absolute inset-0 flex items-center justify-center bg-muted/50 rounded-l-lg">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                    <p className="text-sm text-muted-foreground">Loading map...</p>
-                  </div>
+                  {hasTimeout ? (
+                    <div className="text-center p-6 bg-background rounded-lg shadow-lg max-w-sm mx-4">
+                      <div className="text-destructive mb-4">
+                        <svg className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-lg mb-2">Map Failed to Load</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        The interactive map couldn't load. Please try again or use the external map links.
+                      </p>
+                      <Button onClick={handleRetry} className="w-full">
+                        Retry Loading Map
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                      <p className="text-sm text-muted-foreground">Loading map...</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
