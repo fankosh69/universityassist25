@@ -199,6 +199,46 @@ export function CampusDetailModal({
     }
   }, [isMapReady]);
 
+  // Fix #3: IntersectionObserver to force repaint when map becomes visible
+  useEffect(() => {
+    if (!mapContainer.current || !isOpen) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && mapInstance.current) {
+            console.log('👁️ Map container visible, forcing repaint');
+            
+            // Force multiple repaints
+            mapInstance.current.invalidateSize(true);
+            
+            // Additional force repaint via opacity trick
+            const container = mapContainer.current;
+            if (container) {
+              container.style.opacity = '0.99';
+              requestAnimationFrame(() => {
+                if (container) container.style.opacity = '1';
+              });
+            }
+            
+            // Redraw tiles
+            mapInstance.current.eachLayer(layer => {
+              if (layer instanceof L.TileLayer) {
+                console.log('🔄 Redrawing tile layer from IntersectionObserver');
+                layer.redraw();
+              }
+            });
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    
+    observer.observe(mapContainer.current);
+    
+    return () => observer.disconnect();
+  }, [isOpen, mapContainer.current, mapInstance.current]);
+
   // Update campus marker and view
   useEffect(() => {
     if (!isMapReady || !mapInstance.current || !selectedCampus?.lat || !selectedCampus?.lng) return;
