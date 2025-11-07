@@ -50,7 +50,8 @@ export function CampusDetailModal({
 
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
-  const markers = useRef<L.Marker[]>([]);
+  const campusMarkerRef = useRef<L.Marker | null>(null);
+  const isInitializing = useRef(false);
 
   // Derive selectedCampus synchronously using useMemo - eliminates all race conditions
   const selectedCampus = useMemo(() => {
@@ -59,12 +60,27 @@ export function CampusDetailModal({
     return campuses.find(c => c.id === targetId) || campuses[0];
   }, [isOpen, campuses, initialCampusId, activeCampusId]);
 
-  // Reset states when modal closes
+  // Reset states when modal closes - SINGLE CONSOLIDATED CLEANUP
   useEffect(() => {
     if (!isOpen) {
-      console.log('🔴 Modal closed, resetting map state');
+      console.log('🔴 Modal closed, cleaning up');
+      
+      // Cleanup map
+      if (map.current) {
+        console.log('🧹 Removing map instance');
+        map.current.remove();
+        map.current = null;
+      }
+      
+      // Cleanup marker
+      if (campusMarkerRef.current) {
+        campusMarkerRef.current = null;
+      }
+      
+      // Reset state
       setIsMapLoaded(false);
       setActiveCampusId(null);
+      isInitializing.current = false;
     } else {
       console.log('🟢 Modal opened');
     }
@@ -77,25 +93,27 @@ export function CampusDetailModal({
       return;
     }
     
-    // Only create map if it doesn't exist
-    if (map.current) {
-      console.log('ℹ️ Map already exists, skipping creation');
+    // Initialization guard to prevent double creation
+    if (map.current || isInitializing.current) {
+      console.log('ℹ️ Map already exists or initializing, skipping creation');
       return;
     }
 
     console.log('🗺️ Creating map instance');
+    isInitializing.current = true;
     setIsMapLoaded(false);
 
     const timeoutId = setTimeout(() => {
       if (!mapContainer.current) {
         console.log('❌ Map container disappeared');
+        isInitializing.current = false;
         return;
       }
 
       try {
         console.log('📍 Initializing Leaflet map...');
         const newMap = L.map(mapContainer.current, {
-          center: [49.798294, 10.004028], // Default center of Germany, will be updated by campus effect
+          center: [49.798294, 10.004028],
           zoom: 14,
           scrollWheelZoom: true,
         });
@@ -109,12 +127,15 @@ export function CampusDetailModal({
         console.log('✅ Map instance created');
 
         setTimeout(() => {
-          newMap.invalidateSize();
-          setIsMapLoaded(true);
-          console.log('✅ Map initialized successfully');
+          if (newMap) {
+            newMap.invalidateSize();
+            setIsMapLoaded(true);
+            console.log('✅ Map initialized successfully');
+          }
         }, 100);
       } catch (error) {
         console.error('❌ Error creating map:', error);
+        isInitializing.current = false;
         setIsMapLoaded(true);
       }
     }, 200);
@@ -122,13 +143,12 @@ export function CampusDetailModal({
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isOpen]); // Only depend on isOpen!
+  }, [isOpen]);
 
   // 🎯 PRIMARY FIX: Force map to recalculate size after modal opens
   useEffect(() => {
     if (isOpen && map.current && !isMapLoaded) {
       console.log('🔧 Attempting to invalidate map size...');
-      // Small delay to ensure modal transition is complete
       const timer = setTimeout(() => {
         if (map.current) {
           console.log('📐 Invalidating map size');
@@ -142,19 +162,7 @@ export function CampusDetailModal({
     }
   }, [isOpen, isMapLoaded]);
 
-  // Cleanup map when modal closes
-  useEffect(() => {
-    return () => {
-      if (map.current) {
-        console.log('🧹 Cleaning up map instance');
-        map.current.remove();
-        map.current = null;
-        markers.current = [];
-      }
-    };
-  }, [isOpen]);
-
-  // Update map view and markers when campus changes (don't recreate map!)
+  // Update map view and markers when campus changes
   useEffect(() => {
     if (!map.current || !isMapLoaded || !selectedCampus?.lat || !selectedCampus?.lng) {
       console.log('⏸️ Skipping campus update:', { 
@@ -167,9 +175,11 @@ export function CampusDetailModal({
 
     console.log('🎯 Updating map for campus:', selectedCampus.name || selectedCampus.city);
 
-    // Remove old campus markers
-    markers.current.forEach(marker => marker.remove());
-    markers.current = [];
+    // Remove old campus marker if exists
+    if (campusMarkerRef.current) {
+      campusMarkerRef.current.remove();
+      campusMarkerRef.current = null;
+    }
 
     // Update map center with smooth animation
     map.current.setView([selectedCampus.lat, selectedCampus.lng], 14, { animate: true });
@@ -192,9 +202,9 @@ export function CampusDetailModal({
           : `<b>Campus</b><br/>${selectedCampus.city || ''}`
       );
 
-    markers.current = [mainMarker];
+    campusMarkerRef.current = mainMarker;
     console.log('✅ Campus marker added');
-  }, [selectedCampus?.id, selectedCampus?.lat, selectedCampus?.lng, selectedCampus?.name, selectedCampus?.city, isMapLoaded]);
+  }, [selectedCampus?.id, isMapLoaded]);
 
   // Only return null if modal is closed AND no campus selected
   if (!selectedCampus && !isOpen) return null;
