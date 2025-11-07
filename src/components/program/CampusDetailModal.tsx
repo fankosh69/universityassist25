@@ -124,7 +124,11 @@ export function CampusDetailModal({
 
       map.whenReady(() => {
         console.log('✅ Map ready');
+        // Multiple invalidateSize calls at staggered intervals to account for dialog animation
         setTimeout(() => map.invalidateSize(true), 50);
+        setTimeout(() => map.invalidateSize(true), 100);
+        setTimeout(() => map.invalidateSize(true), 200);
+        setTimeout(() => map.invalidateSize(true), 500);
         setIsMapReady(true);
       });
 
@@ -171,6 +175,18 @@ export function CampusDetailModal({
 
     return () => clearTimeout(timer);
   }, [isOpen, mapContainer.current]);
+
+  // Final size recalculation after map is ready
+  useEffect(() => {
+    if (isMapReady && mapInstance.current) {
+      // One final invalidateSize after a longer delay to catch any late animations
+      const timer = setTimeout(() => {
+        mapInstance.current?.invalidateSize(true);
+        console.log('🔄 Final map size recalculation');
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isMapReady]);
 
   // Update campus marker and view
   useEffect(() => {
