@@ -453,7 +453,12 @@ export function CampusDetailModal({
 
             <div 
               ref={mapContainer} 
-              style={{ width: '100%', height: '600px' }}
+              style={{ 
+                width: '100%', 
+                height: '600px',
+                position: 'relative',
+                zIndex: 1
+              }}
               className="leaflet-container"
             />
           </div>
