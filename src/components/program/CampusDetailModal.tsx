@@ -54,6 +54,8 @@ export function CampusDetailModal({
   onClose,
   initialCampusId,
 }: CampusDetailModalProps) {
+  console.log('🔵 CampusDetailModal rendered', { isOpen, campusCount: campuses.length });
+  
   const [activeCampusId, setActiveCampusId] = useState<string | null>(null);
   const [amenities, setAmenities] = useState<NearbyAmenity[]>([]);
   const [isLoadingAmenities, setIsLoadingAmenities] = useState(false);
@@ -77,8 +79,10 @@ export function CampusDetailModal({
 
   // Initialize and cleanup map
   useEffect(() => {
+    console.log('🟢 Map useEffect triggered', { isOpen, hasContainer: !!mapContainer.current, hasMap: !!mapInstance.current });
+    
     if (!isOpen) {
-      // Cleanup when modal closes
+      console.log('🔴 Cleaning up map');
       if (mapInstance.current) {
         mapInstance.current.remove();
         mapInstance.current = null;
@@ -93,91 +97,63 @@ export function CampusDetailModal({
       return;
     }
 
-    // Initialize map when modal opens
-    if (!mapContainer.current || mapInstance.current) return;
+    if (!mapContainer.current || mapInstance.current) {
+      console.log('⚠️ Skipping init:', { hasContainer: !!mapContainer.current, hasMap: !!mapInstance.current });
+      return;
+    }
 
-    // CRITICAL: Wait for dialog animation (200ms) + extra buffer
-    const initTimer = setTimeout(() => {
-      if (!mapContainer.current) return;
+    // Use double RAF to ensure DOM is painted
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!mapContainer.current) {
+          console.log('❌ Container disappeared');
+          return;
+        }
 
-      // Check if container is visible
-      const isVisible = mapContainer.current.offsetWidth > 0 && mapContainer.current.offsetHeight > 0;
-      if (!isVisible) {
-        console.warn('⚠️ Map container not visible yet');
-        setMapLoadFailed(true);
-        return;
-      }
-
-      console.log('🗺️ Starting map initialization...');
-
-      try {
-        const map = L.map(mapContainer.current, {
-          center: [49.798294, 10.004028],
-          zoom: 14,
-          scrollWheelZoom: true,
-          preferCanvas: false,
+        const isVisible = mapContainer.current.offsetWidth > 0 && mapContainer.current.offsetHeight > 0;
+        console.log('📐 Container dimensions:', {
+          width: mapContainer.current.offsetWidth,
+          height: mapContainer.current.offsetHeight,
+          isVisible
         });
 
-        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-          maxZoom: 19,
-          minZoom: 1,
-          errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
-        });
+        if (!isVisible) {
+          console.log('❌ Container not visible');
+          return;
+        }
 
-        // Track tile loading
-        tileLayer.on('loading', () => {
-          console.log('🔄 Tiles loading...');
-        });
-
-        tileLayer.on('load', () => {
-          console.log('✅ Tiles loaded successfully!');
-          setMapLoadFailed(false);
-          clearTimeout(failureTimeout);
-        });
-
-        tileLayer.on('tileerror', (error) => {
-          console.error('❌ Tile loading error:', error);
-        });
-
-        tileLayer.addTo(map);
-        mapInstance.current = map;
-
-        // Set failure timeout
-        const failureTimeout = setTimeout(() => {
-          console.error('⏱️ Map tiles failed to load within 5 seconds');
-          setMapLoadFailed(true);
-        }, 5000);
-
-        // Use whenReady event
-        map.whenReady(() => {
-          console.log('🗺️ Map is ready');
-          
-          setTimeout(() => {
-            if (map) {
-              map.invalidateSize(true);
-              console.log('📐 Map size invalidated');
-            }
-          }, 100);
-
-          // Additional redraws
-          const resizeDelays = [200, 400, 700, 1000];
-          resizeDelays.forEach(delay => {
-            setTimeout(() => {
-              if (map) {
-                map.invalidateSize(true);
-              }
-            }, delay);
+        try {
+          console.log('🗺️ Creating map...');
+          const map = L.map(mapContainer.current, {
+            center: [49.798294, 10.004028],
+            zoom: 14,
+            scrollWheelZoom: true,
           });
-        });
 
-      } catch (error) {
-        console.error('💥 Map initialization error:', error);
-        setMapLoadFailed(true);
-      }
-    }, 500);
+          const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19,
+          });
 
-    return () => clearTimeout(initTimer);
+          tileLayer.on('loading', () => console.log('🔄 Tiles loading...'));
+          tileLayer.on('load', () => console.log('✅ Tiles loaded'));
+          tileLayer.on('tileerror', (err) => console.error('❌ Tile error:', err));
+          
+          tileLayer.addTo(map);
+          mapInstance.current = map;
+
+          map.whenReady(() => {
+            console.log('✅ Map ready');
+            setTimeout(() => map.invalidateSize(true), 50);
+            setTimeout(() => map.invalidateSize(true), 200);
+          });
+
+        } catch (error) {
+          console.error('💥 Map initialization error:', error);
+          setMapLoadFailed(true);
+        }
+      });
+    });
   }, [isOpen]);
 
   // Update campus marker and view
