@@ -77,10 +77,63 @@ export function CampusDetailModal({
     return campuses.find(c => c.id === targetId) || campuses[0];
   }, [isOpen, campuses, initialCampusId, activeCampusId]);
 
-  // Initialize and cleanup map
-  useEffect(() => {
-    console.log('🟢 Map useEffect triggered', { isOpen, hasContainer: !!mapContainer.current, hasMap: !!mapInstance.current });
+  // Function to initialize the map
+  const initializeMap = () => {
+    if (mapInstance.current || !mapContainer.current) {
+      console.log('⚠️ Cannot initialize:', { 
+        hasMap: !!mapInstance.current, 
+        hasContainer: !!mapContainer.current 
+      });
+      return;
+    }
+
+    const isVisible = mapContainer.current.offsetWidth > 0 && 
+                      mapContainer.current.offsetHeight > 0;
     
+    console.log('📐 Container dimensions:', {
+      width: mapContainer.current.offsetWidth,
+      height: mapContainer.current.offsetHeight,
+      isVisible
+    });
+
+    if (!isVisible) {
+      console.log('❌ Container not visible');
+      return;
+    }
+
+    try {
+      console.log('🗺️ Creating map...');
+      const map = L.map(mapContainer.current, {
+        center: [49.798294, 10.004028],
+        zoom: 14,
+        scrollWheelZoom: true,
+      });
+
+      const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+      });
+
+      tileLayer.on('loading', () => console.log('🔄 Tiles loading...'));
+      tileLayer.on('load', () => console.log('✅ Tiles loaded'));
+      tileLayer.on('tileerror', (err) => console.error('❌ Tile error:', err));
+      
+      tileLayer.addTo(map);
+      mapInstance.current = map;
+
+      map.whenReady(() => {
+        console.log('✅ Map ready');
+        setTimeout(() => map.invalidateSize(true), 50);
+      });
+
+    } catch (error) {
+      console.error('💥 Map initialization error:', error);
+      setMapLoadFailed(true);
+    }
+  };
+
+  // Cleanup map when modal closes
+  useEffect(() => {
     if (!isOpen) {
       console.log('🔴 Cleaning up map');
       if (mapInstance.current) {
@@ -94,71 +147,27 @@ export function CampusDetailModal({
       setShowAmenities(true);
       setHoveredAmenity(null);
       setMapLoadFailed(false);
+    }
+  }, [isOpen]);
+
+  // Wait for container to become available when modal opens
+  useEffect(() => {
+    console.log('🟢 Container watch effect triggered', { 
+      isOpen, 
+      hasContainer: !!mapContainer.current 
+    });
+    
+    if (!isOpen || !mapContainer.current) {
       return;
     }
 
-  if (!mapContainer.current || mapInstance.current) {
-    console.log('⚠️ Skipping init:', { 
-      hasContainer: !!mapContainer.current, 
-      hasMap: !!mapInstance.current,
-      containerElement: mapContainer.current 
-    });
-    return;
-  }
+    // Container is now available, trigger map initialization
+    const timer = setTimeout(() => {
+      initializeMap();
+    }, 50);
 
-    // Use double RAF to ensure DOM is painted
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (!mapContainer.current) {
-          console.log('❌ Container disappeared');
-          return;
-        }
-
-        const isVisible = mapContainer.current.offsetWidth > 0 && mapContainer.current.offsetHeight > 0;
-        console.log('📐 Container dimensions:', {
-          width: mapContainer.current.offsetWidth,
-          height: mapContainer.current.offsetHeight,
-          isVisible
-        });
-
-        if (!isVisible) {
-          console.log('❌ Container not visible');
-          return;
-        }
-
-        try {
-          console.log('🗺️ Creating map...');
-          const map = L.map(mapContainer.current, {
-            center: [49.798294, 10.004028],
-            zoom: 14,
-            scrollWheelZoom: true,
-          });
-
-          const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19,
-          });
-
-          tileLayer.on('loading', () => console.log('🔄 Tiles loading...'));
-          tileLayer.on('load', () => console.log('✅ Tiles loaded'));
-          tileLayer.on('tileerror', (err) => console.error('❌ Tile error:', err));
-          
-          tileLayer.addTo(map);
-          mapInstance.current = map;
-
-          map.whenReady(() => {
-            console.log('✅ Map ready');
-            setTimeout(() => map.invalidateSize(true), 50);
-            setTimeout(() => map.invalidateSize(true), 200);
-          });
-
-        } catch (error) {
-          console.error('💥 Map initialization error:', error);
-          setMapLoadFailed(true);
-        }
-      });
-    });
-  }, [isOpen]);
+    return () => clearTimeout(timer);
+  }, [isOpen, mapContainer.current]);
 
   // Update campus marker and view
   useEffect(() => {
