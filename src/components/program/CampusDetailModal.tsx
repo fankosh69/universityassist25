@@ -11,7 +11,16 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Users, Building2, Navigation, ExternalLink } from 'lucide-react';
+import { Toggle } from '@/components/ui/toggle';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { MapPin, Users, Building2, Navigation, ExternalLink, Loader2 } from 'lucide-react';
+import { 
+  fetchNearbyAmenities, 
+  formatDistance, 
+  getCategoryIcon, 
+  getCategoryLabel,
+  type NearbyAmenity 
+} from '@/lib/osm-amenities';
 
 // Fix for default marker icons in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -46,118 +55,51 @@ export function CampusDetailModal({
   initialCampusId,
 }: CampusDetailModalProps) {
   const [activeCampusId, setActiveCampusId] = useState<string | null>(null);
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [hasTimeout, setHasTimeout] = useState(false);
+  const [amenities, setAmenities] = useState<NearbyAmenity[]>([]);
+  const [isLoadingAmenities, setIsLoadingAmenities] = useState(false);
+  const [showAmenities, setShowAmenities] = useState(true);
+  const [hoveredAmenity, setHoveredAmenity] = useState<string | null>(null);
+  const [activeFilters, setActiveFilters] = useState<Set<string>>(
+    new Set(['restaurant', 'cafe', 'grocery', 'pharmacy', 'library', 'bank'])
+  );
 
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<L.Map | null>(null);
+  const mapContainer = useRef<HTMLDivElement | null>(null);
+  const mapInstance = useRef<L.Map | null>(null);
   const campusMarkerRef = useRef<L.Marker | null>(null);
-  const isInitializing = useRef(false);
-  const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const amenityMarkersRef = useRef<Map<string, L.Marker>>(new Map());
 
-  // Derive selectedCampus synchronously using useMemo - eliminates all race conditions
   const selectedCampus = useMemo(() => {
     if (!isOpen || campuses.length === 0) return null;
     const targetId = activeCampusId || initialCampusId;
     return campuses.find(c => c.id === targetId) || campuses[0];
   }, [isOpen, campuses, initialCampusId, activeCampusId]);
 
-  // Reset states when modal closes - SINGLE CONSOLIDATED CLEANUP
+  // Initialize and cleanup map
   useEffect(() => {
     if (!isOpen) {
-      console.log('🔴 Modal closed, cleaning up');
-      
-      // Cleanup map
-      if (map.current) {
-        console.log('🧹 Removing map instance');
-        map.current.remove();
-        map.current = null;
+      // Cleanup when modal closes
+      if (mapInstance.current) {
+        mapInstance.current.remove();
+        mapInstance.current = null;
       }
-      
-      // Cleanup marker
-      if (campusMarkerRef.current) {
-        campusMarkerRef.current = null;
-      }
-      
-      // Clear load timeout
-      if (loadTimeoutRef.current) {
-        clearTimeout(loadTimeoutRef.current);
-        loadTimeoutRef.current = null;
-      }
-      
-      // Reset state
-      setIsMapLoaded(false);
+      campusMarkerRef.current = null;
+      amenityMarkersRef.current.clear();
       setActiveCampusId(null);
-      setHasTimeout(false);
-      isInitializing.current = false;
-    } else {
-      console.log('🟢 Modal opened');
-    }
-  }, [isOpen]);
-
-  // 10-second timeout to show error if map doesn't load
-  useEffect(() => {
-    if (isOpen && !isMapLoaded) {
-      console.log('⏱️ Starting 10-second load timeout');
-      loadTimeoutRef.current = setTimeout(() => {
-        if (!isMapLoaded) {
-          console.log('⏰ Map load timeout reached');
-          setHasTimeout(true);
-        }
-      }, 10000);
-
-      return () => {
-        if (loadTimeoutRef.current) {
-          clearTimeout(loadTimeoutRef.current);
-          loadTimeoutRef.current = null;
-        }
-      };
-    }
-  }, [isOpen, isMapLoaded]);
-
-  // Retry function
-  const handleRetry = () => {
-    console.log('🔄 Retrying map initialization');
-    
-    // Cleanup existing map
-    if (map.current) {
-      map.current.remove();
-      map.current = null;
-    }
-    
-    // Reset all states
-    setHasTimeout(false);
-    setIsMapLoaded(false);
-    isInitializing.current = false;
-  };
-
-  // Initialize map ONCE when modal opens
-  useEffect(() => {
-    if (!isOpen || !mapContainer.current) {
-      console.log('⏸️ Skipping map init:', { isOpen, hasContainer: !!mapContainer.current });
-      return;
-    }
-    
-    // Initialization guard to prevent double creation
-    if (map.current || isInitializing.current) {
-      console.log('ℹ️ Map already exists or initializing, skipping creation');
+      setAmenities([]);
+      setShowAmenities(true);
+      setHoveredAmenity(null);
       return;
     }
 
-    console.log('🗺️ Creating map instance');
-    isInitializing.current = true;
-    setIsMapLoaded(false);
+    // Initialize map when modal opens
+    if (!mapContainer.current || mapInstance.current) return;
 
-    const timeoutId = setTimeout(() => {
-      if (!mapContainer.current) {
-        console.log('❌ Map container disappeared');
-        isInitializing.current = false;
-        return;
-      }
+    // CRITICAL: Wait for DOM to be ready
+    const initTimer = setTimeout(() => {
+      if (!mapContainer.current) return;
 
       try {
-        console.log('📍 Initializing Leaflet map...');
-        const newMap = L.map(mapContainer.current, {
+        const map = L.map(mapContainer.current, {
           center: [49.798294, 10.004028],
           zoom: 14,
           scrollWheelZoom: true,
@@ -166,113 +108,174 @@ export function CampusDetailModal({
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 19,
-        }).addTo(newMap);
+        }).addTo(map);
 
-        map.current = newMap;
-        console.log('✅ Map instance created');
+        mapInstance.current = map;
 
+        // CRITICAL: Call invalidateSize multiple times to ensure proper rendering
         setTimeout(() => {
-          if (newMap) {
-            newMap.invalidateSize();
-            setIsMapLoaded(true);
-            console.log('✅ Map initialized successfully');
-          }
+          map.invalidateSize();
         }, 100);
-      } catch (error) {
-        console.error('❌ Error creating map:', error);
-        isInitializing.current = false;
-        setIsMapLoaded(true);
-      }
-    }, 200);
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 300);
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 500);
 
-    return () => {
-      clearTimeout(timeoutId);
-    };
+      } catch (error) {
+        console.error('Map initialization error:', error);
+      }
+    }, 300);
+
+    return () => clearTimeout(initTimer);
   }, [isOpen]);
 
-  // 🎯 PRIMARY FIX: Force map to recalculate size after modal opens
+  // Update campus marker and view
   useEffect(() => {
-    if (isOpen && map.current && !isMapLoaded) {
-      console.log('🔧 Attempting to invalidate map size...');
-      const timer = setTimeout(() => {
-        if (map.current) {
-          console.log('📐 Invalidating map size');
-          map.current.invalidateSize();
-          setIsMapLoaded(true);
-          console.log('✅ Map size invalidated and set to loaded');
-        }
-      }, 300);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, isMapLoaded]);
+    if (!mapInstance.current || !selectedCampus?.lat || !selectedCampus?.lng) return;
 
-  // Update map view and markers when campus changes
-  useEffect(() => {
-    if (!map.current || !isMapLoaded || !selectedCampus?.lat || !selectedCampus?.lng) {
-      console.log('⏸️ Skipping campus update:', { 
-        hasMap: !!map.current, 
-        isMapLoaded, 
-        hasCoords: !!(selectedCampus?.lat && selectedCampus?.lng) 
-      });
-      return;
-    }
-
-    console.log('🎯 Updating map for campus:', selectedCampus.name || selectedCampus.city);
-
-    // Remove old campus marker if exists
+    // Remove old campus marker
     if (campusMarkerRef.current) {
       campusMarkerRef.current.remove();
-      campusMarkerRef.current = null;
     }
 
-    // Update map center with smooth animation
-    map.current.setView([selectedCampus.lat, selectedCampus.lng], 14, { animate: true });
+    // Update view
+    mapInstance.current.setView([selectedCampus.lat, selectedCampus.lng], 14, { 
+      animate: true,
+      duration: 0.5 
+    });
+
+    // Force resize after view change
+    setTimeout(() => {
+      mapInstance.current?.invalidateSize();
+    }, 100);
 
     // Add new campus marker
     const campusIcon = L.divIcon({
       className: 'custom-campus-marker',
-      html: '<div style="background-color: hsl(var(--primary)); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🎓</div>',
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
+      html: '<div style="font-size: 36px;">🎓</div>',
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
     });
 
-    const mainMarker = L.marker([selectedCampus.lat, selectedCampus.lng], {
+    const marker = L.marker([selectedCampus.lat, selectedCampus.lng], {
       icon: campusIcon,
     })
-      .addTo(map.current)
+      .addTo(mapInstance.current)
       .bindPopup(
-        selectedCampus.name 
-          ? `<b>${selectedCampus.name}</b><br/>${selectedCampus.city || ''}` 
-          : `<b>Campus</b><br/>${selectedCampus.city || ''}`
+        `<strong>${selectedCampus.name || 'Campus'}</strong><br/>${selectedCampus.city || ''}`
       );
 
-    campusMarkerRef.current = mainMarker;
-    console.log('✅ Campus marker added');
-  }, [selectedCampus?.id, isMapLoaded]);
+    campusMarkerRef.current = marker;
+  }, [selectedCampus?.id, selectedCampus?.lat, selectedCampus?.lng]);
 
-  // Only return null if modal is closed AND no campus selected
-  if (!selectedCampus && !isOpen) return null;
-  
-  // Show loading state if modal is open but campus not ready
-  if (!selectedCampus && isOpen) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl h-[85vh]">
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-              <p className="text-sm text-muted-foreground">Loading campus information...</p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  // Fetch amenities
+  useEffect(() => {
+    if (!selectedCampus?.lat || !selectedCampus?.lng || !mapInstance.current) return;
 
+    setIsLoadingAmenities(true);
 
+    fetchNearbyAmenities(selectedCampus.lat, selectedCampus.lng, 1000)
+      .then((fetchedAmenities) => {
+        setAmenities(fetchedAmenities);
+      })
+      .catch((error) => {
+        console.error('Error fetching amenities:', error);
+        setAmenities([]);
+      })
+      .finally(() => {
+        setIsLoadingAmenities(false);
+      });
+  }, [selectedCampus?.id]);
 
-  const facilityIcons = {
+  // Manage amenity markers
+  useEffect(() => {
+    if (!mapInstance.current) return;
+
+    // Clear all amenity markers
+    amenityMarkersRef.current.forEach(marker => marker.remove());
+    amenityMarkersRef.current.clear();
+
+    if (!showAmenities || amenities.length === 0) return;
+
+    // Add filtered markers
+    const filteredAmenities = amenities.filter(a => activeFilters.has(a.category));
+
+    filteredAmenities.forEach((amenity) => {
+      const icon = L.divIcon({
+        className: 'custom-amenity-marker',
+        html: `<div style="font-size: 30px;">${getCategoryIcon(amenity.category)}</div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+      });
+
+      const marker = L.marker([amenity.lat, amenity.lng], { icon })
+        .addTo(mapInstance.current!)
+        .bindPopup(
+          `<strong>${amenity.name}</strong><br/>${getCategoryLabel(amenity.category)}<br/>📍 ${formatDistance(amenity.distance)} walking`
+        );
+
+      marker.on('mouseover', () => setHoveredAmenity(amenity.id));
+      marker.on('mouseout', () => setHoveredAmenity(null));
+      marker.on('click', () => {
+        if (mapInstance.current) {
+          mapInstance.current.setView([amenity.lat, amenity.lng], 16, { 
+            animate: true,
+            duration: 0.5 
+          });
+        }
+      });
+
+      amenityMarkersRef.current.set(amenity.id, marker);
+    });
+  }, [amenities, showAmenities, activeFilters]);
+
+  // Handle hover highlighting
+  useEffect(() => {
+    amenityMarkersRef.current.forEach(marker => {
+      const element = marker.getElement();
+      if (element) {
+        element.style.transform = hoveredAmenity && marker === amenityMarkersRef.current.get(hoveredAmenity) 
+          ? 'scale(1.3)' 
+          : 'scale(1)';
+        element.style.transition = 'transform 0.2s';
+      }
+    });
+  }, [hoveredAmenity]);
+
+  const toggleFilter = (category: NearbyAmenity['category']) => {
+    setActiveFilters(prev => {
+      const newFilters = new Set(prev);
+      if (newFilters.has(category)) {
+        newFilters.delete(category);
+      } else {
+        newFilters.add(category);
+      }
+      return newFilters;
+    });
+  };
+
+  const handleAmenityClick = (amenity: NearbyAmenity) => {
+    if (mapInstance.current) {
+      mapInstance.current.setView([amenity.lat, amenity.lng], 17, {
+        animate: true,
+        duration: 0.5
+      });
+      const marker = amenityMarkersRef.current.get(amenity.id);
+      if (marker) marker.openPopup();
+    }
+  };
+
+  const groupedAmenities = useMemo(() => {
+    return amenities.reduce((acc, amenity) => {
+      if (!acc[amenity.category]) acc[amenity.category] = [];
+      acc[amenity.category].push(amenity);
+      return acc;
+    }, {} as Record<string, NearbyAmenity[]>);
+  }, [amenities]);
+
+  const facilityIcons: Record<string, string> = {
     'Library': '📚',
     'Sports': '⚽',
     'Lab': '🔬',
@@ -285,150 +288,209 @@ export function CampusDetailModal({
     const key = Object.keys(facilityIcons).find(k => 
       facility.toLowerCase().includes(k.toLowerCase())
     );
-    return key ? facilityIcons[key as keyof typeof facilityIcons] : facilityIcons.default;
+    return key ? facilityIcons[key] : facilityIcons.default;
   };
+
+  if (!isOpen) return null;
+
+  if (!selectedCampus) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-5xl max-h-[90vh]">
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="w-8 h-8 animate-spin" />
+            <span className="ml-2">Loading campus information...</span>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] p-0 overflow-hidden flex flex-col">
-        <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
-          <DialogTitle>Campus Location & Nearby Amenities</DialogTitle>
+      <DialogContent className="max-w-5xl max-h-[90vh]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <MapPin className="w-5 h-5" />
+            Campus Location & Nearby Amenities
+          </DialogTitle>
           <DialogDescription>
             Explore the campus location, nearby amenities, and facilities
           </DialogDescription>
         </DialogHeader>
 
         {campuses.length > 1 && (
-          <Tabs 
-            value={selectedCampus.id} 
-            onValueChange={setActiveCampusId}
-            className="px-6 pt-4 flex-shrink-0"
-          >
-            <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${campuses.length}, 1fr)` }}>
+          <Tabs value={selectedCampus.id} onValueChange={setActiveCampusId}>
+            <TabsList className="w-full">
               {campuses.map((campus) => (
-                <TabsTrigger key={campus.id} value={campus.id}>
+                <TabsTrigger key={campus.id} value={campus.id} className="flex-1">
                   {campus.name || campus.city}
-                  {campus.is_main_campus && <Badge variant="secondary" className="ml-2 text-xs">Main</Badge>}
+                  {campus.is_main_campus && <Badge className="ml-2">Main</Badge>}
                 </TabsTrigger>
               ))}
             </TabsList>
           </Tabs>
         )}
 
-        <div className="flex-1 flex overflow-hidden min-h-0">
-            {/* Map Section */}
-            <div className="flex-1 relative min-h-0">
-              <div ref={mapContainer} className="absolute inset-0 w-full h-full rounded-l-lg" style={{ minHeight: '500px' }} />
-              
-              {/* Loading/Error overlay */}
-              {!isMapLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-muted/50 rounded-l-lg">
-                  {hasTimeout ? (
-                    <div className="text-center p-6 bg-background rounded-lg shadow-lg max-w-sm mx-4">
-                      <div className="text-destructive mb-4">
-                        <svg className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-lg mb-2">Map Failed to Load</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        The interactive map couldn't load. Please try again or use the external map links.
-                      </p>
-                      <Button onClick={handleRetry} className="w-full">
-                        Retry Loading Map
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                      <p className="text-sm text-muted-foreground">Loading map...</p>
-                    </div>
-                  )}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ height: '600px' }}>
+          <div className="lg:col-span-2 relative rounded-lg overflow-hidden border" style={{ height: '600px' }}>
+            <div className="absolute top-2 left-2 z-[1000] flex flex-col gap-2">
+              <Toggle
+                pressed={showAmenities}
+                onPressedChange={setShowAmenities}
+                className="bg-white shadow-md"
+              >
+                {showAmenities ? '🗺️ Hide Amenities' : '🗺️ Show Amenities'}
+              </Toggle>
+
+              {showAmenities && (
+                <div className="bg-white rounded-lg shadow-md p-2 max-w-[200px]">
+                  <p className="text-xs font-semibold mb-2">Filter by:</p>
+                  {(['restaurant', 'cafe', 'grocery', 'pharmacy', 'library', 'bank'] as const).map(category => (
+                    <Toggle
+                      key={category}
+                      pressed={activeFilters.has(category)}
+                      onPressedChange={() => toggleFilter(category)}
+                      size="sm"
+                      variant="outline"
+                      className="w-full justify-start text-xs mb-1"
+                    >
+                      {getCategoryIcon(category)}
+                      <span className="ml-1">{getCategoryLabel(category)}</span>
+                      <Badge variant="secondary" className="ml-auto">
+                        {groupedAmenities[category]?.length || 0}
+                      </Badge>
+                    </Toggle>
+                  ))}
                 </div>
               )}
             </div>
 
-            {/* Details Sidebar */}
-            <div className="w-80 border-l overflow-y-auto bg-background flex-shrink-0">
-              <div className="p-6 space-y-6">
-                {/* Campus Info */}
-                <div>
-                  <h3 className="font-semibold text-lg mb-2">{selectedCampus.name || 'Campus'}</h3>
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{selectedCampus.city}, Germany</span>
-                    </div>
-                    {selectedCampus.student_count && (
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        <span>{selectedCampus.student_count.toLocaleString()} students</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+            <div 
+              ref={mapContainer} 
+              style={{ width: '100%', height: '600px' }}
+              className="leaflet-container"
+            />
+          </div>
 
-                {/* Facilities */}
-                {selectedCampus.facilities && selectedCampus.facilities.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 font-semibold mb-2">
-                      <Building2 className="h-4 w-4" />
-                      <span>Campus Facilities</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedCampus.facilities.map((facility, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          <span className="mr-1">{getFacilityIcon(facility)}</span>
-                          {facility}
-                        </Badge>
-                      ))}
-                    </div>
+          <ScrollArea style={{ height: '600px' }}>
+            <div className="space-y-4 pr-4">
+              <div>
+                <h3 className="font-semibold text-lg mb-2">{selectedCampus.name || 'Campus'}</h3>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <MapPin className="w-4 h-4" />
+                  <span>{selectedCampus.city}, Germany</span>
+                </div>
+                {selectedCampus.student_count && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                    <Users className="w-4 h-4" />
+                    <span>{selectedCampus.student_count.toLocaleString()} students</span>
                   </div>
                 )}
+              </div>
 
-
-                {/* Getting There */}
+              {selectedCampus.facilities && selectedCampus.facilities.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 font-semibold mb-3">
-                    <Navigation className="h-4 w-4" />
-                    <span>Getting There</span>
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    Campus Facilities
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCampus.facilities.map((facility, index) => (
+                      <Badge key={index} variant="secondary">
+                        {getFacilityIcon(facility)}
+                        <span className="ml-1">{facility}</span>
+                      </Badge>
+                    ))}
                   </div>
-                  <div className="space-y-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start"
-                      asChild
+                </div>
+              )}
+
+              {showAmenities && (
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">
+                    Nearby Amenities
+                    {isLoadingAmenities && (
+                      <Loader2 className="w-4 h-4 animate-spin inline ml-2" />
+                    )}
+                  </h4>
+
+                  {isLoadingAmenities && (
+                    <p className="text-sm text-muted-foreground">Loading nearby amenities...</p>
+                  )}
+
+                  {!isLoadingAmenities && amenities.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No amenities found nearby</p>
+                  )}
+
+                  {!isLoadingAmenities && amenities.length > 0 && (
+                    <div className="space-y-3">
+                      {Object.entries(groupedAmenities)
+                        .filter(([category]) => activeFilters.has(category as NearbyAmenity['category']))
+                        .map(([category, items]) => (
+                          <div key={category}>
+                            <h5 className="text-xs font-semibold mb-1 flex items-center gap-1">
+                              {getCategoryIcon(category as NearbyAmenity['category'])}
+                              {getCategoryLabel(category as NearbyAmenity['category'])}
+                            </h5>
+                            <div className="space-y-1">
+                              {items.slice(0, 5).map((amenity) => (
+                                <button
+                                  key={amenity.id}
+                                  onClick={() => handleAmenityClick(amenity)}
+                                  onMouseEnter={() => setHoveredAmenity(amenity.id)}
+                                  onMouseLeave={() => setHoveredAmenity(null)}
+                                  className={`w-full text-left p-2 rounded-md border transition-all ${
+                                    hoveredAmenity === amenity.id
+                                      ? 'bg-primary/10 border-primary scale-105'
+                                      : 'bg-muted/50 hover:bg-muted border-transparent'
+                                  }`}
+                                >
+                                  <div className="font-medium text-sm">{amenity.name}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    📍 {formatDistance(amenity.distance)} • ~{Math.round(amenity.distance / 80)} min walk
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div>
+                <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                  <Navigation className="w-4 h-4" />
+                  Getting There
+                </h4>
+                <div className="space-y-2">
+                  <Button variant="outline" size="sm" className="w-full" asChild>
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${selectedCampus.lat},${selectedCampus.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      <a
-                        href={`https://www.google.com/maps/dir/?api=1&destination=${selectedCampus.lat},${selectedCampus.lng}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Directions via Google Maps
-                      </a>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start"
-                      asChild
+                      <ExternalLink className="w-4 w-4 mr-2" />
+                      Directions via Google Maps
+                    </a>
+                  </Button>
+                  <Button variant="outline" size="sm" className="w-full" asChild>
+                    <a
+                      href={`https://www.openstreetmap.org/directions?from=&to=${selectedCampus.lat}%2C${selectedCampus.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      <a
-                        href={`https://www.openstreetMap.org/directions?from=&to=${selectedCampus.lat},${selectedCampus.lng}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Directions via OpenStreetMap
-                      </a>
-                    </Button>
-                  </div>
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Directions via OpenStreetMap
+                    </a>
+                  </Button>
                 </div>
               </div>
             </div>
-          </div>
+          </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
