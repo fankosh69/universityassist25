@@ -97,10 +97,14 @@ export function CampusDetailModal({
       return;
     }
 
-    if (!mapContainer.current || mapInstance.current) {
-      console.log('⚠️ Skipping init:', { hasContainer: !!mapContainer.current, hasMap: !!mapInstance.current });
-      return;
-    }
+  if (!mapContainer.current || mapInstance.current) {
+    console.log('⚠️ Skipping init:', { 
+      hasContainer: !!mapContainer.current, 
+      hasMap: !!mapInstance.current,
+      containerElement: mapContainer.current 
+    });
+    return;
+  }
 
     // Use double RAF to ensure DOM is painted
     requestAnimationFrame(() => {
