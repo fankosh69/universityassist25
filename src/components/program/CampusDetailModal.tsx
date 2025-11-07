@@ -125,7 +125,16 @@ export function CampusDetailModal({
       map.whenReady(() => {
         console.log('✅ Map ready');
         // Multiple invalidateSize calls at staggered intervals to account for dialog animation
-        setTimeout(() => map.invalidateSize(true), 50);
+        setTimeout(() => {
+          map.invalidateSize(true);
+          // Manually redraw all tile layers
+          map.eachLayer(layer => {
+            if (layer instanceof L.TileLayer) {
+              console.log('🔄 Redrawing tile layer');
+              layer.redraw();
+            }
+          });
+        }, 50);
         setTimeout(() => map.invalidateSize(true), 100);
         setTimeout(() => map.invalidateSize(true), 200);
         setTimeout(() => map.invalidateSize(true), 500);
