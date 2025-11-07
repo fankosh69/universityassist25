@@ -94,7 +94,7 @@ export function CampusDetailModal({
     // Initialize map when modal opens
     if (!mapContainer.current || mapInstance.current) return;
 
-    // CRITICAL: Wait for DOM to be ready
+    // CRITICAL: Wait for dialog animation (200ms) + buffer
     const initTimer = setTimeout(() => {
       if (!mapContainer.current) return;
 
@@ -103,30 +103,37 @@ export function CampusDetailModal({
           center: [49.798294, 10.004028],
           zoom: 14,
           scrollWheelZoom: true,
+          preferCanvas: false,
         });
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 19,
-        }).addTo(map);
+          minZoom: 1,
+          errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+        });
 
+        tileLayer.on('tileerror', (error) => {
+          console.warn('Tile loading error:', error);
+        });
+
+        tileLayer.addTo(map);
         mapInstance.current = map;
 
-        // CRITICAL: Call invalidateSize multiple times to ensure proper rendering
-        setTimeout(() => {
-          map.invalidateSize();
-        }, 100);
-        setTimeout(() => {
-          map.invalidateSize();
-        }, 300);
-        setTimeout(() => {
-          map.invalidateSize();
-        }, 500);
+        // Force multiple redraws to ensure tiles load
+        const resizeDelays = [50, 150, 300, 500, 800];
+        resizeDelays.forEach(delay => {
+          setTimeout(() => {
+            if (map) {
+              map.invalidateSize(true);
+            }
+          }, delay);
+        });
 
       } catch (error) {
         console.error('Map initialization error:', error);
       }
-    }, 300);
+    }, 400);
 
     return () => clearTimeout(initTimer);
   }, [isOpen]);
