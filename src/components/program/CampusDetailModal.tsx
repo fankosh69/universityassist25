@@ -398,6 +398,30 @@ export function CampusDetailModal({
     return key ? facilityIcons[key] : facilityIcons.default;
   };
 
+  // Handle amenity click - center map and open popup
+  const handleAmenityClick = (amenity: NearbyAmenity) => {
+    if (!mapInstance.current) return;
+
+    // Center and zoom to amenity
+    mapInstance.current.setView([amenity.lat, amenity.lng], 17, {
+      animate: true,
+      duration: 0.5
+    });
+
+    // Find and open the corresponding marker popup
+    const marker = amenityMarkersRef.current.find(m => {
+      const latlng = m.getLatLng();
+      return latlng.lat === amenity.lat && latlng.lng === amenity.lng;
+    });
+
+    if (marker) {
+      // Small delay to ensure map animation completes
+      setTimeout(() => {
+        marker.openPopup();
+      }, 300);
+    }
+  };
+
   if (!isOpen) return null;
 
   if (!selectedCampus) {
@@ -592,6 +616,7 @@ export function CampusDetailModal({
                               }`}
                               onMouseEnter={() => setHoveredAmenity(amenity.id)}
                               onMouseLeave={() => setHoveredAmenity(null)}
+                              onClick={() => handleAmenityClick(amenity)}
                             >
                               <div className="flex items-start justify-between gap-2">
                                 <div className="flex-1">
