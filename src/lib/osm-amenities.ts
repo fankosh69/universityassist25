@@ -52,6 +52,56 @@ function categorizePOI(tags: any): NearbyAmenity['category'] {
   return 'other';
 }
 
+// Get a meaningful name for an amenity with fallback logic
+function getAmenityName(tags: any): string {
+  // Priority 1: Explicit name
+  if (tags.name) return tags.name;
+  
+  // Priority 2: Brand name
+  if (tags.brand) return tags.brand;
+  
+  // Priority 3: Operator name
+  if (tags.operator) return tags.operator;
+  
+  // Priority 4: Generate descriptive name based on type
+  const amenity = tags.amenity?.toLowerCase() || '';
+  const shop = tags.shop?.toLowerCase() || '';
+  
+  // Map amenity types to readable names
+  const amenityTypeNames: Record<string, string> = {
+    'restaurant': 'Restaurant',
+    'cafe': 'Café',
+    'fast_food': 'Fast Food',
+    'food_court': 'Food Court',
+    'pharmacy': 'Pharmacy',
+    'library': 'Library',
+    'bank': 'Bank',
+    'atm': 'ATM',
+    'supermarket': 'Supermarket',
+    'convenience': 'Convenience Store',
+    'grocery': 'Grocery Store',
+  };
+  
+  if (amenity && amenityTypeNames[amenity]) {
+    return amenityTypeNames[amenity];
+  }
+  
+  if (shop && amenityTypeNames[shop]) {
+    return amenityTypeNames[shop];
+  }
+  
+  // Priority 5: Fallback to category-based name
+  if (amenity) {
+    return amenity.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+  
+  if (shop) {
+    return shop.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+  
+  return 'Unnamed Location';
+}
+
 // Fetch nearby amenities using OpenStreetMap Overpass API with retry logic
 export async function fetchNearbyAmenities(
   lat: number, 
@@ -114,7 +164,7 @@ export async function fetchNearbyAmenities(
         if (category !== 'other') {
           amenities.push({
             id: element.id.toString(),
-            name: element.tags?.name || 'Unnamed',
+            name: getAmenityName(element.tags || {}),
             category,
             lat: element.lat,
             lng: element.lon,
