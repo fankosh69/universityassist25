@@ -16,8 +16,10 @@ import { StudentLifeSection } from '@/components/university/StudentLifeSection';
 import { AdmissionsSection } from '@/components/university/AdmissionsSection';
 import { ResearchSection } from '@/components/university/ResearchSection';
 import { ContactSection } from '@/components/university/ContactSection';
-import { Users, GraduationCap, BookOpen, TrendingUp, MapPin } from 'lucide-react';
+import { ProgramQuickViewModal } from '@/components/university/ProgramQuickViewModal';
+import { Users, GraduationCap, BookOpen, TrendingUp, MapPin, Eye } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import LoadingScreen from '@/components/LoadingScreen';
 
@@ -29,6 +31,8 @@ export default function UniversityPage() {
   const [campuses, setCampuses] = useState<any[]>([]);
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProgram, setSelectedProgram] = useState<any>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -318,8 +322,23 @@ export default function UniversityPage() {
             programs: (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {programs.map(program => (
-                  <Card key={program.id} className="p-6 hover:shadow-lg transition-shadow">
-                    <h3 className="font-bold text-lg mb-3">{program.name}</h3>
+                  <Card key={program.id} className="p-6 hover:shadow-lg transition-shadow relative group">
+                    {/* Floating Quick View Button */}
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-10"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setSelectedProgram(program);
+                        setIsQuickViewOpen(true);
+                      }}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      Quick View
+                    </Button>
+
+                    <h3 className="font-bold text-lg mb-3 pr-20">{program.name}</h3>
                     <div className="space-y-2 text-sm text-muted-foreground mb-4">
                       <p>🎓 {program.degree_type}</p>
                       <p>⏱️ {program.duration_semesters} semesters</p>
@@ -525,6 +544,17 @@ export default function UniversityPage() {
           }}
         />
       </div>
+
+      {/* Quick View Modal */}
+      <ProgramQuickViewModal
+        isOpen={isQuickViewOpen}
+        onClose={() => {
+          setIsQuickViewOpen(false);
+          setSelectedProgram(null);
+        }}
+        program={selectedProgram}
+        universitySlug={uni || ''}
+      />
     </div>
   );
 }
