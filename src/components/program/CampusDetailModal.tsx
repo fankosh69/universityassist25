@@ -415,8 +415,8 @@ export function CampusDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent className="max-w-5xl h-[85vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
             Campus Location
@@ -427,7 +427,7 @@ export function CampusDetailModal({
         </DialogHeader>
 
         {campuses.length > 1 && (
-          <Tabs value={selectedCampus.id} onValueChange={setActiveCampusId}>
+          <Tabs value={selectedCampus.id} onValueChange={setActiveCampusId} className="flex-shrink-0">
             <TabsList className="w-full">
               {campuses.map((campus) => (
                 <TabsTrigger key={campus.id} value={campus.id} className="flex-1">
@@ -439,8 +439,8 @@ export function CampusDetailModal({
           </Tabs>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ height: '600px' }}>
-          <div className="lg:col-span-2 relative rounded-lg overflow-hidden border" style={{ height: '600px' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
+          <div className="lg:col-span-2 relative rounded-lg overflow-hidden border h-full">
             {/* Amenities toggle button - shown when map is visible */}
             {isMapVisible && (
               <div className="absolute top-4 right-4 z-[1000] flex items-center gap-2 bg-card/95 backdrop-blur-sm rounded-lg p-2 shadow-lg border">
@@ -506,7 +506,7 @@ export function CampusDetailModal({
               ref={mapContainer}
               style={{ 
                 width: '100%', 
-                height: '600px',
+                height: '100%',
                 position: 'relative',
                 zIndex: 1,
                 transform: 'translateZ(0)', // Fix #2: Create new stacking context
@@ -516,8 +516,8 @@ export function CampusDetailModal({
             />
           </div>
 
-          <ScrollArea style={{ height: '600px' }}>
-            <div className="space-y-4 pr-4">
+          <ScrollArea className="h-full">
+            <div className="space-y-4 pr-4 pb-4">
               <div>
                 <h3 className="font-semibold text-lg mb-2">{selectedCampus.name || 'Campus'}</h3>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
