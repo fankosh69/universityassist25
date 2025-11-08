@@ -234,6 +234,23 @@ export function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1)}km`;
 }
 
+// Calculate walking time based on 80m/min average walking speed
+export function calculateWalkingTime(meters: number): number {
+  return Math.round(meters / 80);
+}
+
+// Format distance with walking time for better context
+export function formatDistanceWithTime(meters: number): string {
+  const distance = formatDistance(meters);
+  const walkTime = calculateWalkingTime(meters);
+  
+  if (walkTime < 1) {
+    return `${distance} • <1 min walk`;
+  }
+  
+  return `${distance} • ${walkTime} min walk`;
+}
+
 // Get category icon
 export function getCategoryIcon(category: NearbyAmenity['category']): string {
   const icons = {

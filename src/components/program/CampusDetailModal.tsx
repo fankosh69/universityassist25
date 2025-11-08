@@ -17,6 +17,7 @@ import { MapPin, Users, Building2, Navigation, ExternalLink, Loader2, AlertCircl
 import { 
   fetchNearbyAmenities, 
   formatDistance, 
+  formatDistanceWithTime,
   getCategoryIcon, 
   getCategoryLabel,
   type NearbyAmenity 
@@ -393,7 +394,7 @@ export function CampusDetailModal({
       const marker = L.marker([amenity.lat, amenity.lng], { icon })
         .addTo(mapInstance.current!)
         .bindPopup(
-          `<strong>${amenity.name}</strong><br/>${getCategoryLabel(amenity.category)}<br/>${formatDistance(amenity.distance)}`
+          `<strong>${amenity.name}</strong><br/>${getCategoryLabel(amenity.category)}<br/>${formatDistanceWithTime(amenity.distance)}`
         );
 
       marker.on('mouseover', () => setHoveredAmenity(amenity.id));
@@ -653,7 +654,7 @@ export function CampusDetailModal({
                                     {getCategoryIcon(amenity.category)} {amenity.name}
                                   </div>
                                   <div className="text-xs text-muted-foreground">
-                                    {getCategoryLabel(amenity.category)} • {formatDistance(amenity.distance)}
+                                    {getCategoryLabel(amenity.category)} • {formatDistanceWithTime(amenity.distance)}
                                   </div>
                                 </div>
                               </div>
