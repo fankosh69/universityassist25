@@ -60,8 +60,6 @@ export function CampusDetailModal({
   const [activeCampusId, setActiveCampusId] = useState<string | null>(null);
   const [mapLoadFailed, setMapLoadFailed] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
-  const [isMapVisible, setIsMapVisible] = useState(false); // Fix #5: Track map visibility for loading overlay
-  const [manualLoadRequested, setManualLoadRequested] = useState(false); // Manual load trigger
   
   // Amenities state
   const [showAmenities, setShowAmenities] = useState(false);
@@ -178,8 +176,6 @@ export function CampusDetailModal({
       setActiveCampusId(null);
       setMapLoadFailed(false);
       setIsMapReady(false);
-      setIsMapVisible(false); // Fix #5: Reset visibility state
-      setManualLoadRequested(false); // Reset manual load
       setShowAmenities(false);
       setAmenities([]);
       setActiveFilters(new Set());
@@ -187,44 +183,21 @@ export function CampusDetailModal({
     }
   }, [isOpen]);
 
-  // Manual map load handler
-  const handleManualLoad = () => {
-    console.log('🖱️ Manual map load requested');
-    setManualLoadRequested(true);
-    setShowAmenities(false); // Start with amenities OFF
-    
-    // Force immediate initialization
-    if (mapContainer.current && !mapInstance.current) {
-      initializeMap();
-      
-      // Force visibility after a short delay
-      setTimeout(() => {
-        setIsMapVisible(true);
-        if (mapInstance.current) {
-          mapInstance.current.invalidateSize(true);
-        }
-      }, 500);
-    } else if (mapInstance.current) {
-      // Map already exists, just force repaint
-      const container = mapContainer.current;
-      if (container) {
-        container.style.display = 'none';
-        container.offsetHeight;
-        container.style.display = 'block';
-      }
-      mapInstance.current.invalidateSize(true);
-      setIsMapVisible(true);
-    }
-  };
-
-  // Wait for container to become available when modal opens - REMOVED automatic loading
-  // Users will click "Show Map Now" button instead
+  // Initialize map when modal opens and container is available
   useEffect(() => {
-    console.log('🟢 Modal opened, waiting for manual map load', { 
-      isOpen, 
-      hasContainer: !!mapContainer.current 
-    });
-  }, [isOpen, mapContainer.current]);
+    if (!isOpen || !mapContainer.current || mapInstance.current) return;
+    
+    console.log('🟢 Modal opened, initializing map');
+    
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      if (mapContainer.current && !mapInstance.current) {
+        initializeMap();
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [isOpen]);
 
   // Final size recalculation after map is ready
   useEffect(() => {
@@ -238,36 +211,20 @@ export function CampusDetailModal({
     }
   }, [isMapReady]);
 
-  // Fix #3: IntersectionObserver to force repaint when map becomes visible
+  // Force repaint when map becomes visible
   useEffect(() => {
-    if (!mapContainer.current || !isOpen) return;
+    if (!mapContainer.current || !isOpen || !mapInstance.current) return;
     
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting && mapInstance.current) {
             console.log('👁️ Map container visible, forcing repaint');
-            
-            // Force multiple repaints
             mapInstance.current.invalidateSize(true);
-            
-            // Additional force repaint via opacity trick
-            const container = mapContainer.current;
-            if (container) {
-              container.style.opacity = '0.99';
-              requestAnimationFrame(() => {
-                if (container) {
-                  container.style.opacity = '1';
-                  // Fix #5: Mark map as visible once repaint is done
-                  setIsMapVisible(true);
-                }
-              });
-            }
             
             // Redraw tiles
             mapInstance.current.eachLayer(layer => {
               if (layer instanceof L.TileLayer) {
-                console.log('🔄 Redrawing tile layer from IntersectionObserver');
                 layer.redraw();
               }
             });
@@ -278,9 +235,8 @@ export function CampusDetailModal({
     );
     
     observer.observe(mapContainer.current);
-    
     return () => observer.disconnect();
-  }, [isOpen, mapContainer.current, mapInstance.current]);
+  }, [isOpen, isMapReady]);
 
   // Update campus marker and view
   useEffect(() => {
@@ -491,8 +447,8 @@ export function CampusDetailModal({
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
           <div className="lg:col-span-2 relative rounded-lg overflow-hidden border h-full">
-            {/* Amenities toggle button - shown when map is visible */}
-            {isMapVisible && (
+            {/* Amenities toggle button */}
+            {isMapReady && (
               <div className="absolute top-4 right-4 z-[1000] flex items-center gap-2 bg-card/95 backdrop-blur-sm rounded-lg p-2 shadow-lg border">
                 <span className="text-sm font-medium">Nearby Places</span>
                 <Toggle
@@ -506,24 +462,12 @@ export function CampusDetailModal({
               </div>
             )}
 
-            {/* Manual load button - automatic loading doesn't work */}
-            {!isMapVisible && !mapLoadFailed && (
-              <div className="absolute inset-0 z-[1500] bg-muted/50 flex items-center justify-center">
-                <div className="text-center space-y-3 p-6 bg-card rounded-lg shadow-lg border">
-                  <MapPin className="w-12 h-12 mx-auto text-primary" />
-                  <div>
-                    <h3 className="font-semibold mb-2">Campus Location Map</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Click below to load the interactive map
-                    </p>
-                    <Button 
-                      onClick={handleManualLoad}
-                      className="gap-2"
-                    >
-                      <MapPin className="w-4 h-4" />
-                      Show Map
-                    </Button>
-                  </div>
+            {/* Loading indicator */}
+            {!isMapReady && !mapLoadFailed && (
+              <div className="absolute inset-0 z-[1000] bg-background/80 backdrop-blur-sm flex items-center justify-center">
+                <div className="text-center space-y-3">
+                  <Loader2 className="w-12 h-12 mx-auto animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground">Loading map...</p>
                 </div>
               </div>
             )}
