@@ -287,6 +287,7 @@ export const AdminPrograms = () => {
       // Remove fields that belong to the junction table, not the programs table
       delete submitData.field_of_study_ids;
       delete submitData.primary_field_id;
+      delete submitData.campus_ids;
 
       let programId: string;
 
