@@ -12,8 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { pdf } from '@react-pdf/renderer';
-import { ShortlistPDF } from "@/components/admin/ShortlistPDF";
 
 interface Student {
   id: string;
@@ -359,17 +357,23 @@ export default function AdminShortlists() {
 
   const exportPDF = async (programs: ShortlistProgram[], studentName: string) => {
     try {
+      // Dynamically import PDF libraries to avoid breaking module loading
+      const [{ pdf }, { ShortlistPDF }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('@/components/admin/ShortlistPDF')
+      ]);
+
       const pdfBlob = await pdf(
-        <ShortlistPDF
-          title={title}
-          studentName={studentName}
-          staffName={currentUserName}
-          message={message}
-          programs={programs.map(sp => ({
+        ShortlistPDF({
+          title,
+          studentName,
+          staffName: currentUserName,
+          message,
+          programs: programs.map(sp => ({
             ...sp.program,
             staff_notes: sp.staff_notes,
-          }))}
-        />
+          }))
+        })
       ).toBlob();
 
       const url = URL.createObjectURL(pdfBlob);
@@ -384,9 +388,10 @@ export default function AdminShortlists() {
         description: "Shortlist has been downloaded successfully",
       });
     } catch (error: any) {
+      console.error('PDF export error:', error);
       toast({
         title: "Export failed",
-        description: error.message,
+        description: error.message || "Failed to generate PDF",
         variant: "destructive",
       });
     }
