@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, Save, Eye, Search, Plus, X, GripVertical } from "lucide-react";
+import { Loader2, Send, Save, Eye, Search, Plus, X, GripVertical, Download } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { pdf } from '@react-pdf/renderer';
+import { ShortlistPDF } from "@/components/admin/ShortlistPDF";
 
 interface Student {
   id: string;
@@ -44,8 +46,19 @@ interface University {
   logo_url?: string;
 }
 
+interface Campus {
+  id: string;
+  name: string;
+  city_name: string;
+  is_main_campus: boolean;
+}
+
 interface ShortlistProgram {
-  program: Program & { university: University; city_name?: string };
+  program: Program & { 
+    university: University; 
+    city_name?: string;
+    campuses?: Campus[];
+  };
   staff_notes: string;
   sort_order: number;
 }
@@ -218,21 +231,40 @@ export default function AdminShortlists() {
                   slug,
                   city_id,
                   city:cities(name)
+                ),
+                program_campuses(
+                  campus:university_campuses(
+                    id,
+                    name,
+                    city_id,
+                    is_main_campus,
+                    city:cities(name)
+                  )
                 )
               )
             `)
             .eq("shortlist_id", shortlist.id)
             .order("sort_order");
 
-          const programs: ShortlistProgram[] = (shortlistPrograms || []).map((sp: any) => ({
-            program: {
-              ...sp.program,
-              university: sp.program.university,
-              city_name: sp.program.university.city?.name,
-            },
-            staff_notes: sp.staff_notes,
-            sort_order: sp.sort_order,
-          }));
+          const programs: ShortlistProgram[] = (shortlistPrograms || []).map((sp: any) => {
+            const campuses = (sp.program.program_campuses || []).map((pc: any) => ({
+              id: pc.campus?.id || '',
+              name: pc.campus?.name || '',
+              city_name: pc.campus?.city?.name || '',
+              is_main_campus: pc.campus?.is_main_campus || false,
+            }));
+
+            return {
+              program: {
+                ...sp.program,
+                university: sp.program.university,
+                city_name: sp.program.university.city?.name,
+                campuses,
+              },
+              staff_notes: sp.staff_notes,
+              sort_order: sp.sort_order,
+            };
+          });
 
           if (shortlist.recipient_type === 'external') {
             return {
@@ -322,6 +354,41 @@ export default function AdminShortlists() {
       return selectedStudent !== '';
     } else {
       return externalEmail !== '' && externalName !== '' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(externalEmail);
+    }
+  };
+
+  const exportPDF = async (programs: ShortlistProgram[], studentName: string) => {
+    try {
+      const pdfBlob = await pdf(
+        <ShortlistPDF
+          title={title}
+          studentName={studentName}
+          staffName={currentUserName}
+          message={message}
+          programs={programs.map(sp => ({
+            ...sp.program,
+            staff_notes: sp.staff_notes,
+          }))}
+        />
+      ).toBlob();
+
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${title.replace(/[^a-z0-9]/gi, '_')}_${studentName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "PDF exported",
+        description: "Shortlist has been downloaded successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Export failed",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -1165,7 +1232,7 @@ export default function AdminShortlists() {
                   </DialogDescription>
                 </DialogHeader>
                 
-                <div className="border rounded-lg bg-background">
+                <div className="border rounded-lg bg-background">{/* ... keep existing code */}
                   {/* Email Header */}
                   <div className="bg-primary p-5 rounded-t-lg">
                     <img 
@@ -1237,9 +1304,24 @@ export default function AdminShortlists() {
                             
                             <h3 className="text-xl font-semibold mb-2">{program.name}</h3>
                             
-                            <p className="text-muted-foreground mb-4">
-                              📍 {university.name}, {cityName || 'Germany'}
+                            <p className="text-muted-foreground mb-2">
+                              🏛️ {university.name}
                             </p>
+
+                            {prog.program.campuses && prog.program.campuses.length > 0 && (
+                              <p className="text-sm text-muted-foreground mb-4">
+                                📍 <strong>Campus{prog.program.campuses.length > 1 ? 'es' : ''}:</strong>{' '}
+                                {prog.program.campuses
+                                  .sort((a, b) => (b.is_main_campus ? 1 : 0) - (a.is_main_campus ? 1 : 0))
+                                  .map((campus, idx) => (
+                                    <span key={campus.id}>
+                                      {idx > 0 && ', '}
+                                      {campus.name} ({campus.city_name})
+                                      {campus.is_main_campus && ' ⭐'}
+                                    </span>
+                                  ))}
+                              </p>
+                            )}
                             
                             <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
                               <div>🎓 <strong>{program.degree_type}</strong></div>
@@ -1311,6 +1393,24 @@ export default function AdminShortlists() {
                     </div>
                   </div>
                 </div>
+
+                <DialogFooter className="mt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const studentName = recipientType === 'internal' 
+                        ? students.find(s => s.id === selectedStudent)?.full_name || 'Student'
+                        : externalName;
+                      exportPDF(selectedPrograms, studentName);
+                    }}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Export as PDF
+                  </Button>
+                  <Button onClick={() => setShowPreview(false)}>
+                    Close
+                  </Button>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
           </TabsContent>
@@ -1521,9 +1621,24 @@ export default function AdminShortlists() {
                             <div key={program.id} className="border rounded-lg p-6 bg-card">
                               <h3 className="text-xl font-semibold mb-2">{program.name}</h3>
                               
-                              <p className="text-muted-foreground mb-4">
-                                📍 {university.name}, {cityName || 'Germany'}
+                              <p className="text-muted-foreground mb-2">
+                                🏛️ {university.name}
                               </p>
+
+                              {prog.program.campuses && prog.program.campuses.length > 0 && (
+                                <p className="text-sm text-muted-foreground mb-4">
+                                  📍 <strong>Campus{prog.program.campuses.length > 1 ? 'es' : ''}:</strong>{' '}
+                                  {prog.program.campuses
+                                    .sort((a, b) => (b.is_main_campus ? 1 : 0) - (a.is_main_campus ? 1 : 0))
+                                    .map((campus, idx) => (
+                                      <span key={campus.id}>
+                                        {idx > 0 && ', '}
+                                        {campus.name} ({campus.city_name})
+                                        {campus.is_main_campus && ' ⭐'}
+                                      </span>
+                                    ))}
+                                </p>
+                              )}
                               
                               <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
                                 <div>🎓 <strong>{program.degree_type}</strong></div>
@@ -1553,6 +1668,26 @@ export default function AdminShortlists() {
                     </div>
                   </div>
                 )}
+
+                <DialogFooter className="mt-4">
+                  {viewingShortlist && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        exportPDF(
+                          viewingShortlist.programs || [],
+                          viewingShortlist.student.full_name
+                        );
+                      }}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Export as PDF
+                    </Button>
+                  )}
+                  <Button onClick={() => setViewingShortlist(null)}>
+                    Close
+                  </Button>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
           </TabsContent>
