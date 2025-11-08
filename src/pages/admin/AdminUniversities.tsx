@@ -22,6 +22,7 @@ import { InstitutionTypeBadge } from "@/components/InstitutionTypeBadge";
 import { ControlTypeBadge } from "@/components/ControlTypeBadge";
 import { INSTITUTION_TYPES, CONTROL_TYPES } from "@/lib/institution-types";
 import { slugify } from "@/lib/slug";
+import { LogoInput } from "@/components/admin/LogoInput";
 
 interface University {
   id: string;
@@ -623,16 +624,13 @@ export const AdminUniversities = () => {
               />
             </div>
 
-            <div>
-              <Label htmlFor="logo_url">Logo URL</Label>
-              <Input
-                id="logo_url"
-                type="url"
-                value={formData.logo_url}
-                onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                placeholder="https://..."
-              />
-            </div>
+            <LogoInput
+              value={formData.logo_url}
+              onChange={(url) => setFormData({ ...formData, logo_url: url })}
+              label="University Logo"
+              bucketName="logos"
+              folderPath="universities"
+            />
 
             <div className="grid grid-cols-3 gap-4">
               <div>
