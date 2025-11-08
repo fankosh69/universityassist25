@@ -106,7 +106,15 @@ serve(async (req) => {
         *,
         program:program_id(
           *,
-          university:university_id(name, slug, city_id, logo_url)
+          university:university_id(name, slug, city_id, logo_url),
+          program_campuses(
+            campus:campus_id(
+              id,
+              name,
+              city_id,
+              is_main_campus
+            )
+          )
         )
       `)
       .eq("shortlist_id", shortlistId)
@@ -116,27 +124,45 @@ serve(async (req) => {
       throw new Error("Failed to fetch programs");
     }
 
-    // Fetch cities for programs
-    const cityIds = shortlistPrograms
+    // Fetch cities for programs (university cities + campus cities)
+    const universityCityIds = shortlistPrograms
       ?.map((sp: any) => sp.program?.university?.city_id)
       .filter(Boolean);
+    
+    const campusCityIds = shortlistPrograms
+      ?.flatMap((sp: any) => 
+        sp.program?.program_campuses?.map((pc: any) => pc.campus?.city_id) || []
+      )
+      .filter(Boolean);
+    
+    const allCityIds = [...new Set([...universityCityIds, ...campusCityIds])];
     
     const { data: cities } = await supabaseClient
       .from("cities")
       .select("id, name")
-      .in("id", cityIds || []);
+      .in("id", allCityIds || []);
 
     const cityMap = new Map(cities?.map((c: any) => [c.id, c.name]) || []);
 
-    // Enrich programs with city names
-    const enrichedPrograms = shortlistPrograms?.map((sp: any) => ({
-      ...sp.program,
-      university: {
-        ...sp.program.university,
-        city_name: cityMap.get(sp.program.university.city_id) || "Germany",
-      },
-      staff_notes: sp.staff_notes,
-    }));
+    // Enrich programs with city names and campus data
+    const enrichedPrograms = shortlistPrograms?.map((sp: any) => {
+      const campuses = sp.program?.program_campuses?.map((pc: any) => ({
+        id: pc.campus?.id,
+        name: pc.campus?.name,
+        city_name: cityMap.get(pc.campus?.city_id) || "Germany",
+        is_main_campus: pc.campus?.is_main_campus,
+      })) || [];
+
+      return {
+        ...sp.program,
+        university: {
+          ...sp.program.university,
+          city_name: cityMap.get(sp.program.university.city_id) || "Germany",
+        },
+        campuses,
+        staff_notes: sp.staff_notes,
+      };
+    });
 
     const staffName = creator.full_name || "Your Advisor";
     

@@ -42,6 +42,12 @@ interface ShortlistEmailProps {
       city_name: string;
       logo_url?: string;
     };
+    campuses?: Array<{
+      id: string;
+      name: string;
+      city_name: string;
+      is_main_campus: boolean;
+    }>;
     staff_notes?: string;
   }>;
 }
@@ -131,15 +137,26 @@ export const ShortlistEmail = ({
             <Heading style={programTitle}>{program.name}</Heading>
             
             <Text style={universityText}>
-              📍{' '}
+              🏛️{' '}
               <Link href={`${appUrl}/universities/${program.university.slug}`} style={inlineLink}>
                 {program.university.name}
               </Link>
-              ,{' '}
-              <Link href={`${appUrl}/cities/${program.university.city_name.toLowerCase().replace(/\s+/g, '-')}`} style={inlineLink}>
-                {program.university.city_name}
-              </Link>
             </Text>
+
+            {program.campuses && program.campuses.length > 0 && (
+              <Text style={campusText}>
+                📍 <strong>Campus{program.campuses.length > 1 ? 'es' : ''}:</strong>{' '}
+                {program.campuses
+                  .sort((a, b) => (b.is_main_campus ? 1 : 0) - (a.is_main_campus ? 1 : 0))
+                  .map((campus, idx) => (
+                    <React.Fragment key={campus.id}>
+                      {idx > 0 && ', '}
+                      {campus.name} ({campus.city_name})
+                      {campus.is_main_campus && ' ⭐'}
+                    </React.Fragment>
+                  ))}
+              </Text>
+            )}
 
             <Section style={detailsGrid}>
               <Text style={detailItem}>
@@ -311,6 +328,13 @@ const universityText = {
   color: '#2d3748',
   fontSize: '15px',
   margin: '8px 0',
+};
+
+const campusText = {
+  color: '#4a5568',
+  fontSize: '14px',
+  margin: '8px 0',
+  lineHeight: '20px',
 };
 
 const detailsGrid = {
