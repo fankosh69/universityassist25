@@ -67,6 +67,7 @@ export function CampusDetailModal({
   const [amenities, setAmenities] = useState<NearbyAmenity[]>([]);
   const [isLoadingAmenities, setIsLoadingAmenities] = useState(false);
   const [hoveredAmenity, setHoveredAmenity] = useState<string | null>(null);
+  const [selectedAmenity, setSelectedAmenity] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
 
   const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -181,6 +182,7 @@ export function CampusDetailModal({
       setShowAmenities(false);
       setAmenities([]);
       setActiveFilters(new Set());
+      setSelectedAmenity(null);
     }
   }, [isOpen]);
 
@@ -362,11 +364,30 @@ export function CampusDetailModal({
 
     // Add new markers
     filteredAmenities.forEach(amenity => {
+      const isSelected = selectedAmenity === amenity.id;
+      const isHovered = hoveredAmenity === amenity.id;
+      
+      // Create pulsing animation for selected marker
+      const pulseAnimation = isSelected 
+        ? `@keyframes pulse-${amenity.id} {
+             0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(46, 87, 246, 0.9)); }
+             50% { transform: scale(1.2); filter: drop-shadow(0 0 20px rgba(46, 87, 246, 1)); }
+           }`
+        : '';
+      
       const icon = L.divIcon({
         className: 'custom-amenity-marker',
-        html: `<div style="font-size: 24px; filter: ${hoveredAmenity === amenity.id ? 'drop-shadow(0 0 8px rgba(46, 87, 246, 0.8))' : 'none'};">${getCategoryIcon(amenity.category)}</div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
+        html: `
+          <style>${pulseAnimation}</style>
+          <div style="
+            font-size: ${isSelected ? '28px' : '24px'}; 
+            filter: ${isSelected ? 'drop-shadow(0 0 12px rgba(46, 87, 246, 0.9))' : isHovered ? 'drop-shadow(0 0 8px rgba(46, 87, 246, 0.8))' : 'none'};
+            animation: ${isSelected ? `pulse-${amenity.id} 1.5s ease-in-out infinite` : 'none'};
+            transition: all 0.3s ease;
+          ">${getCategoryIcon(amenity.category)}</div>
+        `,
+        iconSize: [isSelected ? 28 : 24, isSelected ? 28 : 24],
+        iconAnchor: [isSelected ? 14 : 12, isSelected ? 14 : 12],
       });
 
       const marker = L.marker([amenity.lat, amenity.lng], { icon })
@@ -377,10 +398,11 @@ export function CampusDetailModal({
 
       marker.on('mouseover', () => setHoveredAmenity(amenity.id));
       marker.on('mouseout', () => setHoveredAmenity(null));
+      marker.on('click', () => setSelectedAmenity(amenity.id));
 
       amenityMarkersRef.current.push(marker);
     });
-  }, [isMapReady, showAmenities, amenities, activeFilters, hoveredAmenity]);
+  }, [isMapReady, showAmenities, amenities, activeFilters, hoveredAmenity, selectedAmenity]);
 
   const facilityIcons: Record<string, string> = {
     'Library': '📚',
@@ -401,6 +423,9 @@ export function CampusDetailModal({
   // Handle amenity click - center map and open popup
   const handleAmenityClick = (amenity: NearbyAmenity) => {
     if (!mapInstance.current) return;
+
+    // Set selected amenity for highlighting
+    setSelectedAmenity(amenity.id);
 
     // Center and zoom to amenity
     mapInstance.current.setView([amenity.lat, amenity.lng], 17, {
@@ -611,8 +636,12 @@ export function CampusDetailModal({
                           .map((amenity) => (
                             <div
                               key={amenity.id}
-                              className={`p-2 rounded-lg border text-sm cursor-pointer transition-colors ${
-                                hoveredAmenity === amenity.id ? 'bg-accent border-primary' : 'hover:bg-muted'
+                              className={`p-2 rounded-lg border text-sm cursor-pointer transition-all duration-200 ${
+                                selectedAmenity === amenity.id 
+                                  ? 'bg-primary/10 border-primary shadow-md' 
+                                  : hoveredAmenity === amenity.id 
+                                    ? 'bg-accent border-primary' 
+                                    : 'hover:bg-muted'
                               }`}
                               onMouseEnter={() => setHoveredAmenity(amenity.id)}
                               onMouseLeave={() => setHoveredAmenity(null)}
