@@ -81,6 +81,12 @@ interface University {
 export const AdminPrograms = () => {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [universities, setUniversities] = useState<University[]>([]);
+  const [availableCampuses, setAvailableCampuses] = useState<Array<{
+    id: string;
+    name: string | null;
+    city: { name: string };
+    is_main_campus: boolean;
+  }>>([]);
   const [loading, setLoading] = useState(true);
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -120,6 +126,7 @@ export const AdminPrograms = () => {
     summer_application_open_date: Date | null;
     recognition_weeks_before: number;
     english_language_requirements: EnglishLanguageRequirements | null;
+    campus_ids: string[];
   }>({
     name: "",
     description: "",
@@ -147,12 +154,41 @@ export const AdminPrograms = () => {
     winter_application_open_date: null,
     summer_application_open_date: null,
     recognition_weeks_before: 10,
-    english_language_requirements: null
+    english_language_requirements: null,
+    campus_ids: []
   });
   useEffect(() => {
     fetchPrograms();
     fetchUniversities();
   }, []);
+
+  useEffect(() => {
+    if (formData.university_id) {
+      fetchCampusesForUniversity(formData.university_id);
+    } else {
+      setAvailableCampuses([]);
+    }
+  }, [formData.university_id]);
+
+  const fetchCampusesForUniversity = async (universityId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('university_campuses')
+        .select('id, name, is_main_campus, city:cities(name)')
+        .eq('university_id', universityId)
+        .order('is_main_campus', { ascending: false });
+      
+      if (error) throw error;
+      setAvailableCampuses(data || []);
+      
+      // Auto-select main campus if only one campus
+      if (data && data.length === 1) {
+        setFormData(prev => ({ ...prev, campus_ids: [data[0].id] }));
+      }
+    } catch (error) {
+      console.error('Error fetching campuses:', error);
+    }
+  };
   const fetchPrograms = async () => {
     try {
       const {
@@ -290,6 +326,28 @@ export const AdminPrograms = () => {
 
       if (fieldsError) throw fieldsError;
 
+      // Delete existing campus associations
+      await supabase
+        .from('program_campuses')
+        .delete()
+        .eq('program_id', programId);
+
+      // Insert new campus associations
+      if (formData.campus_ids.length > 0) {
+        const campusAssociations = formData.campus_ids.map(campusId => ({
+          program_id: programId,
+          campus_id: campusId,
+          auto_migrated: false,
+          migration_date: new Date().toISOString()
+        }));
+
+        const { error: campusError } = await supabase
+          .from('program_campuses')
+          .insert(campusAssociations);
+
+        if (campusError) throw campusError;
+      }
+
       toast({
         title: "Success",
         description: editingProgram ? "Program updated successfully" : "Program created successfully"
@@ -334,12 +392,20 @@ export const AdminPrograms = () => {
       });
     }
   };
-  const handleEdit = (program: Program) => {
+  const handleEdit = async (program: Program) => {
     setEditingProgram(program);
     
     // Extract field IDs and primary from program_fields
     const fieldIds = program.program_fields?.map(pf => pf.field_of_study_id) || [];
     const primaryFieldId = program.program_fields?.find(pf => pf.is_primary)?.field_of_study_id || null;
+    
+    // Fetch existing campus associations
+    const { data: campusData, error: campusError } = await supabase
+      .from('program_campuses')
+      .select('campus_id')
+      .eq('program_id', program.id);
+    
+    const campusIds = campusData?.map(pc => pc.campus_id) || [];
     
     setFormData({
       name: program.name,
@@ -368,7 +434,8 @@ export const AdminPrograms = () => {
       winter_application_open_date: program.winter_application_open_date ? new Date(program.winter_application_open_date) : null,
       summer_application_open_date: program.summer_application_open_date ? new Date(program.summer_application_open_date) : null,
       recognition_weeks_before: program.recognition_weeks_before || 10,
-      english_language_requirements: (program as any).english_language_requirements || null
+      english_language_requirements: (program as any).english_language_requirements || null,
+      campus_ids: campusIds
     });
     setIsDialogOpen(true);
   };
@@ -401,7 +468,8 @@ export const AdminPrograms = () => {
       winter_application_open_date: null,
       summer_application_open_date: null,
       recognition_weeks_before: 10,
-      english_language_requirements: null
+      english_language_requirements: null,
+      campus_ids: []
     });
     setIsDialogOpen(false);
   };
@@ -1243,6 +1311,56 @@ export const AdminPrograms = () => {
                 />
               </div>
             </div>
+
+            {/* Campus Selection */}
+            {formData.university_id && availableCampuses.length > 0 && (
+              <div>
+                <Label>Available at Campus(es) *</Label>
+                <div className="mt-2 space-y-2 border rounded-md p-3">
+                  {availableCampuses.map((campus) => (
+                    <div key={campus.id} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`campus-${campus.id}`}
+                        checked={formData.campus_ids.includes(campus.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setFormData({
+                              ...formData,
+                              campus_ids: [...formData.campus_ids, campus.id]
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              campus_ids: formData.campus_ids.filter(id => id !== campus.id)
+                            });
+                          }
+                        }}
+                      />
+                      <Label 
+                        htmlFor={`campus-${campus.id}`}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <span>{campus.name || 'Main Campus'}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {campus.city.name}
+                        </Badge>
+                        {campus.is_main_campus && (
+                          <Badge variant="default" className="text-xs">Main</Badge>
+                        )}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {formData.university_id && availableCampuses.length === 0 && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  No campuses found for this university. Please add campuses in University Management first.
+                </AlertDescription>
+              </Alert>
+            )}
 
             <div>
               <Label htmlFor="description">Description</Label>

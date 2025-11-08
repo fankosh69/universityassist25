@@ -17,9 +17,11 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { InstitutionTypeBadge } from "@/components/InstitutionTypeBadge";
 import { ControlTypeBadge } from "@/components/ControlTypeBadge";
 import { INSTITUTION_TYPES, CONTROL_TYPES } from "@/lib/institution-types";
+import { slugify } from "@/lib/slug";
 
 interface University {
   id: string;
@@ -44,11 +46,12 @@ interface University {
 
 export const AdminUniversities = () => {
   const [universities, setUniversities] = useState<University[]>([]);
-  const [cities, setCities] = useState<Array<{ id: string; name: string }>>([]);
+  const [cities, setCities] = useState<Array<{ id: string; name: string; lat?: number; lng?: number }>>([]);
   const [loading, setLoading] = useState(true);
   const [editingUniversity, setEditingUniversity] = useState<University | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [campusCount, setCampusCount] = useState<number>(1);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState<{
@@ -62,6 +65,18 @@ export const AdminUniversities = () => {
     ranking: number | null;
     lat: number | null;
     lng: number | null;
+    campuses: Array<{
+      id?: string;
+      name: string;
+      city_id: string;
+      is_main_campus: boolean;
+      address: string;
+      lat: number | null;
+      lng: number | null;
+      phone: string;
+      email: string;
+      website_url: string;
+    }>;
   }>({
     name: "",
     city: "",
@@ -73,6 +88,17 @@ export const AdminUniversities = () => {
     ranking: null,
     lat: null,
     lng: null,
+    campuses: [{
+      name: '',
+      city_id: '',
+      is_main_campus: true,
+      address: '',
+      lat: null,
+      lng: null,
+      phone: '',
+      email: '',
+      website_url: ''
+    }]
   });
 
   useEffect(() => {
@@ -114,7 +140,7 @@ export const AdminUniversities = () => {
     try {
       const { data, error } = await supabase
         .from('cities')
-        .select('id, name')
+        .select('id, name, lat, lng')
         .order('name');
 
       if (error) throw error;
@@ -126,6 +152,27 @@ export const AdminUniversities = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate at least one campus
+    if (!formData.campuses || formData.campuses.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please add at least one campus",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validate exactly one main campus
+    const mainCampusCount = formData.campuses.filter(c => c.is_main_campus).length;
+    if (mainCampusCount !== 1) {
+      toast({
+        title: "Error",
+        description: "Please select exactly one main campus",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
       const submitData = {
@@ -141,36 +188,64 @@ export const AdminUniversities = () => {
         lng: formData.lng || null,
       };
 
-      console.log('Saving university with data:', submitData);
+      let universityId: string;
 
       if (editingUniversity) {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('universities')
           .update(submitData)
-          .eq('id', editingUniversity.id)
-          .select();
+          .eq('id', editingUniversity.id);
 
         if (error) throw error;
-        console.log('Updated university:', data);
-        
-        toast({
-          title: "Success",
-          description: `University updated successfully. Type: ${data?.[0]?.type}`,
-        });
+        universityId = editingUniversity.id;
       } else {
         const { data, error } = await supabase
           .from('universities')
           .insert(submitData)
-          .select();
+          .select()
+          .single();
 
         if (error) throw error;
-        console.log('Created university:', data);
-        
-        toast({
-          title: "Success",
-          description: `University created successfully. Type: ${data?.[0]?.type}`,
-        });
+        universityId = data.id;
       }
+
+      // Delete existing campuses for this university (if editing)
+      if (editingUniversity) {
+        await supabase
+          .from('university_campuses')
+          .delete()
+          .eq('university_id', universityId);
+      }
+
+      // Insert new campuses
+      const campusInserts = formData.campuses.map(campus => {
+        const selectedCity = cities.find(c => c.id === campus.city_id);
+        return {
+          university_id: universityId,
+          city: selectedCity?.name || '',
+          city_id: campus.city_id,
+          name: campus.name || null,
+          campus_slug: `${slugify(formData.name)}-${slugify(selectedCity?.name || '')}`,
+          is_main_campus: campus.is_main_campus,
+          address: campus.address || null,
+          lat: campus.lat,
+          lng: campus.lng,
+          phone: campus.phone || null,
+          email: campus.email || null,
+          website_url: campus.website_url || null,
+        };
+      });
+
+      const { error: campusError } = await supabase
+        .from('university_campuses')
+        .insert(campusInserts);
+
+      if (campusError) throw campusError;
+
+      toast({
+        title: "Success",
+        description: `University ${editingUniversity ? 'updated' : 'created'} with ${formData.campuses.length} campus(es)`,
+      });
 
       resetForm();
       await fetchUniversities();
@@ -210,11 +285,25 @@ export const AdminUniversities = () => {
     }
   };
 
-  const handleEdit = (university: University) => {
+  const handleEdit = async (university: University) => {
     setEditingUniversity(university);
     
     // Find the city_id from the cities list
     const selectedCity = cities.find(c => c.name === university.city);
+    
+    // Fetch existing campuses for this university
+    const { data: campusesData, error } = await supabase
+      .from('university_campuses')
+      .select('*')
+      .eq('university_id', university.id)
+      .order('is_main_campus', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching campuses:', error);
+    }
+    
+    const campuses = campusesData || [];
+    setCampusCount(campuses.length || 1);
     
     setFormData({
       name: university.name,
@@ -227,12 +316,35 @@ export const AdminUniversities = () => {
       ranking: university.ranking || null,
       lat: university.lat || null,
       lng: university.lng || null,
+      campuses: campuses.length > 0 ? campuses.map(c => ({
+        id: c.id,
+        name: c.name || '',
+        city_id: c.city_id || '',
+        is_main_campus: c.is_main_campus || false,
+        address: c.address || '',
+        lat: c.lat,
+        lng: c.lng,
+        phone: c.phone || '',
+        email: c.email || '',
+        website_url: c.website_url || ''
+      })) : [{
+        name: '',
+        city_id: '',
+        is_main_campus: true,
+        address: '',
+        lat: null,
+        lng: null,
+        phone: '',
+        email: '',
+        website_url: ''
+      }]
     });
     setIsDialogOpen(true);
   };
 
   const resetForm = () => {
     setEditingUniversity(null);
+    setCampusCount(1);
     setFormData({
       name: "",
       city: "",
@@ -244,6 +356,17 @@ export const AdminUniversities = () => {
       ranking: null,
       lat: null,
       lng: null,
+      campuses: [{
+        name: '',
+        city_id: '',
+        is_main_campus: true,
+        address: '',
+        lat: null,
+        lng: null,
+        phone: '',
+        email: '',
+        website_url: ''
+      }]
     });
     setIsDialogOpen(false);
   };
@@ -529,6 +652,213 @@ export const AdminUniversities = () => {
                   onChange={(e) => setFormData({ ...formData, lng: e.target.value ? parseFloat(e.target.value) : null })}
                 />
               </div>
+            </div>
+
+            {/* Campus Management Section */}
+            <div className="border-t pt-4 mt-4">
+              <div className="flex items-center justify-between mb-4">
+                <Label className="text-base font-semibold">Campus Locations</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="campus-count" className="text-sm">Number of Campuses:</Label>
+                  <Input
+                    id="campus-count"
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={campusCount}
+                    onChange={(e) => {
+                      const count = Math.max(1, Math.min(10, parseInt(e.target.value) || 1));
+                      setCampusCount(count);
+                      
+                      // Adjust campuses array
+                      const newCampuses = [...formData.campuses];
+                      if (count > newCampuses.length) {
+                        // Add empty campuses
+                        for (let i = newCampuses.length; i < count; i++) {
+                          newCampuses.push({
+                            name: '',
+                            city_id: '',
+                            is_main_campus: i === 0,
+                            address: '',
+                            lat: null,
+                            lng: null,
+                            phone: '',
+                            email: '',
+                            website_url: ''
+                          });
+                        }
+                      } else {
+                        // Remove extra campuses
+                        newCampuses.splice(count);
+                      }
+                      setFormData({ ...formData, campuses: newCampuses });
+                    }}
+                    className="w-20"
+                  />
+                </div>
+              </div>
+
+              {/* Campus Fields */}
+              {formData.campuses.map((campus, index) => (
+                <Card key={index} className="mb-4 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold">Campus {index + 1}</h4>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id={`main-campus-${index}`}
+                        checked={campus.is_main_campus}
+                        onCheckedChange={(checked) => {
+                          const newCampuses = formData.campuses.map((c, i) => ({
+                            ...c,
+                            is_main_campus: i === index ? !!checked : false
+                          }));
+                          setFormData({ ...formData, campuses: newCampuses });
+                        }}
+                      />
+                      <Label htmlFor={`main-campus-${index}`} className="text-sm">
+                        Main Campus
+                      </Label>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor={`campus-name-${index}`}>Campus Name (Optional)</Label>
+                      <Input
+                        id={`campus-name-${index}`}
+                        value={campus.name}
+                        onChange={(e) => {
+                          const newCampuses = [...formData.campuses];
+                          newCampuses[index].name = e.target.value;
+                          setFormData({ ...formData, campuses: newCampuses });
+                        }}
+                        placeholder="e.g., Main Campus, City Center"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor={`campus-city-${index}`}>City *</Label>
+                      <Select 
+                        value={campus.city_id} 
+                        onValueChange={(cityId) => {
+                          const newCampuses = [...formData.campuses];
+                          newCampuses[index].city_id = cityId;
+                          
+                          // Auto-populate lat/lng from city if not set
+                          const selectedCity = cities.find(c => c.id === cityId);
+                          if (selectedCity && !newCampuses[index].lat && !newCampuses[index].lng) {
+                            newCampuses[index].lat = selectedCity.lat || null;
+                            newCampuses[index].lng = selectedCity.lng || null;
+                          }
+                          
+                          setFormData({ ...formData, campuses: newCampuses });
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select city" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {cities.map((city) => (
+                            <SelectItem key={city.id} value={city.id}>
+                              {city.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="col-span-2">
+                      <Label htmlFor={`campus-address-${index}`}>Address</Label>
+                      <Input
+                        id={`campus-address-${index}`}
+                        value={campus.address}
+                        onChange={(e) => {
+                          const newCampuses = [...formData.campuses];
+                          newCampuses[index].address = e.target.value;
+                          setFormData({ ...formData, campuses: newCampuses });
+                        }}
+                        placeholder="Street, postal code"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor={`campus-lat-${index}`}>Latitude</Label>
+                      <Input
+                        id={`campus-lat-${index}`}
+                        type="number"
+                        step="0.000001"
+                        value={campus.lat || ''}
+                        onChange={(e) => {
+                          const newCampuses = [...formData.campuses];
+                          newCampuses[index].lat = e.target.value ? parseFloat(e.target.value) : null;
+                          setFormData({ ...formData, campuses: newCampuses });
+                        }}
+                        placeholder="e.g., 50.0875"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor={`campus-lng-${index}`}>Longitude</Label>
+                      <Input
+                        id={`campus-lng-${index}`}
+                        type="number"
+                        step="0.000001"
+                        value={campus.lng || ''}
+                        onChange={(e) => {
+                          const newCampuses = [...formData.campuses];
+                          newCampuses[index].lng = e.target.value ? parseFloat(e.target.value) : null;
+                          setFormData({ ...formData, campuses: newCampuses });
+                        }}
+                        placeholder="e.g., 8.2415"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor={`campus-phone-${index}`}>Phone</Label>
+                      <Input
+                        id={`campus-phone-${index}`}
+                        value={campus.phone}
+                        onChange={(e) => {
+                          const newCampuses = [...formData.campuses];
+                          newCampuses[index].phone = e.target.value;
+                          setFormData({ ...formData, campuses: newCampuses });
+                        }}
+                        placeholder="+49 ..."
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor={`campus-email-${index}`}>Email</Label>
+                      <Input
+                        id={`campus-email-${index}`}
+                        type="email"
+                        value={campus.email}
+                        onChange={(e) => {
+                          const newCampuses = [...formData.campuses];
+                          newCampuses[index].email = e.target.value;
+                          setFormData({ ...formData, campuses: newCampuses });
+                        }}
+                        placeholder="campus@university.de"
+                      />
+                    </div>
+
+                    <div className="col-span-2">
+                      <Label htmlFor={`campus-website-${index}`}>Campus Website</Label>
+                      <Input
+                        id={`campus-website-${index}`}
+                        type="url"
+                        value={campus.website_url}
+                        onChange={(e) => {
+                          const newCampuses = [...formData.campuses];
+                          newCampuses[index].website_url = e.target.value;
+                          setFormData({ ...formData, campuses: newCampuses });
+                        }}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
 
             <DialogFooter>
