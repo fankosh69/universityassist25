@@ -70,16 +70,16 @@ export function SearchableSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-background" align="start">
         <Command shouldFilter={false}>
           <CommandInput 
             placeholder={`Search ${placeholder.toLowerCase()}...`}
             value={searchValue}
             onValueChange={setSearchValue}
           />
-          <CommandList>
+          <CommandList className="bg-background">
             <CommandEmpty>{emptyText}</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup className="bg-background">
               {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
@@ -89,6 +89,7 @@ export function SearchableSelect({
                     setOpen(false)
                     setSearchValue("")
                   }}
+                  className="cursor-pointer"
                 >
                   <Check
                     className={cn(
