@@ -16,7 +16,7 @@ import { StudentLifeSection } from '@/components/university/StudentLifeSection';
 import { AdmissionsSection } from '@/components/university/AdmissionsSection';
 import { ResearchSection } from '@/components/university/ResearchSection';
 import { ContactSection } from '@/components/university/ContactSection';
-import { Users, GraduationCap, BookOpen, TrendingUp } from 'lucide-react';
+import { Users, GraduationCap, BookOpen, TrendingUp, MapPin } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import LoadingScreen from '@/components/LoadingScreen';
@@ -76,8 +76,11 @@ export default function UniversityPage() {
           // Fetch campuses (if table exists) - wrapped in try/catch for future compatibility
           try {
             const { data: campusesData } = await supabase
-              .from('university_campuses' as any)
-              .select('*')
+              .from('university_campuses')
+              .select(`
+                *,
+                city:cities(id, name, slug, lat, lng)
+              `)
               .eq('university_id', uniData.id)
               .order('is_main_campus', { ascending: false });
             
@@ -454,9 +457,18 @@ export default function UniversityPage() {
             ),
             campuses: (
               <div className="space-y-6">
-                <h2 className="text-3xl font-bold text-foreground">
-                  🗺️ Campus Locations
-                </h2>
+                <div>
+                  <h2 className="text-3xl font-bold text-foreground mb-2">
+                    🗺️ Campus Locations
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {campuses.length === 1 
+                      ? `${university.name} has its campus in ${campuses[0].city?.name || university.city}`
+                      : `${university.name} operates ${campuses.length} campuses across different cities`
+                    }
+                  </p>
+                </div>
+
                 {campuses.length > 0 ? (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {campuses.map((campus) => (
@@ -471,6 +483,11 @@ export default function UniversityPage() {
                         buildingCount={campus.building_count}
                         faculties={campus.faculties}
                         photoUrl={campus.photo_urls?.[0]}
+                        lat={campus.lat}
+                        lng={campus.lng}
+                        email={campus.email}
+                        phone={campus.phone}
+                        websiteUrl={campus.website_url}
                         transport={campus.public_transport}
                       />
                     ))}
@@ -478,8 +495,9 @@ export default function UniversityPage() {
                 ) : (
                   <Card className="p-6">
                     <div className="text-center py-8 text-muted-foreground">
-                      <p>📍 {university.city}, {university.state || 'Germany'}</p>
-                      <p className="text-sm mt-2">Campus information will be added soon</p>
+                      <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p className="font-semibold mb-2">📍 {university.city}, {university.state || 'Germany'}</p>
+                      <p className="text-sm">Detailed campus information will be added soon</p>
                     </div>
                   </Card>
                 )}
