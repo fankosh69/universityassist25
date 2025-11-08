@@ -93,6 +93,7 @@ export const AdminPrograms = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterUniversity, setFilterUniversity] = useState<string>("all");
   const [filterField, setFilterField] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'updated_at'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const {
@@ -116,6 +117,7 @@ export const AdminPrograms = () => {
     uni_assist_required: boolean;
     university_id: string;
     published: boolean;
+    status: 'draft' | 'published';
     application_method: 'direct' | 'uni_assist_direct' | 'uni_assist_vpd' | 'recognition_certificates';
     program_url: string;
     winter_intake: boolean;
@@ -145,6 +147,7 @@ export const AdminPrograms = () => {
     uni_assist_required: false,
     university_id: "",
     published: true,
+    status: 'published',
     application_method: "direct",
     program_url: "",
     winter_intake: true,
@@ -235,7 +238,7 @@ export const AdminPrograms = () => {
       console.error('Error fetching universities:', error);
     }
   };
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, saveStatus: 'draft' | 'published' = 'published') => {
     e.preventDefault();
     try {
       // Validate fields selection
@@ -274,6 +277,7 @@ export const AdminPrograms = () => {
       const submitData = {
         ...formData,
         slug,
+        status: saveStatus,
         tuition_amount: formData.tuition_amount,
         tuition_fee_structure: formData.tuition_fee_structure,
         semester_fees: formData.tuition_amount, // Keep for backward compatibility
@@ -426,6 +430,7 @@ export const AdminPrograms = () => {
       uni_assist_required: program.uni_assist_required,
       university_id: program.university_id,
       published: program.published,
+      status: (program as any).status || 'published',
       application_method: program.application_method || 'direct',
       program_url: program.program_url || '',
       winter_intake: program.winter_intake,
@@ -460,6 +465,7 @@ export const AdminPrograms = () => {
       uni_assist_required: false,
       university_id: "",
       published: true,
+      status: 'published',
       application_method: "direct",
       program_url: "",
       winter_intake: true,
@@ -1054,6 +1060,11 @@ export const AdminPrograms = () => {
         if (!matchesSearch) return false;
       }
       
+      // Status filter
+      if (statusFilter !== 'all') {
+        if ((program as any).status !== statusFilter) return false;
+      }
+      
       // University filter
       if (filterUniversity && filterUniversity !== "all" && program.university_id !== filterUniversity) {
         return false;
@@ -1128,6 +1139,17 @@ export const AdminPrograms = () => {
           className="w-[200px]"
         />
         
+        <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+            <SelectItem value="draft">Drafts</SelectItem>
+          </SelectContent>
+        </Select>
+        
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as 'name' | 'updated_at')}>
           <SelectTrigger className="w-[150px]">
             <SelectValue />
@@ -1169,7 +1191,12 @@ export const AdminPrograms = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPrograms.map(program => <Card key={program.id} className="hover:shadow-medium transition-shadow">
             <CardHeader>
-              <CardTitle className="text-lg">{program.name}</CardTitle>
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <CardTitle className="text-lg">{program.name}</CardTitle>
+                {(program as any).status === 'draft' && (
+                  <Badge variant="secondary" className="text-xs">Draft</Badge>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">
                 {program.universities?.name} - {program.universities?.city}
               </p>
@@ -1701,8 +1728,18 @@ export const AdminPrograms = () => {
               <Button type="button" variant="outline" onClick={resetForm}>
                 Cancel
               </Button>
-              <Button type="submit">
-                {editingProgram ? 'Update' : 'Create'} Program
+              <Button 
+                type="button" 
+                variant="secondary"
+                onClick={(e: any) => handleSubmit(e, 'draft')}
+              >
+                {editingProgram ? 'Save as Draft' : 'Save Draft'}
+              </Button>
+              <Button 
+                type="submit"
+                onClick={(e: any) => handleSubmit(e, 'published')}
+              >
+                {editingProgram ? 'Publish Changes' : 'Publish Program'}
               </Button>
             </DialogFooter>
           </form>

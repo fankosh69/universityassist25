@@ -52,6 +52,7 @@ export const AdminUniversities = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [campusCount, setCampusCount] = useState<number>(1);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published'>('all');
   const { toast } = useToast();
 
   const [formData, setFormData] = useState<{
@@ -65,6 +66,7 @@ export const AdminUniversities = () => {
     ranking: number | null;
     lat: number | null;
     lng: number | null;
+    status: 'draft' | 'published';
     campuses: Array<{
       id?: string;
       name: string;
@@ -88,6 +90,7 @@ export const AdminUniversities = () => {
     ranking: null,
     lat: null,
     lng: null,
+    status: 'published',
     campuses: [{
       name: '',
       city_id: '',
@@ -150,7 +153,7 @@ export const AdminUniversities = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, saveStatus: 'draft' | 'published' = 'published') => {
     e.preventDefault();
     
     // Validate at least one campus
@@ -186,6 +189,7 @@ export const AdminUniversities = () => {
         ranking: formData.ranking || null,
         lat: formData.lat || null,
         lng: formData.lng || null,
+        status: saveStatus,
       };
 
       let universityId: string;
@@ -354,6 +358,7 @@ export const AdminUniversities = () => {
       ranking: university.ranking || null,
       lat: university.lat || null,
       lng: university.lng || null,
+      status: (university as any).status || 'published',
       campuses: campuses.length > 0 ? campuses.map(c => ({
         id: c.id,
         name: c.name || '',
@@ -394,6 +399,7 @@ export const AdminUniversities = () => {
       ranking: null,
       lat: null,
       lng: null,
+      status: 'published',
       campuses: [{
         name: '',
         city_id: '',
@@ -409,10 +415,12 @@ export const AdminUniversities = () => {
     setIsDialogOpen(false);
   };
 
-  const filteredUniversities = universities.filter(uni =>
-    uni.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    uni.city.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUniversities = universities.filter(uni => {
+    const matchesSearch = uni.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      uni.city.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || (uni as any).status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   if (loading) {
     return (
@@ -447,6 +455,16 @@ export const AdminUniversities = () => {
             className="pl-10"
           />
         </div>
+        <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Universities</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+            <SelectItem value="draft">Drafts</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -455,7 +473,12 @@ export const AdminUniversities = () => {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-lg">{university.name}</CardTitle>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <CardTitle className="text-lg">{university.name}</CardTitle>
+                    {(university as any).status === 'draft' && (
+                      <Badge variant="secondary" className="text-xs">Draft</Badge>
+                    )}
+                  </div>
                   <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
                     <MapPin className="h-3 w-3" />
                     {university.city}
@@ -903,8 +926,18 @@ export const AdminUniversities = () => {
               <Button type="button" variant="outline" onClick={resetForm}>
                 Cancel
               </Button>
-              <Button type="submit">
-                {editingUniversity ? 'Update' : 'Create'} University
+              <Button 
+                type="button" 
+                variant="secondary"
+                onClick={(e: any) => handleSubmit(e, 'draft')}
+              >
+                {editingUniversity ? 'Save as Draft' : 'Save Draft'}
+              </Button>
+              <Button 
+                type="submit"
+                onClick={(e: any) => handleSubmit(e, 'published')}
+              >
+                {editingUniversity ? 'Publish Changes' : 'Publish University'}
               </Button>
             </DialogFooter>
           </form>

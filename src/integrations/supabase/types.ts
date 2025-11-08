@@ -2196,6 +2196,7 @@ export type Database = {
           semester_fees: number | null
           semester_start: string | null
           slug: string | null
+          status: string | null
           summer_application_open_date: string | null
           summer_deadline: string | null
           summer_intake: boolean | null
@@ -2235,6 +2236,7 @@ export type Database = {
           semester_fees?: number | null
           semester_start?: string | null
           slug?: string | null
+          status?: string | null
           summer_application_open_date?: string | null
           summer_deadline?: string | null
           summer_intake?: boolean | null
@@ -2274,6 +2276,7 @@ export type Database = {
           semester_fees?: number | null
           semester_start?: string | null
           slug?: string | null
+          status?: string | null
           summer_application_open_date?: string | null
           summer_deadline?: string | null
           summer_intake?: boolean | null
@@ -2885,6 +2888,7 @@ export type Database = {
           slug: string | null
           social_media: Json | null
           state: string | null
+          status: string | null
           student_count: number | null
           student_organizations_count: number | null
           student_staff_ratio: number | null
@@ -2938,6 +2942,7 @@ export type Database = {
           slug?: string | null
           social_media?: Json | null
           state?: string | null
+          status?: string | null
           student_count?: number | null
           student_organizations_count?: number | null
           student_staff_ratio?: number | null
@@ -2991,6 +2996,7 @@ export type Database = {
           slug?: string | null
           social_media?: Json | null
           state?: string | null
+          status?: string | null
           student_count?: number | null
           student_organizations_count?: number | null
           student_staff_ratio?: number | null
