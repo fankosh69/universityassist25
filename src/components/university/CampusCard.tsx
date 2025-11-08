@@ -1,12 +1,14 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Building2, Users, Bus, Mail, Phone, Globe, ExternalLink } from "lucide-react";
-import { useEffect, useRef } from 'react';
+import { MapPin, Building2, Users, Bus, Mail, Phone, Globe, ExternalLink, Map } from "lucide-react";
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { CampusDetailModal } from "@/components/program/CampusDetailModal";
 
 interface CampusCardProps {
+  id?: string;
   name?: string | null;
   address?: string | null;
   city?: string | { name: string; slug?: string };
@@ -26,10 +28,21 @@ interface CampusCardProps {
     line: string;
     stop: string;
   }[] | null;
+  allCampuses?: Array<{
+    id: string;
+    name: string | null;
+    city: string | null;
+    lat: number | null;
+    lng: number | null;
+    is_main_campus: boolean;
+    facilities: string[] | null;
+    student_count: number | null;
+  }>;
   onViewPhotos?: () => void;
 }
 
 export function CampusCard({
+  id,
   name,
   address,
   city,
@@ -45,10 +58,12 @@ export function CampusCard({
   phone,
   websiteUrl,
   transport,
+  allCampuses,
   onViewPhotos,
 }: CampusCardProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
+  const [showMapModal, setShowMapModal] = useState(false);
 
   const cityName = typeof city === 'string' ? city : city?.name || 'Unknown';
   const displayName = name || 'Main Campus';
@@ -259,7 +274,7 @@ export function CampusCard({
 
         {/* Transport */}
         {transport && transport.length > 0 && (
-          <div>
+          <div className="mb-4 pb-4 border-b">
             <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
               <Bus className="h-4 w-4" />
               Public Transport:
@@ -273,7 +288,29 @@ export function CampusCard({
             </div>
           </div>
         )}
+
+        {/* View on Map Button */}
+        {lat && lng && allCampuses && allCampuses.length > 0 && (
+          <Button
+            onClick={() => setShowMapModal(true)}
+            variant="outline"
+            className="w-full"
+          >
+            <Map className="h-4 w-4 mr-2" />
+            View on Interactive Map
+          </Button>
+        )}
       </div>
+
+      {/* Campus Detail Modal */}
+      {allCampuses && allCampuses.length > 0 && id && (
+        <CampusDetailModal
+          campuses={allCampuses}
+          initialCampusId={id}
+          isOpen={showMapModal}
+          onClose={() => setShowMapModal(false)}
+        />
+      )}
     </Card>
   );
 }

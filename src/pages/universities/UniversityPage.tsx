@@ -474,6 +474,7 @@ export default function UniversityPage() {
                     {campuses.map((campus) => (
                       <CampusCard
                         key={campus.id}
+                        id={campus.id}
                         name={campus.name}
                         address={campus.address}
                         city={campus.city}
@@ -489,6 +490,16 @@ export default function UniversityPage() {
                         phone={campus.phone}
                         websiteUrl={campus.website_url}
                         transport={campus.public_transport}
+                        allCampuses={campuses.map(c => ({
+                          id: c.id,
+                          name: c.name,
+                          city: typeof c.city === 'string' ? c.city : c.city?.name || null,
+                          lat: c.lat,
+                          lng: c.lng,
+                          is_main_campus: c.is_main_campus,
+                          facilities: c.faculties,
+                          student_count: c.student_count,
+                        }))}
                       />
                     ))}
                   </div>
