@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { Building2, MapPin, GraduationCap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { InstitutionTypeBadge } from "@/components/InstitutionTypeBadge";
 
 interface UniversityCardProps {
@@ -13,6 +14,12 @@ interface UniversityCardProps {
     city?: string;
     hero_image_url?: string;
     logo_url?: string;
+    campuses?: Array<{
+      id: string;
+      name: string | null;
+      is_main_campus: boolean;
+      address?: string | null;
+    }>;
   };
 }
 
@@ -88,9 +95,32 @@ export function UniversityCard({ university }: UniversityCardProps) {
         </CardHeader>
 
         <CardContent>
-          <div className="text-sm text-muted-foreground">
-            {university.control_type && (
-              <span className="capitalize">{university.control_type} Institution</span>
+          <div className="space-y-2">
+            <div className="text-sm text-muted-foreground">
+              {university.control_type && (
+                <span className="capitalize">{university.control_type} Institution</span>
+              )}
+            </div>
+            
+            {/* Campus Badges */}
+            {university.campuses && university.campuses.length > 0 && (
+              <div className="flex flex-wrap gap-1 pt-2">
+                {university.campuses.length > 1 ? (
+                  <Badge variant="secondary" className="text-xs">
+                    {university.campuses.length} Campuses in City
+                  </Badge>
+                ) : university.campuses[0].name ? (
+                  <Badge variant="outline" className="text-xs">
+                    {university.campuses[0].name}
+                  </Badge>
+                ) : null}
+                
+                {university.campuses.some(c => c.is_main_campus) && (
+                  <Badge variant="default" className="text-xs">
+                    Main Campus Here
+                  </Badge>
+                )}
+              </div>
             )}
           </div>
         </CardContent>

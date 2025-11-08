@@ -53,18 +53,60 @@ export default function CityPage() {
 
         if (!cityInfo) return;
 
-        // Fetch ALL universities in this city using the proper city_id relationship
-        const { data: allUnis, error: unisError } = await supabase
-          .from('universities')
-          .select('*')
-          .eq('city_id', cityInfo.id);
+        // Fetch universities that have campuses in this city
+        const { data: campusData, error: campusError } = await supabase
+          .from('university_campuses')
+          .select(`
+            id,
+            name,
+            is_main_campus,
+            address,
+            lat,
+            lng,
+            university:universities(
+              id,
+              name,
+              slug,
+              type,
+              control_type,
+              logo_url,
+              hero_image_url,
+              website
+            )
+          `)
+          .eq('city_id', cityInfo.id)
+          .order('is_main_campus', { ascending: false });
         
-        if (unisError) {
-          console.error('Error fetching universities:', unisError);
+        if (campusError) {
+          console.error('Error fetching campuses:', campusError);
           return;
         }
 
-        setUniversities(allUnis || []);
+        // Group campuses by university
+        const universityMap = new Map();
+        campusData?.forEach((campus: any) => {
+          if (!campus.university) return;
+          
+          const uniId = campus.university.id;
+          if (!universityMap.has(uniId)) {
+            universityMap.set(uniId, {
+              ...campus.university,
+              campuses: []
+            });
+          }
+          
+          universityMap.get(uniId).campuses.push({
+            id: campus.id,
+            name: campus.name,
+            is_main_campus: campus.is_main_campus,
+            address: campus.address,
+            lat: campus.lat,
+            lng: campus.lng
+          });
+        });
+
+        const universitiesWithCampuses = Array.from(universityMap.values());
+        setUniversities(universitiesWithCampuses);
 
         // Fetch ambassadors for this city
         const { data: cityAmbassadors, error: ambassadorError } = await supabase
@@ -92,23 +134,34 @@ export default function CityPage() {
           }
         }
 
-        // Create map markers - only include universities with valid coordinates
-        const validUnis = (allUnis || []).filter(uni => 
-          uni.lat && uni.lng && uni.lat !== 0 && uni.lng !== 0
-        );
-
-        const markers: MapMarker[] = validUnis.map((uni, index) => {
-          // Add small offset to avoid overlapping markers (0.001 degrees ≈ 100m)
-          const latOffset = (index % 3 - 1) * 0.001;
-          const lngOffset = (Math.floor(index / 3) % 3 - 1) * 0.001;
+        // Create map markers from campuses with valid coordinates
+        const markers: MapMarker[] = [];
+        let markerIndex = 0;
+        
+        campusData?.forEach((campus: any) => {
+          if (!campus.university || !campus.lat || !campus.lng || campus.lat === 0 || campus.lng === 0) {
+            return;
+          }
           
-          return {
-            id: uni.id,
-            name: uni.name,
-            coordinates: [uni.lng + lngOffset, uni.lat + latOffset],
+          // Add small offset to avoid overlapping markers (0.001 degrees ≈ 100m)
+          const latOffset = (markerIndex % 3 - 1) * 0.001;
+          const lngOffset = (Math.floor(markerIndex / 3) % 3 - 1) * 0.001;
+          
+          markers.push({
+            id: campus.id,
+            name: `${campus.university.name}${campus.name ? ` - ${campus.name}` : ''}`,
+            coordinates: [campus.lng + lngOffset, campus.lat + latOffset],
             type: 'university' as const,
-            data: { ...uni, slug: uni.slug, city: cityInfo.name, program_count: 0 }
-          };
+            data: { 
+              ...campus.university, 
+              campus_name: campus.name,
+              slug: campus.university.slug, 
+              city: cityInfo.name, 
+              program_count: 0 
+            }
+          });
+          
+          markerIndex++;
         });
         
         setMapMarkers(markers);
