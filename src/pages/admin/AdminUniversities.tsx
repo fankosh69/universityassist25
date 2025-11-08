@@ -260,9 +260,47 @@ export const AdminUniversities = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this university? This will also delete all associated programs.')) return;
-
     try {
+      // Step 1: Check for associated programs
+      const { data: programs, error: progError } = await supabase
+        .from('programs')
+        .select('id, name')
+        .eq('university_id', id);
+      
+      if (progError) throw progError;
+      
+      // Step 2: If programs exist, prevent deletion
+      if (programs && programs.length > 0) {
+        toast({
+          title: "Cannot Delete University",
+          description: `This university has ${programs.length} associated program(s). Please delete or reassign the programs first.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Step 3: Check for associated campuses
+      const { data: campuses, error: campError } = await supabase
+        .from('university_campuses')
+        .select('id')
+        .eq('university_id', id);
+      
+      if (campError) throw campError;
+      
+      // Step 4: Delete campuses if they exist
+      if (campuses && campuses.length > 0) {
+        const { error: campusDeleteError } = await supabase
+          .from('university_campuses')
+          .delete()
+          .eq('university_id', id);
+        
+        if (campusDeleteError) throw campusDeleteError;
+      }
+      
+      // Step 5: Confirm with user
+      if (!confirm('Are you sure you want to delete this university?')) return;
+      
+      // Step 6: Delete the university
       const { error } = await supabase
         .from('universities')
         .delete()
@@ -279,7 +317,7 @@ export const AdminUniversities = () => {
       console.error('Error deleting university:', error);
       toast({
         title: "Error",
-        description: "Failed to delete university",
+        description: error.message || "Failed to delete university",
         variant: "destructive",
       });
     }
