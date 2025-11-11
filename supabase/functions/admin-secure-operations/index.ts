@@ -104,6 +104,9 @@ Deno.serve(async (req) => {
       case 'update_student_assignments':
         return await handleUpdateStudentAssignments(req, supabaseAdmin);
       
+      case 'get_assigned_students_details':
+        return await handleGetAssignedStudentsDetails(req, supabaseAdmin);
+      
       case 'get_users':
         return await handleGetUsers(supabase);
       case 'get_user_details':
@@ -349,6 +352,84 @@ async function handleUpdateStudentAssignments(req: Request, supabaseAdmin: Supab
 
   return new Response(
     JSON.stringify({ success: true, count: studentIds.length }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
+async function handleGetAssignedStudentsDetails(req: Request, supabaseAdmin: SupabaseClient) {
+  const { userId } = await req.json();
+
+  if (!userId) {
+    return new Response(
+      JSON.stringify({ error: 'userId is required' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Get assigned students with their profile data
+  const { data: assignments, error: assignmentsError } = await supabaseAdmin
+    .from('user_student_assignments')
+    .select(`
+      student_id,
+      notes,
+      profiles!user_student_assignments_student_id_fkey (
+        id,
+        full_name,
+        email,
+        phone,
+        nationality,
+        current_education_level,
+        preferred_fields,
+        xp_points,
+        level,
+        updated_at
+      )
+    `)
+    .eq('user_id', userId);
+
+  if (assignmentsError) {
+    console.error('Error fetching assignments:', assignmentsError);
+    return new Response(
+      JSON.stringify({ error: assignmentsError.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Get application counts for each student
+  const studentsWithDetails = await Promise.all(
+    (assignments || []).map(async (assignment: any) => {
+      const student = assignment.profiles;
+      
+      if (!student) return null;
+
+      // Get application count
+      const { count: appCount } = await supabaseAdmin
+        .from('applications')
+        .select('*', { count: 'exact', head: true })
+        .eq('profile_id', student.id);
+
+      return {
+        id: student.id,
+        full_name: student.full_name,
+        email: student.email,
+        phone: student.phone,
+        nationality: student.nationality,
+        current_education_level: student.current_education_level,
+        preferred_fields: student.preferred_fields || [],
+        xp_points: student.xp_points || 0,
+        level: student.level || 1,
+        application_count: appCount || 0,
+        last_activity: student.updated_at,
+        notes: assignment.notes,
+      };
+    })
+  );
+
+  // Filter out any null values
+  const validStudents = studentsWithDetails.filter(s => s !== null);
+
+  return new Response(
+    JSON.stringify({ students: validStudents }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }

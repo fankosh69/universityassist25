@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, User, Search as SearchIcon, Settings, Bot, ChevronDown, Target, Menu } from "lucide-react";
+import { LogOut, User, Search as SearchIcon, Settings, Bot, ChevronDown, Target, Menu, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
@@ -29,6 +29,7 @@ const Navigation = () => {
   const [session, setSession] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useTranslation('common');
@@ -37,17 +38,39 @@ const Navigation = () => {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+        
+        setUserRole(profile?.role || null);
+      }
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+        
+        setUserRole(profile?.role || null);
+      } else {
+        setUserRole(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -114,6 +137,12 @@ const Navigation = () => {
             
             {user ? (
               <>
+                {(userRole === 'company_sales' || userRole === 'company_admissions' || userRole === 'school_counselor') && (
+                  <Link to="/sales-dashboard" className="text-sm text-accent hover:text-accent/80 transition-colors flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5" />
+                    My Students
+                  </Link>
+                )}
                 {isAdmin && !adminLoading && (
                   <Link to="/admin" className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5">
                     <Settings className="h-3.5 w-3.5" />
@@ -253,6 +282,17 @@ const Navigation = () => {
                       <Target className="h-4 w-4" />
                       <span className="text-sm font-medium">{t('navigation.dashboard')}</span>
                     </Link>
+
+                    {(userRole === 'company_sales' || userRole === 'company_admissions' || userRole === 'school_counselor') && (
+                      <Link 
+                        to="/sales-dashboard" 
+                        onClick={closeMobileMenu}
+                        className="flex items-center gap-2 py-3 px-4 hover:bg-muted rounded-lg transition-colors"
+                      >
+                        <Users className="h-4 w-4" />
+                        <span className="text-sm font-medium">My Students</span>
+                      </Link>
+                    )}
 
                     <Link 
                       to="/profile" 

@@ -35,6 +35,7 @@ const Regions = lazy(() => import("./pages/Regions"));
 const RegionDetail = lazy(() => import("./pages/RegionDetail"));
 const AdmissionsNavigator = lazy(() => import("./pages/AdmissionsNavigator"));
 const DocumentsPage = lazy(() => import("./pages/DocumentsPage"));
+const SalesDashboard = lazy(() => import("./pages/SalesDashboard"));
 
 // Lazy load admin pages
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
@@ -120,6 +121,10 @@ const App = () => {
                 <Route 
                   path="/saved" 
                   element={user ? <SavedPrograms /> : <Navigate to="/auth" />} 
+                />
+                <Route 
+                  path="/sales-dashboard" 
+                  element={user ? <SalesDashboard /> : <Navigate to="/auth" />} 
                 />
                 <Route path="/cities" element={<Cities />} />
                 <Route path="/cities/:city" element={<CityPage />} />
