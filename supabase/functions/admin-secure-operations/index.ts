@@ -98,6 +98,12 @@ Deno.serve(async (req) => {
     console.log('About to switch on operation:', operation, 'Type:', typeof operation);
 
     switch (operation) {
+      case 'get_students_for_assignment':
+        return await handleGetStudentsForAssignment(req, supabaseAdmin);
+      
+      case 'update_student_assignments':
+        return await handleUpdateStudentAssignments(req, supabaseAdmin);
+      
       case 'get_users':
         return await handleGetUsers(supabase);
       case 'get_user_details':
@@ -222,13 +228,129 @@ async function handleUpdateUserRoles(req: Request, supabase: any, adminUserId: s
       JSON.stringify({ success: true }),
       { headers: corsHeaders }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in handleUpdateUserRoles:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to update user roles' }),
-      { status: 500, headers: corsHeaders }
+      JSON.stringify({ error: error.message || 'Failed to update roles' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
+}
+
+async function handleGetStudentsForAssignment(req: Request, supabaseAdmin: SupabaseClient) {
+  const url = new URL(req.url);
+  const userId = url.searchParams.get('user_id');
+
+  if (!userId) {
+    return new Response(
+      JSON.stringify({ error: 'Missing user_id parameter' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Get all profiles (students)
+  const { data: studentsData, error: studentsError } = await supabaseAdmin
+    .from('profiles')
+    .select('id, full_name, email')
+    .order('full_name');
+
+  if (studentsError) {
+    console.error('Error fetching students:', studentsError);
+    return new Response(
+      JSON.stringify({ error: studentsError.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Get currently assigned students for this user
+  const { data: assignmentsData, error: assignmentsError } = await supabaseAdmin
+    .from('user_student_assignments')
+    .select('student_id')
+    .eq('user_id', userId);
+
+  if (assignmentsError) {
+    console.error('Error fetching assignments:', assignmentsError);
+    return new Response(
+      JSON.stringify({ error: assignmentsError.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  const assignedIds = new Set(assignmentsData?.map(a => a.student_id) || []);
+  
+  const students = studentsData?.map(student => ({
+    ...student,
+    assigned: assignedIds.has(student.id)
+  })) || [];
+
+  return new Response(
+    JSON.stringify({ students }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
+async function handleUpdateStudentAssignments(req: Request, supabaseAdmin: SupabaseClient) {
+  const { userId, studentIds } = await req.json();
+
+  if (!userId || !Array.isArray(studentIds)) {
+    return new Response(
+      JSON.stringify({ error: 'Missing userId or studentIds' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Get current admin user ID
+  const authHeader = req.headers.get('Authorization');
+  let adminUserId = null;
+  if (authHeader) {
+    try {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+      adminUserId = user?.id;
+    } catch (e) {
+      console.error('Error getting admin user:', e);
+    }
+  }
+
+  // Delete all existing assignments for this user
+  const { error: deleteError } = await supabaseAdmin
+    .from('user_student_assignments')
+    .delete()
+    .eq('user_id', userId);
+
+  if (deleteError) {
+    console.error('Error deleting existing assignments:', deleteError);
+    return new Response(
+      JSON.stringify({ error: deleteError.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Insert new assignments
+  if (studentIds.length > 0) {
+    const assignments = studentIds.map(studentId => ({
+      user_id: userId,
+      student_id: studentId,
+      assigned_by: adminUserId,
+    }));
+
+    const { error: insertError } = await supabaseAdmin
+      .from('user_student_assignments')
+      .insert(assignments);
+
+    if (insertError) {
+      console.error('Error inserting assignments:', insertError);
+      return new Response(
+        JSON.stringify({ error: insertError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+  }
+
+  return new Response(
+    JSON.stringify({ success: true, count: studentIds.length }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
 }
 
 async function handleGetUserDetails(url: URL, supabase: any) {

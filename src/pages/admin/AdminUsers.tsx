@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { RoleManagementDialog } from "@/components/admin/RoleManagementDialog";
 import { UserDetailsModal } from "@/components/admin/UserDetailsModal";
+import { StudentAssignmentDialog } from "@/components/admin/StudentAssignmentDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,6 +51,7 @@ export const AdminUsers = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const { toast } = useToast();
@@ -366,6 +368,18 @@ export const AdminUsers = () => {
                     <Edit className="h-3 w-3" />
                     Roles
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex items-center gap-1"
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setAssignmentDialogOpen(true);
+                    }}
+                  >
+                    <Users className="h-3 w-3" />
+                    Assign
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -398,6 +412,14 @@ export const AdminUsers = () => {
             onOpenChange={setDetailsDialogOpen}
             userId={selectedUser.id}
             onUserUpdated={fetchUsers}
+          />
+          <StudentAssignmentDialog
+            open={assignmentDialogOpen}
+            onOpenChange={setAssignmentDialogOpen}
+            userId={selectedUser.id}
+            userName={selectedUser.full_name || selectedUser.email || 'User'}
+            userRoles={getUserRoles(selectedUser)}
+            onSuccess={fetchUsers}
           />
         </>
       )}
