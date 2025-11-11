@@ -73,6 +73,11 @@ Deno.serve(async (req) => {
       }
     }
     
+    // Trim operation to remove any whitespace
+    operation = operation?.trim();
+    
+    console.log('Operation received:', operation, 'Method:', req.method);
+    
     if (!operation) {
       return new Response(
         JSON.stringify({ error: 'Operation parameter required' }),
@@ -89,6 +94,8 @@ Deno.serve(async (req) => {
         user_id: user.id,
         new_data: { operation, timestamp: new Date().toISOString() }
       });
+
+    console.log('About to switch on operation:', operation, 'Type:', typeof operation);
 
     switch (operation) {
       case 'get_users':
