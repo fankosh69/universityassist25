@@ -3,11 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Users, Mail, Calendar, Shield, Edit } from "lucide-react";
+import { Search, Users, Mail, Calendar, Shield, Edit, Download, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { RoleManagementDialog } from "@/components/admin/RoleManagementDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 
 interface UserProfile {
   id: string;
@@ -24,12 +32,24 @@ interface UserProfile {
   }[];
 }
 
+const AVAILABLE_ROLES = [
+  { value: 'student', label: 'Student' },
+  { value: 'admin', label: 'Admin' },
+  { value: 'school_counselor', label: 'School Counselor' },
+  { value: 'university_staff', label: 'University Staff' },
+  { value: 'company_sales', label: 'Company Sales' },
+  { value: 'company_admissions', label: 'Company Admissions' },
+  { value: 'marketing', label: 'Marketing' },
+  { value: 'parent', label: 'Parent' },
+];
+
 export const AdminUsers = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -67,11 +87,17 @@ export const AdminUsers = () => {
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.nationality?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = 
+      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.nationality?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesRole = selectedRoles.length === 0 || 
+      getUserRoles(user).some(role => selectedRoles.includes(role));
+    
+    return matchesSearch && matchesRole;
+  });
 
   const getUserRoles = (user: UserProfile) => {
     return user.user_roles?.map(ur => ur.role) || ['student'];
@@ -102,6 +128,52 @@ export const AdminUsers = () => {
     return age;
   };
 
+  const toggleRoleFilter = (role: string) => {
+    setSelectedRoles(prev =>
+      prev.includes(role)
+        ? prev.filter(r => r !== role)
+        : [...prev, role]
+    );
+  };
+
+  const clearRoleFilters = () => {
+    setSelectedRoles([]);
+  };
+
+  const exportToCSV = () => {
+    const headers = ['Full Name', 'Email', 'Phone', 'Age', 'Nationality', 'Education Level', 'Roles', 'Joined Date'];
+    const csvData = filteredUsers.map(user => [
+      user.full_name || '',
+      user.email || '',
+      user.phone ? `${user.country_code} ${user.phone}` : '',
+      calculateAge(user.date_of_birth) || '',
+      user.nationality || '',
+      user.current_education_level || '',
+      getUserRoles(user).join('; '),
+      new Date(user.created_at).toLocaleDateString(),
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `users_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Export Complete",
+      description: `Exported ${filteredUsers.length} users to CSV`,
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -125,7 +197,7 @@ export const AdminUsers = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
@@ -134,6 +206,56 @@ export const AdminUsers = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
+        </div>
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Filter className="h-4 w-4" />
+                Roles
+                {selectedRoles.length > 0 && (
+                  <Badge variant="secondary" className="ml-1">
+                    {selectedRoles.length}
+                  </Badge>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Filter by Role</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {AVAILABLE_ROLES.map((role) => (
+                <DropdownMenuCheckboxItem
+                  key={role.value}
+                  checked={selectedRoles.includes(role.value)}
+                  onCheckedChange={() => toggleRoleFilter(role.value)}
+                >
+                  {role.label}
+                </DropdownMenuCheckboxItem>
+              ))}
+              {selectedRoles.length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full"
+                    onClick={clearRoleFilters}
+                  >
+                    Clear Filters
+                  </Button>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={exportToCSV}
+            disabled={filteredUsers.length === 0}
+          >
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
         </div>
       </div>
 
