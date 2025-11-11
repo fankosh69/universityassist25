@@ -41,7 +41,7 @@ export const StudentAssignmentDialog = ({
 
   // Check if user can have students assigned
   const canHaveAssignments = userRoles.some(role => 
-    ['company_sales', 'company_admissions', 'school_counselor'].includes(role)
+    ['admin', 'company_sales', 'company_admissions', 'school_counselor'].includes(role)
   );
 
   useEffect(() => {
