@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Users, Mail, Calendar, Shield } from "lucide-react";
+import { Search, Users, Mail, Calendar, Shield, Edit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { RoleManagementDialog } from "@/components/admin/RoleManagementDialog";
 
 interface UserProfile {
   id: string;
@@ -27,6 +28,8 @@ export const AdminUsers = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -215,6 +218,18 @@ export const AdminUsers = () => {
                     <Mail className="h-3 w-3" />
                     Contact
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex items-center gap-1"
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setRoleDialogOpen(true);
+                    }}
+                  >
+                    <Edit className="h-3 w-3" />
+                    Roles
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -230,6 +245,17 @@ export const AdminUsers = () => {
             {searchTerm ? 'Try adjusting your search criteria.' : 'No users have registered yet.'}
           </p>
         </div>
+      )}
+
+      {selectedUser && (
+        <RoleManagementDialog
+          open={roleDialogOpen}
+          onOpenChange={setRoleDialogOpen}
+          userId={selectedUser.id}
+          userName={selectedUser.full_name || selectedUser.email || 'User'}
+          currentRoles={getUserRoles(selectedUser)}
+          onSuccess={fetchUsers}
+        />
       )}
     </div>
   );

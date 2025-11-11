@@ -76,6 +76,8 @@ Deno.serve(async (req) => {
     switch (operation) {
       case 'get_users':
         return await handleGetUsers(supabase);
+      case 'update_user_roles':
+        return await handleUpdateUserRoles(req, supabase, user.id);
       case 'get_cities':
         return await handleGetCities(supabase);
       case 'update_city':
@@ -99,6 +101,61 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+async function handleUpdateUserRoles(req: Request, supabase: any, adminUserId: string) {
+  try {
+    const { userId, roles } = await req.json();
+
+    if (!userId || !Array.isArray(roles)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request data' }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    // Delete existing roles
+    const { error: deleteError } = await supabase
+      .from('user_roles')
+      .delete()
+      .eq('profile_id', userId);
+
+    if (deleteError) {
+      console.error('Error deleting roles:', deleteError);
+      throw deleteError;
+    }
+
+    // Insert new roles
+    if (roles.length > 0) {
+      const { error: insertError } = await supabase
+        .from('user_roles')
+        .insert(roles.map((role: string) => ({ profile_id: userId, role })));
+
+      if (insertError) {
+        console.error('Error inserting roles:', insertError);
+        throw insertError;
+      }
+    }
+
+    // Log the action
+    await supabase.from('audit_logs').insert({
+      user_id: adminUserId,
+      table_name: 'user_roles',
+      operation: 'UPDATE',
+      new_data: { userId, roles },
+    });
+
+    return new Response(
+      JSON.stringify({ success: true }),
+      { headers: corsHeaders }
+    );
+  } catch (error) {
+    console.error('Error in handleUpdateUserRoles:', error);
+    return new Response(
+      JSON.stringify({ error: 'Failed to update user roles' }),
+      { status: 500, headers: corsHeaders }
+    );
+  }
+}
 
 async function handleGetUsers(supabase: any) {
   try {
