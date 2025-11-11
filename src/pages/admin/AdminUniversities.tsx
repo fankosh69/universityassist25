@@ -225,20 +225,23 @@ export const AdminUniversities = () => {
           .eq('university_id', universityId);
       }
 
-      // Filter and insert campuses (skip incomplete ones when saving as draft)
-      const validCampuses = formData.campuses.filter(campus => 
-        saveStatus === 'published' || (campus.city_id && campus.city_id.trim() !== '')
-      );
+      // Insert campuses - for drafts, save all campuses (even incomplete)
+      // For published, only save complete campuses
+      const campusesToSave = saveStatus === 'draft' 
+        ? formData.campuses 
+        : formData.campuses.filter(campus => campus.city_id && campus.city_id.trim() !== '');
 
-      if (validCampuses.length > 0) {
-        const campusInserts = validCampuses.map(campus => {
+      if (campusesToSave.length > 0) {
+        const campusInserts = campusesToSave.map(campus => {
           const selectedCity = cities.find(c => c.id === campus.city_id);
           return {
             university_id: universityId,
             city: selectedCity?.name || '',
-            city_id: campus.city_id,
+            city_id: campus.city_id && campus.city_id.trim() !== '' ? campus.city_id : null,
             name: campus.name || null,
-            campus_slug: `${slugify(formData.name)}-${slugify(selectedCity?.name || '')}`,
+            campus_slug: campus.city_id && selectedCity?.name 
+              ? `${slugify(formData.name)}-${slugify(selectedCity.name)}` 
+              : `${slugify(formData.name)}-draft-${Date.now()}`,
             is_main_campus: campus.is_main_campus,
             address: campus.address || null,
             lat: campus.lat,
@@ -256,13 +259,12 @@ export const AdminUniversities = () => {
         if (campusError) throw campusError;
       }
 
-      const savedCampusCount = validCampuses.length;
-      const skippedCampusCount = formData.campuses.length - savedCampusCount;
+      const savedCampusCount = campusesToSave.length;
 
       toast({
         title: "Success",
-        description: saveStatus === 'draft' && skippedCampusCount > 0
-          ? `University saved as draft with ${savedCampusCount} campus(es). ${skippedCampusCount} incomplete campus(es) skipped.`
+        description: saveStatus === 'draft'
+          ? `University saved as draft with ${savedCampusCount} campus(es). You can complete the details later.`
           : `University ${editingUniversity ? 'updated' : 'created'} with ${savedCampusCount} campus(es)`,
       });
 
