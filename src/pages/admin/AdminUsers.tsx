@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Users, Mail, Calendar, Shield, Edit, Download, Filter } from "lucide-react";
+import { Search, Users, Mail, Calendar, Shield, Edit, Download, Filter, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { RoleManagementDialog } from "@/components/admin/RoleManagementDialog";
+import { UserDetailsModal } from "@/components/admin/UserDetailsModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +49,7 @@ export const AdminUsers = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const { toast } = useToast();
@@ -327,6 +329,18 @@ export const AdminUsers = () => {
                 </div>
 
                 <div className="flex gap-2 mt-4">
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="flex items-center gap-1"
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setDetailsDialogOpen(true);
+                    }}
+                  >
+                    <Eye className="h-3 w-3" />
+                    View
+                  </Button>
                   <Button 
                     size="sm" 
                     variant="outline" 
@@ -370,14 +384,22 @@ export const AdminUsers = () => {
       )}
 
       {selectedUser && (
-        <RoleManagementDialog
-          open={roleDialogOpen}
-          onOpenChange={setRoleDialogOpen}
-          userId={selectedUser.id}
-          userName={selectedUser.full_name || selectedUser.email || 'User'}
-          currentRoles={getUserRoles(selectedUser)}
-          onSuccess={fetchUsers}
-        />
+        <>
+          <RoleManagementDialog
+            open={roleDialogOpen}
+            onOpenChange={setRoleDialogOpen}
+            userId={selectedUser.id}
+            userName={selectedUser.full_name || selectedUser.email || 'User'}
+            currentRoles={getUserRoles(selectedUser)}
+            onSuccess={fetchUsers}
+          />
+          <UserDetailsModal
+            open={detailsDialogOpen}
+            onOpenChange={setDetailsDialogOpen}
+            userId={selectedUser.id}
+            onUserUpdated={fetchUsers}
+          />
+        </>
       )}
     </div>
   );
