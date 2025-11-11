@@ -256,9 +256,14 @@ export const AdminUniversities = () => {
         if (campusError) throw campusError;
       }
 
+      const savedCampusCount = validCampuses.length;
+      const skippedCampusCount = formData.campuses.length - savedCampusCount;
+
       toast({
         title: "Success",
-        description: `University ${editingUniversity ? 'updated' : 'created'} with ${formData.campuses.length} campus(es)`,
+        description: saveStatus === 'draft' && skippedCampusCount > 0
+          ? `University saved as draft with ${savedCampusCount} campus(es). ${skippedCampusCount} incomplete campus(es) skipped.`
+          : `University ${editingUniversity ? 'updated' : 'created'} with ${savedCampusCount} campus(es)`,
       });
 
       resetForm();
