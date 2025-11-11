@@ -54,7 +54,24 @@ Deno.serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const operation = url.searchParams.get('operation');
+    let operation = url.searchParams.get('operation');
+    
+    // For POST requests, try to get operation from request body if not in URL
+    if (!operation && req.method === 'POST') {
+      try {
+        const bodyText = await req.text();
+        const body = JSON.parse(bodyText);
+        operation = body.operation;
+        // Re-create the request with the body for handlers to read
+        req = new Request(req.url, {
+          method: req.method,
+          headers: req.headers,
+          body: bodyText,
+        });
+      } catch (e) {
+        console.error('Error parsing request body:', e);
+      }
+    }
     
     if (!operation) {
       return new Response(
@@ -76,6 +93,10 @@ Deno.serve(async (req) => {
     switch (operation) {
       case 'get_users':
         return await handleGetUsers(supabase);
+      case 'get_user_details':
+        return await handleGetUserDetails(url, supabase);
+      case 'update_user':
+        return await handleUpdateUser(req, supabase, user.id);
       case 'update_user_roles':
         return await handleUpdateUserRoles(req, supabase, user.id);
       case 'get_cities':
@@ -101,6 +122,52 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+async function handleUpdateUser(req: Request, supabase: any, adminUserId: string) {
+  try {
+    const body = await req.json();
+    const { userId, updates } = body;
+
+    if (!userId || !updates) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request data' }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    // Update user profile
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+
+    // Log the action
+    await supabase.from('audit_logs').insert({
+      user_id: adminUserId,
+      table_name: 'profiles',
+      operation: 'UPDATE',
+      new_data: { userId, updates },
+    });
+
+    return new Response(
+      JSON.stringify({ success: true, user: data }),
+      { headers: corsHeaders }
+    );
+  } catch (error) {
+    console.error('Error in handleUpdateUser:', error);
+    return new Response(
+      JSON.stringify({ error: 'Failed to update user' }),
+      { status: 500, headers: corsHeaders }
+    );
+  }
+}
 
 async function handleUpdateUserRoles(req: Request, supabase: any, adminUserId: string) {
   try {
@@ -152,6 +219,171 @@ async function handleUpdateUserRoles(req: Request, supabase: any, adminUserId: s
     console.error('Error in handleUpdateUserRoles:', error);
     return new Response(
       JSON.stringify({ error: 'Failed to update user roles' }),
+      { status: 500, headers: corsHeaders }
+    );
+  }
+}
+
+async function handleGetUserDetails(url: URL, supabase: any) {
+  try {
+    const userId = url.searchParams.get('user_id');
+    
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'user_id parameter required' }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    console.log('Fetching detailed user data for:', userId);
+    
+    // Get profile with full data using service role
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      throw profileError;
+    }
+
+    // Get user roles
+    const { data: userRoles, error: rolesError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('profile_id', userId);
+
+    if (rolesError) {
+      console.error('Error fetching user roles:', rolesError);
+    }
+
+    // Get applications
+    const { data: applications, error: appsError } = await supabase
+      .from('applications')
+      .select(`
+        id,
+        status,
+        submitted_at,
+        created_at,
+        program_id
+      `)
+      .eq('profile_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (appsError) {
+      console.error('Error fetching applications:', appsError);
+    }
+
+    // Get program details for applications
+    let applicationsWithPrograms = [];
+    if (applications && applications.length > 0) {
+      const programIds = applications.map((app: any) => app.program_id);
+      const { data: programs, error: programsError } = await supabase
+        .from('programs')
+        .select(`
+          id,
+          name,
+          degree_level,
+          institution_id
+        `)
+        .in('id', programIds);
+
+      if (programsError) {
+        console.error('Error fetching programs:', programsError);
+      } else {
+        const institutionIds = programs.map((p: any) => p.institution_id);
+        const { data: institutions } = await supabase
+          .from('institutions')
+          .select('id, name')
+          .in('id', institutionIds);
+
+        applicationsWithPrograms = applications.map((app: any) => {
+          const program = programs.find((p: any) => p.id === app.program_id);
+          const institution = institutions?.find((i: any) => i.id === program?.institution_id);
+          return {
+            ...app,
+            program: program ? {
+              name: program.name,
+              degree_level: program.degree_level,
+              institution: institution ? { name: institution.name } : null
+            } : null
+          };
+        });
+      }
+    }
+
+    // Get matches
+    const { data: matches, error: matchesError } = await supabase
+      .from('matches')
+      .select(`
+        id,
+        compatibility_score,
+        created_at,
+        program_id
+      `)
+      .eq('profile_id', userId)
+      .order('compatibility_score', { ascending: false })
+      .limit(10);
+
+    if (matchesError) {
+      console.error('Error fetching matches:', matchesError);
+    }
+
+    // Get program details for matches
+    let matchesWithPrograms = [];
+    if (matches && matches.length > 0) {
+      const programIds = matches.map((m: any) => m.program_id);
+      const { data: programs, error: programsError } = await supabase
+        .from('programs')
+        .select(`
+          id,
+          name,
+          institution_id
+        `)
+        .in('id', programIds);
+
+      if (programsError) {
+        console.error('Error fetching programs for matches:', programsError);
+      } else {
+        const institutionIds = programs.map((p: any) => p.institution_id);
+        const { data: institutions } = await supabase
+          .from('institutions')
+          .select('id, name')
+          .in('id', institutionIds);
+
+        matchesWithPrograms = matches.map((match: any) => {
+          const program = programs.find((p: any) => p.id === match.program_id);
+          const institution = institutions?.find((i: any) => i.id === program?.institution_id);
+          return {
+            ...match,
+            program: program ? {
+              name: program.name,
+              institution: institution ? { name: institution.name } : null
+            } : null
+          };
+        });
+      }
+    }
+
+    const user = {
+      ...profile,
+      user_roles: userRoles || [],
+      applications: applicationsWithPrograms,
+      matches: matchesWithPrograms
+    };
+
+    console.log('Returning detailed user data');
+
+    return new Response(
+      JSON.stringify({ user }),
+      { headers: corsHeaders }
+    );
+  } catch (error) {
+    console.error('Error in handleGetUserDetails:', error);
+    return new Response(
+      JSON.stringify({ error: 'Failed to fetch user details' }),
       { status: 500, headers: corsHeaders }
     );
   }

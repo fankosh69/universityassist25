@@ -104,60 +104,33 @@ export const UserDetailsModal = ({
   const fetchUserDetails = async () => {
     setLoading(true);
     try {
-      // Fetch user profile
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select(`
-          *,
-          user_roles(role)
-        `)
-        .eq("id", userId)
-        .single();
+      // Fetch user profile using secure admin operation
+      const url = new URL(`https://zfiexgjcuojodmnsinsz.supabase.co/functions/v1/admin-secure-operations`);
+      url.searchParams.set('operation', 'get_user_details');
+      url.searchParams.set('user_id', userId);
+      
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (profileError) throw profileError;
+      if (!response.ok) {
+        throw new Error('Failed to fetch user details');
+      }
+
+      const result = await response.json();
+      const profile = result.user;
+      
+      if (!profile) throw new Error('User not found');
       setUser(profile);
       setEditedUser(profile);
-
-      // Fetch applications
-      const { data: apps, error: appsError } = await supabase
-        .from("applications")
-        .select(`
-          id,
-          status,
-          submitted_at,
-          created_at,
-          program:programs(
-            name,
-            degree_level,
-            institution:institutions(name)
-          )
-        `)
-        .eq("profile_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (!appsError && apps) {
-        setApplications(apps as any);
-      }
-
-      // Fetch matches
-      const { data: userMatches, error: matchesError } = await supabase
-        .from("matches")
-        .select(`
-          id,
-          compatibility_score,
-          created_at,
-          program:programs(
-            name,
-            institution:institutions(name)
-          )
-        `)
-        .eq("profile_id", userId)
-        .order("compatibility_score", { ascending: false })
-        .limit(10);
-
-      if (!matchesError && userMatches) {
-        setMatches(userMatches as any);
-      }
+      
+      // Set applications and matches from the response
+      setApplications(profile.applications || []);
+      setMatches(profile.matches || []);
     } catch (error) {
       console.error("Error fetching user details:", error);
       toast({
@@ -173,23 +146,38 @@ export const UserDetailsModal = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          full_name: editedUser.full_name,
-          email: editedUser.email,
-          phone: editedUser.phone,
-          country_code: editedUser.country_code,
-          nationality: editedUser.nationality,
-          gender: editedUser.gender,
-          current_education_level: editedUser.current_education_level,
-          current_institution: editedUser.current_institution,
-          current_field_of_study: editedUser.current_field_of_study,
-          current_gpa: editedUser.current_gpa,
-        })
-        .eq("id", userId);
+      const updates = {
+        full_name: editedUser.full_name,
+        email: editedUser.email,
+        phone: editedUser.phone,
+        country_code: editedUser.country_code,
+        nationality: editedUser.nationality,
+        gender: editedUser.gender,
+        current_education_level: editedUser.current_education_level,
+        current_institution: editedUser.current_institution,
+        current_field_of_study: editedUser.current_field_of_study,
+        current_gpa: editedUser.current_gpa,
+      };
 
-      if (error) throw error;
+      const response = await fetch(
+        `https://zfiexgjcuojodmnsinsz.supabase.co/functions/v1/admin-secure-operations`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            operation: 'update_user',
+            userId,
+            updates,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to update user');
+      }
 
       toast({
         title: "Success",
