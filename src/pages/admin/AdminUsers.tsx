@@ -10,6 +10,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { RoleManagementDialog } from "@/components/admin/RoleManagementDialog";
 import { UserDetailsModal } from "@/components/admin/UserDetailsModal";
 import { StudentAssignmentDialog } from "@/components/admin/StudentAssignmentDialog";
+import { BulkStudentAssignmentDialog } from "@/components/admin/BulkStudentAssignmentDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,6 +53,7 @@ export const AdminUsers = () => {
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
+  const [bulkAssignmentDialogOpen, setBulkAssignmentDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const { toast } = useToast();
@@ -195,9 +197,19 @@ export const AdminUsers = () => {
             View and manage registered users
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          <span className="font-semibold">{users.length} Users</span>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="default"
+            className="gap-2"
+            onClick={() => setBulkAssignmentDialogOpen(true)}
+          >
+            <Users className="h-4 w-4" />
+            Bulk Assign Students
+          </Button>
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            <span className="font-semibold">{users.length} Users</span>
+          </div>
         </div>
       </div>
 
@@ -396,6 +408,12 @@ export const AdminUsers = () => {
           </p>
         </div>
       )}
+
+      <BulkStudentAssignmentDialog
+        open={bulkAssignmentDialogOpen}
+        onOpenChange={setBulkAssignmentDialogOpen}
+        onSuccess={fetchUsers}
+      />
 
       {selectedUser && (
         <>

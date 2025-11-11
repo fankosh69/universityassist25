@@ -107,6 +107,9 @@ Deno.serve(async (req) => {
       case 'get_assigned_students_details':
         return await handleGetAssignedStudentsDetails(req, supabaseAdmin);
       
+      case 'bulk_assign_students':
+        return await handleBulkAssignStudents(req, supabase, user.id);
+      
       case 'get_users':
         return await handleGetUsers(supabase);
       case 'get_user_details':
@@ -432,6 +435,82 @@ async function handleGetAssignedStudentsDetails(req: Request, supabaseAdmin: Sup
     JSON.stringify({ students: validStudents }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
+}
+
+async function handleBulkAssignStudents(req: Request, supabase: any, adminUserId: string) {
+  try {
+    const { userIds, studentIds } = await req.json();
+
+    if (!Array.isArray(userIds) || !Array.isArray(studentIds)) {
+      return new Response(
+        JSON.stringify({ error: 'userIds and studentIds must be arrays' }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    if (userIds.length === 0 || studentIds.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'At least one user and one student required' }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    // Create all assignment combinations
+    const assignments = [];
+    for (const userId of userIds) {
+      for (const studentId of studentIds) {
+        assignments.push({
+          user_id: userId,
+          student_id: studentId,
+          assigned_by: adminUserId,
+        });
+      }
+    }
+
+    // Insert all assignments (with upsert to avoid duplicates)
+    const { data, error } = await supabase
+      .from('user_student_assignments')
+      .upsert(assignments, { 
+        onConflict: 'user_id,student_id',
+        ignoreDuplicates: false 
+      });
+
+    if (error) {
+      console.error('Error bulk assigning students:', error);
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        { status: 500, headers: corsHeaders }
+      );
+    }
+
+    // Log the bulk assignment
+    await supabase.from('audit_logs').insert({
+      user_id: adminUserId,
+      table_name: 'user_student_assignments',
+      operation: 'BULK_INSERT',
+      new_data: { 
+        userIds, 
+        studentIds, 
+        total_assignments: assignments.length 
+      },
+    });
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        total_assignments: assignments.length,
+        users_count: userIds.length,
+        students_count: studentIds.length
+      }),
+      { headers: corsHeaders }
+    );
+  } catch (error) {
+    console.error('Error in handleBulkAssignStudents:', error);
+    return new Response(
+      JSON.stringify({ error: 'Failed to bulk assign students' }),
+      { status: 500, headers: corsHeaders }
+    );
+  }
 }
 
 async function handleGetUserDetails(url: URL, supabase: any) {
