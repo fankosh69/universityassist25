@@ -225,30 +225,36 @@ export const AdminUniversities = () => {
           .eq('university_id', universityId);
       }
 
-      // Insert new campuses
-      const campusInserts = formData.campuses.map(campus => {
-        const selectedCity = cities.find(c => c.id === campus.city_id);
-        return {
-          university_id: universityId,
-          city: selectedCity?.name || '',
-          city_id: campus.city_id,
-          name: campus.name || null,
-          campus_slug: `${slugify(formData.name)}-${slugify(selectedCity?.name || '')}`,
-          is_main_campus: campus.is_main_campus,
-          address: campus.address || null,
-          lat: campus.lat,
-          lng: campus.lng,
-          phone: campus.phone || null,
-          email: campus.email || null,
-          website_url: campus.website_url || null,
-        };
-      });
+      // Filter and insert campuses (skip incomplete ones when saving as draft)
+      const validCampuses = formData.campuses.filter(campus => 
+        saveStatus === 'published' || (campus.city_id && campus.city_id.trim() !== '')
+      );
 
-      const { error: campusError } = await supabase
-        .from('university_campuses')
-        .insert(campusInserts);
+      if (validCampuses.length > 0) {
+        const campusInserts = validCampuses.map(campus => {
+          const selectedCity = cities.find(c => c.id === campus.city_id);
+          return {
+            university_id: universityId,
+            city: selectedCity?.name || '',
+            city_id: campus.city_id,
+            name: campus.name || null,
+            campus_slug: `${slugify(formData.name)}-${slugify(selectedCity?.name || '')}`,
+            is_main_campus: campus.is_main_campus,
+            address: campus.address || null,
+            lat: campus.lat,
+            lng: campus.lng,
+            phone: campus.phone || null,
+            email: campus.email || null,
+            website_url: campus.website_url || null,
+          };
+        });
 
-      if (campusError) throw campusError;
+        const { error: campusError } = await supabase
+          .from('university_campuses')
+          .insert(campusInserts);
+
+        if (campusError) throw campusError;
+      }
 
       toast({
         title: "Success",
