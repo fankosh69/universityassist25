@@ -157,25 +157,28 @@ export const AdminUniversities = () => {
   const handleSubmit = async (e: React.FormEvent, saveStatus: 'draft' | 'published' = 'published') => {
     e.preventDefault();
     
-    // Validate at least one campus
-    if (!formData.campuses || formData.campuses.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please add at least one campus",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Validate exactly one main campus
-    const mainCampusCount = formData.campuses.filter(c => c.is_main_campus).length;
-    if (mainCampusCount !== 1) {
-      toast({
-        title: "Error",
-        description: "Please select exactly one main campus",
-        variant: "destructive",
-      });
-      return;
+    // Only validate required fields when publishing
+    if (saveStatus === 'published') {
+      // Validate at least one campus
+      if (!formData.campuses || formData.campuses.length === 0) {
+        toast({
+          title: "Error",
+          description: "Please add at least one campus",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate exactly one main campus
+      const mainCampusCount = formData.campuses.filter(c => c.is_main_campus).length;
+      if (mainCampusCount !== 1) {
+        toast({
+          title: "Error",
+          description: "Please select exactly one main campus",
+          variant: "destructive",
+        });
+        return;
+      }
     }
     
     try {
