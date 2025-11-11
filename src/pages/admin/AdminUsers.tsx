@@ -12,6 +12,9 @@ interface UserProfile {
   id: string;
   full_name?: string;
   email?: string;
+  phone?: string;
+  country_code?: string;
+  date_of_birth?: string;
   created_at: string;
   nationality?: string;
   current_education_level?: string;
@@ -84,6 +87,18 @@ export const AdminUsers = () => {
     }
   };
 
+  const calculateAge = (dateOfBirth: string | undefined) => {
+    if (!dateOfBirth) return null;
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -143,6 +158,22 @@ export const AdminUsers = () => {
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span>Joined {new Date(user.created_at).toLocaleDateString()}</span>
                 </div>
+
+                {user.date_of_birth && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium">Age:</span>
+                    <Badge variant="outline">{calculateAge(user.date_of_birth)} years</Badge>
+                  </div>
+                )}
+
+                {user.phone && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium">Phone:</span>
+                    <span className="text-muted-foreground">
+                      {user.country_code} {user.phone}
+                    </span>
+                  </div>
+                )}
 
                 {user.nationality && (
                   <div className="flex items-center gap-2 text-sm">

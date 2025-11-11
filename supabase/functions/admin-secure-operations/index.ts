@@ -102,42 +102,51 @@ Deno.serve(async (req) => {
 
 async function handleGetUsers(supabase: any) {
   try {
-    // Get all users through secure function calls only
-    const { data: userRoles, error } = await supabase
+    console.log('Fetching all users with full data for admin...');
+    
+    // Query profiles table directly with service role to get full, unmasked data
+    // Service role bypasses RLS, allowing admin to see all user data
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select(`
+        id,
+        full_name,
+        email,
+        phone,
+        country_code,
+        date_of_birth,
+        nationality,
+        current_education_level,
+        created_at
+      `)
+      .order('created_at', { ascending: false });
+
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+      throw profilesError;
+    }
+
+    console.log(`Fetched ${profiles?.length || 0} profiles`);
+
+    // Get all user roles
+    const { data: userRoles, error: rolesError } = await supabase
       .from('user_roles')
       .select('profile_id, role');
 
-    if (error) throw error;
-
-    const users = [];
-    const processedIds = new Set();
-
-    for (const userRole of userRoles) {
-      if (processedIds.has(userRole.profile_id)) continue;
-      
-      // Use the secure masked profile data function
-      const { data: profileData, error: profileError } = await supabase
-        .rpc('get_masked_profile_data', { profile_uuid: userRole.profile_id });
-
-      if (!profileError && profileData && profileData.length > 0) {
-        const profile = profileData[0];
-        const allRoles = userRoles
-          .filter(ur => ur.profile_id === userRole.profile_id)
-          .map(ur => ({ role: ur.role }));
-
-        users.push({
-          id: profile.id,
-          full_name: profile.display_name,
-          email: profile.masked_email,
-          created_at: profile.created_at,
-          nationality: profile.nationality,
-          current_education_level: profile.education_level,
-          user_roles: allRoles
-        });
-
-        processedIds.add(userRole.profile_id);
-      }
+    if (rolesError) {
+      console.error('Error fetching user roles:', rolesError);
+      throw rolesError;
     }
+
+    // Combine profiles with their roles
+    const users = profiles?.map((profile: any) => ({
+      ...profile,
+      user_roles: userRoles
+        ?.filter((ur: any) => ur.profile_id === profile.id)
+        .map((ur: any) => ({ role: ur.role })) || []
+    })) || [];
+
+    console.log(`Returning ${users.length} users with full, unmasked data`);
 
     return new Response(
       JSON.stringify({ users }),
