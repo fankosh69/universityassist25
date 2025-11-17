@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, FileText, Calendar, Trophy, Target } from "lucide-react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/PageHeader";
+import { BackToTop } from "@/components/BackToTop";
 
 export default function DashboardEnhanced() {
   const navigate = useNavigate();
@@ -81,10 +83,16 @@ export default function DashboardEnhanced() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 py-8">
       <div className="container">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Your Dashboard</h1>
-          <p className="text-muted-foreground">Track your progress and achievements</p>
-        </div>
+        <PageHeader
+          title="Dashboard"
+          breadcrumbs={[
+            { label: 'Home', href: '/' },
+            { label: 'Dashboard' }
+          ]}
+          backButtonLabel="Back to Home"
+          backButtonTo="/"
+          description="Track your progress and achievements"
+        />
 
         {/* Gamification Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -282,6 +290,7 @@ export default function DashboardEnhanced() {
           </Card>
         )}
       </div>
+      <BackToTop />
     </div>
   );
 }
