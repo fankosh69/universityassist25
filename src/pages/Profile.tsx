@@ -37,6 +37,9 @@ interface ProfileData {
 }
 
 import Navigation from "@/components/Navigation";
+import SEOHead from "@/components/SEOHead";
+import { PageHeader } from "@/components/PageHeader";
+import { BackToTop } from "@/components/BackToTop";
 
 const Profile = () => {
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -236,6 +239,18 @@ const Profile = () => {
             <Progress value={calculateProgress()} className="h-2" />
           </div>
         </div>
+
+        <PageHeader
+          title="My Profile"
+          description="Manage your academic profile and study preferences"
+          breadcrumbs={[
+            { label: 'Home', href: '/' },
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Profile' }
+          ]}
+          backButtonLabel="Back to Dashboard"
+          backButtonTo="/dashboard"
+        />
 
       <div className="space-y-8">
         {/* Personal Information */}
@@ -553,6 +568,8 @@ const Profile = () => {
         </div>
         </div>
       </div>
+      
+      <BackToTop />
     </div>
   );
 };

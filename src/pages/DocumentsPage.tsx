@@ -11,6 +11,10 @@ import { toast } from "sonner";
 import DocumentUploadModal from "@/components/documents/DocumentUploadModal";
 import DocumentCard from "@/components/documents/DocumentCard";
 import DocumentViewer from "@/components/documents/DocumentViewer";
+import Navigation from "@/components/Navigation";
+import SEOHead from "@/components/SEOHead";
+import { PageHeader } from "@/components/PageHeader";
+import { BackToTop } from "@/components/BackToTop";
 
 export default function DocumentsPage() {
   const [loading, setLoading] = useState(true);
@@ -148,19 +152,30 @@ export default function DocumentsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 py-8">
+      <SEOHead 
+        title="My Documents | University Assist"
+        description="Upload and manage your academic documents"
+      />
+      <Navigation />
+      
       <div className="container max-w-6xl">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">My Documents</h1>
-            <p className="text-muted-foreground">
-              Upload and manage your academic documents
-            </p>
-          </div>
-          <Button onClick={() => setUploadModalOpen(true)} size="lg">
-            <Upload className="w-4 h-4 mr-2" />
-            Upload Document
-          </Button>
-        </div>
+        <PageHeader
+          title="My Documents"
+          description="Upload and manage your academic documents"
+          breadcrumbs={[
+            { label: 'Home', href: '/' },
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Documents' }
+          ]}
+          backButtonLabel="Back to Dashboard"
+          backButtonTo="/dashboard"
+          actions={
+            <Button onClick={() => setUploadModalOpen(true)} size="lg">
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Document
+            </Button>
+          }
+        />
 
         <Tabs value={filter} onValueChange={setFilter} className="space-y-6">
           <TabsList>
@@ -214,6 +229,8 @@ export default function DocumentsPage() {
           />
         )}
       </div>
+      
+      <BackToTop />
     </div>
   );
 }

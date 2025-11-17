@@ -2,6 +2,8 @@ import { EnhancedSearchContainer } from "@/components/search/EnhancedSearchConta
 import Navigation from "@/components/Navigation";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
+import { PageHeader } from "@/components/PageHeader";
+import { BackToTop } from "@/components/BackToTop";
 
 export default function Search() {
   const jsonLd = {
@@ -21,7 +23,21 @@ export default function Search() {
       <JsonLd data={jsonLd} />
       <Navigation />
       
+      <div className="container mx-auto px-4 py-6">
+        <PageHeader
+          title="Search University Programs"
+          description="Find and compare programs across Germany"
+          breadcrumbs={[
+            { label: 'Home', href: '/' },
+            { label: 'Search' }
+          ]}
+          showBackButton={false}
+        />
+      </div>
+      
       <EnhancedSearchContainer />
+      
+      <BackToTop />
     </div>
   );
 }

@@ -9,6 +9,8 @@ import Navigation from "@/components/Navigation";
 import SEOHead from "@/components/SEOHead";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { formatTuitionDisplay, type TuitionStructure } from '@/lib/tuition-calculator';
+import { PageHeader } from "@/components/PageHeader";
+import { BackToTop } from "@/components/BackToTop";
 
 interface SavedProgram {
   id: string;
@@ -138,16 +140,19 @@ const SavedPrograms = () => {
         description="View and manage your saved German university programs."
       />
       <Navigation />
+      
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
-            <Bookmark className="h-8 w-8 text-primary" />
-            Saved Programs
-          </h1>
-          <p className="text-muted-foreground">
-            Programs you've bookmarked for future reference
-          </p>
-        </div>
+        <PageHeader
+          title="Saved Programs"
+          description="Programs you've bookmarked for later"
+          breadcrumbs={[
+            { label: 'Home', href: '/' },
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Saved Programs' }
+          ]}
+          backButtonLabel="Back to Dashboard"
+          backButtonTo="/dashboard"
+        />
 
         {savedPrograms.length === 0 ? (
           <Card className="shadow-soft">
@@ -236,6 +241,8 @@ const SavedPrograms = () => {
           </div>
         )}
       </div>
+      
+      <BackToTop />
     </div>
   );
 };

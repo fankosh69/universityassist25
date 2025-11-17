@@ -14,6 +14,8 @@ import { CityLivingSection } from '@/components/cities/CityLivingSection';
 import { CityTipsCard } from '@/components/cities/CityTipsCard';
 import { SimilarCitiesGrid } from '@/components/cities/SimilarCitiesGrid';
 import { UniversityCard } from '@/components/cities/UniversityCard';
+import { PageHeader } from '@/components/PageHeader';
+import { BackToTop } from '@/components/BackToTop';
 
 interface MapMarker {
   id: string;
@@ -224,6 +226,18 @@ export default function CityPage() {
       />
       
       <div className="container mx-auto px-4 py-12">
+        <PageHeader
+          title={cityData.name}
+          breadcrumbs={[
+            { label: 'Home', href: '/' },
+            { label: 'Cities', href: '/cities' },
+            { label: cityData.name }
+          ]}
+          backButtonLabel="Back to Cities"
+          backButtonTo="/cities"
+          showBackButton={true}
+        />
+        
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-3">
@@ -365,6 +379,8 @@ export default function CityPage() {
           </div>
         </div>
       </div>
+      
+      <BackToTop />
     </div>
   );
 }
