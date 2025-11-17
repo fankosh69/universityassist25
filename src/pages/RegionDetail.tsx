@@ -12,6 +12,8 @@ import { RegionWelcomeSection } from "@/components/regions/RegionWelcomeSection"
 import { RegionHighlightsCard } from "@/components/regions/RegionHighlightsCard";
 import { RegionGallery } from "@/components/regions/RegionGallery";
 import { RegionFactsSidebar } from "@/components/regions/RegionFactsSidebar";
+import { PageHeader } from "@/components/PageHeader";
+import { BackToTop } from "@/components/BackToTop";
 
 export default function RegionDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -80,12 +82,16 @@ export default function RegionDetail() {
         
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-7xl mx-auto">
-            <Link to="/regions">
-              <Button variant="ghost" className="mb-6">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Regions
-              </Button>
-            </Link>
+            <PageHeader
+              title={region?.name || 'Region'}
+              breadcrumbs={[
+                { label: 'Home', href: '/' },
+                { label: 'Regions', href: '/regions' },
+                { label: region?.name || 'Region' }
+              ]}
+              backButtonLabel="Back to Regions"
+              backButtonTo="/regions"
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-8">
@@ -180,6 +186,8 @@ export default function RegionDetail() {
           </div>
         </main>
       </div>
+      
+      <BackToTop />
     </>
   );
 }

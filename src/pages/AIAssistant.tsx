@@ -19,6 +19,7 @@ import { ChatHistorySidebar } from "@/components/ai/ChatHistorySidebar";
 import { SessionPromptDialog } from "@/components/ai/SessionPromptDialog";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ProfileDataDisplay } from "@/components/ai/ProfileDataDisplay";
+import { BackButton } from "@/components/ui/back-button";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -382,6 +383,10 @@ export default function AIAssistant() {
       )}
 
       <div className="container mx-auto px-4 py-1">
+        <div className="mb-4">
+          <BackButton label="Back to Dashboard" to="/dashboard" />
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           
           {/* Desktop Sidebar - Hidden on mobile */}

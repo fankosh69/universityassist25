@@ -22,6 +22,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import LoadingScreen from '@/components/LoadingScreen';
+import { PageHeader } from '@/components/PageHeader';
+import { BackToTop } from '@/components/BackToTop';
 
 export default function UniversityPage() {
   const { uni } = useParams();
@@ -166,6 +168,19 @@ export default function UniversityPage() {
         university={university}
       />
       <Navigation />
+      
+      <div className="container mx-auto px-4 py-6">
+        <PageHeader
+          title={university.name}
+          breadcrumbs={[
+            { label: 'Home', href: '/' },
+            { label: 'Universities', href: '/universities' },
+            { label: university.name }
+          ]}
+          backButtonLabel="Back to Universities"
+          backButtonTo="/universities"
+        />
+      </div>
       
       {/* Hero Section */}
       <UniversityHero
@@ -555,6 +570,8 @@ export default function UniversityPage() {
         program={selectedProgram}
         universitySlug={uni || ''}
       />
+      
+      <BackToTop />
     </div>
   );
 }

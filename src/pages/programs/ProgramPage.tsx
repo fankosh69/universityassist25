@@ -21,6 +21,8 @@ import { formatProgramTitle } from '@/lib/degree-formatting';
 import type { StudentProfile, ProgramRequirements } from '@/lib/matching';
 import { EnglishLanguageRequirementsCard } from '@/components/program/EnglishLanguageRequirementsCard';
 import type { EnglishLanguageRequirements } from '@/types/language-requirements';
+import { PageHeader } from '@/components/PageHeader';
+import { BackToTop } from '@/components/BackToTop';
 
 export default function ProgramPage() {
   const { uni, program } = useParams();
@@ -169,7 +171,20 @@ export default function ProgramPage() {
       <Navigation />
       
       <div className="container mx-auto px-4 py-6">
-        {/* Breadcrumbs */}
+        <PageHeader
+          title={formatProgramTitle(programData.degree_type, programData.name)}
+          breadcrumbs={[
+            { label: 'Home', href: '/' },
+            { label: 'Universities', href: '/universities' },
+            { label: university?.name || 'University', href: `/universities/${uni}` },
+            { label: 'Programs', href: `/universities/${uni}#programs` },
+            { label: formatProgramTitle(programData.degree_type, programData.name) }
+          ]}
+          backButtonLabel="Back to University"
+          backButtonTo={`/universities/${uni}`}
+        />
+        
+        {/* Breadcrumbs (kept for compatibility) */}
         <Breadcrumb className="mb-6">
           <BreadcrumbList>
             <BreadcrumbItem><BreadcrumbLink href="/">Home</BreadcrumbLink></BreadcrumbItem>
@@ -330,6 +345,8 @@ export default function ProgramPage() {
         programName={programData.name}
         universityName={university?.name}
       />
+      
+      <BackToTop />
     </div>
   );
 }
