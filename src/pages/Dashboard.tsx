@@ -11,6 +11,8 @@ import Navigation from "@/components/Navigation";
 import { useAdmin } from "@/hooks/useAdmin";
 import { getCurrentUserProfile } from "@/lib/secure-profile-api";
 import { formatProgramTitle } from "@/lib/degree-formatting";
+import { PageHeader } from "@/components/PageHeader";
+import { BackToTop } from "@/components/BackToTop";
 
 interface Profile {
   full_name?: string;
@@ -190,17 +192,16 @@ const Dashboard = () => {
       )}
 
       <div className="container mx-auto px-4 py-8 space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
-            Welcome back, {profile?.full_name?.split(' ')[0] || 'Student'}!
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Your journey to German universities continues
-          </p>
-        </div>
-      </div>
+        <PageHeader
+          title="Dashboard"
+          breadcrumbs={[
+            { label: 'Home', href: '/' },
+            { label: 'Dashboard' }
+          ]}
+          backButtonLabel="Back to Home"
+          backButtonTo="/"
+          description={profile?.full_name ? `Welcome back, ${profile.full_name.split(' ')[0]}! Your journey to German universities continues.` : "Your journey to German universities continues"}
+        />
 
       {/* Stats Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -363,6 +364,7 @@ const Dashboard = () => {
         </Card>
       </div>
       </div>
+      <BackToTop />
     </div>
   );
 };
