@@ -9,8 +9,11 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
-import { Globe, Search, Download, Loader2, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { Globe, Search, Download, Loader2, CheckCircle2, AlertCircle, Lightbulb, Link2 } from 'lucide-react';
 import { slugify } from '@/lib/slug';
 
 interface ScrapedProgram {
@@ -45,9 +48,14 @@ interface ProgramScraperProps {
 export function ProgramScraper({ universityId, universityName, onProgramsImported }: ProgramScraperProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [inputMode, setInputMode] = useState<'discover' | 'manual'>('discover');
   const [websiteUrl, setWebsiteUrl] = useState('');
+  const [manualUrls, setManualUrls] = useState('');
+  const [deepDiscovery, setDeepDiscovery] = useState(true);
   const [step, setStep] = useState<'input' | 'discover' | 'select' | 'scrape' | 'preview' | 'importing'>('input');
   const [discoveredUrls, setDiscoveredUrls] = useState<string[]>([]);
+  const [allFoundUrls, setAllFoundUrls] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedUrls, setSelectedUrls] = useState<string[]>([]);
   const [scrapedPrograms, setScrapedPrograms] = useState<ScrapedProgram[]>([]);
   const [progress, setProgress] = useState(0);
@@ -63,21 +71,41 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
     setIsLoading(true);
     setError(null);
     setStep('discover');
+    setSuggestions([]);
+    setAllFoundUrls([]);
 
     try {
       const { data, error } = await supabase.functions.invoke('scrape-programs-firecrawl', {
-        body: { url: websiteUrl, mode: 'discover' }
+        body: { url: websiteUrl, mode: 'discover', deepDiscovery }
       });
 
       if (error) throw error;
 
-      if (data?.success && data.data?.programUrls) {
-        setDiscoveredUrls(data.data.programUrls);
-        setSelectedUrls(data.data.programUrls.slice(0, 10)); // Pre-select first 10
+      if (data?.success && data.data) {
+        const programUrls = data.data.programUrls || [];
+        setDiscoveredUrls(programUrls);
+        setAllFoundUrls(data.data.allUrls || []);
+        setSuggestions(data.data.suggestions || []);
+        setSelectedUrls(programUrls.slice(0, 10)); // Pre-select first 10
         setStep('select');
-        toast({ title: 'URLs Discovered', description: `Found ${data.data.programUrls.length} potential program pages` });
+        
+        if (programUrls.length === 0) {
+          toast({ 
+            title: 'No Programs Found', 
+            description: `Found ${data.data.totalUrls} total URLs but none matched program patterns. Try suggestions below or enter URLs manually.`,
+            variant: 'destructive'
+          });
+        } else {
+          toast({ 
+            title: 'URLs Discovered', 
+            description: `Found ${programUrls.length} potential program pages out of ${data.data.totalUrls} URLs` 
+          });
+          if (data.data.suggestedUrl) {
+            toast({ title: 'Info', description: `Used discovered listing page: ${data.data.suggestedUrl}` });
+          }
+        }
       } else {
-        throw new Error(data?.error || 'No program URLs found');
+        throw new Error(data?.error || 'Failed to discover URLs');
       }
     } catch (err) {
       console.error('Discovery error:', err);
@@ -87,6 +115,23 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleManualUrls = () => {
+    const urls = manualUrls
+      .split('\n')
+      .map(u => u.trim())
+      .filter(u => u.length > 0 && (u.startsWith('http://') || u.startsWith('https://')));
+    
+    if (urls.length === 0) {
+      toast({ title: 'Error', description: 'Please enter at least one valid URL (starting with http:// or https://)', variant: 'destructive' });
+      return;
+    }
+
+    setDiscoveredUrls(urls);
+    setSelectedUrls(urls);
+    setStep('select');
+    toast({ title: 'URLs Added', description: `Added ${urls.length} URLs for scraping` });
   };
 
   const handleScrape = async () => {
@@ -214,8 +259,12 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
 
   const resetState = () => {
     setStep('input');
+    setInputMode('discover');
     setWebsiteUrl('');
+    setManualUrls('');
     setDiscoveredUrls([]);
+    setAllFoundUrls([]);
+    setSuggestions([]);
     setSelectedUrls([]);
     setScrapedPrograms([]);
     setProgress(0);
@@ -269,16 +318,60 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
                   Enter the main URL of the university or their programs page
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Input
-                  placeholder="https://www.uni-example.de/studium"
-                  value={websiteUrl}
-                  onChange={(e) => setWebsiteUrl(e.target.value)}
-                />
-                <Button onClick={handleDiscover} disabled={isLoading || !websiteUrl}>
-                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                  Discover Program Pages
-                </Button>
+              <CardContent>
+                <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as 'discover' | 'manual')}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="discover">
+                      <Search className="h-4 w-4 mr-2" />
+                      Auto-Discover
+                    </TabsTrigger>
+                    <TabsTrigger value="manual">
+                      <Link2 className="h-4 w-4 mr-2" />
+                      Manual URLs
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="discover" className="space-y-4 mt-4">
+                    <Input
+                      placeholder="https://www.uni-example.de/studium"
+                      value={websiteUrl}
+                      onChange={(e) => setWebsiteUrl(e.target.value)}
+                    />
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id="deep-discovery" 
+                        checked={deepDiscovery}
+                        onCheckedChange={(checked) => setDeepDiscovery(checked as boolean)}
+                      />
+                      <label htmlFor="deep-discovery" className="text-sm text-muted-foreground cursor-pointer">
+                        Deep discovery (try to find program listing page automatically)
+                      </label>
+                    </div>
+                    <Button onClick={handleDiscover} disabled={isLoading || !websiteUrl}>
+                      {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                      Discover Program Pages
+                    </Button>
+                    <p className="text-sm text-muted-foreground">
+                      Enter the university's homepage or program listing page. The scraper will discover program pages automatically.
+                    </p>
+                  </TabsContent>
+                  
+                  <TabsContent value="manual" className="space-y-4 mt-4">
+                    <Textarea
+                      placeholder={`Paste program URLs (one per line):\nhttps://www.university.edu/program/computer-science\nhttps://www.university.edu/program/business-admin`}
+                      value={manualUrls}
+                      onChange={(e) => setManualUrls(e.target.value)}
+                      rows={6}
+                    />
+                    <Button onClick={handleManualUrls} disabled={!manualUrls.trim()}>
+                      <Link2 className="mr-2 h-4 w-4" />
+                      Use These URLs
+                    </Button>
+                    <p className="text-sm text-muted-foreground">
+                      Paste direct links to program pages, one URL per line. Use this if auto-discovery doesn't find the right pages.
+                    </p>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           )}
@@ -316,18 +409,62 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
                   </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-64 rounded border p-2">
-                  {discoveredUrls.map((url, i) => (
-                    <div key={i} className="flex items-center space-x-2 py-1">
-                      <Checkbox 
-                        checked={selectedUrls.includes(url)}
-                        onCheckedChange={() => toggleUrl(url)}
-                      />
-                      <span className="text-sm truncate flex-1">{url}</span>
-                    </div>
-                  ))}
-                </ScrollArea>
+              <CardContent className="space-y-4">
+                {/* Show suggestions if no programs found */}
+                {discoveredUrls.length === 0 && suggestions.length > 0 && (
+                  <Alert>
+                    <Lightbulb className="h-4 w-4" />
+                    <AlertDescription className="space-y-2">
+                      <p>No program pages found. Try one of these URLs instead:</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {suggestions.map((suggestion, i) => (
+                          <Button 
+                            key={i} 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setWebsiteUrl(suggestion);
+                              setStep('input');
+                            }}
+                          >
+                            {new URL(suggestion).pathname || suggestion}
+                          </Button>
+                        ))}
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Show all found URLs for debugging */}
+                {discoveredUrls.length === 0 && allFoundUrls.length > 0 && (
+                  <details className="text-sm">
+                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                      View {allFoundUrls.length} URLs found (not matching program patterns)
+                    </summary>
+                    <ScrollArea className="h-40 mt-2 rounded border p-2">
+                      {allFoundUrls.map((url, i) => (
+                        <div key={i} className="text-xs text-muted-foreground truncate py-0.5">
+                          {url}
+                        </div>
+                      ))}
+                    </ScrollArea>
+                  </details>
+                )}
+
+                {discoveredUrls.length > 0 && (
+                  <ScrollArea className="h-64 rounded border p-2">
+                    {discoveredUrls.map((url, i) => (
+                      <div key={i} className="flex items-center space-x-2 py-1">
+                        <Checkbox 
+                          checked={selectedUrls.includes(url)}
+                          onCheckedChange={() => toggleUrl(url)}
+                        />
+                        <span className="text-sm truncate flex-1">{url}</span>
+                      </div>
+                    ))}
+                  </ScrollArea>
+                )}
+
                 <div className="flex justify-between mt-4">
                   <Button variant="outline" onClick={() => setStep('input')}>Back</Button>
                   <Button onClick={handleScrape} disabled={selectedUrls.length === 0}>
