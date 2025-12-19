@@ -2182,7 +2182,11 @@ export type Database = {
           english_language_requirements: Json | null
           field_of_study: string
           field_of_study_id: string | null
+          german_language_requirements: Json | null
           id: string
+          instruction_mode:
+            | Database["public"]["Enums"]["instruction_language_mode"]
+            | null
           language_of_instruction: string[] | null
           language_requirements: string[] | null
           metadata: Json | null
@@ -2199,14 +2203,22 @@ export type Database = {
           status: string | null
           summer_application_open_date: string | null
           summer_deadline: string | null
+          summer_deadline_day: number | null
+          summer_deadline_month: number | null
           summer_intake: boolean | null
+          summer_open_day: number | null
+          summer_open_month: number | null
           tuition_amount: number | null
           tuition_fee_structure: string | null
           uni_assist_required: boolean | null
           university_id: string
           winter_application_open_date: string | null
           winter_deadline: string | null
+          winter_deadline_day: number | null
+          winter_deadline_month: number | null
           winter_intake: boolean | null
+          winter_open_day: number | null
+          winter_open_month: number | null
         }
         Insert: {
           application_deadline?: string | null
@@ -2222,7 +2234,11 @@ export type Database = {
           english_language_requirements?: Json | null
           field_of_study: string
           field_of_study_id?: string | null
+          german_language_requirements?: Json | null
           id?: string
+          instruction_mode?:
+            | Database["public"]["Enums"]["instruction_language_mode"]
+            | null
           language_of_instruction?: string[] | null
           language_requirements?: string[] | null
           metadata?: Json | null
@@ -2239,14 +2255,22 @@ export type Database = {
           status?: string | null
           summer_application_open_date?: string | null
           summer_deadline?: string | null
+          summer_deadline_day?: number | null
+          summer_deadline_month?: number | null
           summer_intake?: boolean | null
+          summer_open_day?: number | null
+          summer_open_month?: number | null
           tuition_amount?: number | null
           tuition_fee_structure?: string | null
           uni_assist_required?: boolean | null
           university_id: string
           winter_application_open_date?: string | null
           winter_deadline?: string | null
+          winter_deadline_day?: number | null
+          winter_deadline_month?: number | null
           winter_intake?: boolean | null
+          winter_open_day?: number | null
+          winter_open_month?: number | null
         }
         Update: {
           application_deadline?: string | null
@@ -2262,7 +2286,11 @@ export type Database = {
           english_language_requirements?: Json | null
           field_of_study?: string
           field_of_study_id?: string | null
+          german_language_requirements?: Json | null
           id?: string
+          instruction_mode?:
+            | Database["public"]["Enums"]["instruction_language_mode"]
+            | null
           language_of_instruction?: string[] | null
           language_requirements?: string[] | null
           metadata?: Json | null
@@ -2279,14 +2307,22 @@ export type Database = {
           status?: string | null
           summer_application_open_date?: string | null
           summer_deadline?: string | null
+          summer_deadline_day?: number | null
+          summer_deadline_month?: number | null
           summer_intake?: boolean | null
+          summer_open_day?: number | null
+          summer_open_month?: number | null
           tuition_amount?: number | null
           tuition_fee_structure?: string | null
           uni_assist_required?: boolean | null
           university_id?: string
           winter_application_open_date?: string | null
           winter_deadline?: string | null
+          winter_deadline_day?: number | null
+          winter_deadline_month?: number | null
           winter_intake?: boolean | null
+          winter_open_day?: number | null
+          winter_open_month?: number | null
         }
         Relationships: [
           {
@@ -3766,6 +3802,12 @@ export type Database = {
         | "studienkolleg_required"
         | "not_eligible"
         | "conditional"
+      instruction_language_mode:
+        | "fully_english"
+        | "fully_german"
+        | "mostly_english"
+        | "hybrid"
+        | "either_or"
       intake_season: "winter" | "summer" | "spring" | "fall"
       package_type: "basic" | "standard" | "premium" | "vip"
     }
@@ -3931,6 +3973,13 @@ export const Constants = {
         "studienkolleg_required",
         "not_eligible",
         "conditional",
+      ],
+      instruction_language_mode: [
+        "fully_english",
+        "fully_german",
+        "mostly_english",
+        "hybrid",
+        "either_or",
       ],
       intake_season: ["winter", "summer", "spring", "fall"],
       package_type: ["basic", "standard", "premium", "vip"],

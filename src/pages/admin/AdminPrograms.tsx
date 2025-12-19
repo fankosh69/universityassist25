@@ -19,15 +19,12 @@ import { formatTuitionDisplay } from "@/lib/tuition-calculator";
 import { ProgramScraper } from "@/components/admin/ProgramScraper";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { HierarchicalFieldMultiSelector } from "@/components/admin/HierarchicalFieldMultiSelector";
-import { EnglishLanguageRequirementsForm } from "@/components/admin/EnglishLanguageRequirementsForm";
-import type { EnglishLanguageRequirements } from "@/types/language-requirements";
+import { ProgramLanguageConfig } from "@/components/admin/ProgramLanguageConfig";
+import { MonthDaySelector } from "@/components/admin/MonthDaySelector";
+import type { EnglishLanguageRequirements, GermanLanguageRequirements, InstructionLanguageMode } from "@/types/language-requirements";
 
 interface ProgramField {
   field_of_study_id: string;
@@ -123,12 +120,20 @@ export const AdminPrograms = () => {
     program_url: string;
     winter_intake: boolean;
     summer_intake: boolean;
-    winter_deadline: Date | null;
-    summer_deadline: Date | null;
-    winter_application_open_date: Date | null;
-    summer_application_open_date: Date | null;
+    // Year-agnostic month/day fields
+    winter_deadline_month: number | null;
+    winter_deadline_day: number | null;
+    summer_deadline_month: number | null;
+    summer_deadline_day: number | null;
+    winter_open_month: number | null;
+    winter_open_day: number | null;
+    summer_open_month: number | null;
+    summer_open_day: number | null;
     recognition_weeks_before: number;
+    // Enhanced language config
+    instruction_mode: InstructionLanguageMode;
     english_language_requirements: EnglishLanguageRequirements | null;
+    german_language_requirements: GermanLanguageRequirements | null;
     campus_ids: string[];
   }>({
     name: "",
@@ -153,12 +158,18 @@ export const AdminPrograms = () => {
     program_url: "",
     winter_intake: true,
     summer_intake: false,
-    winter_deadline: null,
-    summer_deadline: null,
-    winter_application_open_date: null,
-    summer_application_open_date: null,
+    winter_deadline_month: null,
+    winter_deadline_day: null,
+    summer_deadline_month: null,
+    summer_deadline_day: null,
+    winter_open_month: null,
+    winter_open_day: null,
+    summer_open_month: null,
+    summer_open_day: null,
     recognition_weeks_before: 10,
+    instruction_mode: 'fully_german',
     english_language_requirements: null,
+    german_language_requirements: null,
     campus_ids: []
   });
   useEffect(() => {
@@ -274,7 +285,7 @@ export const AdminPrograms = () => {
         counter++;
       }
       
-      // Convert dates to strings for database
+      // Build submit data with new month/day fields
       const submitData = {
         ...formData,
         slug,
@@ -282,38 +293,45 @@ export const AdminPrograms = () => {
         tuition_amount: formData.tuition_amount,
         tuition_fee_structure: formData.tuition_fee_structure,
         semester_fees: formData.tuition_amount, // Keep for backward compatibility
-        winter_deadline: formData.winter_deadline ? formData.winter_deadline.toISOString().split('T')[0] : null,
-        summer_deadline: formData.summer_deadline ? formData.summer_deadline.toISOString().split('T')[0] : null,
-        winter_application_open_date: formData.winter_application_open_date ? formData.winter_application_open_date.toISOString().split('T')[0] : null,
-        summer_application_open_date: formData.summer_application_open_date ? formData.summer_application_open_date.toISOString().split('T')[0] : null,
-        english_language_requirements: formData.english_language_requirements as any
+        // New month/day fields
+        winter_deadline_month: formData.winter_deadline_month,
+        winter_deadline_day: formData.winter_deadline_day,
+        summer_deadline_month: formData.summer_deadline_month,
+        summer_deadline_day: formData.summer_deadline_day,
+        winter_open_month: formData.winter_open_month,
+        winter_open_day: formData.winter_open_day,
+        summer_open_month: formData.summer_open_month,
+        summer_open_day: formData.summer_open_day,
+        // Language config
+        instruction_mode: formData.instruction_mode,
+        english_language_requirements: formData.english_language_requirements as any,
+        german_language_requirements: formData.german_language_requirements as any
       };
 
       // Remove fields that belong to the junction table, not the programs table
-      delete submitData.field_of_study_ids;
-      delete submitData.primary_field_id;
-      delete submitData.campus_ids;
+      delete (submitData as any).field_of_study_ids;
+      delete (submitData as any).primary_field_id;
+      delete (submitData as any).campus_ids;
 
       let programId: string;
 
       if (editingProgram) {
         const { error } = await supabase
           .from('programs')
-          .update(submitData)
+          .update(submitData as any)
           .eq('id', editingProgram.id);
+        if (error) throw error;
         if (error) throw error;
         programId = editingProgram.id;
       } else {
         const { data, error } = await supabase
           .from('programs')
-          .insert(submitData)
+          .insert(submitData as any)
           .select()
           .single();
         if (error) throw error;
         programId = data.id;
       }
-
-      // Delete existing field associations
       await supabase
         .from('program_fields_of_study')
         .delete()
@@ -436,12 +454,20 @@ export const AdminPrograms = () => {
       program_url: program.program_url || '',
       winter_intake: program.winter_intake,
       summer_intake: program.summer_intake,
-      winter_deadline: program.winter_deadline ? new Date(program.winter_deadline) : null,
-      summer_deadline: program.summer_deadline ? new Date(program.summer_deadline) : null,
-      winter_application_open_date: program.winter_application_open_date ? new Date(program.winter_application_open_date) : null,
-      summer_application_open_date: program.summer_application_open_date ? new Date(program.summer_application_open_date) : null,
+      // New month/day fields
+      winter_deadline_month: (program as any).winter_deadline_month || null,
+      winter_deadline_day: (program as any).winter_deadline_day || null,
+      summer_deadline_month: (program as any).summer_deadline_month || null,
+      summer_deadline_day: (program as any).summer_deadline_day || null,
+      winter_open_month: (program as any).winter_open_month || null,
+      winter_open_day: (program as any).winter_open_day || null,
+      summer_open_month: (program as any).summer_open_month || null,
+      summer_open_day: (program as any).summer_open_day || null,
       recognition_weeks_before: program.recognition_weeks_before || 10,
+      // Enhanced language config
+      instruction_mode: (program as any).instruction_mode || 'fully_german',
       english_language_requirements: (program as any).english_language_requirements || null,
+      german_language_requirements: (program as any).german_language_requirements || null,
       campus_ids: campusIds
     });
     setIsDialogOpen(true);
@@ -471,12 +497,18 @@ export const AdminPrograms = () => {
       program_url: "",
       winter_intake: true,
       summer_intake: false,
-      winter_deadline: null,
-      summer_deadline: null,
-      winter_application_open_date: null,
-      summer_application_open_date: null,
+      winter_deadline_month: null,
+      winter_deadline_day: null,
+      summer_deadline_month: null,
+      summer_deadline_day: null,
+      winter_open_month: null,
+      winter_open_day: null,
+      summer_open_month: null,
+      summer_open_day: null,
       recognition_weeks_before: 10,
+      instruction_mode: 'fully_german',
       english_language_requirements: null,
+      german_language_requirements: null,
       campus_ids: []
     });
     setIsDialogOpen(false);
@@ -1534,139 +1566,78 @@ export const AdminPrograms = () => {
 
             <div className="grid grid-cols-1 gap-6">
               {formData.winter_intake && (
-                <div className="space-y-4">
+                <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
                   <h4 className="font-medium text-lg">Winter Intake Period</h4>
+                  <p className="text-sm text-muted-foreground">Set dates as month and day - they will automatically apply to each year.</p>
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Winter Application Open Date</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.winter_application_open_date && "text-muted-foreground")}>
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {formData.winter_application_open_date ? format(formData.winter_application_open_date, "PPP") : "Select date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={formData.winter_application_open_date} onSelect={date => setFormData({
-                            ...formData,
-                            winter_application_open_date: date
-                          })} className="p-3 pointer-events-auto" />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div>
-                      <Label>Winter Application Deadline</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.winter_deadline && "text-muted-foreground")}>
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {formData.winter_deadline ? format(formData.winter_deadline, "PPP") : "Select date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={formData.winter_deadline} onSelect={date => setFormData({
-                        ...formData,
-                        winter_deadline: date || null
-                      })} initialFocus className="p-3 pointer-events-auto" />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                    <MonthDaySelector
+                      label="Application Opens"
+                      month={formData.winter_open_month}
+                      day={formData.winter_open_day}
+                      onMonthChange={(m) => setFormData({ ...formData, winter_open_month: m })}
+                      onDayChange={(d) => setFormData({ ...formData, winter_open_day: d })}
+                      intake="winter"
+                    />
+                    <MonthDaySelector
+                      label="Application Deadline"
+                      month={formData.winter_deadline_month}
+                      day={formData.winter_deadline_day}
+                      onMonthChange={(m) => setFormData({ ...formData, winter_deadline_month: m })}
+                      onDayChange={(d) => setFormData({ ...formData, winter_deadline_day: d })}
+                      intake="winter"
+                    />
                   </div>
                 </div>
               )}
               
               {formData.summer_intake && (
-                <div className="space-y-4">
+                <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
                   <h4 className="font-medium text-lg">Summer Intake Period</h4>
+                  <p className="text-sm text-muted-foreground">Set dates as month and day - they will automatically apply to each year.</p>
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Summer Application Open Date</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.summer_application_open_date && "text-muted-foreground")}>
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {formData.summer_application_open_date ? format(formData.summer_application_open_date, "PPP") : "Select date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={formData.summer_application_open_date} onSelect={date => setFormData({
-                            ...formData,
-                            summer_application_open_date: date
-                          })} className="p-3 pointer-events-auto" />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div>
-                      <Label>Summer Application Deadline</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !formData.summer_deadline && "text-muted-foreground")}>
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {formData.summer_deadline ? format(formData.summer_deadline, "PPP") : "Select date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={formData.summer_deadline} onSelect={date => setFormData({
-                            ...formData,
-                            summer_deadline: date || null
-                          })} initialFocus className="p-3 pointer-events-auto" />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                    <MonthDaySelector
+                      label="Application Opens"
+                      month={formData.summer_open_month}
+                      day={formData.summer_open_day}
+                      onMonthChange={(m) => setFormData({ ...formData, summer_open_month: m })}
+                      onDayChange={(d) => setFormData({ ...formData, summer_open_day: d })}
+                      intake="summer"
+                    />
+                    <MonthDaySelector
+                      label="Application Deadline"
+                      month={formData.summer_deadline_month}
+                      day={formData.summer_deadline_day}
+                      onMonthChange={(m) => setFormData({ ...formData, summer_deadline_month: m })}
+                      onDayChange={(d) => setFormData({ ...formData, summer_deadline_day: d })}
+                      intake="summer"
+                    />
                   </div>
                 </div>
               )}
             </div>
 
-            <div>
-              <Label>Language of Instruction</Label>
-              <div className="flex gap-4 mt-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="lang_de" checked={formData.language_of_instruction.includes('de')} onCheckedChange={checked => {
-                  if (checked) {
-                    setFormData({
-                      ...formData,
-                      language_of_instruction: [...formData.language_of_instruction.filter(l => l !== 'de'), 'de']
-                    });
-                  } else {
-                    setFormData({
-                      ...formData,
-                      language_of_instruction: formData.language_of_instruction.filter(l => l !== 'de')
-                    });
-                  }
-                }} />
-                  <Label htmlFor="lang_de" className="flex items-center gap-2">
-                    🇩🇪 German
-                  </Label>
-                </div>
+            {/* Language of Instruction Configuration */}
+            <ProgramLanguageConfig
+              instructionMode={formData.instruction_mode}
+              englishRequirements={formData.english_language_requirements}
+              germanRequirements={formData.german_language_requirements}
+              onInstructionModeChange={(mode) => {
+                // Update language_of_instruction array based on mode for backward compatibility
+                let langs: string[] = [];
+                if (mode === 'fully_english') langs = ['en'];
+                else if (mode === 'fully_german') langs = ['de'];
+                else if (mode === 'mostly_english') langs = ['en'];
+                else if (mode === 'hybrid' || mode === 'either_or') langs = ['en', 'de'];
                 
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="lang_en" checked={formData.language_of_instruction.includes('en')} onCheckedChange={checked => {
-                  if (checked) {
-                    setFormData({
-                      ...formData,
-                      language_of_instruction: [...formData.language_of_instruction.filter(l => l !== 'en'), 'en']
-                    });
-                  } else {
-                    setFormData({
-                      ...formData,
-                      language_of_instruction: formData.language_of_instruction.filter(l => l !== 'en')
-                    });
-                  }
-                }} />
-                  <Label htmlFor="lang_en" className="flex items-center gap-2">
-                    🇬🇧 English
-                  </Label>
-                </div>
-            </div>
-          </div>
-
-          {/* English Language Requirements */}
-          <EnglishLanguageRequirementsForm
-            value={formData.english_language_requirements}
-            onChange={(value) => setFormData({ ...formData, english_language_requirements: value })}
-            isEnglishTaught={formData.language_of_instruction.includes('en')}
-          />
+                setFormData({ 
+                  ...formData, 
+                  instruction_mode: mode,
+                  language_of_instruction: langs
+                });
+              }}
+              onEnglishRequirementsChange={(value) => setFormData({ ...formData, english_language_requirements: value })}
+              onGermanRequirementsChange={(value) => setFormData({ ...formData, german_language_requirements: value })}
+            />
 
           <div className="grid grid-cols-1 gap-4">
               <div className="grid grid-cols-3 gap-4">
