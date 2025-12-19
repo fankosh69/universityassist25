@@ -193,13 +193,73 @@ function filterProgramUrls(urls: string[]): { filtered: string[], all: string[] 
   return { filtered, all };
 }
 
-// Try to find the program listing page from a base URL
+// Extract language prefix from URL path (e.g., /en/, /de/, /english/)
+function extractLanguagePrefix(url: string): string | null {
+  try {
+    const urlObj = new URL(url);
+    const pathMatch = urlObj.pathname.match(/^\/(en|de|english|german|deutsch)\//i);
+    if (pathMatch) {
+      return `/${pathMatch[1].toLowerCase()}/`;
+    }
+  } catch {
+    // Invalid URL
+  }
+  return null;
+}
+
+// Generate language-aware program listing paths
+function getLanguageAwarePaths(langPrefix: string | null): string[] {
+  const basePaths = [
+    'studienangebot',
+    'studium/studienangebot',
+    'studiengaenge',
+    'studies',
+    'studies/degree-programs',
+    'study/degree-programmes',
+    'study/programs',
+    'academics/programs',
+    'degree-programs',
+    'programs',
+    'courses',
+  ];
+
+  const paths: string[] = [];
+  
+  // If we have a language prefix, prioritize those paths first
+  if (langPrefix) {
+    for (const basePath of basePaths) {
+      paths.push(`${langPrefix}${basePath}`);
+    }
+  }
+  
+  // Then add paths without language prefix as fallback
+  for (const basePath of basePaths) {
+    paths.push(`/${basePath}`);
+  }
+  
+  // Also add the original PROGRAM_LISTING_PATHS that weren't covered
+  for (const path of PROGRAM_LISTING_PATHS) {
+    if (!paths.includes(path)) {
+      paths.push(path);
+    }
+  }
+  
+  return paths;
+}
+
+// Try to find the program listing page from a base URL, preserving language context
 async function findProgramListingPage(baseUrl: string): Promise<string | null> {
   try {
     const urlObj = new URL(baseUrl);
     const origin = urlObj.origin;
-
-    for (const path of PROGRAM_LISTING_PATHS) {
+    const langPrefix = extractLanguagePrefix(baseUrl);
+    
+    console.log(`Finding program listing page from: ${baseUrl}`);
+    console.log(`Detected language prefix: ${langPrefix || 'none'}`);
+    
+    const pathsToTry = getLanguageAwarePaths(langPrefix);
+    
+    for (const path of pathsToTry) {
       const testUrl = `${origin}${path}`;
       try {
         const response = await fetch(testUrl, { method: 'HEAD', redirect: 'follow' });
@@ -326,14 +386,24 @@ Deno.serve(async (req) => {
         try {
           const urlObj = new URL(url);
           const origin = urlObj.origin;
+          const langPrefix = extractLanguagePrefix(url);
           
-          // Suggest common program listing URLs
-          suggestions.push(
-            `${origin}/studienangebot`,
-            `${origin}/en/studium/studienangebot`,
-            `${origin}/en/studies/degree-programs`,
-            `${origin}/study/programmes`
-          );
+          // Suggest language-aware program listing URLs
+          if (langPrefix) {
+            suggestions.push(
+              `${origin}${langPrefix}studienangebot`,
+              `${origin}${langPrefix}studium/studienangebot`,
+              `${origin}${langPrefix}studies/degree-programs`,
+              `${origin}${langPrefix}study/programmes`
+            );
+          } else {
+            suggestions.push(
+              `${origin}/en/studienangebot`,
+              `${origin}/en/studium/studienangebot`,
+              `${origin}/studienangebot`,
+              `${origin}/study/programmes`
+            );
+          }
         } catch {
           // Invalid URL, skip suggestions
         }
