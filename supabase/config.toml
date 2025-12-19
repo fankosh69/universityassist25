@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.firecrawl-crawl]
 verify_jwt = false
+
+[functions.scrape-programs-firecrawl]
+verify_jwt = false

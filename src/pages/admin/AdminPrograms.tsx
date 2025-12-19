@@ -16,6 +16,7 @@ import { LanguageFlags } from "@/components/LanguageFlags";
 import { getDeadlineStatus, getApplicationMethodInfo, getStatusColor } from "@/lib/deadline-utils";
 import { slugify } from "@/lib/slug";
 import { formatTuitionDisplay } from "@/lib/tuition-calculator";
+import { ProgramScraper } from "@/components/admin/ProgramScraper";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
@@ -1172,18 +1173,30 @@ export const AdminPrograms = () => {
       </div>
 
       <div className="space-y-6">
-        {/* Comprehensive Programs Upload */}
+        {/* Import Tools */}
         <Card>
           <CardHeader>
-            <CardTitle>Import Comprehensive Program Database</CardTitle>
+            <CardTitle>Import Programs</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Import all English-taught programs from major German universities
+              Import programs from various sources
             </p>
           </CardHeader>
-          <CardContent>
-            <Button onClick={importComprehensivePrograms} className="w-full">
-              Import All Programs to Database
+          <CardContent className="flex flex-wrap gap-4">
+            <Button onClick={importComprehensivePrograms}>
+              Import Comprehensive Database
             </Button>
+            {filterUniversity !== 'all' && (
+              <ProgramScraper 
+                universityId={filterUniversity}
+                universityName={universities.find(u => u.id === filterUniversity)?.name || 'Selected University'}
+                onProgramsImported={fetchPrograms}
+              />
+            )}
+            {filterUniversity === 'all' && (
+              <p className="text-sm text-muted-foreground self-center">
+                Select a university to enable web scraping
+              </p>
+            )}
           </CardContent>
         </Card>
 
