@@ -58,6 +58,24 @@ interface ScrapedProgram {
   confidence?: number;
 }
 
+// Common paths where universities list their programs
+const PROGRAM_LISTING_PATHS = [
+  '/studienangebot',
+  '/studiengaenge',
+  '/studium/studienangebot',
+  '/en/studium/studienangebot',
+  '/en/studies',
+  '/en/degree-programs',
+  '/en/programs',
+  '/en/courses',
+  '/study/degree-programmes',
+  '/study/programs',
+  '/academics/programs',
+  '/academics/degrees',
+  '/studying/degree-programmes',
+  '/education/programs',
+];
+
 async function scrapeWithFirecrawl(url: string, apiKey: string): Promise<string | null> {
   try {
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
@@ -97,8 +115,8 @@ async function mapWebsiteUrls(url: string, apiKey: string, searchTerm?: string):
       },
       body: JSON.stringify({
         url,
-        search: searchTerm || 'studiengang program bachelor master degree',
-        limit: 100,
+        search: searchTerm || 'studiengang studienangebot program bachelor master degree studiengaenge',
+        limit: 200,
         includeSubdomains: true,
       }),
     });
@@ -116,38 +134,87 @@ async function mapWebsiteUrls(url: string, apiKey: string, searchTerm?: string):
   }
 }
 
-function filterProgramUrls(urls: string[]): string[] {
+// Filter URLs to find likely program pages
+function filterProgramUrls(urls: string[]): { filtered: string[], all: string[] } {
   const programPatterns = [
     /studiengang/i,
+    /studieng/i,
+    /studienangebot/i,
     /program/i,
+    /course/i,
     /bachelor/i,
     /master/i,
     /degree/i,
-    /courses?\//i,
-    /study/i,
+    /study.*program/i,
+    /degree.*program/i,
     /studienfach/i,
     /fachbereich.*studium/i,
+    /\/ba\//i,
+    /\/ma\//i,
+    /\/bsc\//i,
+    /\/msc\//i,
   ];
 
   const excludePatterns = [
-    /news/i,
-    /event/i,
-    /blog/i,
-    /contact/i,
-    /impressum/i,
-    /datenschutz/i,
-    /privacy/i,
     /login/i,
+    /contact/i,
+    /imprint/i,
+    /impressum/i,
+    /privacy/i,
+    /datenschutz/i,
+    /news/i,
+    /events/i,
+    /blog/i,
+    /press/i,
+    /download/i,
+    /\.pdf$/i,
+    /\.jpg$/i,
+    /\.png$/i,
+    /\.gif$/i,
+    /\?/,  // Exclude URLs with query params
+    /#/,   // Exclude anchor links
+    /mailto:/i,
+    /tel:/i,
+    /javascript:/i,
     /search/i,
     /sitemap/i,
-    /\.(pdf|doc|docx|jpg|png|gif)$/i,
   ];
 
-  return urls.filter(url => {
-    const matchesProgram = programPatterns.some(pattern => pattern.test(url));
+  const all = urls.filter(url => {
     const isExcluded = excludePatterns.some(pattern => pattern.test(url));
-    return matchesProgram && !isExcluded;
+    return !isExcluded;
   });
+
+  const filtered = all.filter(url => {
+    const matchesProgram = programPatterns.some(pattern => pattern.test(url));
+    return matchesProgram;
+  });
+
+  return { filtered, all };
+}
+
+// Try to find the program listing page from a base URL
+async function findProgramListingPage(baseUrl: string): Promise<string | null> {
+  try {
+    const urlObj = new URL(baseUrl);
+    const origin = urlObj.origin;
+
+    for (const path of PROGRAM_LISTING_PATHS) {
+      const testUrl = `${origin}${path}`;
+      try {
+        const response = await fetch(testUrl, { method: 'HEAD', redirect: 'follow' });
+        if (response.ok) {
+          console.log(`Found program listing page: ${testUrl}`);
+          return testUrl;
+        }
+      } catch {
+        // URL doesn't exist, continue
+      }
+    }
+  } catch (error) {
+    console.error('Error finding program listing page:', error);
+  }
+  return null;
 }
 
 async function extractProgramData(markdown: string, url: string, lovableApiKey: string): Promise<ScrapedProgram | null> {
@@ -204,7 +271,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { url, mode = 'discover', programUrls = [] } = await req.json();
+    const { url, mode = 'discover', programUrls = [], deepDiscovery = true } = await req.json();
 
     if (!url && programUrls.length === 0) {
       return new Response(
@@ -234,17 +301,53 @@ Deno.serve(async (req) => {
     if (mode === 'discover') {
       console.log('Discovering program URLs from:', url);
       
-      const allUrls = await mapWebsiteUrls(url, firecrawlApiKey);
-      const programUrls = filterProgramUrls(allUrls);
+      let discoveryUrl = url;
+      let suggestedUrl: string | null = null;
+
+      // If deep discovery is enabled, try to find the program listing page first
+      if (deepDiscovery) {
+        console.log('Deep discovery enabled, searching for program listing page...');
+        const listingPage = await findProgramListingPage(url);
+        if (listingPage) {
+          discoveryUrl = listingPage;
+          suggestedUrl = listingPage;
+          console.log(`Using discovered listing page: ${discoveryUrl}`);
+        }
+      }
+
+      const allUrls = await mapWebsiteUrls(discoveryUrl, firecrawlApiKey);
+      const { filtered: programUrlsFiltered, all: cleanUrls } = filterProgramUrls(allUrls);
       
-      console.log(`Found ${allUrls.length} total URLs, ${programUrls.length} potential program pages`);
+      console.log(`Found ${allUrls.length} total URLs, ${programUrlsFiltered.length} potential program pages`);
+
+      // Generate suggestions if no programs found
+      const suggestions: string[] = [];
+      if (programUrlsFiltered.length === 0) {
+        try {
+          const urlObj = new URL(url);
+          const origin = urlObj.origin;
+          
+          // Suggest common program listing URLs
+          suggestions.push(
+            `${origin}/studienangebot`,
+            `${origin}/en/studium/studienangebot`,
+            `${origin}/en/studies/degree-programs`,
+            `${origin}/study/programmes`
+          );
+        } catch {
+          // Invalid URL, skip suggestions
+        }
+      }
       
       return new Response(
         JSON.stringify({ 
           success: true, 
           data: {
             totalUrls: allUrls.length,
-            programUrls: programUrls.slice(0, 50), // Limit to 50 for performance
+            programUrls: programUrlsFiltered.slice(0, 50), // Limit to 50 for performance
+            allUrls: cleanUrls.slice(0, 50), // Return first 50 clean URLs for debugging
+            suggestedUrl,
+            suggestions: suggestions.slice(0, 4),
           }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
