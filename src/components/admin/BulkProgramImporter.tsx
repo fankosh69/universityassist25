@@ -719,7 +719,8 @@ https://www.kit.edu/studium/physik-bachelor`}
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-2">
+                  <CardContent className="pt-2">
+                    <div className="max-h-[300px] overflow-auto pr-2 space-y-2">
                     {group.programs.map((program) => (
                       <div
                         key={program.program_url}
@@ -791,6 +792,7 @@ https://www.kit.edu/studium/physik-bachelor`}
                         </div>
                       </div>
                     ))}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
