@@ -23,6 +23,8 @@ import { EnglishLanguageRequirementsCard } from '@/components/program/EnglishLan
 import type { EnglishLanguageRequirements } from '@/types/language-requirements';
 import { PageHeader } from '@/components/PageHeader';
 import { BackToTop } from '@/components/BackToTop';
+import { ApplicantRequirementsCard } from '@/components/program/ApplicantRequirementsCard';
+import { useApplicantStatus } from '@/hooks/useApplicantStatus';
 
 export default function ProgramPage() {
   const { uni, program } = useParams();
@@ -34,6 +36,9 @@ export default function ProgramPage() {
   const [studentProfile, setStudentProfile] = useState<StudentProfile | undefined>(undefined);
   const [consultationModalOpen, setConsultationModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  const { isApplicant, isLoading: applicantLoading } = useApplicantStatus(userId);
 
   useEffect(() => {
     async function fetchData() {
@@ -100,6 +105,7 @@ export default function ProgramPage() {
 
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        setUserId(user.id);
         const { data: academics } = await supabase
           .from('student_academics')
           .select('*')
@@ -272,6 +278,29 @@ export default function ProgramPage() {
               />
             )}
 
+            {/* Applicant-Only Requirements Card */}
+            <ApplicantRequirementsCard
+              requirements={{
+                gpa_minimum: programData.gpa_minimum,
+                gpa_competitive: programData.gpa_competitive,
+                gpa_notes: programData.gpa_notes,
+                gmat_required: programData.gmat_required,
+                gmat_minimum: programData.gmat_minimum,
+                gre_required: programData.gre_required,
+                gre_minimum_verbal: programData.gre_minimum_verbal,
+                gre_minimum_quant: programData.gre_minimum_quant,
+                gre_minimum_total: programData.gre_minimum_total,
+                accepted_degrees: programData.accepted_degrees || [],
+                subject_requirements: programData.subject_requirements,
+                admission_regulations_url: programData.admission_regulations_url,
+                program_flyer_url: programData.program_flyer_url,
+                module_description_url: programData.module_description_url
+              }}
+              isApplicant={isApplicant}
+              isLoading={applicantLoading}
+              studentGpa={studentProfile?.gpa_de}
+              studentEcts={studentProfile?.ects_total}
+            />
             {/* Application Timeline */}
             <ProgramApplicationTimeline
               winterIntake={programData.winter_intake ? {
