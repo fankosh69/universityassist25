@@ -532,7 +532,7 @@ https://www.kit.edu/studium/physik-bachelor`}
                 </TabsList>
 
                 <TabsContent value="matched" className="mt-4">
-                  <ScrollArea className="max-h-[300px]">
+                  <div className="max-h-[300px] overflow-auto">
                     <div className="space-y-2 pr-4">
                       {matches.filter(m => m.matched).map((match) => (
                         <div
@@ -572,11 +572,11 @@ https://www.kit.edu/studium/physik-bachelor`}
                         </div>
                       ))}
                     </div>
-                  </ScrollArea>
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="unmatched" className="mt-4">
-                  <ScrollArea className="max-h-[300px]">
+                  <div className="max-h-[300px] overflow-auto">
                     <div className="space-y-2 pr-4">
                       {matches.filter(m => !m.matched).map((match) => (
                         <div
@@ -597,7 +597,7 @@ https://www.kit.edu/studium/physik-bachelor`}
                         </div>
                       ))}
                     </div>
-                  </ScrollArea>
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>
