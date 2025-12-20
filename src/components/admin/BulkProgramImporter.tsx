@@ -531,65 +531,73 @@ https://www.kit.edu/studium/physik-bachelor`}
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="matched" className="space-y-2 mt-4">
-                  {matches.filter(m => m.matched).map((match) => (
-                    <div
-                      key={match.url}
-                      className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50"
-                    >
-                      <Checkbox
-                        checked={selectedUrls.has(match.url)}
-                        onCheckedChange={(checked) => {
-                          const newSet = new Set(selectedUrls);
-                          if (checked) {
-                            newSet.add(match.url);
-                          } else {
-                            newSet.delete(match.url);
-                          }
-                          setSelectedUrls(newSet);
-                        }}
-                      />
-                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{match.university_name}</span>
-                          {match.city_name && (
-                            <span className="text-sm text-muted-foreground">({match.city_name})</span>
-                          )}
-                        </div>
-                        <a 
-                          href={match.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-xs text-muted-foreground hover:text-primary truncate block"
+                <TabsContent value="matched" className="mt-4">
+                  <ScrollArea className="max-h-[300px]">
+                    <div className="space-y-2 pr-4">
+                      {matches.filter(m => m.matched).map((match) => (
+                        <div
+                          key={match.url}
+                          className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50"
                         >
-                          {match.url}
-                        </a>
-                      </div>
+                          <Checkbox
+                            checked={selectedUrls.has(match.url)}
+                            onCheckedChange={(checked) => {
+                              const newSet = new Set(selectedUrls);
+                              if (checked) {
+                                newSet.add(match.url);
+                              } else {
+                                newSet.delete(match.url);
+                              }
+                              setSelectedUrls(newSet);
+                            }}
+                          />
+                          <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">{match.university_name}</span>
+                              {match.city_name && (
+                                <span className="text-sm text-muted-foreground">({match.city_name})</span>
+                              )}
+                            </div>
+                            <a 
+                              href={match.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-muted-foreground hover:text-primary truncate block"
+                            >
+                              {match.url}
+                            </a>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </ScrollArea>
                 </TabsContent>
 
-                <TabsContent value="unmatched" className="space-y-2 mt-4">
-                  {matches.filter(m => !m.matched).map((match) => (
-                    <div
-                      key={match.url}
-                      className="flex items-center gap-3 p-3 border rounded-lg opacity-60"
-                    >
-                      <X className="h-4 w-4 text-destructive flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <Globe className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{match.domain}</span>
-                          <Badge variant="outline" className="text-destructive">Not in database</Badge>
+                <TabsContent value="unmatched" className="mt-4">
+                  <ScrollArea className="max-h-[300px]">
+                    <div className="space-y-2 pr-4">
+                      {matches.filter(m => !m.matched).map((match) => (
+                        <div
+                          key={match.url}
+                          className="flex items-center gap-3 p-3 border rounded-lg opacity-60"
+                        >
+                          <X className="h-4 w-4 text-destructive flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <Globe className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">{match.domain}</span>
+                              <Badge variant="outline" className="text-destructive">Not in database</Badge>
+                            </div>
+                            <span className="text-xs text-muted-foreground truncate block">
+                              {match.url}
+                            </span>
+                          </div>
                         </div>
-                        <span className="text-xs text-muted-foreground truncate block">
-                          {match.url}
-                        </span>
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  </ScrollArea>
                 </TabsContent>
               </Tabs>
             </div>
