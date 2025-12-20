@@ -24,6 +24,8 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { HierarchicalFieldMultiSelector } from "@/components/admin/HierarchicalFieldMultiSelector";
 import { ProgramLanguageConfig } from "@/components/admin/ProgramLanguageConfig";
 import { MonthDaySelector } from "@/components/admin/MonthDaySelector";
+import { ProgramRequirementsEditor, getDefaultRequirementsData } from "@/components/admin/ProgramRequirementsEditor";
+import type { SubjectRequirements } from "@/components/admin/SubjectRequirementsBuilder";
 import type { EnglishLanguageRequirements, GermanLanguageRequirements, InstructionLanguageMode } from "@/types/language-requirements";
 
 interface ProgramField {
@@ -135,6 +137,21 @@ export const AdminPrograms = () => {
     english_language_requirements: EnglishLanguageRequirements | null;
     german_language_requirements: GermanLanguageRequirements | null;
     campus_ids: string[];
+    // Academic requirements
+    gpa_minimum: number | null;
+    gpa_competitive: number | null;
+    gpa_notes: string;
+    gmat_required: boolean;
+    gmat_minimum: number | null;
+    gre_required: boolean;
+    gre_minimum_verbal: number | null;
+    gre_minimum_quant: number | null;
+    gre_minimum_total: number | null;
+    accepted_degrees: string[];
+    subject_requirements: SubjectRequirements;
+    admission_regulations_url: string | null;
+    program_flyer_url: string | null;
+    module_description_url: string | null;
   }>({
     name: "",
     description: "",
@@ -170,7 +187,9 @@ export const AdminPrograms = () => {
     instruction_mode: 'fully_german',
     english_language_requirements: null,
     german_language_requirements: null,
-    campus_ids: []
+    campus_ids: [],
+    // Academic requirements defaults
+    ...getDefaultRequirementsData()
   });
   useEffect(() => {
     fetchPrograms();
@@ -305,7 +324,22 @@ export const AdminPrograms = () => {
         // Language config
         instruction_mode: formData.instruction_mode,
         english_language_requirements: formData.english_language_requirements as any,
-        german_language_requirements: formData.german_language_requirements as any
+        german_language_requirements: formData.german_language_requirements as any,
+        // Academic requirements
+        gpa_minimum: formData.gpa_minimum,
+        gpa_competitive: formData.gpa_competitive,
+        gpa_notes: formData.gpa_notes || null,
+        gmat_required: formData.gmat_required,
+        gmat_minimum: formData.gmat_minimum,
+        gre_required: formData.gre_required,
+        gre_minimum_verbal: formData.gre_minimum_verbal,
+        gre_minimum_quant: formData.gre_minimum_quant,
+        gre_minimum_total: formData.gre_minimum_total,
+        accepted_degrees: formData.accepted_degrees,
+        subject_requirements: formData.subject_requirements as any,
+        admission_regulations_url: formData.admission_regulations_url,
+        program_flyer_url: formData.program_flyer_url,
+        module_description_url: formData.module_description_url
       };
 
       // Remove fields that belong to the junction table, not the programs table
@@ -468,7 +502,22 @@ export const AdminPrograms = () => {
       instruction_mode: (program as any).instruction_mode || 'fully_german',
       english_language_requirements: (program as any).english_language_requirements || null,
       german_language_requirements: (program as any).german_language_requirements || null,
-      campus_ids: campusIds
+      campus_ids: campusIds,
+      // Academic requirements
+      gpa_minimum: (program as any).gpa_minimum || null,
+      gpa_competitive: (program as any).gpa_competitive || null,
+      gpa_notes: (program as any).gpa_notes || '',
+      gmat_required: (program as any).gmat_required || false,
+      gmat_minimum: (program as any).gmat_minimum || null,
+      gre_required: (program as any).gre_required || false,
+      gre_minimum_verbal: (program as any).gre_minimum_verbal || null,
+      gre_minimum_quant: (program as any).gre_minimum_quant || null,
+      gre_minimum_total: (program as any).gre_minimum_total || null,
+      accepted_degrees: (program as any).accepted_degrees || [],
+      subject_requirements: (program as any).subject_requirements || { total_ects: 180, subject_areas: [] },
+      admission_regulations_url: (program as any).admission_regulations_url || null,
+      program_flyer_url: (program as any).program_flyer_url || null,
+      module_description_url: (program as any).module_description_url || null
     });
     setIsDialogOpen(true);
   };
@@ -509,7 +558,9 @@ export const AdminPrograms = () => {
       instruction_mode: 'fully_german',
       english_language_requirements: null,
       german_language_requirements: null,
-      campus_ids: []
+      campus_ids: [],
+      // Reset academic requirements
+      ...getDefaultRequirementsData()
     });
     setIsDialogOpen(false);
   };
@@ -1699,6 +1750,29 @@ export const AdminPrograms = () => {
                 </p>
               </div>
             </div>
+
+            {/* Academic Requirements Editor */}
+            <ProgramRequirementsEditor
+              value={{
+                gpa_minimum: formData.gpa_minimum,
+                gpa_competitive: formData.gpa_competitive,
+                gpa_notes: formData.gpa_notes,
+                gmat_required: formData.gmat_required,
+                gmat_minimum: formData.gmat_minimum,
+                gre_required: formData.gre_required,
+                gre_minimum_verbal: formData.gre_minimum_verbal,
+                gre_minimum_quant: formData.gre_minimum_quant,
+                gre_minimum_total: formData.gre_minimum_total,
+                accepted_degrees: formData.accepted_degrees,
+                subject_requirements: formData.subject_requirements,
+                admission_regulations_url: formData.admission_regulations_url,
+                program_flyer_url: formData.program_flyer_url,
+                module_description_url: formData.module_description_url
+              }}
+              onChange={(reqData) => setFormData({ ...formData, ...reqData })}
+              programId={editingProgram?.id}
+              degreeLevel={formData.degree_level}
+            />
 
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">

@@ -2169,6 +2169,8 @@ export type Database = {
       }
       programs: {
         Row: {
+          accepted_degrees: string[] | null
+          admission_regulations_url: string | null
           application_deadline: string | null
           application_method: string | null
           country_code: string | null
@@ -2183,6 +2185,15 @@ export type Database = {
           field_of_study: string
           field_of_study_id: string | null
           german_language_requirements: Json | null
+          gmat_minimum: number | null
+          gmat_required: boolean | null
+          gpa_competitive: number | null
+          gpa_minimum: number | null
+          gpa_notes: string | null
+          gre_minimum_quant: number | null
+          gre_minimum_total: number | null
+          gre_minimum_verbal: number | null
+          gre_required: boolean | null
           id: string
           instruction_mode:
             | Database["public"]["Enums"]["instruction_language_mode"]
@@ -2191,8 +2202,10 @@ export type Database = {
           language_requirements: string[] | null
           metadata: Json | null
           minimum_gpa: number | null
+          module_description_url: string | null
           name: string
           prerequisites: string[] | null
+          program_flyer_url: string | null
           program_url: string | null
           published: boolean | null
           recognition_weeks_before: number | null
@@ -2201,6 +2214,7 @@ export type Database = {
           semester_start: string | null
           slug: string | null
           status: string | null
+          subject_requirements: Json | null
           summer_application_open_date: string | null
           summer_deadline: string | null
           summer_deadline_day: number | null
@@ -2221,6 +2235,8 @@ export type Database = {
           winter_open_month: number | null
         }
         Insert: {
+          accepted_degrees?: string[] | null
+          admission_regulations_url?: string | null
           application_deadline?: string | null
           application_method?: string | null
           country_code?: string | null
@@ -2235,6 +2251,15 @@ export type Database = {
           field_of_study: string
           field_of_study_id?: string | null
           german_language_requirements?: Json | null
+          gmat_minimum?: number | null
+          gmat_required?: boolean | null
+          gpa_competitive?: number | null
+          gpa_minimum?: number | null
+          gpa_notes?: string | null
+          gre_minimum_quant?: number | null
+          gre_minimum_total?: number | null
+          gre_minimum_verbal?: number | null
+          gre_required?: boolean | null
           id?: string
           instruction_mode?:
             | Database["public"]["Enums"]["instruction_language_mode"]
@@ -2243,8 +2268,10 @@ export type Database = {
           language_requirements?: string[] | null
           metadata?: Json | null
           minimum_gpa?: number | null
+          module_description_url?: string | null
           name: string
           prerequisites?: string[] | null
+          program_flyer_url?: string | null
           program_url?: string | null
           published?: boolean | null
           recognition_weeks_before?: number | null
@@ -2253,6 +2280,7 @@ export type Database = {
           semester_start?: string | null
           slug?: string | null
           status?: string | null
+          subject_requirements?: Json | null
           summer_application_open_date?: string | null
           summer_deadline?: string | null
           summer_deadline_day?: number | null
@@ -2273,6 +2301,8 @@ export type Database = {
           winter_open_month?: number | null
         }
         Update: {
+          accepted_degrees?: string[] | null
+          admission_regulations_url?: string | null
           application_deadline?: string | null
           application_method?: string | null
           country_code?: string | null
@@ -2287,6 +2317,15 @@ export type Database = {
           field_of_study?: string
           field_of_study_id?: string | null
           german_language_requirements?: Json | null
+          gmat_minimum?: number | null
+          gmat_required?: boolean | null
+          gpa_competitive?: number | null
+          gpa_minimum?: number | null
+          gpa_notes?: string | null
+          gre_minimum_quant?: number | null
+          gre_minimum_total?: number | null
+          gre_minimum_verbal?: number | null
+          gre_required?: boolean | null
           id?: string
           instruction_mode?:
             | Database["public"]["Enums"]["instruction_language_mode"]
@@ -2295,8 +2334,10 @@ export type Database = {
           language_requirements?: string[] | null
           metadata?: Json | null
           minimum_gpa?: number | null
+          module_description_url?: string | null
           name?: string
           prerequisites?: string[] | null
+          program_flyer_url?: string | null
           program_url?: string | null
           published?: boolean | null
           recognition_weeks_before?: number | null
@@ -2305,6 +2346,7 @@ export type Database = {
           semester_start?: string | null
           slug?: string | null
           status?: string | null
+          subject_requirements?: Json | null
           summer_application_open_date?: string | null
           summer_deadline?: string | null
           summer_deadline_day?: number | null
