@@ -99,13 +99,13 @@ Deno.serve(async (req) => {
 
     switch (operation) {
       case 'get_students_for_assignment':
-        return await handleGetStudentsForAssignment(req, supabaseAdmin);
+        return await handleGetStudentsForAssignment(req, supabase);
       
       case 'update_student_assignments':
-        return await handleUpdateStudentAssignments(req, supabaseAdmin);
+        return await handleUpdateStudentAssignments(req, supabase);
       
       case 'get_assigned_students_details':
-        return await handleGetAssignedStudentsDetails(req, supabaseAdmin);
+        return await handleGetAssignedStudentsDetails(req, supabase);
       
       case 'bulk_assign_students':
         return await handleBulkAssignStudents(req, supabase, user.id);
