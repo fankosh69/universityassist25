@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { slugify } from "@/lib/slug";
@@ -25,6 +26,13 @@ import {
   ExternalLink,
   Sparkles
 } from "lucide-react";
+
+interface University {
+  id: string;
+  name: string;
+  slug: string;
+  city: string | null;
+}
 
 interface UniversityMatch {
   url: string;
@@ -93,7 +101,55 @@ export function BulkProgramImporter({ open, onOpenChange, onProgramsImported }: 
   const [currentAction, setCurrentAction] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [autoCreateFields, setAutoCreateFields] = useState(true);
+  const [universities, setUniversities] = useState<University[]>([]);
   const { toast } = useToast();
+
+  // Fetch universities when dialog opens
+  useEffect(() => {
+    if (open) {
+      supabase
+        .from('universities')
+        .select('id, name, slug, cities(name)')
+        .order('name')
+        .then(({ data }) => {
+          if (data) {
+            setUniversities(data.map(u => ({
+              id: u.id,
+              name: u.name,
+              slug: u.slug,
+              city: (u.cities as any)?.name ?? null
+            })));
+          }
+        });
+    }
+  }, [open]);
+
+  // Handle manual university assignment for unmatched URLs
+  const handleManualUniversityAssign = (url: string, universityId: string) => {
+    const university = universities.find(u => u.id === universityId);
+    if (!university) return;
+    
+    setMatches(prev => prev.map(m => {
+      if (m.url === url) {
+        return {
+          ...m,
+          matched: true,
+          university_id: university.id,
+          university_name: university.name,
+          university_slug: university.slug,
+          city_name: university.city
+        };
+      }
+      return m;
+    }));
+    
+    setSelectedUrls(prev => new Set([...prev, url]));
+    
+    toast({
+      title: "University Assigned",
+      description: `URL assigned to ${university.name}`
+    });
+  };
 
   // Parse URLs from input
   const parseUrls = useCallback((input: string): string[] => {
@@ -577,25 +633,43 @@ https://www.kit.edu/studium/physik-bachelor`}
 
                 <TabsContent value="unmatched" className="mt-4">
                   <div className="max-h-[300px] overflow-auto">
-                    <div className="space-y-2 pr-4">
+                    <div className="space-y-3 pr-4">
                       {matches.filter(m => !m.matched).map((match) => (
                         <div
                           key={match.url}
-                          className="flex items-center gap-3 p-3 border rounded-lg opacity-60"
+                          className="flex items-start gap-3 p-3 border rounded-lg bg-muted/30"
                         >
-                          <X className="h-4 w-4 text-destructive flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-1" />
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <Globe className="h-4 w-4 text-muted-foreground" />
                               <span className="font-medium">{match.domain}</span>
-                              <Badge variant="outline" className="text-destructive">Not in database</Badge>
+                              <Badge variant="outline" className="text-amber-600 border-amber-300">Not matched</Badge>
                             </div>
                             <span className="text-xs text-muted-foreground truncate block">
                               {match.url}
                             </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground whitespace-nowrap">Assign to:</span>
+                              <SearchableSelect
+                                options={universities.map(uni => ({
+                                  value: uni.id,
+                                  label: uni.city ? `${uni.name} - ${uni.city}` : uni.name
+                                }))}
+                                placeholder="Select university..."
+                                emptyText="No university found"
+                                onValueChange={(value) => handleManualUniversityAssign(match.url, value)}
+                                className="flex-1 min-w-[200px]"
+                              />
+                            </div>
                           </div>
                         </div>
                       ))}
+                      {matches.filter(m => !m.matched).length === 0 && (
+                        <div className="text-center py-4 text-muted-foreground">
+                          All URLs matched! 🎉
+                        </div>
+                      )}
                     </div>
                   </div>
                 </TabsContent>
