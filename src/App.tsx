@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useState, useRef, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { HelmetProvider } from "react-helmet-async";
@@ -60,29 +60,47 @@ const queryClient = new QueryClient();
 const App = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const loadingRef = useRef(true);
+  const pendingUserRef = useRef<any>(undefined);
 
   useEffect(() => {
-    // Get initial session
+    // Get initial session - defer state update if still loading
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      const newUser = session?.user ?? null;
+      if (loadingRef.current) {
+        // Store for later - don't trigger re-render during loading animation
+        pendingUserRef.current = newUser;
+      } else {
+        setUser(newUser);
+      }
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const newUser = session?.user ?? null;
+      if (loadingRef.current) {
+        pendingUserRef.current = newUser;
+      } else {
+        setUser(newUser);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   const handleLoadingComplete = () => {
+    loadingRef.current = false;
+    // Apply any pending user state that was captured during loading
+    if (pendingUserRef.current !== undefined) {
+      setUser(pendingUserRef.current);
+    }
     setLoading(false);
   };
 
   if (loading) {
-    return <LoadingScreen onComplete={handleLoadingComplete} />;
+    return <LoadingScreen key="app-loader" onComplete={handleLoadingComplete} />;
   }
 
   // Debug check - add temporary test
