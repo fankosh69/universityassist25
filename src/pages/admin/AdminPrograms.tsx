@@ -1577,6 +1577,7 @@ export const AdminPrograms = () => {
                       onMonthChange={(m) => setFormData({ ...formData, winter_open_month: m })}
                       onDayChange={(d) => setFormData({ ...formData, winter_open_day: d })}
                       intake="winter"
+                      dateType="opening"
                     />
                     <MonthDaySelector
                       label="Application Deadline"
@@ -1602,6 +1603,7 @@ export const AdminPrograms = () => {
                       onMonthChange={(m) => setFormData({ ...formData, summer_open_month: m })}
                       onDayChange={(d) => setFormData({ ...formData, summer_open_day: d })}
                       intake="summer"
+                      dateType="opening"
                     />
                     <MonthDaySelector
                       label="Application Deadline"
