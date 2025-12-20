@@ -12,6 +12,7 @@ interface MonthDaySelectorProps {
   onDayChange: (day: number | null) => void;
   intake?: 'winter' | 'summer';
   showPreview?: boolean;
+  dateType?: 'deadline' | 'opening';
 }
 
 export function MonthDaySelector({
@@ -21,7 +22,8 @@ export function MonthDaySelector({
   onMonthChange,
   onDayChange,
   intake,
-  showPreview = true
+  showPreview = true,
+  dateType = 'deadline'
 }: MonthDaySelectorProps) {
   const daysInMonth = month ? getDaysInMonth(month) : 31;
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
@@ -90,7 +92,7 @@ export function MonthDaySelector({
               'text-green-600'
             }`}>
               <Clock className="h-3 w-3" />
-              Next deadline: {deadlineInfo.displayText}
+              {dateType === 'opening' ? 'Opens' : 'Next deadline'}: {deadlineInfo.displayText}
               {deadlineInfo.status !== 'passed' && deadlineInfo.daysRemaining > 0 && (
                 <span className="ml-1">({deadlineInfo.daysRemaining} days)</span>
               )}
