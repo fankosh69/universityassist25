@@ -40,14 +40,14 @@ export function MonthDaySelector({
       
       <div className="flex gap-2">
         <Select 
-          value={month?.toString() || ''} 
-          onValueChange={(v) => onMonthChange(v ? parseInt(v) : null)}
+          value={month?.toString() || undefined} 
+          onValueChange={(v) => onMonthChange(v === '__clear__' ? null : parseInt(v))}
         >
           <SelectTrigger className="flex-1">
             <SelectValue placeholder="Month..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">-- Select Month --</SelectItem>
+            <SelectItem value="__clear__">-- Clear --</SelectItem>
             {MONTHS.map(m => (
               <SelectItem key={m.value} value={m.value.toString()}>
                 {m.label}
@@ -57,15 +57,15 @@ export function MonthDaySelector({
         </Select>
         
         <Select 
-          value={day?.toString() || ''} 
-          onValueChange={(v) => onDayChange(v ? parseInt(v) : null)}
+          value={day?.toString() || undefined} 
+          onValueChange={(v) => onDayChange(v === '__clear__' ? null : parseInt(v))}
           disabled={!month}
         >
           <SelectTrigger className="w-24">
             <SelectValue placeholder="Day..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">--</SelectItem>
+            <SelectItem value="__clear__">--</SelectItem>
             {days.map(d => (
               <SelectItem key={d} value={d.toString()}>
                 {d}
