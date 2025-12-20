@@ -54,8 +54,20 @@ interface ScrapedProgram {
   summer_deadline?: string;
   program_url?: string;
   field_of_study?: string;
+  field_of_study_id?: string;
+  field_of_study_name?: string;
+  field_match_confidence?: 'high' | 'medium' | 'low' | 'none';
+  field_match_score?: number;
   minimum_gpa?: number;
   confidence?: number;
+}
+
+interface FieldMatchResult {
+  field_of_study_id: string | null;
+  field_of_study_name: string | null;
+  confidence: 'high' | 'medium' | 'low' | 'none';
+  confidence_score: number;
+  match_reason: string;
 }
 
 // Common paths where universities list their programs
@@ -277,7 +289,40 @@ async function findProgramListingPage(baseUrl: string): Promise<string | null> {
   return null;
 }
 
-async function extractProgramData(markdown: string, url: string, lovableApiKey: string): Promise<ScrapedProgram | null> {
+async function matchFieldOfStudy(fieldText: string, supabaseUrl: string, supabaseKey: string): Promise<FieldMatchResult | null> {
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/match-field-of-study`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ field_of_study: fieldText }),
+    });
+
+    if (!response.ok) {
+      console.error('Field matching failed:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    if (data.success && data.data) {
+      return data.data as FieldMatchResult;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error matching field of study:', error);
+    return null;
+  }
+}
+
+async function extractProgramData(
+  markdown: string, 
+  url: string, 
+  lovableApiKey: string,
+  supabaseUrl?: string,
+  supabaseKey?: string
+): Promise<ScrapedProgram | null> {
   try {
     // Truncate markdown to avoid token limits
     const truncatedMarkdown = markdown.substring(0, 12000);
@@ -317,6 +362,19 @@ async function extractProgramData(markdown: string, url: string, lovableApiKey: 
 
     const program = JSON.parse(jsonStr.trim()) as ScrapedProgram;
     program.program_url = url;
+    
+    // Auto-match field of study if we have Supabase credentials
+    if (program.field_of_study && supabaseUrl && supabaseKey) {
+      console.log(`Matching field of study: ${program.field_of_study}`);
+      const fieldMatch = await matchFieldOfStudy(program.field_of_study, supabaseUrl, supabaseKey);
+      if (fieldMatch) {
+        program.field_of_study_id = fieldMatch.field_of_study_id || undefined;
+        program.field_of_study_name = fieldMatch.field_of_study_name || undefined;
+        program.field_match_confidence = fieldMatch.confidence;
+        program.field_match_score = fieldMatch.confidence_score;
+        console.log(`Matched to: ${fieldMatch.field_of_study_name} (${fieldMatch.confidence})`);
+      }
+    }
     
     return program;
   } catch (error) {
@@ -429,6 +487,10 @@ Deno.serve(async (req) => {
       const urlsToScrape = programUrls.length > 0 ? programUrls : [url];
       console.log(`Scraping ${urlsToScrape.length} program pages`);
       
+      // Get Supabase credentials for field matching
+      const supabaseUrl = Deno.env.get('SUPABASE_URL');
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      
       const programs: ScrapedProgram[] = [];
       const errors: string[] = [];
 
@@ -441,10 +503,10 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const program = await extractProgramData(markdown, programUrl, lovableApiKey);
+        const program = await extractProgramData(markdown, programUrl, lovableApiKey, supabaseUrl, supabaseKey);
         if (program && program.name) {
           programs.push(program);
-          console.log('Extracted:', program.name);
+          console.log('Extracted:', program.name, program.field_of_study_name ? `[Field: ${program.field_of_study_name}]` : '');
         } else {
           errors.push(`Failed to extract data from: ${programUrl}`);
         }
