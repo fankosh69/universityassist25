@@ -154,6 +154,11 @@ export const AdminPrograms = () => {
     admission_regulations_url: string | null;
     program_flyer_url: string | null;
     module_description_url: string | null;
+    // Admission process steps
+    admission_test_required: boolean;
+    admission_test_details: string | null;
+    interview_required: boolean;
+    interview_details: string | null;
   }>({
     name: "",
     description: "",
@@ -519,7 +524,12 @@ export const AdminPrograms = () => {
       subject_requirements: (program as any).subject_requirements || { total_ects: 180, subject_areas: [] },
       admission_regulations_url: (program as any).admission_regulations_url || null,
       program_flyer_url: (program as any).program_flyer_url || null,
-      module_description_url: (program as any).module_description_url || null
+      module_description_url: (program as any).module_description_url || null,
+      // Admission process steps
+      admission_test_required: (program as any).admission_test_required || false,
+      admission_test_details: (program as any).admission_test_details || null,
+      interview_required: (program as any).interview_required || false,
+      interview_details: (program as any).interview_details || null
     });
     setIsDialogOpen(true);
   };
@@ -1775,7 +1785,11 @@ export const AdminPrograms = () => {
                 subject_requirements: formData.subject_requirements,
                 admission_regulations_url: formData.admission_regulations_url,
                 program_flyer_url: formData.program_flyer_url,
-                module_description_url: formData.module_description_url
+                module_description_url: formData.module_description_url,
+                admission_test_required: formData.admission_test_required ?? false,
+                admission_test_details: formData.admission_test_details ?? null,
+                interview_required: formData.interview_required ?? false,
+                interview_details: formData.interview_details ?? null
               }}
               onChange={(reqData) => setFormData({ ...formData, ...reqData })}
               programId={editingProgram?.id}
