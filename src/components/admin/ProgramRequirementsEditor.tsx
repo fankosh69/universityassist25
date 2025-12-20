@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, GraduationCap, Target, FileCheck, BookOpen, AlertCircle } from 'lucide-react';
+import { ChevronDown, GraduationCap, Target, FileCheck, BookOpen, AlertCircle, ClipboardCheck, Users } from 'lucide-react';
 import { SubjectRequirementsBuilder, SubjectRequirements } from './SubjectRequirementsBuilder';
 import { ProgramDocumentUpload } from './ProgramDocumentUpload';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,6 +31,11 @@ interface ProgramRequirementsData {
   admission_regulations_url: string | null;
   program_flyer_url: string | null;
   module_description_url: string | null;
+  // Admission process steps
+  admission_test_required: boolean;
+  admission_test_details: string | null;
+  interview_required: boolean;
+  interview_details: string | null;
 }
 
 interface ProgramRequirementsEditorProps {
@@ -298,6 +303,69 @@ export function ProgramRequirementsEditor({
               />
             </div>
 
+            {/* Admission Process Steps */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold flex items-center gap-2">
+                <ClipboardCheck className="h-4 w-4" />
+                Admission Process Steps
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Optional selection tests or interviews that may be part of the admission process.
+              </p>
+              
+              {/* Admission Test */}
+              <div className="p-4 border rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="font-medium">Admission Test</Label>
+                    <p className="text-sm text-muted-foreground">Written test, aptitude test, or subject-specific exam</p>
+                  </div>
+                  <Switch
+                    checked={value.admission_test_required}
+                    onCheckedChange={(checked) => updateField('admission_test_required', checked)}
+                  />
+                </div>
+                {value.admission_test_required && (
+                  <div className="pt-2">
+                    <Label htmlFor="admission_test_details">Test Details (optional)</Label>
+                    <Textarea
+                      id="admission_test_details"
+                      placeholder="E.g., 'Online mathematics and logic test via TestAS. Duration: 2 hours. Topics: calculus, statistics, logical reasoning.'"
+                      value={value.admission_test_details || ''}
+                      onChange={(e) => updateField('admission_test_details', e.target.value || null)}
+                      className="mt-1 h-20"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Interview */}
+              <div className="p-4 border rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="font-medium">Interview Required</Label>
+                    <p className="text-sm text-muted-foreground">Personal interview with faculty or admissions committee</p>
+                  </div>
+                  <Switch
+                    checked={value.interview_required}
+                    onCheckedChange={(checked) => updateField('interview_required', checked)}
+                  />
+                </div>
+                {value.interview_required && (
+                  <div className="pt-2">
+                    <Label htmlFor="interview_details">Interview Details (optional)</Label>
+                    <Textarea
+                      id="interview_details"
+                      placeholder="E.g., '30-minute video interview with faculty committee. Topics: motivation, research interests, academic background.'"
+                      value={value.interview_details || ''}
+                      onChange={(e) => updateField('interview_details', e.target.value || null)}
+                      className="mt-1 h-20"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Document Uploads */}
             <div className="space-y-3">
               <Label className="text-base font-semibold">Program Documents</Label>
@@ -352,4 +420,8 @@ export const getDefaultRequirementsData = (): ProgramRequirementsData => ({
   admission_regulations_url: null,
   program_flyer_url: null,
   module_description_url: null,
+  admission_test_required: false,
+  admission_test_details: null,
+  interview_required: false,
+  interview_details: null,
 });

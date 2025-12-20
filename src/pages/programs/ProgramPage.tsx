@@ -294,7 +294,11 @@ export default function ProgramPage() {
                 subject_requirements: programData.subject_requirements,
                 admission_regulations_url: programData.admission_regulations_url,
                 program_flyer_url: programData.program_flyer_url,
-                module_description_url: programData.module_description_url
+                module_description_url: programData.module_description_url,
+                admission_test_required: programData.admission_test_required,
+                admission_test_details: programData.admission_test_details,
+                interview_required: programData.interview_required,
+                interview_details: programData.interview_details
               }}
               isApplicant={isApplicant}
               isLoading={applicantLoading}

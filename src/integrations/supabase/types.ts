@@ -2171,6 +2171,8 @@ export type Database = {
         Row: {
           accepted_degrees: string[] | null
           admission_regulations_url: string | null
+          admission_test_details: string | null
+          admission_test_required: boolean | null
           application_deadline: string | null
           application_method: string | null
           country_code: string | null
@@ -2198,6 +2200,8 @@ export type Database = {
           instruction_mode:
             | Database["public"]["Enums"]["instruction_language_mode"]
             | null
+          interview_details: string | null
+          interview_required: boolean | null
           language_of_instruction: string[] | null
           language_requirements: string[] | null
           metadata: Json | null
@@ -2237,6 +2241,8 @@ export type Database = {
         Insert: {
           accepted_degrees?: string[] | null
           admission_regulations_url?: string | null
+          admission_test_details?: string | null
+          admission_test_required?: boolean | null
           application_deadline?: string | null
           application_method?: string | null
           country_code?: string | null
@@ -2264,6 +2270,8 @@ export type Database = {
           instruction_mode?:
             | Database["public"]["Enums"]["instruction_language_mode"]
             | null
+          interview_details?: string | null
+          interview_required?: boolean | null
           language_of_instruction?: string[] | null
           language_requirements?: string[] | null
           metadata?: Json | null
@@ -2303,6 +2311,8 @@ export type Database = {
         Update: {
           accepted_degrees?: string[] | null
           admission_regulations_url?: string | null
+          admission_test_details?: string | null
+          admission_test_required?: boolean | null
           application_deadline?: string | null
           application_method?: string | null
           country_code?: string | null
@@ -2330,6 +2340,8 @@ export type Database = {
           instruction_mode?:
             | Database["public"]["Enums"]["instruction_language_mode"]
             | null
+          interview_details?: string | null
+          interview_required?: boolean | null
           language_of_instruction?: string[] | null
           language_requirements?: string[] | null
           metadata?: Json | null

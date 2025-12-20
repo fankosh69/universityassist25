@@ -13,7 +13,9 @@ import {
   XCircle, 
   AlertTriangle,
   Lock,
-  ExternalLink
+  ExternalLink,
+  ClipboardCheck,
+  Users
 } from 'lucide-react';
 
 interface SubjectArea {
@@ -44,6 +46,10 @@ interface ProgramRequirementsData {
   admission_regulations_url: string | null;
   program_flyer_url: string | null;
   module_description_url: string | null;
+  admission_test_required?: boolean;
+  admission_test_details?: string | null;
+  interview_required?: boolean;
+  interview_details?: string | null;
 }
 
 interface ApplicantRequirementsCardProps {
@@ -268,6 +274,46 @@ export function ApplicantRequirementsCard({
                   value={(studentEcts / requirements.subject_requirements.total_ects) * 100} 
                   className="h-2"
                 />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Admission Process Steps */}
+        {(requirements.admission_test_required || requirements.interview_required) && (
+          <div className="space-y-3">
+            <h4 className="font-semibold flex items-center gap-2">
+              <ClipboardCheck className="h-4 w-4" />
+              Admission Process Steps
+            </h4>
+            
+            {requirements.admission_test_required && (
+              <div className="p-3 border rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium flex items-center gap-2">
+                    <ClipboardCheck className="h-4 w-4 text-orange-500" />
+                    Admission Test
+                  </span>
+                  <Badge variant="outline" className="text-orange-600 border-orange-300">Required</Badge>
+                </div>
+                {requirements.admission_test_details && (
+                  <p className="text-sm text-muted-foreground">{requirements.admission_test_details}</p>
+                )}
+              </div>
+            )}
+
+            {requirements.interview_required && (
+              <div className="p-3 border rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium flex items-center gap-2">
+                    <Users className="h-4 w-4 text-blue-500" />
+                    Interview
+                  </span>
+                  <Badge variant="outline" className="text-blue-600 border-blue-300">Required</Badge>
+                </div>
+                {requirements.interview_details && (
+                  <p className="text-sm text-muted-foreground">{requirements.interview_details}</p>
+                )}
               </div>
             )}
           </div>
