@@ -56,42 +56,48 @@ const COMMON_TOPICS: Record<string, string[]> = {
 export function SubjectRequirementsBuilder({ value, onChange }: SubjectRequirementsBuilderProps) {
   const [newTopicInput, setNewTopicInput] = useState<Record<string, string>>({});
 
+  // Ensure value has the required structure with safe defaults
+  const safeValue: SubjectRequirements = {
+    total_ects: value?.total_ects ?? 180,
+    subject_areas: Array.isArray(value?.subject_areas) ? value.subject_areas : []
+  };
+
   const addSubjectArea = () => {
     onChange({
-      ...value,
+      ...safeValue,
       subject_areas: [
-        ...value.subject_areas,
+        ...safeValue.subject_areas,
         { area: '', min_ects: 10, sub_requirements: [] },
       ],
     });
   };
 
   const removeSubjectArea = (index: number) => {
-    const updated = [...value.subject_areas];
+    const updated = [...safeValue.subject_areas];
     updated.splice(index, 1);
-    onChange({ ...value, subject_areas: updated });
+    onChange({ ...safeValue, subject_areas: updated });
   };
 
   const updateSubjectArea = (index: number, field: keyof SubjectArea, newValue: any) => {
-    const updated = [...value.subject_areas];
+    const updated = [...safeValue.subject_areas];
     updated[index] = { ...updated[index], [field]: newValue };
-    onChange({ ...value, subject_areas: updated });
+    onChange({ ...safeValue, subject_areas: updated });
   };
 
   const addSubRequirement = (areaIndex: number) => {
-    const updated = [...value.subject_areas];
+    const updated = [...safeValue.subject_areas];
     updated[areaIndex].sub_requirements.push({
       topics: [],
       min_ects: 5,
       logic: 'OR',
     });
-    onChange({ ...value, subject_areas: updated });
+    onChange({ ...safeValue, subject_areas: updated });
   };
 
   const removeSubRequirement = (areaIndex: number, subIndex: number) => {
-    const updated = [...value.subject_areas];
+    const updated = [...safeValue.subject_areas];
     updated[areaIndex].sub_requirements.splice(subIndex, 1);
-    onChange({ ...value, subject_areas: updated });
+    onChange({ ...safeValue, subject_areas: updated });
   };
 
   const updateSubRequirement = (
@@ -100,30 +106,30 @@ export function SubjectRequirementsBuilder({ value, onChange }: SubjectRequireme
     field: keyof SubRequirement,
     newValue: any
   ) => {
-    const updated = [...value.subject_areas];
+    const updated = [...safeValue.subject_areas];
     updated[areaIndex].sub_requirements[subIndex] = {
       ...updated[areaIndex].sub_requirements[subIndex],
       [field]: newValue,
     };
-    onChange({ ...value, subject_areas: updated });
+    onChange({ ...safeValue, subject_areas: updated });
   };
 
   const addTopicToSubRequirement = (areaIndex: number, subIndex: number, topic: string) => {
     if (!topic.trim()) return;
-    const updated = [...value.subject_areas];
+    const updated = [...safeValue.subject_areas];
     const currentTopics = updated[areaIndex].sub_requirements[subIndex].topics;
     if (!currentTopics.includes(topic)) {
       updated[areaIndex].sub_requirements[subIndex].topics = [...currentTopics, topic];
-      onChange({ ...value, subject_areas: updated });
+      onChange({ ...safeValue, subject_areas: updated });
     }
     setNewTopicInput({ ...newTopicInput, [`${areaIndex}-${subIndex}`]: '' });
   };
 
   const removeTopicFromSubRequirement = (areaIndex: number, subIndex: number, topic: string) => {
-    const updated = [...value.subject_areas];
+    const updated = [...safeValue.subject_areas];
     updated[areaIndex].sub_requirements[subIndex].topics = 
       updated[areaIndex].sub_requirements[subIndex].topics.filter(t => t !== topic);
-    onChange({ ...value, subject_areas: updated });
+    onChange({ ...safeValue, subject_areas: updated });
   };
 
   return (
@@ -133,8 +139,8 @@ export function SubjectRequirementsBuilder({ value, onChange }: SubjectRequireme
         <Label className="w-32">Total ECTS Required</Label>
         <Input
           type="number"
-          value={value.total_ects || 180}
-          onChange={(e) => onChange({ ...value, total_ects: parseInt(e.target.value) || 0 })}
+          value={safeValue.total_ects || 180}
+          onChange={(e) => onChange({ ...safeValue, total_ects: parseInt(e.target.value) || 0 })}
           className="w-24"
         />
       </div>
@@ -148,7 +154,7 @@ export function SubjectRequirementsBuilder({ value, onChange }: SubjectRequireme
           </Button>
         </div>
 
-        {value.subject_areas.map((area, areaIndex) => (
+        {safeValue.subject_areas.map((area, areaIndex) => (
           <Card key={areaIndex} className="border-2">
             <CardHeader className="py-3 px-4">
               <div className="flex items-center gap-2">
@@ -271,7 +277,7 @@ export function SubjectRequirementsBuilder({ value, onChange }: SubjectRequireme
           </Card>
         ))}
 
-        {value.subject_areas.length === 0 && (
+        {safeValue.subject_areas.length === 0 && (
           <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
             No subject requirements defined. Click "Add Subject Area" to specify ECTS requirements for specific subjects.
           </div>
