@@ -77,3 +77,9 @@ verify_jwt = false
 
 [functions.translate-content]
 verify_jwt = false
+
+[functions.match-university-by-domain]
+verify_jwt = false
+
+[functions.auto-create-field-of-study]
+verify_jwt = false

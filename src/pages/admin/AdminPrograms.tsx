@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Trash2, Search, ExternalLink, Clock, AlertTriangle } from "lucide-react";
+import { Plus, Edit, Trash2, Search, ExternalLink, Clock, AlertTriangle, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -17,6 +17,7 @@ import { getDeadlineStatus, getApplicationMethodInfo, getStatusColor } from "@/l
 import { slugify } from "@/lib/slug";
 import { formatTuitionDisplay } from "@/lib/tuition-calculator";
 import { ProgramScraper } from "@/components/admin/ProgramScraper";
+import { BulkProgramImporter } from "@/components/admin/BulkProgramImporter";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -90,6 +91,7 @@ export const AdminPrograms = () => {
   const [loading, setLoading] = useState(true);
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isBulkImporterOpen, setIsBulkImporterOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterUniversity, setFilterUniversity] = useState<string>("all");
   const [filterField, setFilterField] = useState<string>("");
@@ -1192,10 +1194,16 @@ export const AdminPrograms = () => {
             Manage university programs and their details
           </p>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add Program
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setIsBulkImporterOpen(true)} className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Bulk Import
+          </Button>
+          <Button onClick={() => setIsDialogOpen(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Program
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-4 flex-wrap">
@@ -1805,5 +1813,11 @@ export const AdminPrograms = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      <BulkProgramImporter
+        open={isBulkImporterOpen}
+        onOpenChange={setIsBulkImporterOpen}
+        onProgramsImported={fetchPrograms}
+      />
     </div>;
 };
