@@ -74,3 +74,6 @@ verify_jwt = false
 
 [functions.match-field-of-study]
 verify_jwt = false
+
+[functions.translate-content]
+verify_jwt = false
