@@ -88,8 +88,8 @@ export function ProgramRequirementsEditor({
     }
   };
 
-  // Group fields by level for hierarchy display
-  const topLevelFields = fieldsOfStudy.filter(f => f.level === 1);
+  // Get specific majors (level 2) instead of broad categories (level 1)
+  const specificMajors = fieldsOfStudy.filter(f => f.level === 2);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -116,10 +116,10 @@ export function ProgramRequirementsEditor({
                 <span className="text-destructive">*</span>
               </Label>
               <p className="text-sm text-muted-foreground">
-                Select the degree programs that are considered relevant for admission.
+                Select the specific degree programs (majors) that are considered relevant for admission.
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-2 border rounded-lg">
-                {topLevelFields.map((field) => (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-72 overflow-y-auto p-2 border rounded-lg">
+                {specificMajors.map((field) => (
                   <div key={field.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={`degree-${field.slug}`}
