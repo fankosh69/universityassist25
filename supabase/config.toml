@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.scrape-programs-firecrawl]
 verify_jwt = false
+
+[functions.match-field-of-study]
+verify_jwt = false

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,9 +12,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
-import { Globe, Search, Download, Loader2, CheckCircle2, AlertCircle, Lightbulb, Link2 } from 'lucide-react';
+import { Globe, Search, Download, Loader2, CheckCircle2, AlertCircle, Lightbulb, Link2, Sparkles } from 'lucide-react';
 import { slugify } from '@/lib/slug';
+
+interface FieldOfStudy {
+  id: string;
+  name: string;
+  slug: string;
+  level: number;
+  parent_id: string | null;
+}
 
 interface ScrapedProgram {
   name: string;
@@ -34,6 +43,10 @@ interface ScrapedProgram {
   summer_deadline?: string;
   program_url?: string;
   field_of_study?: string;
+  field_of_study_id?: string;
+  field_of_study_name?: string;
+  field_match_confidence?: 'high' | 'medium' | 'low' | 'none';
+  field_match_score?: number;
   minimum_gpa?: number;
   confidence?: number;
   selected?: boolean;
@@ -61,6 +74,27 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
   const [progress, setProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldsOfStudy, setFieldsOfStudy] = useState<FieldOfStudy[]>([]);
+
+  // Fetch fields of study when dialog opens
+  useEffect(() => {
+    if (open && fieldsOfStudy.length === 0) {
+      fetchFieldsOfStudy();
+    }
+  }, [open]);
+
+  const fetchFieldsOfStudy = async () => {
+    const { data, error } = await supabase
+      .from('fields_of_study')
+      .select('id, name, slug, level, parent_id')
+      .eq('is_active', true)
+      .order('level', { ascending: true })
+      .order('name', { ascending: true });
+    
+    if (data && !error) {
+      setFieldsOfStudy(data);
+    }
+  };
 
   const handleDiscover = async () => {
     if (!websiteUrl) {
@@ -86,7 +120,7 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
         setDiscoveredUrls(programUrls);
         setAllFoundUrls(data.data.allUrls || []);
         setSuggestions(data.data.suggestions || []);
-        setSelectedUrls(programUrls.slice(0, 10)); // Pre-select first 10
+        setSelectedUrls(programUrls.slice(0, 10));
         setStep('select');
         
         if (programUrls.length === 0) {
@@ -157,9 +191,12 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
         setScrapedPrograms(programs);
         setStep('preview');
         setProgress(100);
+        
+        // Count auto-matched fields
+        const matchedCount = programs.filter((p: ScrapedProgram) => p.field_of_study_id).length;
         toast({ 
           title: 'Scraping Complete', 
-          description: `Extracted ${programs.length} programs from ${selectedUrls.length} pages` 
+          description: `Extracted ${programs.length} programs (${matchedCount} with auto-matched fields)` 
         });
       } else {
         throw new Error(data?.error || 'No programs extracted');
@@ -226,10 +263,11 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
           summer_deadline: program.summer_deadline || null,
           program_url: program.program_url || null,
           field_of_study: program.field_of_study || 'General',
+          field_of_study_id: program.field_of_study_id || null,
           minimum_gpa: program.minimum_gpa || null,
           university_id: universityId,
           slug,
-          published: false, // Import as draft
+          published: false,
         });
 
         if (error) throw error;
@@ -285,11 +323,51 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
     );
   };
 
+  const updateProgramField = (index: number, fieldId: string) => {
+    const field = fieldsOfStudy.find(f => f.id === fieldId);
+    setScrapedPrograms(prev => 
+      prev.map((p, i) => i === index ? { 
+        ...p, 
+        field_of_study_id: fieldId,
+        field_of_study_name: field?.name || p.field_of_study_name,
+        field_match_confidence: 'high' // Manual selection = high confidence
+      } : p)
+    );
+  };
+
   const getConfidenceBadge = (confidence?: number) => {
     if (!confidence) return <Badge variant="outline">Unknown</Badge>;
     if (confidence >= 80) return <Badge className="bg-green-500">High ({confidence}%)</Badge>;
     if (confidence >= 50) return <Badge className="bg-yellow-500">Medium ({confidence}%)</Badge>;
     return <Badge variant="destructive">Low ({confidence}%)</Badge>;
+  };
+
+  const getFieldMatchBadge = (program: ScrapedProgram) => {
+    if (!program.field_match_confidence || program.field_match_confidence === 'none') {
+      return <Badge variant="outline" className="text-xs">No match</Badge>;
+    }
+    
+    const colors = {
+      high: 'bg-green-500 hover:bg-green-600',
+      medium: 'bg-yellow-500 hover:bg-yellow-600',
+      low: 'bg-orange-500 hover:bg-orange-600',
+    };
+    
+    return (
+      <Badge className={`text-xs ${colors[program.field_match_confidence]}`}>
+        <Sparkles className="h-3 w-3 mr-1" />
+        {program.field_match_confidence}
+      </Badge>
+    );
+  };
+
+  // Group fields by level for better display
+  const getFieldOptions = () => {
+    const level1 = fieldsOfStudy.filter(f => f.level === 1);
+    const level2 = fieldsOfStudy.filter(f => f.level === 2);
+    const level3 = fieldsOfStudy.filter(f => f.level === 3);
+    
+    return { level1, level2, level3 };
   };
 
   return (
@@ -300,11 +378,11 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
           Scrape from Web
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-5xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Import Programs from Website</DialogTitle>
           <DialogDescription>
-            Scrape program data from {universityName}'s website using AI-powered extraction
+            Scrape program data from {universityName}'s website using AI-powered extraction with automatic field matching
           </DialogDescription>
         </DialogHeader>
 
@@ -352,7 +430,7 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
                       Discover Program Pages
                     </Button>
                     <p className="text-sm text-muted-foreground">
-                      Enter the university's homepage or program listing page. The scraper will discover program pages automatically.
+                      Enter the university's homepage or program listing page. The scraper will discover program pages and auto-match fields of study.
                     </p>
                   </TabsContent>
                   
@@ -383,7 +461,7 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
                 <p className="text-muted-foreground">
                   {step === 'discover' && 'Discovering program pages...'}
-                  {step === 'scrape' && 'Scraping and extracting program data...'}
+                  {step === 'scrape' && 'Scraping and matching fields of study...'}
                   {step === 'importing' && 'Importing programs to database...'}
                 </p>
                 {(step === 'scrape' || step === 'importing') && (
@@ -480,21 +558,30 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
           {step === 'preview' && !isLoading && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">
-                  Review Extracted Programs ({scrapedPrograms.filter(p => p.selected).length}/{scrapedPrograms.length})
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <span>Review Extracted Programs ({scrapedPrograms.filter(p => p.selected).length}/{scrapedPrograms.length})</span>
+                  <Badge variant="secondary" className="ml-2">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    {scrapedPrograms.filter(p => p.field_of_study_id).length} auto-matched
+                  </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-80 rounded border">
+                <ScrollArea className="h-96 rounded border">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12"></TableHead>
-                        <TableHead>Program Name</TableHead>
-                        <TableHead>Degree</TableHead>
-                        <TableHead>Duration</TableHead>
-                        <TableHead>Language</TableHead>
-                        <TableHead>Confidence</TableHead>
+                        <TableHead className="min-w-[200px]">Program Name</TableHead>
+                        <TableHead className="w-24">Degree</TableHead>
+                        <TableHead className="min-w-[250px]">
+                          <div className="flex items-center gap-1">
+                            <Sparkles className="h-3 w-3" />
+                            Field of Study
+                          </div>
+                        </TableHead>
+                        <TableHead className="w-20">Match</TableHead>
+                        <TableHead className="w-24">Confidence</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -506,14 +593,47 @@ export function ProgramScraper({ universityId, universityName, onProgramsImporte
                               onCheckedChange={() => toggleProgram(i)}
                             />
                           </TableCell>
-                          <TableCell className="font-medium">{program.name}</TableCell>
+                          <TableCell className="font-medium">
+                            <div>
+                              <div className="truncate max-w-[200px]">{program.name}</div>
+                              {program.field_of_study && program.field_of_study !== program.field_of_study_name && (
+                                <div className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                  Extracted: {program.field_of_study}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <Badge variant="outline">
-                              {program.degree_type || 'N/A'} ({program.degree_level})
+                              {program.degree_type || 'N/A'}
                             </Badge>
                           </TableCell>
-                          <TableCell>{program.duration_semesters || '?'} sem</TableCell>
-                          <TableCell>{program.language_of_instruction?.join(', ') || '?'}</TableCell>
+                          <TableCell>
+                            <Select 
+                              value={program.field_of_study_id || ''} 
+                              onValueChange={(value) => updateProgramField(i, value)}
+                            >
+                              <SelectTrigger className="w-full h-8 text-xs">
+                                <SelectValue placeholder="Select field...">
+                                  {program.field_of_study_name || 'Select field...'}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <ScrollArea className="h-60">
+                                  {fieldsOfStudy.map((field) => (
+                                    <SelectItem key={field.id} value={field.id}>
+                                      <span className={field.level === 1 ? 'font-semibold' : field.level === 2 ? 'ml-2' : 'ml-4 text-muted-foreground'}>
+                                        {field.name}
+                                      </span>
+                                    </SelectItem>
+                                  ))}
+                                </ScrollArea>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            {getFieldMatchBadge(program)}
+                          </TableCell>
                           <TableCell>{getConfidenceBadge(program.confidence)}</TableCell>
                         </TableRow>
                       ))}
