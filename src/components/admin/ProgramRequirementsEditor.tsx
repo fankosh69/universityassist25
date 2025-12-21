@@ -89,6 +89,41 @@ export function ProgramRequirementsEditor({
     try {
       const slug = newDegreeName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       
+      // Check if a field with this slug already exists
+      const { data: existing } = await supabase
+        .from('fields_of_study')
+        .select('id, name, slug, level, is_active')
+        .eq('slug', slug)
+        .maybeSingle();
+      
+      if (existing) {
+        // If it exists but is inactive, reactivate it
+        if (!existing.is_active) {
+          await supabase
+            .from('fields_of_study')
+            .update({ is_active: true })
+            .eq('id', existing.id);
+          
+          // Add to local state if not already there
+          if (!fieldsOfStudy.find(f => f.id === existing.id)) {
+            setFieldsOfStudy(prev => [...prev, { ...existing, is_active: true }].sort((a, b) => a.name.localeCompare(b.name)));
+          }
+          toast.success(`Reactivated "${existing.name}" and added to selection`);
+        } else {
+          toast.info(`"${existing.name}" already exists - added to selection`);
+        }
+        
+        // Select it if not already selected
+        if (!(value.accepted_degrees || []).includes(existing.slug)) {
+          updateField('accepted_degrees', [...(value.accepted_degrees || []), existing.slug]);
+        }
+        
+        setNewDegreeName('');
+        setShowAddDegree(false);
+        return;
+      }
+      
+      // Insert new field
       const { data, error } = await supabase
         .from('fields_of_study')
         .insert({
@@ -132,8 +167,8 @@ export function ProgramRequirementsEditor({
     }
   };
 
-  // Get specific majors (level 2) instead of broad categories (level 1)
-  const specificMajors = fieldsOfStudy.filter(f => f.level === 2);
+  // Get specific majors (level 2) and specializations (level 3) instead of broad categories (level 1)
+  const specificMajors = fieldsOfStudy.filter(f => f.level >= 2);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
