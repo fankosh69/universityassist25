@@ -408,12 +408,15 @@ export const HierarchicalFieldMultiSelector = ({
           </div>
           <div className="space-y-2">
             <Label htmlFor="parent-field">Parent Category (optional)</Label>
-            <Select value={newFieldParentId} onValueChange={setNewFieldParentId}>
+            <Select 
+              value={newFieldParentId || "__none__"} 
+              onValueChange={(val) => setNewFieldParentId(val === "__none__" ? "" : val)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="None (top-level field)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None (top-level field)</SelectItem>
+                <SelectItem value="__none__">None (top-level field)</SelectItem>
                 {parentOptions.map(p => (
                   <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                 ))}
