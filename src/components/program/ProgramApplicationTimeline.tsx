@@ -57,6 +57,8 @@ export function ProgramApplicationTimeline({
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case 'not_open_yet':
+        return 'border-blue-500 bg-blue-50 dark:bg-blue-950';
       case 'open':
         return 'border-green-500 bg-green-50 dark:bg-green-950';
       case 'closing_soon':
@@ -70,8 +72,14 @@ export function ProgramApplicationTimeline({
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, daysUntilOpen?: number | null) => {
     switch (status) {
+      case 'not_open_yet':
+        return (
+          <Badge variant="default" className="bg-blue-600">
+            ◐ {daysUntilOpen !== null && daysUntilOpen !== undefined ? `Opens in ${daysUntilOpen} days` : 'Not Yet Open'}
+          </Badge>
+        );
       case 'open':
         return <Badge variant="default" className="bg-green-600">✓ Open</Badge>;
       case 'closing_soon':
@@ -97,7 +105,7 @@ export function ProgramApplicationTimeline({
             <Calendar className="h-5 w-5" />
             {intake.displayLabel}
           </h3>
-          {getStatusBadge(intake.status)}
+          {getStatusBadge(intake.status, intake.daysUntilOpen)}
         </div>
 
         {/* Timeline visualization */}
@@ -142,7 +150,8 @@ export function ProgramApplicationTimeline({
               <div className={`rounded-full p-1.5 ${
                 intake.status === 'urgent' ? 'bg-red-500' :
                 intake.status === 'closing_soon' ? 'bg-orange-500' :
-                intake.status === 'open' ? 'bg-green-500' : 'bg-muted'
+                intake.status === 'open' ? 'bg-green-500' :
+                intake.status === 'not_open_yet' ? 'bg-blue-500' : 'bg-muted'
               }`}>
                 <Clock className="h-3 w-3 text-white" />
               </div>
@@ -153,7 +162,7 @@ export function ProgramApplicationTimeline({
               <p className="text-xs text-muted-foreground">
                 {formatIntakeDate(intake.deadlineDate)}
               </p>
-              {intake.daysUntilDeadline > 0 && (
+              {intake.status !== 'closed' && intake.status !== 'not_open_yet' && intake.daysUntilDeadline > 0 && (
                 <Badge variant="outline" className="mt-1 text-xs">
                   {intake.daysUntilDeadline} days remaining
                 </Badge>
