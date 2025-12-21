@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { FilterGroup } from './FilterGroup';
 import { HierarchicalFieldSelect } from './HierarchicalFieldSelect';
-import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X, Calendar, Info, Languages } from 'lucide-react';
+import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X, Calendar, Info, Languages, Receipt } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { INSTITUTION_TYPES, CONTROL_TYPES } from '@/lib/institution-types';
 import { format, addMonths, startOfMonth } from 'date-fns';
@@ -29,6 +29,7 @@ interface SearchFilters {
   acceptsIELTS: boolean;
   acceptsTOEFL: boolean;
   acceptsPTE: boolean;
+  applicationFee: string; // 'all' | 'no-fee' | 'has-fee'
 }
 
 interface FilterOptions {
@@ -70,6 +71,9 @@ export function FilterSidebar({
       }
       if (key === 'acceptsMOI' || key === 'acceptsIELTS' || key === 'acceptsTOEFL' || key === 'acceptsPTE') {
         return value === true;
+      }
+      if (key === 'applicationFee') {
+        return value !== 'all';
       }
       return value !== 'all' && value !== null && value !== '';
     }).length;
@@ -303,7 +307,44 @@ export function FilterSidebar({
             </RadioGroup>
           </FilterGroup>
 
-          {/* Intake Period */}
+          {/* Application Fee */}
+          <FilterGroup 
+            value="applicationFee" 
+            title="Application Fee" 
+            icon={<Receipt className="h-4 w-4" />}
+            activeCount={filters.applicationFee !== 'all' ? 1 : 0}
+          >
+            <RadioGroup value={filters.applicationFee || 'all'} onValueChange={(value) => updateFilter('applicationFee', value)}>
+              <div className="flex items-center space-x-2 mb-2">
+                <RadioGroupItem value="all" id="appfee-all" />
+                <Label htmlFor="appfee-all" className="text-sm cursor-pointer">All Programs</Label>
+              </div>
+              <div className="flex items-center space-x-2 mb-2">
+                <RadioGroupItem value="no-fee" id="appfee-no" />
+                <Label htmlFor="appfee-no" className="text-sm cursor-pointer flex items-center gap-1.5">
+                  No Application Fee
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-[280px] text-xs">
+                        <p>
+                          Shows only programs with direct application that don't charge an application fee.
+                          Uni-Assist programs always have fees (€75 first, €30 additional).
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 mb-2">
+                <RadioGroupItem value="has-fee" id="appfee-yes" />
+                <Label htmlFor="appfee-yes" className="text-sm cursor-pointer">Has Application Fee</Label>
+              </div>
+            </RadioGroup>
+          </FilterGroup>
+
           <FilterGroup 
             value="intake" 
             title="Intake Period" 

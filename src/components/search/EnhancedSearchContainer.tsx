@@ -31,6 +31,8 @@ interface Program {
   summer_deadline: string | null;
   winter_application_open_date: string | null;
   summer_application_open_date: string | null;
+  has_application_fee?: boolean | null;
+  application_fee_amount?: number | null;
   universities: {
     name: string;
     city: string;
@@ -56,6 +58,7 @@ interface SearchFilters {
   acceptsIELTS: boolean;
   acceptsTOEFL: boolean;
   acceptsPTE: boolean;
+  applicationFee: string; // 'all' | 'no-fee' | 'has-fee'
 }
 
 export function EnhancedSearchContainer() {
@@ -84,7 +87,8 @@ export function EnhancedSearchContainer() {
     acceptsMOI: false,
     acceptsIELTS: false,
     acceptsTOEFL: false,
-    acceptsPTE: false
+    acceptsPTE: false,
+    applicationFee: 'all'
   });
 
   // Get unique filter options
@@ -286,6 +290,24 @@ export function EnhancedSearchContainer() {
       });
     }
 
+    // Filter by application fee
+    if (filters.applicationFee && filters.applicationFee !== 'all') {
+      filtered = filtered.filter(program => {
+        const isUniAssist = program.application_method === 'uni_assist_direct' || 
+                           program.application_method === 'uni_assist_vpd';
+        const hasAppFee = (program as any).has_application_fee;
+        
+        if (filters.applicationFee === 'no-fee') {
+          // Only direct application programs with explicitly no fee
+          return program.application_method === 'direct' && hasAppFee === false;
+        } else if (filters.applicationFee === 'has-fee') {
+          // Uni-assist programs always have fees, or direct with explicit fee
+          return isUniAssist || (program.application_method === 'direct' && hasAppFee === true);
+        }
+        return true;
+      });
+    }
+
     setPrograms(filtered);
   }, [searchQuery, filters, allPrograms]);
 
@@ -346,7 +368,8 @@ export function EnhancedSearchContainer() {
       acceptsMOI: false,
       acceptsIELTS: false,
       acceptsTOEFL: false,
-      acceptsPTE: false
+      acceptsPTE: false,
+      applicationFee: 'all'
     });
     setSearchQuery('');
   };
@@ -358,6 +381,9 @@ export function EnhancedSearchContainer() {
     if (key === 'acceptsMOI' || key === 'acceptsIELTS' || key === 'acceptsTOEFL' || key === 'acceptsPTE') {
       return value === true;
     }
+    if (key === 'applicationFee') {
+      return value !== 'all';
+    }
     return value !== 'all' && value !== null && value !== '';
   }) || searchQuery.trim() !== '';
 
@@ -368,6 +394,9 @@ export function EnhancedSearchContainer() {
       }
       if (key === 'acceptsMOI' || key === 'acceptsIELTS' || key === 'acceptsTOEFL' || key === 'acceptsPTE') {
         return value === true;
+      }
+      if (key === 'applicationFee') {
+        return value !== 'all';
       }
       return value !== 'all' && value !== null && value !== '';
     }).length;

@@ -6,16 +6,19 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Euro, Info, Home, ShoppingBag, Heart, Briefcase } from 'lucide-react';
+import { Euro, Info, Home, ShoppingBag, Heart, Briefcase, Receipt } from 'lucide-react';
 import { calculateTuitionFees, formatTuitionDisplay, type TuitionStructure } from '@/lib/tuition-calculator';
 
 interface ProgramCostsProps {
   tuitionAmount: number | null;
   tuitionStructure: TuitionStructure;
   durationSemesters: number | null;
+  applicationMethod?: string;
+  hasApplicationFee?: boolean | null;
+  applicationFeeAmount?: number | null;
 }
 
-export function ProgramCosts({ tuitionAmount, tuitionStructure, durationSemesters }: ProgramCostsProps) {
+export function ProgramCosts({ tuitionAmount, tuitionStructure, durationSemesters, applicationMethod, hasApplicationFee, applicationFeeAmount }: ProgramCostsProps) {
   const tuitionCalc = tuitionAmount 
     ? calculateTuitionFees(tuitionAmount, tuitionStructure)
     : null;
@@ -55,6 +58,23 @@ export function ProgramCosts({ tuitionAmount, tuitionStructure, durationSemester
     livingCosts.insurance.max +
     livingCosts.transport.max +
     livingCosts.other.max;
+
+  // Application fee logic
+  const isUniAssist = applicationMethod === 'uni_assist_direct' || applicationMethod === 'uni_assist_vpd';
+  const getApplicationFeeInfo = () => {
+    if (isUniAssist) {
+      return { hasFee: true, amount: '€75 (first) + €30 (additional)', isStandard: true };
+    }
+    if (hasApplicationFee === true && applicationFeeAmount) {
+      return { hasFee: true, amount: `€${applicationFeeAmount.toLocaleString()}`, isStandard: false };
+    }
+    if (hasApplicationFee === false) {
+      return { hasFee: false, amount: 'Free', isStandard: false };
+    }
+    return null;
+  };
+
+  const appFeeInfo = getApplicationFeeInfo();
 
   // Summary text for collapsed state
   const getSummary = () => {
@@ -154,7 +174,33 @@ export function ProgramCosts({ tuitionAmount, tuitionStructure, durationSemester
               )}
             </div>
 
-            {/* Semester Contribution */}
+            {/* Application Fee Section */}
+            {appFeeInfo && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Receipt className="h-4 w-4" />
+                  Application Fee
+                </h3>
+                {appFeeInfo.hasFee ? (
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-amber-50 border border-amber-200">
+                      <span className="text-sm text-amber-800">Application Fee</span>
+                      <span className="font-medium text-amber-900">{appFeeInfo.amount}</span>
+                    </div>
+                    {appFeeInfo.isStandard && (
+                      <p className="text-xs text-muted-foreground">
+                        Uni-Assist processes applications for many German universities. The fee is €75 for your first application and €30 for each additional application submitted in the same semester.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-green-50 border border-green-200">
+                    <span className="text-sm text-green-800">Application Fee</span>
+                    <Badge variant="default" className="bg-green-600">No Fee</Badge>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="space-y-3">
               <h3 className="text-sm font-semibold">Semester Contribution (All Students)</h3>
               <p className="text-xs text-muted-foreground">
