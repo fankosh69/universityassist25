@@ -163,7 +163,7 @@ export function ApplicantRequirementsCard({
             </div>
             
             {/* Student GPA comparison */}
-            {studentGpa && (
+            {studentGpa != null && studentGpa > 0 && (
               <Alert variant={gpaStatus === 'below' ? 'destructive' : 'default'}>
                 <div className="flex items-center gap-2">
                   {gpaStatus === 'excellent' && <CheckCircle2 className="h-4 w-4 text-green-600" />}
