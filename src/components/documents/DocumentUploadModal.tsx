@@ -34,7 +34,7 @@ const DOCUMENT_TYPES = [
   { value: 'other', label: 'Other' },
 ];
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const ALLOWED_TYPES = ['application/pdf', 'image/png', 'image/jpeg'];
 
 export default function DocumentUploadModal({
@@ -50,7 +50,7 @@ export default function DocumentUploadModal({
 
   const validateFile = (file: File): boolean => {
     if (file.size > MAX_FILE_SIZE) {
-      toast.error('File size must be less than 10MB');
+      toast.error('File size must be less than 20MB');
       return false;
     }
 
@@ -237,7 +237,7 @@ export default function DocumentUploadModal({
                   Select File
                 </Button>
                 <p className="text-xs text-muted-foreground mt-4">
-                  Supported: PDF, PNG, JPEG (Max 10MB)
+                  Supported: PDF, PNG, JPEG (Max 20MB)
                 </p>
               </>
             )}
