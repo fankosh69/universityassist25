@@ -4,9 +4,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { ChevronRight, X, Search, Star } from 'lucide-react';
+import { ChevronRight, X, Search, Star, Plus, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 interface FieldNode {
   id: string;
@@ -41,6 +43,12 @@ export const HierarchicalFieldMultiSelector = ({
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Inline add new field state
+  const [showAddField, setShowAddField] = useState(false);
+  const [newFieldName, setNewFieldName] = useState('');
+  const [newFieldParentId, setNewFieldParentId] = useState<string>('');
+  const [addingField, setAddingField] = useState(false);
 
   useEffect(() => {
     loadFieldsHierarchy();
@@ -59,6 +67,64 @@ export const HierarchicalFieldMultiSelector = ({
       console.error('Error loading fields hierarchy:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Get all level 1 fields as potential parents
+  const parentOptions = useMemo(() => {
+    return fields.map(f => ({ id: f.id, name: f.name }));
+  }, [fields]);
+
+  const handleAddNewField = async () => {
+    if (!newFieldName.trim()) {
+      toast.error('Please enter a field name');
+      return;
+    }
+
+    setAddingField(true);
+    try {
+      const slug = newFieldName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const level = newFieldParentId ? 2 : 1;
+
+      const { data, error } = await supabase
+        .from('fields_of_study')
+        .insert({
+          name: newFieldName.trim(),
+          slug,
+          parent_id: newFieldParentId || null,
+          level,
+          is_active: true,
+          sort_order: 0
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success(`Field "${newFieldName}" added successfully`);
+      
+      // Reload the hierarchy to get updated data
+      await loadFieldsHierarchy();
+      
+      // Auto-select the new field
+      if (data) {
+        onChange([...selectedFieldIds, data.id], primaryFieldId || data.id);
+        
+        // Expand parent if exists
+        if (newFieldParentId) {
+          setExpandedItems(prev => new Set([...prev, newFieldParentId]));
+        }
+      }
+
+      // Reset form
+      setNewFieldName('');
+      setNewFieldParentId('');
+      setShowAddField(false);
+    } catch (error: any) {
+      console.error('Error adding field:', error);
+      toast.error(error.message || 'Failed to add field');
+    } finally {
+      setAddingField(false);
     }
   };
 
@@ -307,15 +373,78 @@ export const HierarchicalFieldMultiSelector = ({
         </div>
       )}
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search fields of study..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9"
-        />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search fields of study..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setShowAddField(!showAddField)}
+          className="shrink-0"
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Add New
+        </Button>
       </div>
+
+      {showAddField && (
+        <div className="border rounded-md p-3 bg-accent/20 space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="new-field-name">New Field Name *</Label>
+            <Input
+              id="new-field-name"
+              placeholder="e.g., Data Science"
+              value={newFieldName}
+              onChange={(e) => setNewFieldName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="parent-field">Parent Category (optional)</Label>
+            <Select value={newFieldParentId} onValueChange={setNewFieldParentId}>
+              <SelectTrigger>
+                <SelectValue placeholder="None (top-level field)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">None (top-level field)</SelectItem>
+                {parentOptions.map(p => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleAddNewField}
+              disabled={addingField || !newFieldName.trim()}
+            >
+              {addingField && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+              Add Field
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowAddField(false);
+                setNewFieldName('');
+                setNewFieldParentId('');
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="border rounded-md p-2 max-h-[400px] overflow-y-auto">
         {displayedFields.length === 0 ? (
