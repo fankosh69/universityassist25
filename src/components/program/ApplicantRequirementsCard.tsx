@@ -270,7 +270,7 @@ export function ApplicantRequirementsCard({
             </div>
 
             {/* ECTS comparison */}
-            {studentEcts && requirements.subject_requirements.total_ects && (
+            {studentEcts != null && studentEcts > 0 && requirements.subject_requirements.total_ects && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Your ECTS</span>
