@@ -312,16 +312,18 @@ export default function ProgramPage() {
             <ProgramApplicationTimeline
               winterIntake={programData.winter_intake ? {
                 season: 'winter' as const,
-                applicationOpenDate: programData.winter_application_open_date,
-                applicationDeadline: programData.winter_deadline,
-                semesterStart: programData.winter_semester_start,
+                deadlineMonth: programData.winter_deadline_month,
+                deadlineDay: programData.winter_deadline_day,
+                openMonth: programData.winter_open_month,
+                openDay: programData.winter_open_day,
                 recognitionWeeksBefore: programData.recognition_weeks_before
               } : undefined}
               summerIntake={programData.summer_intake ? {
                 season: 'summer' as const,
-                applicationOpenDate: programData.summer_application_open_date,
-                applicationDeadline: programData.summer_deadline,
-                semesterStart: programData.summer_semester_start,
+                deadlineMonth: programData.summer_deadline_month,
+                deadlineDay: programData.summer_deadline_day,
+                openMonth: programData.summer_open_month,
+                openDay: programData.summer_open_day,
                 recognitionWeeksBefore: programData.recognition_weeks_before
               } : undefined}
               applicationMethod={programData.application_method}
