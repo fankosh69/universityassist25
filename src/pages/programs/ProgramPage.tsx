@@ -25,6 +25,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { BackToTop } from '@/components/BackToTop';
 import { ApplicantRequirementsCard } from '@/components/program/ApplicantRequirementsCard';
 import { useApplicantStatus } from '@/hooks/useApplicantStatus';
+import { useAdmin } from '@/hooks/useAdmin';
 
 export default function ProgramPage() {
   const { uni, program } = useParams();
@@ -39,6 +40,7 @@ export default function ProgramPage() {
   const [userId, setUserId] = useState<string | null>(null);
   
   const { isApplicant, isLoading: applicantLoading } = useApplicantStatus(userId);
+  const { isAdmin } = useAdmin();
 
   useEffect(() => {
     async function fetchData() {
@@ -301,6 +303,7 @@ export default function ProgramPage() {
                 interview_details: programData.interview_details
               }}
               isApplicant={isApplicant}
+              isAdmin={isAdmin}
               isLoading={applicantLoading}
               studentGpa={studentProfile?.gpa_de}
               studentEcts={studentProfile?.ects_total}

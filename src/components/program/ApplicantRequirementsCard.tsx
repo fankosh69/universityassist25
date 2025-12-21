@@ -55,6 +55,7 @@ interface ProgramRequirementsData {
 interface ApplicantRequirementsCardProps {
   requirements: ProgramRequirementsData;
   isApplicant: boolean;
+  isAdmin?: boolean;
   isLoading?: boolean;
   studentGpa?: number | null;
   studentEcts?: number | null;
@@ -63,6 +64,7 @@ interface ApplicantRequirementsCardProps {
 export function ApplicantRequirementsCard({
   requirements,
   isApplicant,
+  isAdmin = false,
   isLoading,
   studentGpa,
   studentEcts,
@@ -80,8 +82,12 @@ export function ApplicantRequirementsCard({
     );
   }
 
-  // Show teaser for non-applicants
-  if (!isApplicant) {
+  // Admins always see full details, and for now all users can see details (restriction removed)
+  // Original restriction: if (!isApplicant && !isAdmin) { show teaser }
+  // Future: re-enable by uncommenting below and removing the 'true' condition
+  const canViewDetails = isAdmin || isApplicant || true; // 'true' removes restriction for all users
+
+  if (!canViewDetails) {
     return (
       <Card className="border-dashed border-2 bg-muted/30">
         <CardContent className="py-8 text-center space-y-4">
