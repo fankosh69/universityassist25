@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
@@ -53,13 +53,61 @@ const COMMON_TOPICS: Record<string, string[]> = {
   'Social Sciences': ['Psychology', 'Sociology', 'Political Science', 'Research Methods'],
 };
 
+// Special value for "add custom" option
+const ADD_CUSTOM_VALUE = '__add_custom__';
+
 export function SubjectRequirementsBuilder({ value, onChange }: SubjectRequirementsBuilderProps) {
   const [newTopicInput, setNewTopicInput] = useState<Record<string, string>>({});
+  const [customSubjectAreas, setCustomSubjectAreas] = useState<string[]>([]);
+  const [customTopics, setCustomTopics] = useState<Record<string, string[]>>({});
+  const [showAddSubjectArea, setShowAddSubjectArea] = useState<number | null>(null);
+  const [newSubjectAreaName, setNewSubjectAreaName] = useState('');
+  const [showAddTopic, setShowAddTopic] = useState<string | null>(null);
+  const [newTopicName, setNewTopicName] = useState('');
 
   // Ensure value has the required structure with safe defaults
   const safeValue: SubjectRequirements = {
     total_ects: value?.total_ects ?? 180,
     subject_areas: Array.isArray(value?.subject_areas) ? value.subject_areas : []
+  };
+
+  // Combined subject areas (common + custom)
+  const allSubjectAreas = [...COMMON_SUBJECT_AREAS, ...customSubjectAreas];
+
+  // Get topics for an area (common + custom)
+  const getTopicsForArea = (area: string): string[] => {
+    const commonTopics = COMMON_TOPICS[area] || [];
+    const custom = customTopics[area] || [];
+    return [...commonTopics, ...custom];
+  };
+
+  const handleAddCustomSubjectArea = (areaIndex: number) => {
+    if (!newSubjectAreaName.trim()) return;
+    const name = newSubjectAreaName.trim();
+    if (!customSubjectAreas.includes(name) && !COMMON_SUBJECT_AREAS.includes(name)) {
+      setCustomSubjectAreas(prev => [...prev, name]);
+    }
+    updateSubjectArea(areaIndex, 'area', name);
+    setNewSubjectAreaName('');
+    setShowAddSubjectArea(null);
+  };
+
+  const handleAddCustomTopic = (areaIndex: number, subIndex: number, area: string) => {
+    if (!newTopicName.trim()) return;
+    const topic = newTopicName.trim();
+    
+    // Add to custom topics for this area
+    if (!getTopicsForArea(area).includes(topic)) {
+      setCustomTopics(prev => ({
+        ...prev,
+        [area]: [...(prev[area] || []), topic]
+      }));
+    }
+    
+    // Add to sub-requirement
+    addTopicToSubRequirement(areaIndex, subIndex, topic);
+    setNewTopicName('');
+    setShowAddTopic(null);
   };
 
   const addSubjectArea = () => {
@@ -159,19 +207,59 @@ export function SubjectRequirementsBuilder({ value, onChange }: SubjectRequireme
             <CardHeader className="py-3 px-4">
               <div className="flex items-center gap-2">
                 <GripVertical className="h-4 w-4 text-muted-foreground" />
-                <Select
-                  value={area.area}
-                  onValueChange={(v) => updateSubjectArea(areaIndex, 'area', v)}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Select subject area" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COMMON_SUBJECT_AREAS.map((subj) => (
-                      <SelectItem key={subj} value={subj}>{subj}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {showAddSubjectArea === areaIndex ? (
+                  <div className="flex-1 flex items-center gap-2">
+                    <Input
+                      placeholder="Enter custom subject area..."
+                      value={newSubjectAreaName}
+                      onChange={(e) => setNewSubjectAreaName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddCustomSubjectArea(areaIndex)}
+                      autoFocus
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => handleAddCustomSubjectArea(areaIndex)}
+                      disabled={!newSubjectAreaName.trim()}
+                    >
+                      Add
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => { setShowAddSubjectArea(null); setNewSubjectAreaName(''); }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <Select
+                    value={area.area}
+                    onValueChange={(v) => {
+                      if (v === ADD_CUSTOM_VALUE) {
+                        setShowAddSubjectArea(areaIndex);
+                      } else {
+                        updateSubjectArea(areaIndex, 'area', v);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select subject area" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allSubjectAreas.map((subj) => (
+                        <SelectItem key={subj} value={subj}>{subj}</SelectItem>
+                      ))}
+                      <SelectItem value={ADD_CUSTOM_VALUE} className="text-primary font-medium">
+                        <span className="flex items-center gap-1">
+                          <Plus className="h-3 w-3" /> Add custom...
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
                 <div className="flex items-center gap-1">
                   <Input
                     type="number"
@@ -246,20 +334,61 @@ export function SubjectRequirementsBuilder({ value, onChange }: SubjectRequireme
                     ))}
                     
                     {/* Add topic dropdown or input */}
-                    <Select
-                      value=""
-                      onValueChange={(v) => addTopicToSubRequirement(areaIndex, subIndex, v)}
-                    >
-                      <SelectTrigger className="w-40 h-7 text-xs">
-                        <SelectValue placeholder="+ Add topic" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(COMMON_TOPICS[area.area] || []).map((topic) => (
-                          <SelectItem key={topic} value={topic}>{topic}</SelectItem>
-                        ))}
-                        <SelectItem value="__custom">Custom...</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {showAddTopic === `${areaIndex}-${subIndex}` ? (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          placeholder="Enter topic..."
+                          value={newTopicName}
+                          onChange={(e) => setNewTopicName(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleAddCustomTopic(areaIndex, subIndex, area.area)}
+                          autoFocus
+                          className="w-40 h-7 text-xs"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="h-7 text-xs px-2"
+                          onClick={() => handleAddCustomTopic(areaIndex, subIndex, area.area)}
+                          disabled={!newTopicName.trim()}
+                        >
+                          Add
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs px-2"
+                          onClick={() => { setShowAddTopic(null); setNewTopicName(''); }}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ) : (
+                      <Select
+                        value=""
+                        onValueChange={(v) => {
+                          if (v === ADD_CUSTOM_VALUE) {
+                            setShowAddTopic(`${areaIndex}-${subIndex}`);
+                          } else {
+                            addTopicToSubRequirement(areaIndex, subIndex, v);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-40 h-7 text-xs">
+                          <SelectValue placeholder="+ Add topic" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getTopicsForArea(area.area).map((topic) => (
+                            <SelectItem key={topic} value={topic}>{topic}</SelectItem>
+                          ))}
+                          <SelectItem value={ADD_CUSTOM_VALUE} className="text-primary font-medium">
+                            <span className="flex items-center gap-1">
+                              <Plus className="h-3 w-3" /> Add custom...
+                            </span>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                 </div>
               ))}

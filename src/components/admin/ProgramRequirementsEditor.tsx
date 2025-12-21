@@ -5,11 +5,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, GraduationCap, Target, FileCheck, BookOpen, AlertCircle, ClipboardCheck, Users } from 'lucide-react';
+import { ChevronDown, GraduationCap, Target, FileCheck, BookOpen, AlertCircle, ClipboardCheck, Plus, Loader2 } from 'lucide-react';
 import { SubjectRequirementsBuilder, SubjectRequirements } from './SubjectRequirementsBuilder';
 import { ProgramDocumentUpload } from './ProgramDocumentUpload';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ProgramRequirementsData {
   // GPA
@@ -60,6 +62,9 @@ export function ProgramRequirementsEditor({
 }: ProgramRequirementsEditorProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [fieldsOfStudy, setFieldsOfStudy] = useState<FieldOfStudy[]>([]);
+  const [showAddDegree, setShowAddDegree] = useState(false);
+  const [newDegreeName, setNewDegreeName] = useState('');
+  const [addingDegree, setAddingDegree] = useState(false);
 
   useEffect(() => {
     fetchFieldsOfStudy();
@@ -74,6 +79,40 @@ export function ProgramRequirementsEditor({
     
     if (data) {
       setFieldsOfStudy(data);
+    }
+  };
+
+  const handleAddNewDegree = async () => {
+    if (!newDegreeName.trim()) return;
+    
+    setAddingDegree(true);
+    try {
+      const slug = newDegreeName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      
+      const { data, error } = await supabase
+        .from('fields_of_study')
+        .insert({
+          name: newDegreeName.trim(),
+          slug,
+          level: 2,
+          is_active: true
+        })
+        .select('id, name, slug, level')
+        .single();
+      
+      if (error) throw error;
+      
+      // Add to local state and select it
+      setFieldsOfStudy(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+      updateField('accepted_degrees', [...(value.accepted_degrees || []), data.slug]);
+      
+      toast.success(`Added "${newDegreeName}" as a new degree option`);
+      setNewDegreeName('');
+      setShowAddDegree(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to add new degree');
+    } finally {
+      setAddingDegree(false);
     }
   };
 
@@ -115,14 +154,55 @@ export function ProgramRequirementsEditor({
           <CardContent className="space-y-6">
             {/* Accepted Prior Degrees */}
             <div className="space-y-3">
-              <Label className="text-base font-semibold flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                Accepted Prior Degrees
-                <span className="text-destructive">*</span>
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Accepted Prior Degrees
+                  <span className="text-destructive">*</span>
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAddDegree(!showAddDegree)}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add New
+                </Button>
+              </div>
               <p className="text-sm text-muted-foreground">
                 Select the specific degree programs (majors) that are considered relevant for admission.
               </p>
+              
+              {/* Add New Degree Inline Form */}
+              {showAddDegree && (
+                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
+                  <Input
+                    placeholder="Enter new degree name (e.g., 'Data Science')"
+                    value={newDegreeName}
+                    onChange={(e) => setNewDegreeName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddNewDegree()}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleAddNewDegree}
+                    disabled={addingDegree || !newDegreeName.trim()}
+                  >
+                    {addingDegree ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => { setShowAddDegree(false); setNewDegreeName(''); }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
+              
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-72 overflow-y-auto p-2 border rounded-lg">
                 {specificMajors.map((field) => (
                   <div key={field.id} className="flex items-center space-x-2">
