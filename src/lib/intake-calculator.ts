@@ -20,7 +20,8 @@ export interface ComputedIntake {
   openDate: Date | null;
   semesterStartDate: Date;
   daysUntilDeadline: number;
-  status: 'open' | 'closing_soon' | 'urgent' | 'closed';
+  daysUntilOpen: number | null;
+  status: 'not_open_yet' | 'open' | 'closing_soon' | 'urgent' | 'closed';
   displayLabel: string;  // e.g., "Winter 2026/2027" or "Summer 2027"
   isPassed: boolean;
 }
@@ -89,12 +90,26 @@ export function getSemesterYear(season: 'winter' | 'summer', deadlineDate: Date)
 }
 
 /**
- * Calculate deadline status based on days remaining
+ * Calculate application status based on open date and deadline date
+ * Takes into account whether applications have opened yet
  */
-export function getDeadlineStatusFromDays(daysRemaining: number): 'open' | 'closing_soon' | 'urgent' | 'closed' {
-  if (daysRemaining < 0) return 'closed';
-  if (daysRemaining <= 7) return 'urgent';
-  if (daysRemaining <= 30) return 'closing_soon';
+export function getApplicationStatus(
+  openDate: Date | null,
+  deadlineDate: Date,
+  referenceDate: Date = new Date()
+): 'not_open_yet' | 'open' | 'closing_soon' | 'urgent' | 'closed' {
+  const daysUntilDeadline = differenceInDays(deadlineDate, referenceDate);
+  
+  // If deadline has passed → Closed
+  if (daysUntilDeadline < 0) return 'closed';
+  
+  // If we have an open date and we're before it → Not Open Yet
+  if (openDate && referenceDate < openDate) return 'not_open_yet';
+  
+  // Application is open, check urgency
+  if (daysUntilDeadline <= 7) return 'urgent';
+  if (daysUntilDeadline <= 30) return 'closing_soon';
+  
   return 'open';
 }
 
@@ -111,7 +126,6 @@ export function computeIntake(
 
   const deadlineDate = getNextDeadlineDate(intake.deadlineMonth, intake.deadlineDay, referenceDate);
   const daysUntilDeadline = differenceInDays(deadlineDate, referenceDate);
-  const status = getDeadlineStatusFromDays(daysUntilDeadline);
   const semesterYear = getSemesterYear(intake.season, deadlineDate);
 
   // Calculate open date if available
@@ -132,6 +146,14 @@ export function computeIntake(
   const semesterStartMonth = intake.season === 'winter' ? 10 : 4; // October or April
   const semesterStartDate = new Date(semesterYear, semesterStartMonth - 1, 1);
 
+  // Calculate status considering both open date and deadline
+  const status = getApplicationStatus(openDate, deadlineDate, referenceDate);
+  
+  // Calculate days until open (if applicable)
+  const daysUntilOpen = openDate && referenceDate < openDate 
+    ? differenceInDays(openDate, referenceDate) 
+    : null;
+
   return {
     season: intake.season,
     year: semesterYear,
@@ -139,6 +161,7 @@ export function computeIntake(
     openDate,
     semesterStartDate,
     daysUntilDeadline,
+    daysUntilOpen,
     status,
     displayLabel: getSemesterLabel(intake.season, semesterYear),
     isPassed: daysUntilDeadline < 0
