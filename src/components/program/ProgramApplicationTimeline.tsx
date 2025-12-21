@@ -1,8 +1,13 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, AlertCircle, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { 
   getUpcomingIntakes, 
   formatIntakeDate,
@@ -55,6 +60,9 @@ export function ProgramApplicationTimeline({
 
   const upcomingIntakes = getUpcomingIntakes(winterData, summerData);
 
+  // Get the most relevant intake for the summary
+  const primaryIntake = upcomingIntakes[0];
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'not_open_yet':
@@ -91,6 +99,11 @@ export function ProgramApplicationTimeline({
       default:
         return null;
     }
+  };
+
+  const getSummaryBadge = () => {
+    if (!primaryIntake) return <Badge variant="secondary">No info</Badge>;
+    return getStatusBadge(primaryIntake.status, primaryIntake.daysUntilOpen);
   };
 
   const renderIntakeTimeline = (intake: ComputedIntake) => {
@@ -202,23 +215,37 @@ export function ProgramApplicationTimeline({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Application Timeline
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {upcomingIntakes.length > 0 ? (
-          upcomingIntakes.map(renderIntakeTimeline)
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No intake information available</p>
+    <Accordion type="single" collapsible defaultValue="timeline" className="w-full">
+      <AccordionItem value="timeline" className="border rounded-lg bg-card">
+        <AccordionTrigger className="px-6 py-4 hover:no-underline [&[data-state=open]>svg]:rotate-180">
+          <div className="flex items-center justify-between w-full pr-2">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              <span className="font-semibold">Application Timeline</span>
+            </div>
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              {primaryIntake && (
+                <span className="text-sm text-muted-foreground hidden sm:inline">
+                  {primaryIntake.displayLabel}
+                </span>
+              )}
+              {getSummaryBadge()}
+            </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </AccordionTrigger>
+        <AccordionContent className="px-6 pb-6">
+          <div className="space-y-4 pt-2">
+            {upcomingIntakes.length > 0 ? (
+              upcomingIntakes.map(renderIntakeTimeline)
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No intake information available</p>
+              </div>
+            )}
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 }
