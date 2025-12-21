@@ -58,8 +58,6 @@ const ADD_CUSTOM_VALUE = '__add_custom__';
 
 export function SubjectRequirementsBuilder({ value, onChange }: SubjectRequirementsBuilderProps) {
   const [newTopicInput, setNewTopicInput] = useState<Record<string, string>>({});
-  const [customSubjectAreas, setCustomSubjectAreas] = useState<string[]>([]);
-  const [customTopics, setCustomTopics] = useState<Record<string, string[]>>({});
   const [showAddSubjectArea, setShowAddSubjectArea] = useState<number | null>(null);
   const [newSubjectAreaName, setNewSubjectAreaName] = useState('');
   const [showAddTopic, setShowAddTopic] = useState<string | null>(null);
@@ -70,6 +68,34 @@ export function SubjectRequirementsBuilder({ value, onChange }: SubjectRequireme
     total_ects: value?.total_ects ?? 180,
     subject_areas: Array.isArray(value?.subject_areas) ? value.subject_areas : []
   };
+
+  // Initialize custom subject areas from saved data - extract areas not in COMMON_SUBJECT_AREAS
+  const [customSubjectAreas, setCustomSubjectAreas] = useState<string[]>(() => {
+    const savedAreas = safeValue.subject_areas
+      .map(sa => sa.area)
+      .filter(area => area && !COMMON_SUBJECT_AREAS.includes(area));
+    return [...new Set(savedAreas)];
+  });
+
+  // Initialize custom topics from saved data - extract topics not in COMMON_TOPICS
+  const [customTopics, setCustomTopics] = useState<Record<string, string[]>>(() => {
+    const saved: Record<string, string[]> = {};
+    safeValue.subject_areas.forEach(sa => {
+      if (!sa.area) return;
+      const commonForArea = COMMON_TOPICS[sa.area] || [];
+      sa.sub_requirements.forEach(subReq => {
+        subReq.topics.forEach(topic => {
+          if (!commonForArea.includes(topic)) {
+            if (!saved[sa.area]) saved[sa.area] = [];
+            if (!saved[sa.area].includes(topic)) {
+              saved[sa.area].push(topic);
+            }
+          }
+        });
+      });
+    });
+    return saved;
+  });
 
   // Combined subject areas (common + custom)
   const allSubjectAreas = [...COMMON_SUBJECT_AREAS, ...customSubjectAreas];
