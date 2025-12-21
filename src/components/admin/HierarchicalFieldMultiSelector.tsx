@@ -70,9 +70,21 @@ export const HierarchicalFieldMultiSelector = ({
     }
   };
 
-  // Get all level 1 fields as potential parents
+  // Get all level 1 and level 2 fields as potential parents for 3-tier hierarchy
   const parentOptions = useMemo(() => {
-    return fields.map(f => ({ id: f.id, name: f.name }));
+    const options: { id: string; name: string; level: number }[] = [];
+    
+    fields.forEach(field => {
+      // Add level 1 (main categories)
+      options.push({ id: field.id, name: field.name, level: 1 });
+      
+      // Add level 2 children (subcategories) - these can be parents of level 3
+      field.children.forEach(child => {
+        options.push({ id: child.id, name: child.name, level: 2 });
+      });
+    });
+    
+    return options;
   }, [fields]);
 
   const handleAddNewField = async () => {
@@ -84,7 +96,13 @@ export const HierarchicalFieldMultiSelector = ({
     setAddingField(true);
     try {
       const slug = newFieldName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      const level = newFieldParentId ? 2 : 1;
+      
+      // Calculate level based on selected parent's level
+      let level = 1; // Default: top-level (Main Category)
+      if (newFieldParentId) {
+        const selectedParent = parentOptions.find(p => p.id === newFieldParentId);
+        level = selectedParent ? selectedParent.level + 1 : 2;
+      }
 
       const { data, error } = await supabase
         .from('fields_of_study')
@@ -407,18 +425,23 @@ export const HierarchicalFieldMultiSelector = ({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="parent-field">Parent Category (optional)</Label>
+            <Label htmlFor="parent-field">Parent (determines level)</Label>
             <Select 
               value={newFieldParentId || "__none__"} 
               onValueChange={(val) => setNewFieldParentId(val === "__none__" ? "" : val)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="None (top-level field)" />
+                <SelectValue placeholder="None (Main Category)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">None (top-level field)</SelectItem>
+                <SelectItem value="__none__">None (Main Category - Level 1)</SelectItem>
                 {parentOptions.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.level === 1 ? p.name : `  └─ ${p.name}`}
+                    <span className="text-muted-foreground text-xs ml-2">
+                      → creates Level {p.level + 1}
+                    </span>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
