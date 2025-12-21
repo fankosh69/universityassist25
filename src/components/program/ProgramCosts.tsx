@@ -32,7 +32,7 @@ export function ProgramCosts({ tuitionAmount, tuitionStructure, durationSemester
   const livingCosts = {
     accommodation: { min: 300, max: 700 },
     food: { min: 200, max: 350 },
-    insurance: { min: 110, max: 120 },
+    insurance: { min: 130, max: 170 },
     transport: { min: 0, max: 50 }, // Often covered by semester ticket
     other: { min: 100, max: 200 },
   };
@@ -209,7 +209,7 @@ export function ProgramCosts({ tuitionAmount, tuitionStructure, durationSemester
             <div className="p-3 rounded-lg border">
               <p className="text-sm font-medium">Blocked Account</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Required proof of ~€11,208/year for student visa application
+                Required proof of €11,904/year (€992/month) for student visa application
               </p>
             </div>
           </div>
