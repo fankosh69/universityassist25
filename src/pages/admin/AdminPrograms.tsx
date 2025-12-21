@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Trash2, Search, ExternalLink, Clock, AlertTriangle, Upload } from "lucide-react";
+import { Plus, Edit, Trash2, Search, ExternalLink, Clock, AlertTriangle, Upload, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -159,6 +159,9 @@ export const AdminPrograms = () => {
     admission_test_details: string | null;
     interview_required: boolean;
     interview_details: string | null;
+    // Application fee fields
+    has_application_fee: boolean | null;
+    application_fee_amount: number | null;
   }>({
     name: "",
     description: "",
@@ -196,7 +199,10 @@ export const AdminPrograms = () => {
     german_language_requirements: null,
     campus_ids: [],
     // Academic requirements defaults
-    ...getDefaultRequirementsData()
+    ...getDefaultRequirementsData(),
+    // Application fee defaults
+    has_application_fee: null,
+    application_fee_amount: null
   });
   useEffect(() => {
     fetchPrograms();
@@ -346,7 +352,10 @@ export const AdminPrograms = () => {
         subject_requirements: formData.subject_requirements as any,
         admission_regulations_url: formData.admission_regulations_url,
         program_flyer_url: formData.program_flyer_url,
-        module_description_url: formData.module_description_url
+        module_description_url: formData.module_description_url,
+        // Application fee fields - only set for direct application
+        has_application_fee: formData.application_method === 'direct' ? formData.has_application_fee : null,
+        application_fee_amount: formData.application_method === 'direct' && formData.has_application_fee ? formData.application_fee_amount : null
       };
 
       // Remove fields that belong to the junction table, not the programs table
@@ -529,7 +538,10 @@ export const AdminPrograms = () => {
       admission_test_required: (program as any).admission_test_required || false,
       admission_test_details: (program as any).admission_test_details || null,
       interview_required: (program as any).interview_required || false,
-      interview_details: (program as any).interview_details || null
+      interview_details: (program as any).interview_details || null,
+      // Application fee fields
+      has_application_fee: (program as any).has_application_fee ?? null,
+      application_fee_amount: (program as any).application_fee_amount || null
     });
     setIsDialogOpen(true);
   };
@@ -572,7 +584,10 @@ export const AdminPrograms = () => {
       german_language_requirements: null,
       campus_ids: [],
       // Reset academic requirements
-      ...getDefaultRequirementsData()
+      ...getDefaultRequirementsData(),
+      // Reset application fee
+      has_application_fee: null,
+      application_fee_amount: null
     });
     setIsDialogOpen(false);
   };
@@ -1610,6 +1625,62 @@ export const AdminPrograms = () => {
                     This process is only applicable for specific universities in Baden-Württemberg.
                   </AlertDescription>
                 </Alert>}
+
+              {/* Application Fee for Uni-Assist */}
+              {(formData.application_method === 'uni_assist_direct' || formData.application_method === 'uni_assist_vpd') && (
+                <Alert className="mt-2 border-blue-200 bg-blue-50">
+                  <Info className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800">
+                    <strong>Standard Uni-Assist application fees apply:</strong>
+                    <ul className="list-disc ml-4 mt-1 text-sm">
+                      <li>€75 for the first application</li>
+                      <li>€30 for each additional application</li>
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Application Fee for Direct Application */}
+              {formData.application_method === 'direct' && (
+                <div className="mt-3 p-3 border rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="has_application_fee"
+                      checked={formData.has_application_fee === true}
+                      onCheckedChange={(checked) => setFormData({
+                        ...formData,
+                        has_application_fee: checked ? true : false,
+                        application_fee_amount: checked ? formData.application_fee_amount : null
+                      })}
+                    />
+                    <Label htmlFor="has_application_fee" className="cursor-pointer">
+                      This program has an application fee
+                    </Label>
+                  </div>
+                  
+                  {formData.has_application_fee === true && (
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="application_fee_amount" className="whitespace-nowrap">Fee Amount:</Label>
+                      <div className="relative flex-1 max-w-[150px]">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
+                        <Input
+                          id="application_fee_amount"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className="pl-7"
+                          value={formData.application_fee_amount || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            application_fee_amount: e.target.value ? parseFloat(e.target.value) : null
+                          })}
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">

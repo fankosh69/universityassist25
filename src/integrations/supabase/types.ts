@@ -2174,6 +2174,7 @@ export type Database = {
           admission_test_details: string | null
           admission_test_required: boolean | null
           application_deadline: string | null
+          application_fee_amount: number | null
           application_method: string | null
           country_code: string | null
           created_at: string
@@ -2196,6 +2197,7 @@ export type Database = {
           gre_minimum_total: number | null
           gre_minimum_verbal: number | null
           gre_required: boolean | null
+          has_application_fee: boolean | null
           id: string
           instruction_mode:
             | Database["public"]["Enums"]["instruction_language_mode"]
@@ -2244,6 +2246,7 @@ export type Database = {
           admission_test_details?: string | null
           admission_test_required?: boolean | null
           application_deadline?: string | null
+          application_fee_amount?: number | null
           application_method?: string | null
           country_code?: string | null
           created_at?: string
@@ -2266,6 +2269,7 @@ export type Database = {
           gre_minimum_total?: number | null
           gre_minimum_verbal?: number | null
           gre_required?: boolean | null
+          has_application_fee?: boolean | null
           id?: string
           instruction_mode?:
             | Database["public"]["Enums"]["instruction_language_mode"]
@@ -2314,6 +2318,7 @@ export type Database = {
           admission_test_details?: string | null
           admission_test_required?: boolean | null
           application_deadline?: string | null
+          application_fee_amount?: number | null
           application_method?: string | null
           country_code?: string | null
           created_at?: string
@@ -2336,6 +2341,7 @@ export type Database = {
           gre_minimum_total?: number | null
           gre_minimum_verbal?: number | null
           gre_required?: boolean | null
+          has_application_fee?: boolean | null
           id?: string
           instruction_mode?:
             | Database["public"]["Enums"]["instruction_language_mode"]

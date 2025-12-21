@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Globe, Euro, Award, FileCheck, GraduationCap, Monitor } from 'lucide-react';
+import { Calendar, Clock, Globe, Euro, Award, FileCheck, GraduationCap, Monitor, Receipt } from 'lucide-react';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { formatTuitionDisplay, type TuitionStructure } from '@/lib/tuition-calculator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ProgramQuickFactsProps {
   durationSemesters: number | null;
@@ -21,6 +22,8 @@ interface ProgramQuickFactsProps {
   uniAssistRequired: boolean;
   deliveryMode?: string;
   programUrl?: string;
+  hasApplicationFee?: boolean | null;
+  applicationFeeAmount?: number | null;
 }
 
 export function ProgramQuickFacts({
@@ -36,6 +39,8 @@ export function ProgramQuickFacts({
   uniAssistRequired,
   deliveryMode,
   programUrl,
+  hasApplicationFee,
+  applicationFeeAmount,
 }: ProgramQuickFactsProps) {
   const { t } = useTranslation();
 
@@ -70,6 +75,42 @@ export function ProgramQuickFacts({
         return method;
     }
   };
+
+  // Determine application fee display
+  const getApplicationFeeDisplay = () => {
+    const isUniAssist = applicationMethod === 'uni_assist_direct' || applicationMethod === 'uni_assist_vpd';
+    
+    if (isUniAssist) {
+      return {
+        hasFee: true,
+        label: '€75 (first) + €30 (each add.)',
+        tooltip: 'Standard Uni-Assist fees: €75 for the first application, €30 for each additional application',
+        variant: 'secondary' as const
+      };
+    }
+    
+    if (hasApplicationFee === true && applicationFeeAmount) {
+      return {
+        hasFee: true,
+        label: `€${applicationFeeAmount.toLocaleString()}`,
+        tooltip: 'Application fee charged by the university',
+        variant: 'secondary' as const
+      };
+    }
+    
+    if (hasApplicationFee === false) {
+      return {
+        hasFee: false,
+        label: 'No application fee',
+        tooltip: 'This program does not charge an application fee',
+        variant: 'default' as const
+      };
+    }
+    
+    return null; // Unknown/not specified
+  };
+
+  const applicationFeeInfo = getApplicationFeeDisplay();
 
   return (
     <Card>
@@ -166,6 +207,28 @@ export function ProgramQuickFacts({
               <div className="space-y-0.5">
                 <p className="text-xs text-muted-foreground">Next Deadline</p>
                 <p className="text-sm font-medium">{format(nextDeadline, 'MMM d, yyyy')}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Application Fee */}
+          {applicationFeeInfo && (
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+              <Receipt className="h-5 w-5 text-primary mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="text-xs text-muted-foreground">Application Fee</p>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <p className={`text-sm font-medium ${!applicationFeeInfo.hasFee ? 'text-green-600' : ''}`}>
+                        {applicationFeeInfo.label}
+                      </p>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">{applicationFeeInfo.tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           )}
