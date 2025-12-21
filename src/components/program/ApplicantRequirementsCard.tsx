@@ -303,7 +303,37 @@ export function ApplicantRequirementsCard({
                   <Badge variant="outline" className="text-orange-600 border-orange-300">Required</Badge>
                 </div>
                 {requirements.admission_test_details && (
-                  <p className="text-sm text-muted-foreground">{requirements.admission_test_details}</p>
+                  <div className="text-sm text-muted-foreground">
+                    {(() => {
+                      const text = requirements.admission_test_details;
+                      // Check if text contains numbered list items (e.g., "1-", "2-", "1.", "2.")
+                      const listPattern = /\d+[-.)]\s*/g;
+                      const items = text.split(listPattern).filter(Boolean);
+                      
+                      if (items.length > 1) {
+                        // Extract intro text before first number
+                        const introMatch = text.match(/^(.*?)(?=\d+[-.)])/s);
+                        const intro = introMatch ? introMatch[1].trim() : '';
+                        
+                        return (
+                          <>
+                            {intro && <p className="mb-2">{intro}</p>}
+                            <table className="w-full border-collapse">
+                              <tbody>
+                                {items.map((item, idx) => (
+                                  <tr key={idx} className="border-b border-border/50 last:border-0">
+                                    <td className="py-1.5 pr-3 text-muted-foreground font-medium w-8">{idx + 1}.</td>
+                                    <td className="py-1.5">{item.trim()}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </>
+                        );
+                      }
+                      return <p>{text}</p>;
+                    })()}
+                  </div>
                 )}
               </div>
             )}
