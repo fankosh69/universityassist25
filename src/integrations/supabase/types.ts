@@ -3819,8 +3819,6 @@ export type Database = {
         }
         Returns: Json
       }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
       slugify: { Args: { txt: string }; Returns: string }
       ultra_secure_profile_update: {
         Args: { target_profile_id: string; update_data: Json }
