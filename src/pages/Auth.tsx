@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, User, Phone, ArrowLeft } from "lucide-react";
+import { Lock, User, Phone, ArrowLeft, Clock } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Logo from "@/components/Logo";
 import { CountryCodeSelect } from "@/components/CountryCodeSelect";
@@ -25,6 +26,7 @@ const Auth = () => {
   const [parentErrors, setParentErrors] = useState<string[]>([]);
   const [dobValidation, setDobValidation] = useState<DOBValidationResult | null>(null);
   const [passwordValidation, setPasswordValidation] = useState<PasswordCheck | null>(null);
+  const [rateLimitCooldown, setRateLimitCooldown] = useState(0);
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get("tab") === "signup" ? "signup" : "signin";
   const [signUpData, setSignUpData] = useState({
@@ -50,6 +52,36 @@ const Auth = () => {
   
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Countdown timer for rate limit cooldown
+  useEffect(() => {
+    if (rateLimitCooldown <= 0) return;
+    
+    const timer = setInterval(() => {
+      setRateLimitCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [rateLimitCooldown]);
+
+  // Helper to detect rate limit errors
+  const isRateLimitError = (error: any): boolean => {
+    const errorCode = error?.code || error?.error_code || '';
+    const errorMessage = (error?.message || '').toLowerCase();
+    
+    return (
+      errorCode === 'over_email_send_rate_limit' ||
+      errorMessage.includes('rate limit') ||
+      errorMessage.includes('too many requests') ||
+      errorMessage.includes('email rate limit')
+    );
+  };
 
   // Phone validation function
   const validatePhoneNumber = (phone: string, countryCode: string): string => {
@@ -264,11 +296,19 @@ const Auth = () => {
           : "Please check your email to confirm your account.",
       });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (isRateLimitError(error)) {
+        setRateLimitCooldown(60);
+        toast({
+          title: "Please wait a moment",
+          description: "Our email system is temporarily busy. Please wait 2-3 minutes and try again. Your information has been saved.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -378,6 +418,14 @@ const Auth = () => {
 
               {/* Sign Up Tab */}
               <TabsContent value="signup">
+                {rateLimitCooldown > 0 && (
+                  <Alert className="mb-4 border-primary/20 bg-primary/5">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <AlertDescription className="text-sm">
+                      Please wait {rateLimitCooldown} seconds before trying again. Your form data is saved.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-name">Full Name</Label>
@@ -486,9 +534,13 @@ const Auth = () => {
                     type="submit"
                     variant="hero"
                     className="w-full"
-                    disabled={loading}
+                    disabled={loading || rateLimitCooldown > 0}
                   >
-                    {loading ? "Creating Account..." : "Create Account"}
+                    {loading 
+                      ? "Creating Account..." 
+                      : rateLimitCooldown > 0 
+                        ? `Try again in ${rateLimitCooldown}s` 
+                        : "Create Account"}
                   </Button>
                 </form>
               </TabsContent>
