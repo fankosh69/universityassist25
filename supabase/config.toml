@@ -83,3 +83,6 @@ verify_jwt = false
 
 [functions.auto-create-field-of-study]
 verify_jwt = false
+
+[functions.sync-hubspot-lead]
+verify_jwt = false
