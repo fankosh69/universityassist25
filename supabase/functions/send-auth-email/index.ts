@@ -7,9 +7,16 @@ import { PasswordResetEmail } from './_templates/password-reset.tsx';
 import { MagicLinkEmail } from './_templates/magic-link.tsx';
 import { EmailChangeEmail } from './_templates/email-change.tsx';
 
-const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string);
-const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET') as string;
-const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
+// Check secrets at startup and log their presence (not values)
+const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET');
+const resendApiKey = Deno.env.get('RESEND_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL');
+
+console.log('=== send-auth-email startup check ===');
+console.log('SEND_EMAIL_HOOK_SECRET exists:', !!hookSecret);
+console.log('RESEND_API_KEY exists:', !!resendApiKey);
+console.log('SUPABASE_URL exists:', !!supabaseUrl);
+
 const logoUrl = 'https://zfiexgjcuojodmnsinsz.supabase.co/storage/v1/object/public/email-assets/logo-white-transparent.png?v=1';
 
 interface AuthHookPayload {
@@ -30,25 +37,86 @@ interface AuthHookPayload {
 }
 
 Deno.serve(async (req) => {
+  console.log('=== send-auth-email request received ===');
+  console.log('Method:', req.method);
+  
   if (req.method !== 'POST') {
+    console.log('Rejected: Method not allowed');
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { 
       status: 405,
       headers: { 'Content-Type': 'application/json' }
     });
   }
 
+  // Early exit if secrets are missing - provides clear error message
+  if (!hookSecret) {
+    console.error('CRITICAL: SEND_EMAIL_HOOK_SECRET is not configured in Edge Function secrets');
+    return new Response(
+      JSON.stringify({ 
+        error: { 
+          http_code: 500, 
+          message: 'Missing SEND_EMAIL_HOOK_SECRET in Edge Function secrets. Please configure it in Supabase Dashboard → Project Settings → Edge Functions → Secrets.' 
+        } 
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  if (!resendApiKey) {
+    console.error('CRITICAL: RESEND_API_KEY is not configured in Edge Function secrets');
+    return new Response(
+      JSON.stringify({ 
+        error: { 
+          http_code: 500, 
+          message: 'Missing RESEND_API_KEY in Edge Function secrets. Please configure it in Supabase Dashboard → Project Settings → Edge Functions → Secrets.' 
+        } 
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  if (!supabaseUrl) {
+    console.error('CRITICAL: SUPABASE_URL is not configured');
+    return new Response(
+      JSON.stringify({ 
+        error: { 
+          http_code: 500, 
+          message: 'Missing SUPABASE_URL environment variable.' 
+        } 
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Initialize Resend client
+  const resend = new Resend(resendApiKey);
+
   const payload = await req.text();
   const headers = Object.fromEntries(req.headers);
   
+  console.log('Received headers:', Object.keys(headers).join(', '));
+  
   let parsedPayload: AuthHookPayload;
   
+  // Step 1: Webhook verification
   try {
+    console.log('Attempting webhook verification...');
     const wh = new Webhook(hookSecret);
     parsedPayload = wh.verify(payload, headers) as AuthHookPayload;
+    console.log('✓ Webhook verification successful');
   } catch (error) {
-    console.error('Webhook verification failed:', error);
+    console.error('✗ Webhook verification failed:', error.message);
+    console.error('This usually means:');
+    console.error('  1. The SEND_EMAIL_HOOK_SECRET does not match the Auth Hook secret');
+    console.error('  2. The secret format is incorrect (should start with v1,whsec_)');
+    console.error('  3. The webhook signature headers are missing or malformed');
     return new Response(
-      JSON.stringify({ error: { http_code: 401, message: 'Webhook verification failed' } }),
+      JSON.stringify({ 
+        error: { 
+          http_code: 401, 
+          message: 'Webhook verification failed. Ensure SEND_EMAIL_HOOK_SECRET matches the Auth Hook secret exactly.' 
+        } 
+      }),
       { status: 401, headers: { 'Content-Type': 'application/json' } }
     );
   }
@@ -61,6 +129,11 @@ Deno.serve(async (req) => {
   const userName = user.user_metadata?.full_name || '';
   const userEmail = user.email;
 
+  console.log('Processing email request:');
+  console.log('  - Action type:', email_action_type);
+  console.log('  - Recipient:', userEmail);
+  console.log('  - User name:', userName || '(not provided)');
+
   // Build verification URL
   const verificationUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`;
 
@@ -68,6 +141,9 @@ Deno.serve(async (req) => {
   let subject: string;
 
   try {
+    // Step 2: Render email template
+    console.log('Rendering email template for action:', email_action_type);
+    
     switch (email_action_type) {
       case 'signup':
         html = await renderAsync(
@@ -126,9 +202,15 @@ Deno.serve(async (req) => {
         );
     }
 
-    console.log(`Sending ${email_action_type} email to ${userEmail}`);
+    console.log('✓ Email template rendered successfully');
 
-    const { error: sendError } = await resend.emails.send({
+    // Step 3: Send via Resend
+    console.log('Sending email via Resend...');
+    console.log('  - From: University Assist <info@uniassist.net>');
+    console.log('  - To:', userEmail);
+    console.log('  - Subject:', subject);
+
+    const { data, error: sendError } = await resend.emails.send({
       from: 'University Assist <info@uniassist.net>',
       to: [userEmail],
       subject,
@@ -136,14 +218,19 @@ Deno.serve(async (req) => {
     });
 
     if (sendError) {
-      console.error('Resend error:', sendError);
+      console.error('✗ Resend API error:', JSON.stringify(sendError));
+      console.error('Common causes:');
+      console.error('  1. Domain uniassist.net is not verified in Resend');
+      console.error('  2. Invalid API key');
+      console.error('  3. Rate limit exceeded');
       return new Response(
         JSON.stringify({ error: { http_code: 500, message: sendError.message } }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Successfully sent ${email_action_type} email to ${userEmail}`);
+    console.log('✓ Email sent successfully via Resend');
+    console.log('  - Resend message ID:', data?.id);
     
     return new Response(JSON.stringify({}), {
       status: 200,
@@ -151,7 +238,8 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error processing auth email:', error);
+    console.error('✗ Error processing auth email:', error.message);
+    console.error('Stack trace:', error.stack);
     return new Response(
       JSON.stringify({ error: { http_code: 500, message: error.message } }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
