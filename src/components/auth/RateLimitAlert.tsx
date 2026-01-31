@@ -1,7 +1,7 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Clock, ChevronDown, LogIn } from "lucide-react";
+import { Clock, ChevronDown, LogIn, Wifi, Mail } from "lucide-react";
 import { useState } from "react";
 
 interface RateLimitAlertProps {
@@ -49,6 +49,20 @@ export const RateLimitAlert = ({
           </Button>
         </div>
 
+        <div className="bg-muted/30 rounded p-2 space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">Quick workarounds:</p>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Wifi className="h-3 w-3" />
+              <span>Switch to mobile data or different Wi-Fi</span>
+            </div>
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Mail className="h-3 w-3" />
+              <span>Check spam for previous emails</span>
+            </div>
+          </div>
+        </div>
+
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
             <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -56,14 +70,16 @@ export const RateLimitAlert = ({
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded">
             <p className="mb-1">
-              To protect against spam and abuse, we limit how many signup emails can be sent in a short period.
+              To protect against spam and abuse, we limit how many signup emails can be sent in a short period. 
+              This limit applies across all users from the same network.
             </p>
             <p className="mb-1">
               <strong>Tips:</strong>
             </p>
             <ul className="list-disc list-inside space-y-0.5">
               <li>Wait the full cooldown period before retrying</li>
-              <li>Try using a completely different email address (not just +alias)</li>
+              <li>Switch networks (mobile data instead of Wi-Fi)</li>
+              <li>Try using a completely different email address</li>
               <li>If you already signed up, use "Sign In" instead</li>
               <li>Check your spam folder for previous confirmation emails</li>
             </ul>
