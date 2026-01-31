@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, User, Phone, ArrowLeft, Clock } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Lock, User, Phone, ArrowLeft } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Logo from "@/components/Logo";
 import { CountryCodeSelect } from "@/components/CountryCodeSelect";
@@ -19,6 +18,7 @@ import { validateEmailClient } from "@/lib/email-validation";
 import { validateDOB, validateParentInfo, type DOBValidationResult, type ParentInfo } from "@/lib/dob-validation";
 import { PasswordInput } from "@/components/PasswordInput";
 import { validatePassword, type PasswordCheck } from "@/lib/password-validation";
+import { RateLimitAlert } from "@/components/auth/RateLimitAlert";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -27,6 +27,8 @@ const Auth = () => {
   const [dobValidation, setDobValidation] = useState<DOBValidationResult | null>(null);
   const [passwordValidation, setPasswordValidation] = useState<PasswordCheck | null>(null);
   const [rateLimitCooldown, setRateLimitCooldown] = useState(0);
+  const [rateLimitAttempts, setRateLimitAttempts] = useState(0);
+  const [activeTab, setActiveTab] = useState<string>("signin");
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get("tab") === "signup" ? "signup" : "signin";
   const [signUpData, setSignUpData] = useState({
@@ -53,6 +55,11 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Initialize active tab from URL params
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
+
   // Countdown timer for rate limit cooldown
   useEffect(() => {
     if (rateLimitCooldown <= 0) return;
@@ -69,6 +76,14 @@ const Auth = () => {
 
     return () => clearInterval(timer);
   }, [rateLimitCooldown]);
+
+  // Calculate exponential backoff cooldown based on attempt count
+  const calculateCooldown = useCallback((attempts: number): number => {
+    // 60s for first attempt, 180s (3m) for second, 600s (10m) for third+
+    if (attempts <= 1) return 60;
+    if (attempts === 2) return 180;
+    return 600; // Cap at 10 minutes
+  }, []);
 
   // Helper to detect rate limit errors
   const isRateLimitError = (error: any): boolean => {
@@ -297,10 +312,13 @@ const Auth = () => {
       });
     } catch (error: any) {
       if (isRateLimitError(error)) {
-        setRateLimitCooldown(60);
+        const newAttemptCount = rateLimitAttempts + 1;
+        setRateLimitAttempts(newAttemptCount);
+        const cooldownTime = calculateCooldown(newAttemptCount);
+        setRateLimitCooldown(cooldownTime);
         toast({
-          title: "Please wait a moment",
-          description: "Our email system is temporarily busy. Please wait 2-3 minutes and try again. Your information has been saved.",
+          title: "Email limit reached",
+          description: `Please wait ${cooldownTime >= 60 ? Math.floor(cooldownTime / 60) + ' minute(s)' : cooldownTime + ' seconds'} before trying again. Your form data is saved.`,
         });
       } else {
         toast({
@@ -372,7 +390,7 @@ const Auth = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue={defaultTab} className="space-y-4">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -419,12 +437,11 @@ const Auth = () => {
               {/* Sign Up Tab */}
               <TabsContent value="signup">
                 {rateLimitCooldown > 0 && (
-                  <Alert className="mb-4 border-primary/20 bg-primary/5">
-                    <Clock className="h-4 w-4 text-primary" />
-                    <AlertDescription className="text-sm">
-                      Please wait {rateLimitCooldown} seconds before trying again. Your form data is saved.
-                    </AlertDescription>
-                  </Alert>
+                  <RateLimitAlert 
+                    cooldownSeconds={rateLimitCooldown}
+                    attemptCount={rateLimitAttempts}
+                    onSignInClick={() => setActiveTab("signin")}
+                  />
                 )}
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
