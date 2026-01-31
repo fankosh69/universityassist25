@@ -1,109 +1,164 @@
 
 
-# HubSpot Integration via Zapier
+# Custom Auth Emails with React Email & Resend
 
 ## Overview
-Connect new user signups to HubSpot through Zapier, automatically creating a new contact/lead whenever someone registers on the platform.
+Replace default Supabase auth emails with fully branded emails sent from your own domain (`info@uniassist.net`) using React Email templates and Resend.
 
 ## Architecture
 
 ```text
-+-------------+      +-------------------+      +------------------+      +----------+
-|   Auth.tsx  | ---> | sync-hubspot-lead | ---> | Zapier Webhook   | ---> | HubSpot  |
-|  (Signup)   |      |  (Edge Function)  |      | (Catch Hook)     |      | Contact  |
-+-------------+      +-------------------+      +------------------+      +----------+
-                              |
-                              v
-                     +-------------------+
-                     | hubspot_sync_log  |
-                     |    (Audit Log)    |
-                     +-------------------+
++------------------+      +--------------------+      +------------------+      +-------------+
+| Supabase Auth    | ---> | send-auth-email    | ---> | Resend API       | ---> | User Inbox  |
+| (Auth Hook)      |      | (Edge Function)    |      | info@uniassist   |      |             |
++------------------+      +--------------------+      +------------------+      +-------------+
+                                  |
+                                  v
+                          +----------------+
+                          | React Email    |
+                          | Templates      |
+                          +----------------+
 ```
+
+## What Gets Customized
+
+| Email Type | Trigger | Template |
+|------------|---------|----------|
+| Email Confirmation | User signs up | `signup-confirmation.tsx` |
+| Password Reset | User requests reset | `password-reset.tsx` |
+| Magic Link | User requests magic link | `magic-link.tsx` |
+| Email Change | User changes email | `email-change.tsx` |
+
+## Existing Infrastructure (Ready to Use)
+- `RESEND_API_KEY` - Already configured
+- `email-assets` storage bucket - Already exists with logo
+- `logo-white-transparent.png` - Already uploaded
+- Verified domain: `uniassist.net` (used by shortlist emails)
 
 ## Implementation Steps
 
-### 1. Add Zapier Webhook Secret
-- Add a new secret `ZAPIER_HUBSPOT_WEBHOOK_URL` to store your Zapier Catch Hook URL
-- You will need to create a Zap in Zapier with:
-  - Trigger: "Webhooks by Zapier" → "Catch Hook"
-  - Action: "HubSpot" → "Create Contact"
+### 1. Add Auth Hook Secret
+Create a new secret `SEND_EMAIL_HOOK_SECRET` that Supabase will use to sign webhook payloads for security verification.
 
-### 2. Create Edge Function: `sync-hubspot-lead`
-A new edge function that:
-- Receives new user data (name, email, phone, etc.)
-- Sends it to the Zapier webhook using `no-cors` mode
-- Logs the sync attempt to `hubspot_sync_log` table
-- Returns success/failure status
+### 2. Create Email Templates
+Four React Email templates following your existing brand style:
 
-**Payload sent to Zapier:**
-```json
+**Brand styling (matching shortlist-email.tsx):**
+- Primary color: `#2E57F6`
+- Secondary: `#5DC6C5`
+- Font: System fonts (Apple, Segoe UI, Roboto)
+- Logo in header on blue background
+- Footer with disclaimer
+
+**Template: Signup Confirmation**
+```text
+Subject: "Confirm your University Assist account"
+Content:
+- Welcome message with user's name
+- Clear CTA button to confirm email
+- 6-digit OTP code as fallback
+- Expiration notice
+```
+
+**Template: Password Reset**
+```text
+Subject: "Reset your password - University Assist"
+Content:
+- Security-focused message
+- Reset link button
+- Expiration notice (1 hour)
+- "Didn't request this?" section
+```
+
+**Template: Magic Link**
+```text
+Subject: "Sign in to University Assist"
+Content:
+- One-click sign in button
+- 6-digit code as fallback
+- Brief security note
+```
+
+**Template: Email Change**
+```text
+Subject: "Confirm your new email address"
+Content:
+- Acknowledge the change request
+- Confirm new email button
+- Security warning
+```
+
+### 3. Create Edge Function: `send-auth-email`
+
+The function will:
+1. Verify webhook signature using `standardwebhooks`
+2. Parse the auth event type (`signup`, `recovery`, `magiclink`, `email_change`)
+3. Select appropriate template
+4. Render HTML with React Email
+5. Send via Resend from `info@uniassist.net`
+
+**Key payload fields from Supabase:**
+```typescript
 {
-  "email": "user@example.com",
-  "full_name": "John Doe",
-  "phone": "+201234567890",
-  "gender": "Male",
-  "date_of_birth": "2000-01-15",
-  "signup_date": "2026-01-31T12:00:00Z",
-  "source": "university_assist_signup"
+  user: { email: string, user_metadata: { full_name: string } },
+  email_data: {
+    token: string,           // 6-digit OTP
+    token_hash: string,      // For URL verification
+    redirect_to: string,     // Where to redirect after
+    email_action_type: string // signup, recovery, etc.
+  }
 }
 ```
 
-### 3. Update Auth.tsx
-After successful signup, call the edge function to sync the new user to HubSpot:
-- Add a call to `supabase.functions.invoke('sync-hubspot-lead', { body: userData })`
-- Handle errors gracefully (don't block signup if HubSpot sync fails)
-- The sync happens in the background
+### 4. Configure Auth Hook in Supabase Dashboard
 
-### 4. Zapier Configuration (User Action Required)
-You will need to set up a Zap:
-1. Go to Zapier and create a new Zap
-2. Trigger: "Webhooks by Zapier" → "Catch Hook" → Copy the webhook URL
-3. Action: "HubSpot" → "Create Contact"
-4. Map fields:
-   - Email → `email`
-   - First Name → Extract from `full_name`
-   - Phone → `phone`
-   - Add custom properties as needed
+After deployment, you'll need to:
+1. Go to Supabase Dashboard → Authentication → Hooks
+2. Enable "Send Email" hook
+3. Set the edge function URL
+4. Add the hook secret
 
 ---
 
-## Technical Details
+## Files to Create
 
-### Edge Function Code Structure
-```typescript
-// supabase/functions/sync-hubspot-lead/index.ts
-- CORS headers for preflight requests
-- Validate incoming user data
-- Fetch Zapier webhook URL from environment
-- POST to Zapier with user data (no-cors mode)
-- Log to hubspot_sync_log with success/error status
-- Return appropriate response
-```
+| File | Purpose |
+|------|---------|
+| `supabase/functions/send-auth-email/_templates/signup-confirmation.tsx` | Welcome + confirm email |
+| `supabase/functions/send-auth-email/_templates/password-reset.tsx` | Reset password link |
+| `supabase/functions/send-auth-email/_templates/magic-link.tsx` | One-click sign in |
+| `supabase/functions/send-auth-email/_templates/email-change.tsx` | Confirm new email |
+| `supabase/functions/send-auth-email/index.ts` | Main handler |
 
-### Auth.tsx Changes
-- After line 236 (successful signup), add async call to sync edge function
-- Non-blocking: use `.then()` instead of `await` to not delay user feedback
-- Graceful error handling with console logging
+## Files to Update
 
-### Data Flow
-1. User completes signup form
-2. `supabase.auth.signUp()` creates the user
-3. Database trigger creates the profile
-4. Client calls `sync-hubspot-lead` edge function
-5. Edge function POSTs to Zapier webhook
-6. Zapier creates HubSpot contact
-7. Edge function logs result to `hubspot_sync_log`
-
-### Files to Create/Modify
-| File | Action |
+| File | Change |
 |------|--------|
-| `supabase/functions/sync-hubspot-lead/index.ts` | Create |
-| `supabase/config.toml` | Add function config |
-| `src/pages/Auth.tsx` | Add HubSpot sync call |
+| `supabase/config.toml` | Add `send-auth-email` function config |
 
-### Security Considerations
-- Webhook URL stored as server-side secret (not exposed to client)
-- Edge function validates data before sending
-- All sync attempts logged for auditing
-- Sync failures don't block user signup
+## Post-Deployment Setup (Manual)
+
+You'll need to configure the auth hook in the Supabase dashboard:
+
+1. Navigate to **Authentication → Hooks** in Supabase Dashboard
+2. Find **"Send Email"** hook and click Configure
+3. Set URL: `https://zfiexgjcuojodmnsinsz.supabase.co/functions/v1/send-auth-email`
+4. Add the hook secret (generated during implementation)
+
+## Security Features
+
+- Webhook signature verification using `standardwebhooks`
+- Token expiration notices in emails
+- Clear security warnings for password reset
+- Rate limiting handled by Supabase Auth
+- All secrets server-side only
+
+## Email Branding Details
+
+All emails will include:
+- University Assist logo in blue header
+- Primary CTA button in brand blue (`#2E57F6`)
+- Legal disclaimer in footer
+- Consistent typography matching your app
+- Mobile-responsive design
 
