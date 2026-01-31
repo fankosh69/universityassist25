@@ -1686,6 +1686,63 @@ export type Database = {
           },
         ]
       }
+      private_profile_data: {
+        Row: {
+          country_code: string | null
+          created_at: string | null
+          data_processing_consent: boolean | null
+          date_of_birth: string | null
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          full_name: string | null
+          gender: string | null
+          id: string
+          last_security_audit: string | null
+          marketing_consent: boolean | null
+          nationality: string | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          country_code?: string | null
+          created_at?: string | null
+          data_processing_consent?: boolean | null
+          date_of_birth?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id: string
+          last_security_audit?: string | null
+          marketing_consent?: boolean | null
+          nationality?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          country_code?: string | null
+          created_at?: string | null
+          data_processing_consent?: boolean | null
+          date_of_birth?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string
+          last_security_audit?: string | null
+          marketing_consent?: boolean | null
+          nationality?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -3704,6 +3761,19 @@ export type Database = {
           semester_start_date: string
         }[]
       }
+      get_private_profile_data: {
+        Args: { profile_uuid: string }
+        Returns: {
+          country_code: string
+          date_of_birth: string
+          email: string
+          full_name: string
+          gender: string
+          id: string
+          nationality: string
+          phone: string
+        }[]
+      }
       get_profile_summary: { Args: { profile_uuid: string }; Returns: Json }
       get_public_profile_display: {
         Args: { profile_uuid: string }
@@ -3748,25 +3818,32 @@ export type Database = {
       get_secure_complete_profile: {
         Args: { profile_uuid: string }
         Returns: {
-          bio: string
+          avatar_url: string
           career_goals: string
+          country_code: string
           created_at: string
+          credits_taken: number
+          current_education_level: string
+          current_field_of_study: string
+          current_gpa: number
+          current_institution: string
           date_of_birth: string
-          display_name: string
-          education_level: string
           email: string
-          field_of_study: string
           full_name: string
           gender: string
           id: string
-          institution_name: string
-          is_profile_complete: boolean
+          language_certificates: string[]
+          level: number
           nationality: string
           phone: string
           preferred_cities: string[]
           preferred_degree_type: string
           preferred_fields: string[]
+          role: string
+          streak_days: number
+          thesis_topic: string
           updated_at: string
+          xp_points: number
         }[]
       }
       has_role: {
@@ -3780,6 +3857,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      migrate_profile_pii_to_private: { Args: never; Returns: undefined }
       profile_access_guide: { Args: never; Returns: string }
       request_emergency_admin_access: {
         Args: { reason: string; target_profile_id?: string }
@@ -3822,6 +3900,10 @@ export type Database = {
       slugify: { Args: { txt: string }; Returns: string }
       ultra_secure_profile_update: {
         Args: { target_profile_id: string; update_data: Json }
+        Returns: Json
+      }
+      update_private_profile_data: {
+        Args: { profile_uuid: string; update_data: Json }
         Returns: Json
       }
       validate_profile_access: { Args: never; Returns: boolean }
