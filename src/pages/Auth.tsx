@@ -235,6 +235,28 @@ const Auth = () => {
 
       if (error) throw error;
 
+      // Sync new user to HubSpot via Zapier (non-blocking)
+      supabase.functions.invoke('sync-hubspot-lead', {
+        body: {
+          email: signUpData.email,
+          full_name: signUpData.full_name,
+          phone: signUpData.phone,
+          gender: signUpData.gender,
+          date_of_birth: signUpData.date_of_birth,
+          country_code: signUpData.country_code,
+          is_underage: dobValidationResult.isUnderage,
+          parent_email: dobValidationResult.isUnderage ? parentInfo.email : undefined,
+        }
+      }).then((result) => {
+        if (result.error) {
+          console.error('HubSpot sync failed:', result.error);
+        } else {
+          console.log('HubSpot sync completed:', result.data);
+        }
+      }).catch((err) => {
+        console.error('HubSpot sync error:', err);
+      });
+
       toast({
         title: "Success!",
         description: dobValidationResult.isUnderage 
