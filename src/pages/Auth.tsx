@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import { RateLimitAlert } from "@/components/auth/RateLimitAlert";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
+  const isSubmittingRef = useRef(false); // Double-submit guard
   const [phoneError, setPhoneError] = useState("");
   const [parentErrors, setParentErrors] = useState<string[]>([]);
   const [dobValidation, setDobValidation] = useState<DOBValidationResult | null>(null);
@@ -165,6 +166,14 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Double-submit guard
+    if (isSubmittingRef.current || loading) {
+      console.log('Signup already in progress, ignoring duplicate submission');
+      return;
+    }
+    
+    isSubmittingRef.current = true;
     setLoading(true);
 
     // Validate email using new validation system
@@ -329,6 +338,7 @@ const Auth = () => {
       }
     } finally {
       setLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
