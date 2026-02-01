@@ -113,11 +113,11 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: { 
-          http_code: 401, 
-          message: 'Webhook verification failed. Ensure SEND_EMAIL_HOOK_SECRET matches the Auth Hook secret exactly.' 
+          http_code: 500, 
+          message: 'Email service configuration error. Please try again later.' 
         } 
       }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
