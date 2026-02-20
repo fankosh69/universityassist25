@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 interface LeadData {
+  sync_type?: "signup" | "onboarding_complete";
   email: string;
   full_name: string;
   phone?: string;
@@ -15,10 +16,26 @@ interface LeadData {
   country_code?: string;
   is_underage?: boolean;
   parent_email?: string;
+  // Onboarding fields
+  nationality?: string;
+  curriculum?: string;
+  gpa_raw?: number;
+  gpa_scale?: number;
+  gpa_min_pass?: number;
+  total_ects?: number;
+  languages?: Array<{
+    language: string;
+    cefr_level?: string;
+    test_type?: string;
+    test_score?: string;
+  }>;
+  preferred_fields?: string[];
+  preferred_degree_type?: string;
+  preferred_cities?: string[];
+  career_goals?: string;
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -29,55 +46,67 @@ Deno.serve(async (req) => {
     if (!ZAPIER_WEBHOOK_URL) {
       console.error("ZAPIER_HUBSPOT_WEBHOOK_URL is not configured");
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: "Webhook URL not configured" 
-        }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
+        JSON.stringify({ success: false, error: "Webhook URL not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const leadData: LeadData = await req.json();
-    console.log("Received lead data for sync:", { 
+    const syncType = leadData.sync_type || "signup";
+    
+    console.log(`Received ${syncType} lead data for sync:`, { 
       email: leadData.email, 
       name: leadData.full_name 
     });
 
-    // Validate required fields
     if (!leadData.email || !leadData.full_name) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: "Email and full_name are required" 
-        }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
+        JSON.stringify({ success: false, error: "Email and full_name are required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Prepare payload for Zapier
-    const zapierPayload = {
-      email: leadData.email,
-      full_name: leadData.full_name,
-      phone: leadData.country_code && leadData.phone 
-        ? `${leadData.country_code}${leadData.phone}` 
-        : leadData.phone || "",
-      gender: leadData.gender || "",
-      date_of_birth: leadData.date_of_birth || "",
-      signup_date: new Date().toISOString(),
-      source: "university_assist_signup",
-      is_underage: leadData.is_underage || false,
-      parent_email: leadData.parent_email || "",
-    };
+    // Build payload based on sync type
+    let zapierPayload: Record<string, any>;
 
-    console.log("Sending to Zapier webhook...");
+    if (syncType === "onboarding_complete") {
+      zapierPayload = {
+        sync_type: "onboarding_complete",
+        email: leadData.email,
+        full_name: leadData.full_name,
+        nationality: leadData.nationality || "",
+        curriculum: leadData.curriculum || "",
+        gpa_raw: leadData.gpa_raw ?? null,
+        gpa_scale: leadData.gpa_scale ?? null,
+        gpa_min_pass: leadData.gpa_min_pass ?? null,
+        total_ects: leadData.total_ects ?? 0,
+        languages: leadData.languages || [],
+        preferred_fields: leadData.preferred_fields || [],
+        preferred_degree_type: leadData.preferred_degree_type || "",
+        preferred_cities: leadData.preferred_cities || [],
+        career_goals: leadData.career_goals || "",
+        onboarding_completed_date: new Date().toISOString(),
+        source: "university_assist_onboarding",
+      };
+    } else {
+      zapierPayload = {
+        sync_type: "signup",
+        email: leadData.email,
+        full_name: leadData.full_name,
+        phone: leadData.country_code && leadData.phone 
+          ? `${leadData.country_code}${leadData.phone}` 
+          : leadData.phone || "",
+        gender: leadData.gender || "",
+        date_of_birth: leadData.date_of_birth || "",
+        signup_date: new Date().toISOString(),
+        source: "university_assist_signup",
+        is_underage: leadData.is_underage || false,
+        parent_email: leadData.parent_email || "",
+      };
+    }
 
-    // Send to Zapier webhook
+    console.log(`Sending ${syncType} to Zapier webhook...`);
+
     let syncStatus = "success";
     let errorMessage: string | null = null;
     let responseData: any = null;
@@ -85,9 +114,7 @@ Deno.serve(async (req) => {
     try {
       const zapierResponse = await fetch(ZAPIER_WEBHOOK_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(zapierPayload),
       });
 
@@ -96,22 +123,17 @@ Deno.serve(async (req) => {
         statusText: zapierResponse.statusText,
       };
 
-      // Try to read response body if available
       try {
         const responseText = await zapierResponse.text();
-        if (responseText) {
-          responseData.body = responseText;
-        }
-      } catch {
-        // Ignore if we can't read the body
-      }
+        if (responseText) responseData.body = responseText;
+      } catch { /* ignore */ }
 
       if (!zapierResponse.ok) {
         syncStatus = "failed";
         errorMessage = `Zapier returned status ${zapierResponse.status}`;
         console.error("Zapier webhook error:", errorMessage);
       } else {
-        console.log("Successfully sent to Zapier");
+        console.log(`Successfully sent ${syncType} to Zapier`);
       }
     } catch (fetchError) {
       syncStatus = "failed";
@@ -127,7 +149,7 @@ Deno.serve(async (req) => {
     const { error: logError } = await supabase
       .from("hubspot_sync_log")
       .insert({
-        sync_type: "signup",
+        sync_type: syncType,
         sync_status: syncStatus,
         request_data: zapierPayload,
         response_data: responseData,
@@ -137,35 +159,24 @@ Deno.serve(async (req) => {
 
     if (logError) {
       console.error("Failed to log sync attempt:", logError);
-    } else {
-      console.log("Sync attempt logged successfully");
     }
 
     return new Response(
       JSON.stringify({ 
         success: syncStatus === "success",
         message: syncStatus === "success" 
-          ? "Lead synced to HubSpot via Zapier" 
+          ? `Lead ${syncType} synced to HubSpot via Zapier` 
           : "Sync attempted but may have failed",
         error: errorMessage,
       }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
   } catch (error) {
     console.error("Error in sync-hubspot-lead:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      }
+      JSON.stringify({ success: false, error: error instanceof Error ? error.message : "Unknown error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

@@ -120,6 +120,34 @@ export default function OnboardingFlow() {
       // Award badge
       await GamificationService.awardBadge(user.id, 'profile_pioneer');
 
+      // Sync enriched profile to HubSpot via Zapier (non-blocking)
+      supabase.functions.invoke('sync-hubspot-lead', {
+        body: {
+          sync_type: 'onboarding_complete',
+          email: user.email,
+          full_name: formData.fullName,
+          nationality: formData.nationality,
+          curriculum: formData.curriculum,
+          gpa_raw: formData.gpaRaw,
+          gpa_scale: formData.gpaScale,
+          gpa_min_pass: formData.gpaMinPass,
+          total_ects: formData.totalECTS,
+          languages: formData.languages?.map((lang: any) => ({
+            language: lang.language,
+            cefr_level: lang.cefrLevel,
+            test_type: lang.testType,
+            test_score: lang.testScore,
+          })) || [],
+          preferred_fields: formData.preferredFields,
+          preferred_degree_type: formData.preferredDegreeType,
+          preferred_cities: formData.preferredCities,
+          career_goals: formData.careerGoals,
+        }
+      }).then((result) => {
+        if (result.error) console.error('HubSpot onboarding sync failed:', result.error);
+        else console.log('HubSpot onboarding sync completed:', result.data);
+      }).catch((err) => console.error('HubSpot onboarding sync error:', err));
+
       toast.success("Profile completed successfully!");
       navigate('/dashboard');
     } catch (error: any) {
