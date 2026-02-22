@@ -43,6 +43,16 @@ export function BasicInfoStep({ data, onUpdate }: BasicInfoStepProps) {
         />
       </div>
 
+      <div>
+        <Label htmlFor="countryOfResidence">Country of Residence *</Label>
+        <Input
+          id="countryOfResidence"
+          value={data.countryOfResidence || ''}
+          onChange={(e) => handleChange('countryOfResidence', e.target.value)}
+          placeholder="e.g., Egypt, Saudi Arabia, UAE"
+        />
+      </div>
+
       <div className="grid grid-cols-3 gap-4">
         <div className="col-span-1">
           <Label>Country Code</Label>
