@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface PreferencesStepProps {
   data: Record<string, any>;
   onUpdate: (data: Record<string, any>) => void;
+  errors?: Record<string, string>;
 }
 
 export function PreferencesStep({ data, onUpdate }: PreferencesStepProps) {
