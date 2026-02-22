@@ -6,6 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 interface AcademicInfoStepProps {
   data: Record<string, any>;
   onUpdate: (data: Record<string, any>) => void;
+  errors?: Record<string, string>;
 }
 
 const CURRICULUM_OPTIONS = [
@@ -24,7 +25,12 @@ const EDUCATION_LEVEL_OPTIONS = [
   { value: 'masters', label: "Master's" },
 ];
 
-export function AcademicInfoStep({ data, onUpdate }: AcademicInfoStepProps) {
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="text-xs text-destructive mt-1">{message}</p>;
+}
+
+export function AcademicInfoStep({ data, onUpdate, errors = {} }: AcademicInfoStepProps) {
   const handleChange = (field: string, value: any) => {
     onUpdate({ [field]: value });
   };
@@ -37,7 +43,7 @@ export function AcademicInfoStep({ data, onUpdate }: AcademicInfoStepProps) {
           value={data.curriculum || ''}
           onValueChange={(value) => handleChange('curriculum', value)}
         >
-          <SelectTrigger>
+          <SelectTrigger className={errors.curriculum ? 'border-destructive' : ''}>
             <SelectValue placeholder="Select curriculum" />
           </SelectTrigger>
           <SelectContent>
@@ -46,6 +52,7 @@ export function AcademicInfoStep({ data, onUpdate }: AcademicInfoStepProps) {
             ))}
           </SelectContent>
         </Select>
+        <FieldError message={errors.curriculum} />
       </div>
 
       <div>
@@ -54,7 +61,7 @@ export function AcademicInfoStep({ data, onUpdate }: AcademicInfoStepProps) {
           value={data.desiredEducationLevel || ''}
           onValueChange={(value) => handleChange('desiredEducationLevel', value)}
         >
-          <SelectTrigger>
+          <SelectTrigger className={errors.desiredEducationLevel ? 'border-destructive' : ''}>
             <SelectValue placeholder="Select education level" />
           </SelectTrigger>
           <SelectContent>
@@ -63,6 +70,7 @@ export function AcademicInfoStep({ data, onUpdate }: AcademicInfoStepProps) {
             ))}
           </SelectContent>
         </Select>
+        <FieldError message={errors.desiredEducationLevel} />
       </div>
 
       <div>

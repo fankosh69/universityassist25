@@ -4,11 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Languages } from "lucide-react";
 
 interface LanguageStepProps {
   data: Record<string, any>;
   onUpdate: (data: Record<string, any>) => void;
+  errors?: Record<string, string>;
 }
 
 interface Language {
@@ -60,9 +61,7 @@ export function LanguageStep({ data, onUpdate }: LanguageStepProps) {
                   value={lang.language}
                   onValueChange={(value) => updateLanguage(index, 'language', value)}
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="en">English</SelectItem>
                     <SelectItem value="de">German</SelectItem>
@@ -72,16 +71,13 @@ export function LanguageStep({ data, onUpdate }: LanguageStepProps) {
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
                 <Label>CEFR Level</Label>
                 <Select
                   value={lang.cefrLevel}
                   onValueChange={(value) => updateLanguage(index, 'cefrLevel', value)}
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="A1">A1 - Beginner</SelectItem>
                     <SelectItem value="A2">A2 - Elementary</SelectItem>
@@ -103,7 +99,6 @@ export function LanguageStep({ data, onUpdate }: LanguageStepProps) {
                   placeholder="e.g., IELTS, TestDaF"
                 />
               </div>
-
               <div>
                 <Label>Test Score (Optional)</Label>
                 <Input
@@ -114,12 +109,7 @@ export function LanguageStep({ data, onUpdate }: LanguageStepProps) {
               </div>
             </div>
 
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              onClick={() => removeLanguage(index)}
-            >
+            <Button type="button" variant="destructive" size="sm" onClick={() => removeLanguage(index)}>
               <Trash2 className="w-4 h-4 mr-2" />
               Remove
             </Button>
@@ -128,8 +118,10 @@ export function LanguageStep({ data, onUpdate }: LanguageStepProps) {
       ))}
 
       {languages.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          <p>No languages added yet. Click "Add Language" to get started.</p>
+        <div className="text-center py-8 text-muted-foreground border border-dashed rounded-xl">
+          <Languages className="w-10 h-10 mx-auto mb-3 opacity-40" />
+          <p className="font-medium">No languages added yet</p>
+          <p className="text-sm mt-1">Click "Add Language" above to add your certificates.</p>
         </div>
       )}
     </div>
