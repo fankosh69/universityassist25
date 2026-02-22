@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useNavigate } from 'react-router-dom';
 
 interface WatchlistButtonProps {
   programId: string;
@@ -22,10 +25,22 @@ export default function WatchlistButton({
 }: WatchlistButtonProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { isComplete, isLoggedIn } = useOnboardingStatus();
   const [isLoading, setIsLoading] = useState(false);
   const [watched, setWatched] = useState(isWatched);
 
   const handleToggle = async () => {
+    if (!isLoggedIn) {
+      toast({ title: t('watchlist.login_required'), description: t('watchlist.login_required_desc'), variant: 'destructive' });
+      navigate('/auth');
+      return;
+    }
+    if (!isComplete) {
+      toast({ title: 'Complete your profile', description: 'Please complete your profile to save programs.', variant: 'destructive' });
+      navigate('/onboarding');
+      return;
+    }
     try {
       setIsLoading(true);
       

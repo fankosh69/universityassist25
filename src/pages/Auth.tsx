@@ -266,7 +266,7 @@ const Auth = () => {
         email: signUpData.email,
         password: signUpData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/onboarding`,
           data: {
             full_name: signUpData.full_name,
             gender: signUpData.gender,

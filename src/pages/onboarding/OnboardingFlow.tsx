@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { PreferencesStep } from "./steps/PreferencesStep";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { GamificationService } from "@/services/gamification";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const STEPS = [
   { id: 'basic', title: 'Basic Information', component: BasicInfoStep },
@@ -24,6 +25,56 @@ export default function OnboardingFlow() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  // Skip if already completed + pre-populate profile data
+  useEffect(() => {
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
+
+      // Check if onboarding already completed
+      const { data: academics } = await supabase
+        .from('student_academics')
+        .select('curriculum, target_level')
+        .eq('profile_id', user.id)
+        .maybeSingle();
+
+      if (academics?.curriculum && academics?.target_level) {
+        navigate('/dashboard', { replace: true });
+        return;
+      }
+
+      // Pre-populate from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, date_of_birth, phone, country_code, nationality, gender')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile) {
+        setFormData(prev => ({
+          ...prev,
+          fullName: profile.full_name || '',
+          dateOfBirth: profile.date_of_birth || '',
+          phone: profile.phone || '',
+          countryCode: profile.country_code || '+20',
+          nationality: profile.nationality || '',
+          gender: profile.gender || '',
+        }));
+      }
+
+      setChecking(false);
+    }
+    init();
+  }, [navigate]);
+
+  if (checking) {
+    return <LoadingSpinner />;
+  }
 
   const progress = ((currentStep + 1) / STEPS.length) * 100;
   const StepComponent = STEPS[currentStep].component;

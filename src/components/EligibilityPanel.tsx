@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { calculateMatch, type StudentProfile, type ProgramRequirements, type MatchResult } from '@/lib/matching';
 import { useTranslation } from 'react-i18next';
+import { OnboardingGate } from '@/components/OnboardingGate';
 
 interface EligibilityPanelProps {
   studentProfile?: StudentProfile;
@@ -68,6 +69,7 @@ export default function EligibilityPanel({
   };
 
   return (
+    <OnboardingGate feature="eligibility checks">
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
@@ -148,5 +150,6 @@ export default function EligibilityPanel({
         </div>
       </CardContent>
     </Card>
+    </OnboardingGate>
   );
 }
