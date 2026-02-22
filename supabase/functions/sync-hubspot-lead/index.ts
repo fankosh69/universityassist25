@@ -18,7 +18,12 @@ interface LeadData {
   parent_email?: string;
   // Onboarding fields
   nationality?: string;
+  country_of_residence?: string;
   curriculum?: string;
+  desired_education_level?: string;
+  desired_major?: string;
+  school_name?: string;
+  blocked_bank_account_aware?: string;
   gpa_raw?: number;
   gpa_scale?: number;
   gpa_min_pass?: number;
@@ -30,7 +35,6 @@ interface LeadData {
     test_score?: string;
   }>;
   preferred_fields?: string[];
-  preferred_degree_type?: string;
   preferred_cities?: string[];
   career_goals?: string;
 }
@@ -75,14 +79,18 @@ Deno.serve(async (req) => {
         email: leadData.email,
         full_name: leadData.full_name,
         nationality: leadData.nationality || "",
+        country_of_residence: leadData.country_of_residence || "",
         curriculum: leadData.curriculum || "",
+        desired_education_level: leadData.desired_education_level || "",
+        desired_major: leadData.desired_major || "",
+        school_name: leadData.school_name || "",
+        blocked_bank_account_aware: leadData.blocked_bank_account_aware || "",
         gpa_raw: leadData.gpa_raw ?? null,
         gpa_scale: leadData.gpa_scale ?? null,
         gpa_min_pass: leadData.gpa_min_pass ?? null,
         total_ects: leadData.total_ects ?? 0,
         languages: leadData.languages || [],
         preferred_fields: leadData.preferred_fields || [],
-        preferred_degree_type: leadData.preferred_degree_type || "",
         preferred_cities: leadData.preferred_cities || [],
         career_goals: leadData.career_goals || "",
         onboarding_completed_date: new Date().toISOString(),

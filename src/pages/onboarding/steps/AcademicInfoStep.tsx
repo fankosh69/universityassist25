@@ -1,11 +1,28 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface AcademicInfoStepProps {
   data: Record<string, any>;
   onUpdate: (data: Record<string, any>) => void;
 }
+
+const CURRICULUM_OPTIONS = [
+  { value: 'American Diploma', label: 'American Diploma' },
+  { value: 'IGCSE', label: 'IGCSE' },
+  { value: 'IB', label: 'IB' },
+  { value: 'NATIONAL DIPLOMA', label: 'National Diploma' },
+  { value: 'French BAC', label: 'French BAC' },
+  { value: 'Canadian Diploma', label: 'Canadian Diploma' },
+  { value: 'Other', label: 'Other' },
+];
+
+const EDUCATION_LEVEL_OPTIONS = [
+  { value: 'foundation_year', label: 'Foundation Year' },
+  { value: 'bachelors', label: "Bachelor's" },
+  { value: 'masters', label: "Master's" },
+];
 
 export function AcademicInfoStep({ data, onUpdate }: AcademicInfoStepProps) {
   const handleChange = (field: string, value: any) => {
@@ -15,7 +32,7 @@ export function AcademicInfoStep({ data, onUpdate }: AcademicInfoStepProps) {
   return (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="curriculum">Current Curriculum *</Label>
+        <Label htmlFor="curriculum">Student High School Curriculum *</Label>
         <Select
           value={data.curriculum || ''}
           onValueChange={(value) => handleChange('curriculum', value)}
@@ -24,26 +41,77 @@ export function AcademicInfoStep({ data, onUpdate }: AcademicInfoStepProps) {
             <SelectValue placeholder="Select curriculum" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="high_school">High School</SelectItem>
-            <SelectItem value="bachelors">Bachelor's Degree</SelectItem>
-            <SelectItem value="masters">Master's Degree</SelectItem>
+            {CURRICULUM_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
       <div>
-        <Label htmlFor="previousMajor">Previous Major / Field of Study</Label>
+        <Label htmlFor="desiredEducationLevel">Desired Education Level *</Label>
+        <Select
+          value={data.desiredEducationLevel || ''}
+          onValueChange={(value) => handleChange('desiredEducationLevel', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select education level" />
+          </SelectTrigger>
+          <SelectContent>
+            {EDUCATION_LEVEL_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="desiredMajor">Desired Major</Label>
         <Input
-          id="previousMajor"
-          value={data.previousMajor || ''}
-          onChange={(e) => handleChange('previousMajor', e.target.value)}
-          placeholder="e.g., Computer Science, Business, etc."
+          id="desiredMajor"
+          value={data.desiredMajor || ''}
+          onChange={(e) => handleChange('desiredMajor', e.target.value)}
+          placeholder="e.g., Computer Science, Engineering, Business"
         />
+      </div>
+
+      <div>
+        <Label htmlFor="schoolName">Your Current or Previous School/University Name</Label>
+        <Input
+          id="schoolName"
+          value={data.schoolName || ''}
+          onChange={(e) => handleChange('schoolName', e.target.value)}
+          placeholder="e.g., Cairo American College, AIS"
+        />
+      </div>
+
+      <div>
+        <Label className="text-sm font-medium">
+          Are you aware of the mandatory blocked bank account to study in Germany totalling €11,992 for a year?
+        </Label>
+        <RadioGroup
+          value={data.blockedBankAccountAware || ''}
+          onValueChange={(value) => handleChange('blockedBankAccountAware', value)}
+          className="mt-2 space-y-2"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="yes" id="bba-yes" />
+            <Label htmlFor="bba-yes" className="font-normal">Yes</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="no" id="bba-no" />
+            <Label htmlFor="bba-no" className="font-normal">No</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="not_sure" id="bba-not-sure" />
+            <Label htmlFor="bba-not-sure" className="font-normal">Not sure</Label>
+          </div>
+        </RadioGroup>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <Label htmlFor="gpaRaw">GPA *</Label>
+          <Label htmlFor="gpaRaw">GPA</Label>
           <Input
             id="gpaRaw"
             type="number"
@@ -54,7 +122,7 @@ export function AcademicInfoStep({ data, onUpdate }: AcademicInfoStepProps) {
           />
         </div>
         <div>
-          <Label htmlFor="gpaScale">Scale *</Label>
+          <Label htmlFor="gpaScale">Scale</Label>
           <Input
             id="gpaScale"
             type="number"
@@ -65,7 +133,7 @@ export function AcademicInfoStep({ data, onUpdate }: AcademicInfoStepProps) {
           />
         </div>
         <div>
-          <Label htmlFor="gpaMinPass">Min Pass *</Label>
+          <Label htmlFor="gpaMinPass">Min Pass</Label>
           <Input
             id="gpaMinPass"
             type="number"
