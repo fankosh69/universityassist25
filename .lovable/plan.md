@@ -1,111 +1,112 @@
 
 
-# Mandatory Onboarding Gate: Complete Profile Before Full Access
+# Enhanced Onboarding Journey
 
-## What This Does
+## Overview
+Transform the current plain 4-step onboarding into a polished, validated, and visually engaging experience with a welcome screen, step-by-step validation, smooth animations, and a celebration completion screen.
 
-When a user signs up and confirms their email, OR signs in at any time, the website checks if they have completed the onboarding questions. If not, they are redirected to complete them. Until completed, the user gets a **limited experience** -- they can browse basic info but cannot access full program details, eligibility checks, applications, or other deep features.
+## What Changes
 
-## How It Works
+### 1. Welcome Screen (New Step 0)
+- Greets the user by first name (from pre-populated signup data)
+- Brief overview of what the 4 steps cover (icons for each: User, GraduationCap, Languages, Target)
+- Single "Let's Get Started" CTA button
+- Brand gradient background matching the auth page style
 
-### 1. Onboarding Completion Check (New Hook)
+### 2. Per-Step Validation
+- **Step 1 (Basic Info)**: `fullName`, `dateOfBirth`, and `nationality` are required. Show red inline errors below empty fields when user clicks "Next". Disable "Next" until all 3 are filled.
+- **Step 2 (Academic)**: `curriculum` and `desiredEducationLevel` are required. Same inline error pattern.
+- **Step 3 (Language)**: Optional -- show a friendly message: "No worries if you haven't taken any tests yet. You can add them later from your profile."
+- **Step 4 (Preferences)**: Optional -- show encouraging message: "These help us find better matches, but you can always update them later."
 
-A new `useOnboardingStatus` hook will check whether the user has a `student_academics` record with the minimum required fields filled (curriculum, desired education level). This is a lightweight check that runs once per session.
+### 3. Completion Screen (New Final Step)
+- Celebratory UI with a checkmark animation (framer-motion scale-in)
+- Shows earned rewards: "+50 XP" and "Profile Pioneer" badge
+- "Go to Dashboard" CTA button
+- Auto-navigates to dashboard after 5 seconds if no click
 
-- **Completed**: user has a `student_academics` record with `curriculum` and `target_level` filled
-- **Not completed**: user is missing this data and must complete onboarding
+### 4. Smooth Transitions
+- Use `framer-motion` `AnimatePresence` to slide steps left/right when navigating
+- Direction-aware: going forward slides left, going back slides right
 
-### 2. Redirect Logic
+### 5. Enhanced Step Indicator
+- Replace plain progress bar with a step indicator showing icons for each step
+- Completed steps get a checkmark, current step is highlighted in primary color, future steps are muted
+- Icons: User (basic), GraduationCap (academic), Languages (language), Target (preferences)
 
-**After email confirmation**: Change the signup `emailRedirectTo` from `window.location.origin/` to `window.location.origin/onboarding` so clicking "Confirm your email" lands the user on onboarding.
+### 6. "Skip for now" Option
+- Subtle text link below the navigation buttons: "I'll complete this later"
+- Only visible on optional steps (Language, Preferences)
+- Saves whatever data has been entered so far and goes to dashboard
+- The OnboardingGuard will bring them back next time they try to access gated features
 
-**After sign-in**: Already redirects to `/onboarding` (this is working). Add a check in the onboarding flow so that if the user HAS already completed it, they skip straight to `/dashboard`.
+### 7. Pre-populated Fields Show as Read-only
+- Fields already filled from signup (name, DOB, phone) appear pre-filled with a subtle "From your signup" label
+- Users can still edit them if needed, but it reduces friction
 
-**App-level guard**: In `App.tsx`, create a wrapper component (`OnboardingGuard`) that wraps all authenticated routes. It checks onboarding status and redirects to `/onboarding` if incomplete.
+### 8. Nationality Searchable Select
+- Replace the free-text nationality input with a searchable dropdown of common MENA + international nationalities
+- Use the existing `searchable-select.tsx` UI component
 
-### 3. Limited vs Full Experience (Content Gating)
+## Technical Details
 
-For pages accessible without login (public pages like program details, university pages), we add a **soft gate** using a shared `useOnboardingGate` hook:
-
-| Feature | Without Onboarding | With Onboarding |
-|---------|-------------------|-----------------|
-| Browse programs list | Yes (basic cards) | Yes (full details) |
-| View full program description | Truncated + "Complete profile to see more" banner | Full access |
-| Check eligibility | Locked with CTA | Full access |
-| Apply / Start application | Locked with CTA | Full access |
-| Watchlist / Save programs | Locked with CTA | Full access |
-| View universities list | Yes | Yes |
-| View city pages | Yes | Yes |
-| Dashboard | Redirected to onboarding | Full access |
-| AI Assistant | Locked with CTA | Full access |
-
-### 4. Onboarding Flow Improvements
-
-- **Pre-populate data**: Fetch existing profile data (name, DOB, phone from signup) and pre-fill Step 1
-- **Skip if completed**: On mount, check if `student_academics` exists with required fields -- if yes, redirect to `/dashboard`
-- **Validation**: Steps 1 and 2 are mandatory (Basic Info + Academic). Steps 3 and 4 are optional but encouraged
-
-## Technical Plan
-
-### New Files
+### Files to Create
 
 | File | Purpose |
 |------|---------|
-| `src/hooks/useOnboardingStatus.ts` | Checks if the current user has completed onboarding (returns `{ isComplete, isLoading }`) |
-| `src/components/OnboardingGuard.tsx` | Wrapper component that redirects authenticated users to `/onboarding` if incomplete |
-| `src/components/OnboardingGate.tsx` | UI component that shows a "Complete your profile" banner/overlay when a feature requires onboarding |
+| `src/pages/onboarding/steps/WelcomeStep.tsx` | Welcome screen with user name greeting and step overview |
+| `src/pages/onboarding/steps/CompletionStep.tsx` | Celebration screen with XP/badge display and dashboard CTA |
 
-### Modified Files
+### Files to Modify
 
 | File | Change |
-|------|--------|
-| `src/App.tsx` | Wrap authenticated routes (`/dashboard`, `/documents`, `/saved`, `/profile`, `/sales-dashboard`, `/ai-assistant`) with `OnboardingGuard`. Keep `/onboarding` route outside the guard. |
-| `src/pages/Auth.tsx` | Change `emailRedirectTo` from `window.location.origin/` to `window.location.origin/onboarding`. |
-| `src/pages/onboarding/OnboardingFlow.tsx` | Add skip-if-completed check on mount. Pre-populate form data from existing profile. Add per-step validation for required fields. |
-| `src/pages/onboarding/steps/BasicInfoStep.tsx` | Mark required fields, add validation feedback. |
-| `src/pages/onboarding/steps/AcademicInfoStep.tsx` | Mark required fields (curriculum, education level), add validation feedback. |
-| `src/pages/programs/ProgramPage.tsx` | Add `OnboardingGate` around eligibility panel and full description sections. |
-| `src/pages/universities/UniversityPage.tsx` | Add `OnboardingGate` around detailed program views. |
-| `src/components/EligibilityPanel.tsx` | Wrap with onboarding check -- show "Complete profile" CTA if not done. |
-| `src/components/WatchlistButton.tsx` | Disable and show tooltip if onboarding not complete. |
+|------|---------|
+| `src/pages/onboarding/OnboardingFlow.tsx` | Add WelcomeStep and CompletionStep to the flow; add framer-motion AnimatePresence for transitions; add step validation logic that prevents advancing on required steps; add step icons indicator; add "skip for now" link on optional steps |
+| `src/pages/onboarding/steps/BasicInfoStep.tsx` | Add `errors` prop for inline validation messages; replace nationality text input with searchable select; show "From your signup" hint on pre-filled fields |
+| `src/pages/onboarding/steps/AcademicInfoStep.tsx` | Add `errors` prop for inline validation messages on curriculum and education level; add info tooltip explaining the blocked bank account question |
+| `src/pages/onboarding/steps/LanguageStep.tsx` | Add optional-step messaging; improve empty state with friendlier copy |
+| `src/pages/onboarding/steps/PreferencesStep.tsx` | Add optional-step messaging; improve copy |
 
-### How `useOnboardingStatus` Works
+### Validation Logic (in OnboardingFlow.tsx)
 
 ```text
-1. Check if user is logged in
-2. If not logged in --> return { isComplete: false, isLoading: false }
-3. Query student_academics WHERE profile_id = user.id
-4. If record exists AND curriculum is not null AND target_level is not null
-   --> isComplete = true
-5. Otherwise --> isComplete = false
+validateStep(stepId, formData):
+  if stepId === 'basic':
+    errors = {}
+    if !formData.fullName -> errors.fullName = "Full name is required"
+    if !formData.dateOfBirth -> errors.dateOfBirth = "Date of birth is required"
+    if !formData.nationality -> errors.nationality = "Nationality is required"
+    return { valid: Object.keys(errors).length === 0, errors }
+  
+  if stepId === 'academic':
+    errors = {}
+    if !formData.curriculum -> errors.curriculum = "Please select your curriculum"
+    if !formData.desiredEducationLevel -> errors.desiredEducationLevel = "Please select your desired education level"
+    return { valid: Object.keys(errors).length === 0, errors }
+  
+  if stepId === 'language' or 'preferences':
+    return { valid: true, errors: {} }  // Always valid (optional)
 ```
 
-### How `OnboardingGuard` Works
+### Step Indicator Component (inline in OnboardingFlow)
 
 ```text
-User navigates to /dashboard
-  --> OnboardingGuard checks useOnboardingStatus
-  --> If isComplete: render children (dashboard)
-  --> If NOT isComplete: redirect to /onboarding
-  --> If isLoading: show spinner
+Steps displayed as horizontal row of circles with icons:
+  [User] --- [GraduationCap] --- [Languages] --- [Target]
+  
+  Completed: green circle with checkmark
+  Current: primary-colored circle with icon
+  Future: gray/muted circle with icon
 ```
 
-### How `OnboardingGate` Works (for public pages)
+### Animation Details
+- Use `framer-motion` variants for slide transitions
+- `initial`: translateX(direction * 100%), opacity 0
+- `animate`: translateX(0), opacity 1
+- `exit`: translateX(-direction * 100%), opacity 0
+- Duration: 300ms ease-in-out
+- `AnimatePresence` with `mode="wait"` wrapping the step component
 
-```text
-<OnboardingGate feature="eligibility">
-  <EligibilityPanel ... />
-</OnboardingGate>
-
-If user not logged in OR onboarding incomplete:
-  Show a card saying "Complete your profile to unlock this feature"
-  with a CTA button linking to /auth or /onboarding
-
-If onboarding complete:
-  Render children normally
-```
-
-## No Database Changes Required
-
-The `student_academics` table already exists with the needed columns (`curriculum`, `target_level`). We just read from it to determine completion status.
+### No Database Changes Required
+All changes are frontend-only. The existing `student_academics` table and onboarding submission logic remain unchanged.
 
