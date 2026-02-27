@@ -1,15 +1,26 @@
 
 
-## Plan: Map to existing HubSpot `student_high_school_curriculum` property
+## Plan: Map `desired_education_level` values to HubSpot dropdown options
 
 ### Problem
-The Edge Function sends `curriculum` but HubSpot already has a dropdown property with internal name `student_high_school_curriculum` — with matching options (American Diploma, IGCSE, IB, NATIONAL DIPLOMA, Other, French BAC, Canadian Diploma).
+The app sends `foundation_year` / `bachelors` / `masters` but HubSpot expects `Foundation Course` / `Bachelor Degree` / `Master's Degree`.
 
 ### Change
 
 **`supabase/functions/sync-hubspot-lead/index.ts`** — in `buildOnboardingProperties()`:
-- Rename key `curriculum` → `student_high_school_curriculum`
-- Values already match the HubSpot dropdown options exactly, so no value mapping needed.
 
-One-line change, no new property to create.
+Add a value mapping for `desired_education_level`:
+
+```
+foundation_year  →  Foundation Course
+bachelors        →  Bachelor Degree
+masters          →  Master's Degree
+```
+
+Replace the direct assignment with a lookup map so the correct HubSpot internal name is sent.
+
+### Scope
+- One file, ~8 lines added
+- No frontend changes needed
+- Remove `desired_education_level` from the list of properties you need to create (it already exists)
 
