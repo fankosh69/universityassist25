@@ -1,16 +1,15 @@
 
 
-## Plan: Replace custom `country_of_residence` with HubSpot's built-in `country` property
+## Plan: Map to existing HubSpot `student_high_school_curriculum` property
 
 ### Problem
-The Edge Function sets a custom `country_of_residence` property, but HubSpot already has a built-in **Country/Region** dropdown with internal name `country`.
+The Edge Function sends `curriculum` but HubSpot already has a dropdown property with internal name `student_high_school_curriculum` — with matching options (American Diploma, IGCSE, IB, NATIONAL DIPLOMA, Other, French BAC, Canadian Diploma).
 
-### Changes
+### Change
 
-**1. Update Edge Function** (`supabase/functions/sync-hubspot-lead/index.ts`)
-- In `buildOnboardingProperties()`: rename `country_of_residence` → `country`
-- Value format must match HubSpot's expected country labels (e.g., "Egypt", "Saudi Arabia") — our current values already match.
+**`supabase/functions/sync-hubspot-lead/index.ts`** — in `buildOnboardingProperties()`:
+- Rename key `curriculum` → `student_high_school_curriculum`
+- Values already match the HubSpot dropdown options exactly, so no value mapping needed.
 
-### No new property needed
-`country_of_residence` is removed from the custom properties list.
+One-line change, no new property to create.
 
