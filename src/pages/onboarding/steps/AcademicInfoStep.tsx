@@ -206,7 +206,7 @@ export function AcademicInfoStep({ data, onUpdate, errors = {} }: AcademicInfoSt
           </div>
 
           <div>
-            <Label htmlFor="totalECTS">Total ECTS Credits (if applicable)</Label>
+            <Label htmlFor="totalECTS">Total Credit Points (if applicable)</Label>
             <Input
               id="totalECTS"
               type="number"

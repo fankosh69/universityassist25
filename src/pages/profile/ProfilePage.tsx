@@ -173,7 +173,7 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <Label htmlFor="ects_total">Total ECTS Credits (if applicable)</Label>
+                <Label htmlFor="ects_total">Total Credit Points (if applicable)</Label>
                 <Input 
                   id="ects_total"
                   type="number"

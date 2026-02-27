@@ -158,7 +158,7 @@ function buildOnboardingProperties(lead: LeadData): Record<string, string> {
     gpa_scale: lead.gpa_scale != null ? String(lead.gpa_scale) : "",
     gpa_min_pass: lead.gpa_min_pass != null ? String(lead.gpa_min_pass) : "",
     german_gpa: lead.german_gpa != null ? String(lead.german_gpa) : "",
-    total_ects: String(lead.total_ects ?? 0),
+    total_credit_points: String(lead.total_ects ?? 0),
     // Language
     english_cefr_level: englishLang?.cefr_level || "",
     language_test_english_type: englishLang?.test_type || "",
