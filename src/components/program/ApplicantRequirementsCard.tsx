@@ -302,7 +302,7 @@ export function ApplicantRequirementsCard({
                 {studentEcts != null && studentEcts > 0 && requirements.subject_requirements.total_ects && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>Your ECTS</span>
+                      <span>Your Credit Points</span>
                       <span>{studentEcts} / {requirements.subject_requirements.total_ects}</span>
                     </div>
                     <Progress 

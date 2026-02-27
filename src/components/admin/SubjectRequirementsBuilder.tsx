@@ -208,9 +208,9 @@ export function SubjectRequirementsBuilder({ value, onChange }: SubjectRequireme
 
   return (
     <div className="space-y-4">
-      {/* Total ECTS */}
+      {/* Total Credit Points */}
       <div className="flex items-center gap-4">
-        <Label className="w-32">Total ECTS Required</Label>
+        <Label className="w-32">Total Credit Points Required</Label>
         <Input
           type="number"
           value={safeValue.total_ects || 180}

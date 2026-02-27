@@ -216,7 +216,7 @@ export class MatchingServiceV2 {
 
     if (scores.ectsScore < 100 && program.minECTS) {
       const missing = program.minECTS - (student.totalECTS || 0);
-      gaps.ects = `Complete ${missing} more ECTS credits`;
+      gaps.ects = `Complete ${missing} more credit points`;
     }
 
     if (scores.intakeScore < 100) {
