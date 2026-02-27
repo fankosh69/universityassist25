@@ -291,9 +291,10 @@ const Auth = () => {
 
       if (error) throw error;
 
-      // Sync new user to HubSpot via Zapier (non-blocking)
+      // Sync new user to HubSpot (non-blocking)
       supabase.functions.invoke('sync-hubspot-lead', {
         body: {
+          sync_type: 'signup',
           email: signUpData.email,
           full_name: signUpData.full_name,
           phone: signUpData.phone,
@@ -302,6 +303,7 @@ const Auth = () => {
           country_code: signUpData.country_code,
           is_underage: dobValidationResult.isUnderage,
           parent_email: dobValidationResult.isUnderage ? parentInfo.email : undefined,
+          parent_consent_given: dobValidationResult.isUnderage ? false : undefined,
         }
       }).then((result) => {
         if (result.error) {

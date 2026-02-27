@@ -3,8 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const HUBSPOT_API_BASE = "https://api.hubapi.com";
 
 interface LeadData {
   sync_type?: "signup" | "onboarding_complete";
@@ -18,7 +20,6 @@ interface LeadData {
   is_underage?: boolean;
   parent_email?: string;
   parent_consent_given?: boolean;
-  // Onboarding fields
   nationality?: string;
   country_of_residence?: string;
   curriculum?: string;
@@ -44,28 +45,157 @@ interface LeadData {
   profile_completion_pct?: number;
 }
 
+// --- HubSpot API helpers ---
+
+async function hubspotRequest(
+  token: string,
+  method: string,
+  path: string,
+  body?: Record<string, any>
+): Promise<{ ok: boolean; status: number; data: any }> {
+  const res = await fetch(`${HUBSPOT_API_BASE}${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, data };
+}
+
+async function searchContactByEmail(token: string, email: string) {
+  const res = await hubspotRequest(token, "POST", "/crm/v3/objects/contacts/search", {
+    filterGroups: [{
+      filters: [{ propertyName: "email", operator: "EQ", value: email }],
+    }],
+  });
+  if (res.ok && res.data.total > 0) {
+    return res.data.results[0]; // { id, properties }
+  }
+  return null;
+}
+
+async function createOrUpdateContact(
+  token: string,
+  email: string,
+  properties: Record<string, any>
+): Promise<{ ok: boolean; contactId?: string; error?: string }> {
+  // Search for existing contact
+  const existing = await searchContactByEmail(token, email);
+
+  if (existing) {
+    // Update
+    const res = await hubspotRequest(
+      token, "PATCH",
+      `/crm/v3/objects/contacts/${existing.id}`,
+      { properties }
+    );
+    if (res.ok) {
+      return { ok: true, contactId: existing.id };
+    }
+    return { ok: false, error: `Update failed: ${res.status} ${JSON.stringify(res.data)}` };
+  } else {
+    // Create
+    const res = await hubspotRequest(
+      token, "POST",
+      "/crm/v3/objects/contacts",
+      { properties: { ...properties, email } }
+    );
+    if (res.ok) {
+      return { ok: true, contactId: res.data.id };
+    }
+    return { ok: false, error: `Create failed: ${res.status} ${JSON.stringify(res.data)}` };
+  }
+}
+
+// --- Build HubSpot properties from lead data ---
+
+function buildSignupProperties(lead: LeadData): Record<string, string> {
+  const props: Record<string, string> = {
+    firstname: lead.full_name?.split(" ")[0] || "",
+    lastname: lead.full_name?.split(" ").slice(1).join(" ") || "",
+    platform_user_id: lead.platform_user_id || "",
+    phone: lead.country_code && lead.phone
+      ? `${lead.country_code}${lead.phone}`
+      : lead.phone || "",
+    gender: lead.gender || "",
+    date_of_birth: lead.date_of_birth || "",
+    signup_source: "university_assist_platform",
+    is_minor: String(lead.is_underage || false),
+    parent_email: lead.parent_email || "",
+    parent_consent_given: String(lead.parent_consent_given || false),
+  };
+  return props;
+}
+
+function buildOnboardingProperties(lead: LeadData): Record<string, string> {
+  const englishLang = lead.languages?.find(l => l.language.toLowerCase() === "english");
+  const germanLang = lead.languages?.find(l => l.language.toLowerCase() === "german");
+
+  const props: Record<string, string> = {
+    firstname: lead.full_name?.split(" ")[0] || "",
+    lastname: lead.full_name?.split(" ").slice(1).join(" ") || "",
+    platform_user_id: lead.platform_user_id || "",
+    nationality: lead.nationality || "",
+    country_of_residence: lead.country_of_residence || "",
+    curriculum: lead.curriculum || "",
+    desired_education_level: lead.desired_education_level || "",
+    desired_major: lead.desired_major || "",
+    high_school_name: lead.school_name || "",
+    blocked_bank_account_aware: lead.blocked_bank_account_aware || "",
+    // GPA
+    gpa_raw: lead.gpa_raw != null ? String(lead.gpa_raw) : "",
+    gpa_scale: lead.gpa_scale != null ? String(lead.gpa_scale) : "",
+    gpa_min_pass: lead.gpa_min_pass != null ? String(lead.gpa_min_pass) : "",
+    german_gpa: lead.german_gpa != null ? String(lead.german_gpa) : "",
+    total_ects: String(lead.total_ects ?? 0),
+    // Language
+    english_cefr_level: englishLang?.cefr_level || "",
+    language_test_english_type: englishLang?.test_type || "",
+    language_test_english_score: englishLang?.test_score || "",
+    german_cefr_level: germanLang?.cefr_level || "",
+    language_test_german_type: germanLang?.test_type || "",
+    language_test_german_score: germanLang?.test_score || "",
+    // Preferences
+    preferred_fields: (lead.preferred_fields || []).join(", "),
+    preferred_cities: (lead.preferred_cities || []).join(", "),
+    career_goals: lead.career_goals || "",
+    // Gamification
+    xp_points: String(lead.xp_points ?? 0),
+    profile_completion_pct: String(lead.profile_completion_pct ?? 0),
+    // Timestamps
+    onboarding_completed_date: new Date().toISOString(),
+    signup_source: "university_assist_platform",
+  };
+  return props;
+}
+
+// --- Main handler ---
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const ZAPIER_WEBHOOK_URL = Deno.env.get("ZAPIER_HUBSPOT_WEBHOOK_URL");
-    
-    if (!ZAPIER_WEBHOOK_URL) {
-      console.error("ZAPIER_HUBSPOT_WEBHOOK_URL is not configured");
+    const HUBSPOT_TOKEN = Deno.env.get("HUBSPOT_ACCESS_TOKEN");
+
+    if (!HUBSPOT_TOKEN) {
+      console.error("HUBSPOT_ACCESS_TOKEN is not configured");
       return new Response(
-        JSON.stringify({ success: false, error: "Webhook URL not configured" }),
+        JSON.stringify({ success: false, error: "HubSpot token not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const leadData: LeadData = await req.json();
     const syncType = leadData.sync_type || "signup";
-    
-    console.log(`Received ${syncType} lead data for sync:`, { 
-      email: leadData.email, 
-      name: leadData.full_name 
+
+    console.log(`Received ${syncType} lead for HubSpot sync:`, {
+      email: leadData.email,
+      name: leadData.full_name,
     });
 
     if (!leadData.email || !leadData.full_name) {
@@ -75,138 +205,52 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Extract language test details from languages array
-    const englishLang = leadData.languages?.find(l => l.language.toLowerCase() === "english");
-    const germanLang = leadData.languages?.find(l => l.language.toLowerCase() === "german");
+    // Build properties based on sync type
+    const properties = syncType === "onboarding_complete"
+      ? buildOnboardingProperties(leadData)
+      : buildSignupProperties(leadData);
 
-    // Build payload using canonical HubSpot property names (per audit plan)
-    let zapierPayload: Record<string, any>;
-
-    if (syncType === "onboarding_complete") {
-      zapierPayload = {
-        sync_type: "onboarding_complete",
-        // Core identity
-        email: leadData.email,
-        full_name: leadData.full_name,
-        platform_user_id: leadData.platform_user_id || "",
-        nationality: leadData.nationality || "",
-        country_of_residence: leadData.country_of_residence || "",
-        // Academic — canonical names
-        curriculum: leadData.curriculum || "",
-        desired_education_level: leadData.desired_education_level || "",
-        desired_major: leadData.desired_major || "",
-        high_school_name: leadData.school_name || "",
-        blocked_bank_account_aware: leadData.blocked_bank_account_aware || "",
-        // GPA — new numeric properties
-        gpa_raw: leadData.gpa_raw ?? null,
-        gpa_scale: leadData.gpa_scale ?? null,
-        gpa_min_pass: leadData.gpa_min_pass ?? null,
-        german_gpa: leadData.german_gpa ?? null,
-        total_ects: leadData.total_ects ?? 0,
-        // Language — CEFR canonical + test details
-        english_cefr_level: englishLang?.cefr_level || "",
-        language_test_english_type: englishLang?.test_type || "",
-        language_test_english_score: englishLang?.test_score || "",
-        german_cefr_level: germanLang?.cefr_level || "",
-        language_test_german_type: germanLang?.test_type || "",
-        language_test_german_score: germanLang?.test_score || "",
-        // Preferences
-        preferred_fields: (leadData.preferred_fields || []).join(", "),
-        preferred_cities: (leadData.preferred_cities || []).join(", "),
-        career_goals: leadData.career_goals || "",
-        // Gamification & progress
-        xp_points: leadData.xp_points ?? 0,
-        profile_completion_pct: leadData.profile_completion_pct ?? 0,
-        // Timestamps
-        onboarding_completed_date: new Date().toISOString(),
-        signup_source: "university_assist_platform",
-      };
-    } else {
-      zapierPayload = {
-        sync_type: "signup",
-        email: leadData.email,
-        full_name: leadData.full_name,
-        platform_user_id: leadData.platform_user_id || "",
-        phone: leadData.country_code && leadData.phone 
-          ? `${leadData.country_code}${leadData.phone}` 
-          : leadData.phone || "",
-        gender: leadData.gender || "",
-        date_of_birth: leadData.date_of_birth || "",
-        signup_date: new Date().toISOString(),
-        signup_source: "university_assist_platform",
-        is_minor: leadData.is_underage || false,
-        parent_email: leadData.parent_email || "",
-        parent_consent_given: leadData.parent_consent_given || false,
-      };
+    // Remove empty string values to avoid overwriting existing data
+    const cleanProperties: Record<string, string> = {};
+    for (const [k, v] of Object.entries(properties)) {
+      if (v !== "") cleanProperties[k] = v;
     }
 
-    console.log(`Sending ${syncType} to Zapier webhook...`);
-
-    let syncStatus = "success";
-    let errorMessage: string | null = null;
-    let responseData: any = null;
-
-    try {
-      const zapierResponse = await fetch(ZAPIER_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(zapierPayload),
-      });
-
-      responseData = {
-        status: zapierResponse.status,
-        statusText: zapierResponse.statusText,
-      };
-
-      try {
-        const responseText = await zapierResponse.text();
-        if (responseText) responseData.body = responseText;
-      } catch { /* ignore */ }
-
-      if (!zapierResponse.ok) {
-        syncStatus = "failed";
-        errorMessage = `Zapier returned status ${zapierResponse.status}`;
-        console.error("Zapier webhook error:", errorMessage);
-      } else {
-        console.log(`Successfully sent ${syncType} to Zapier`);
-      }
-    } catch (fetchError) {
-      syncStatus = "failed";
-      errorMessage = fetchError instanceof Error ? fetchError.message : "Unknown fetch error";
-      console.error("Failed to call Zapier webhook:", errorMessage);
-    }
+    // Create or update contact in HubSpot
+    const result = await createOrUpdateContact(HUBSPOT_TOKEN, leadData.email, cleanProperties);
 
     // Log to hubspot_sync_log table
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { error: logError } = await supabase
-      .from("hubspot_sync_log")
-      .insert({
-        sync_type: syncType,
-        sync_status: syncStatus,
-        request_data: zapierPayload,
-        response_data: responseData,
-        error_message: errorMessage,
-        synced_at: new Date().toISOString(),
-      });
+    await supabase.from("hubspot_sync_log").insert({
+      sync_type: syncType,
+      sync_status: result.ok ? "success" : "failed",
+      hubspot_contact_id: result.contactId || null,
+      request_data: cleanProperties,
+      response_data: { contactId: result.contactId },
+      error_message: result.error || null,
+      synced_at: new Date().toISOString(),
+    });
 
-    if (logError) {
-      console.error("Failed to log sync attempt:", logError);
+    if (result.ok) {
+      console.log(`Successfully synced ${syncType} to HubSpot, contactId: ${result.contactId}`);
+    } else {
+      console.error(`HubSpot sync failed: ${result.error}`);
     }
 
     return new Response(
-      JSON.stringify({ 
-        success: syncStatus === "success",
-        message: syncStatus === "success" 
-          ? `Lead ${syncType} synced to HubSpot via Zapier` 
-          : "Sync attempted but may have failed",
-        error: errorMessage,
+      JSON.stringify({
+        success: result.ok,
+        message: result.ok
+          ? `Contact ${syncType} synced to HubSpot (ID: ${result.contactId})`
+          : "HubSpot sync failed",
+        contactId: result.contactId,
+        error: result.error,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
   } catch (error) {
     console.error("Error in sync-hubspot-lead:", error);
     return new Response(

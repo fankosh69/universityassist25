@@ -208,10 +208,11 @@ export default function OnboardingFlow() {
       await GamificationService.awardXP(user.id, { eventType: 'PROFILE_COMPLETE', description: 'Completed onboarding' });
       await GamificationService.awardBadge(user.id, 'profile_pioneer');
 
-      // Non-blocking HubSpot sync
+      // Non-blocking HubSpot sync (direct API via Private App)
       supabase.functions.invoke('sync-hubspot-lead', {
         body: {
           sync_type: 'onboarding_complete',
+          platform_user_id: user.id,
           email: user.email,
           full_name: formData.fullName,
           nationality: formData.nationality,
@@ -224,6 +225,7 @@ export default function OnboardingFlow() {
           gpa_raw: formData.gpaRaw,
           gpa_scale: formData.gpaScale,
           gpa_min_pass: formData.gpaMinPass,
+          german_gpa: formData.germanGpa,
           total_ects: formData.totalECTS,
           languages: formData.languages?.map((lang: any) => ({
             language: lang.language, cefr_level: lang.cefrLevel,
@@ -232,6 +234,8 @@ export default function OnboardingFlow() {
           preferred_fields: formData.preferredFields,
           preferred_cities: formData.preferredCities,
           career_goals: formData.careerGoals,
+          xp_points: 50, // PROFILE_COMPLETE XP
+          profile_completion_pct: 100,
         }
       }).catch(err => console.error('HubSpot sync error:', err));
 
