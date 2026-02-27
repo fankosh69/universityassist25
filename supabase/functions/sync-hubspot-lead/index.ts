@@ -9,7 +9,9 @@ const corsHeaders = {
 const HUBSPOT_API_BASE = "https://api.hubapi.com";
 
 interface LeadData {
-  sync_type?: "signup" | "onboarding_complete";
+  sync_type?: "signup" | "onboarding_complete" | "eligibility_check";
+  eligibility_status?: string;
+  curriculum_details?: string;
   platform_user_id?: string;
   email: string;
   full_name: string;
@@ -178,6 +180,18 @@ function buildOnboardingProperties(lead: LeadData): Record<string, string> {
   return props;
 }
 
+function buildEligibilityProperties(lead: LeadData): Record<string, string> {
+  return {
+    firstname: lead.full_name?.split(" ")[0] || "",
+    lastname: lead.full_name?.split(" ").slice(1).join(" ") || "",
+    platform_user_id: lead.platform_user_id || "",
+    student_high_school_curriculum: lead.curriculum || "",
+    eligibility_status: lead.eligibility_status || "",
+    curriculum_details: lead.curriculum_details || "",
+    lead_source: "Eligibility Checker",
+  };
+}
+
 // --- Main handler ---
 
 Deno.serve(async (req) => {
@@ -214,6 +228,8 @@ Deno.serve(async (req) => {
     // Build properties based on sync type
     const properties = syncType === "onboarding_complete"
       ? buildOnboardingProperties(leadData)
+      : syncType === "eligibility_check"
+      ? buildEligibilityProperties(leadData)
       : buildSignupProperties(leadData);
 
     // Remove empty string values to avoid overwriting existing data

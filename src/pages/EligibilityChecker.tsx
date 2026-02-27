@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,10 @@ import Navigation from "@/components/Navigation";
 import { CurriculumFields } from "@/pages/onboarding/steps/CurriculumFields";
 import { checkEligibility, type EligibilityResult } from "@/lib/curriculum-eligibility";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, AlertTriangle, XCircle, Info, ExternalLink, ArrowRight, RotateCcw } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Info, ExternalLink, ArrowRight, RotateCcw, Loader2 } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
+
+const SESSION_KEY = "eligibility_checker_data";
 
 const CURRICULUM_OPTIONS = [
   { value: 'American Diploma', label: 'American Diploma' },
@@ -38,45 +42,138 @@ function StatusBadge({ status }: { status: EligibilityResult['status'] }) {
 }
 
 export default function EligibilityChecker() {
+  const navigate = useNavigate();
   const [curriculum, setCurriculum] = useState('');
   const [data, setData] = useState<Record<string, any>>({});
   const [result, setResult] = useState<EligibilityResult | null>(null);
   const [preloaded, setPreloaded] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
-  // Pre-populate from profile if logged in
+  // Listen to auth state
   useEffect(() => {
-    async function loadProfile() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setAuthChecked(true);
+    });
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+      setAuthChecked(true);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
-      const { data: academics } = await supabase
+  // On mount: restore from session if user just signed in
+  useEffect(() => {
+    if (!authChecked || !user) return;
+
+    const saved = sessionStorage.getItem(SESSION_KEY);
+    if (saved) {
+      try {
+        const { curriculum: savedCurriculum, data: savedData } = JSON.parse(saved);
+        sessionStorage.removeItem(SESSION_KEY);
+        setCurriculum(savedCurriculum);
+        setData(savedData);
+        // Auto-run check + save
+        const eligibility = checkEligibility(savedCurriculum, savedData.curriculumDetails || {});
+        setResult(eligibility);
+        saveAndSync(user, savedCurriculum, savedData, eligibility);
+      } catch {
+        sessionStorage.removeItem(SESSION_KEY);
+      }
+      return;
+    }
+
+    // Pre-populate from profile if logged in (no session data)
+    loadProfile(user.id);
+  }, [authChecked, user]);
+
+  async function loadProfile(userId: string) {
+    const { data: academics } = await supabase
+      .from('student_academics')
+      .select('curriculum, extras, target_level')
+      .eq('profile_id', userId)
+      .maybeSingle();
+
+    if (academics?.curriculum) {
+      setCurriculum(academics.curriculum);
+      const extras = (academics.extras && typeof academics.extras === 'object' && !Array.isArray(academics.extras))
+        ? academics.extras as Record<string, any>
+        : {};
+      setData({ curriculumDetails: extras });
+      setPreloaded(true);
+    }
+  }
+
+  async function saveAndSync(currentUser: User, cur: string, formData: Record<string, any>, eligibility: EligibilityResult) {
+    setSaving(true);
+    try {
+      // 1. Upsert student_academics
+      const extras = formData.curriculumDetails || {};
+      await supabase.rpc('secure_update_academic_data', {
+        target_profile_id: currentUser.id,
+        update_data: {
+          curriculum: cur,
+          extras: JSON.stringify(extras),
+        } as any,
+      });
+
+      // Also update extras via direct upsert since RPC may not handle JSONB extras
+      await supabase
         .from('student_academics')
-        .select('curriculum, extras, target_level')
-        .eq('profile_id', user.id)
+        .update({ extras })
+        .eq('profile_id', currentUser.id);
+
+      // 2. Sync to HubSpot
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', currentUser.id)
         .maybeSingle();
 
-      if (academics?.curriculum) {
-        setCurriculum(academics.curriculum);
-        const extras = (academics.extras && typeof academics.extras === 'object' && !Array.isArray(academics.extras))
-          ? academics.extras as Record<string, any>
-          : {};
-        setData({ curriculumDetails: extras });
-        setPreloaded(true);
+      if (profile?.email && profile?.full_name) {
+        await supabase.functions.invoke('sync-hubspot-lead', {
+          body: {
+            sync_type: 'eligibility_check',
+            platform_user_id: currentUser.id,
+            email: profile.email,
+            full_name: profile.full_name,
+            curriculum: cur,
+            eligibility_status: eligibility.status,
+            curriculum_details: JSON.stringify(extras),
+          },
+        });
       }
+    } catch (err) {
+      console.error('Error saving eligibility data:', err);
+    } finally {
+      setSaving(false);
     }
-    loadProfile();
-  }, []);
+  }
 
   const handleCheck = () => {
     if (!curriculum) return;
+
     const eligibility = checkEligibility(curriculum, data.curriculumDetails || {});
+
+    if (!user) {
+      // Guest: save to session and redirect to auth
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ curriculum, data }));
+      navigate('/auth?returnTo=/eligibility-checker');
+      return;
+    }
+
+    // Logged in: show result + save
     setResult(eligibility);
+    saveAndSync(user, curriculum, data, eligibility);
   };
 
   const handleReset = () => {
     setCurriculum('');
     setData({});
     setResult(null);
+    setPreloaded(false);
   };
 
   return (
@@ -128,6 +225,12 @@ export default function EligibilityChecker() {
           </Card>
         ) : (
           <div className="space-y-6">
+            {saving && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" /> Saving your results…
+              </div>
+            )}
+
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Your Eligibility Result</h2>
@@ -182,12 +285,18 @@ export default function EligibilityChecker() {
               )}
             </Card>
 
+            {/* CTAs */}
             <div className="flex gap-3">
               <Button variant="outline" onClick={handleReset} className="flex-1">
                 <RotateCcw className="w-4 h-4 mr-2" /> Start Over
               </Button>
-              <Button onClick={() => setResult(null)} className="flex-1">
-                Edit Details
+              <Button onClick={() => navigate('/dashboard')} className="flex-1">
+                Go to Dashboard <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+            <div className="flex justify-center">
+              <Button variant="link" onClick={() => navigate('/search')} className="text-sm">
+                Browse Programs
               </Button>
             </div>
 
