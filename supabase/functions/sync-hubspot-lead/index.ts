@@ -140,7 +140,7 @@ function buildOnboardingProperties(lead: LeadData): Record<string, string> {
     platform_user_id: lead.platform_user_id || "",
     nationality: lead.nationality || "",
     country: lead.country_of_residence || "",
-    curriculum: lead.curriculum || "",
+    student_high_school_curriculum: lead.curriculum || "",
     desired_education_level: lead.desired_education_level || "",
     desired_major: lead.desired_major || "",
     high_school_name: lead.school_name || "",
