@@ -134,6 +134,12 @@ function buildOnboardingProperties(lead: LeadData): Record<string, string> {
   const englishLang = lead.languages?.find(l => l.language.toLowerCase() === "english");
   const germanLang = lead.languages?.find(l => l.language.toLowerCase() === "german");
 
+  const educationLevelMap: Record<string, string> = {
+    foundation_year: "Foundation Course",
+    bachelors: "Bachelor Degree",
+    masters: "Master's Degree",
+  };
+
   const props: Record<string, string> = {
     firstname: lead.full_name?.split(" ")[0] || "",
     lastname: lead.full_name?.split(" ").slice(1).join(" ") || "",
@@ -141,7 +147,7 @@ function buildOnboardingProperties(lead: LeadData): Record<string, string> {
     nationality: lead.nationality || "",
     country: lead.country_of_residence || "",
     student_high_school_curriculum: lead.curriculum || "",
-    desired_education_level: lead.desired_education_level || "",
+    desired_education_level: educationLevelMap[lead.desired_education_level || ""] || lead.desired_education_level || "",
     desired_major: lead.desired_major || "",
     high_school_name: lead.school_name || "",
     blocked_bank_account_aware: lead.blocked_bank_account_aware || "",
