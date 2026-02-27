@@ -122,7 +122,7 @@ function buildSignupProperties(lead: LeadData): Record<string, string> {
       : lead.phone || "",
     gender: lead.gender || "",
     date_of_birth: lead.date_of_birth || "",
-    signup_source: "university_assist_platform",
+    lead_source: "Platform Signup",
     is_minor: String(lead.is_underage || false),
     parent_email: lead.parent_email || "",
     parent_consent_given: String(lead.parent_consent_given || false),
@@ -167,7 +167,7 @@ function buildOnboardingProperties(lead: LeadData): Record<string, string> {
     profile_completion_pct: String(lead.profile_completion_pct ?? 0),
     // Timestamps
     onboarding_completed_date: new Date().toISOString(),
-    signup_source: "university_assist_platform",
+    lead_source: "Platform Signup",
   };
   return props;
 }
