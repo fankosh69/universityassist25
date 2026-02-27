@@ -1,43 +1,32 @@
 
 
-## Plan: Fix Eligibility Checker UX Issues
+## Plan: Rename "Total ECTS" to "Total Credit Points"
 
-### Changes
+Rename the label and HubSpot property from `total_ects` to `total_credit_points` across the codebase. The DB column stays as-is (no migration needed — it's just a label change in the UI and HubSpot sync).
 
-#### 1. `src/pages/onboarding/steps/CurriculumFields.tsx` — AmericanDiplomaFields fixes
+### Files to modify
 
-**Reorder sections** (lines 368-490):
-- Move `GraduatedSection` call but restructure so university study fields appear AFTER AP/SAT/ACT, not immediately after graduation question
-- Split `GraduatedSection` usage: render graduation yes/no + current grade at top, but move the "Have you started university?" block to the bottom of the form
-- Change GPA label: if `graduated === true`, show "Final High School GPA (out of 4.0)" instead of "Unweighted CGPA (Grade 9–12)"
-- Remove GPA Scale field entirely; hardcode `gpa_scale: 4` in the update call
-- SAT/ACT: change from `grid grid-cols-2` to stacked vertical layout — each test in its own div with label + toggle + score grouped clearly
+#### 1. `src/pages/onboarding/steps/AcademicInfoStep.tsx`
+- Line 209: Change label from "Total ECTS Credits (if applicable)" to "Total Credit Points (if applicable)"
 
-#### 2. `src/pages/EligibilityChecker.tsx` — Auth gate + save + sync
+#### 2. `src/pages/profile/ProfilePage.tsx`
+- Line 176: Change label from "Total ECTS Credits (if applicable)" to "Total Credit Points (if applicable)"
 
-- Add auth state check on mount; track `user` and `isLoggedIn` state
-- **Guest flow**: Allow filling the form, but on "Check My Eligibility":
-  - Store form data + curriculum in `sessionStorage`
-  - Redirect to `/auth?returnTo=/eligibility-checker`
-  - On mount, if `sessionStorage` has saved data AND user is now logged in, restore data, run check, save to DB, and sync to HubSpot
-- **Logged-in flow**: On "Check My Eligibility":
-  1. Run eligibility rules
-  2. Upsert `student_academics` with curriculum + extras
-  3. Call `sync-hubspot-lead` with `sync_type: "eligibility_check"`
-  4. Show result with CTAs: "Go to Dashboard" / "Browse Programs"
-- Add saving/loading state indicator
+#### 3. `src/components/admin/SubjectRequirementsBuilder.tsx`
+- Line 211-213: Change label from "Total ECTS Required" to "Total Credit Points Required"
 
-#### 3. `supabase/functions/sync-hubspot-lead/index.ts` — Add eligibility_check sync type
+#### 4. `src/components/program/ApplicantRequirementsCard.tsx`
+- Line 305: Change display text from "Your ECTS" to "Your Credit Points"
 
-- Add `eligibility_check` to the `sync_type` handling
-- New `buildEligibilityProperties` function that maps:
-  - `curriculum` → `student_high_school_curriculum`
-  - `eligibility_status` → new `eligibility_status` property (single-line text)
-  - `curriculum_details` → new `curriculum_details` property (JSON stringified, multi-line text)
-- Add `eligibility_status` and `curriculum_details` fields to `LeadData` interface
+#### 5. `src/services/matching-v2.ts`
+- Line 219: Change gap message from "Complete X more ECTS credits" to "Complete X more credit points"
 
-### Files Modified
-- `src/pages/onboarding/steps/CurriculumFields.tsx`
-- `src/pages/EligibilityChecker.tsx`
-- `supabase/functions/sync-hubspot-lead/index.ts`
+#### 6. `supabase/functions/sync-hubspot-lead/index.ts`
+- Line 161: Change HubSpot property key from `total_ects` to `total_credit_points`
+
+#### HubSpot admin step (manual)
+- Rename the HubSpot property from `total_ects` / "Total ECTS" to internal name `total_credit_points` / label "Total Credit Points"
+- Or create a new property `total_credit_points` and retire the old one
+
+**Note**: The database column `total_ects` in `student_academics` remains unchanged — renaming DB columns requires a migration and is cosmetic only. The UI and HubSpot labels are what matter for user/counselor visibility.
 
