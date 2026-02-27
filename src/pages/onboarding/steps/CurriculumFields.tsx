@@ -76,10 +76,11 @@ function UniversityStudyFields({ data, onUpdate }: { data: Record<string, any>; 
 
 // ─── Shared: Graduated + University Question ────────────────────────────────
 
-function GraduatedSection({ data, onUpdate, gradeOptions }: {
+function GraduatedSection({ data, onUpdate, gradeOptions, hideUniversitySection }: {
   data: Record<string, any>;
   onUpdate: (d: Record<string, any>) => void;
   gradeOptions?: string[];
+  hideUniversitySection?: boolean;
 }) {
   return (
     <div className="space-y-3">
@@ -113,7 +114,7 @@ function GraduatedSection({ data, onUpdate, gradeOptions }: {
         </div>
       )}
 
-      {data.graduated === true && (
+      {data.graduated === true && !hideUniversitySection && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Have you started university studies?</Label>
@@ -367,35 +368,28 @@ function IGCSEFields({ data, onUpdate }: { data: Record<string, any>; onUpdate: 
 
 function AmericanDiplomaFields({ data, onUpdate }: { data: Record<string, any>; onUpdate: (d: Record<string, any>) => void }) {
   const cd = data.curriculumDetails || {};
-  const update = (d: Record<string, any>) => onUpdate({ curriculumDetails: { ...cd, ...d } });
+  const update = (d: Record<string, any>) => onUpdate({ curriculumDetails: { ...cd, ...d, gpa_scale: 4 } });
 
   return (
     <div className="space-y-4">
-      <GraduatedSection data={cd} onUpdate={update} gradeOptions={['9', '10', '11', '12']} />
+      {/* Graduation status (without university section - moved to bottom) */}
+      <GraduatedSection data={cd} onUpdate={update} gradeOptions={['9', '10', '11', '12']} hideUniversitySection />
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label>Unweighted CGPA (Grade 9–12)</Label>
-          <Input
-            type="number"
-            step="0.01"
-            value={cd.gpa_unweighted || ''}
-            onChange={e => update({ gpa_unweighted: parseFloat(e.target.value) || undefined })}
-            placeholder="3.5"
-          />
-        </div>
-        <div>
-          <Label>GPA Scale</Label>
-          <Input
-            type="number"
-            step="0.1"
-            value={cd.gpa_scale || ''}
-            onChange={e => update({ gpa_scale: parseFloat(e.target.value) || undefined })}
-            placeholder="4.0"
-          />
-        </div>
+      {/* High School GPA */}
+      <div>
+        <Label>{cd.graduated === true ? 'Final High School GPA (out of 4.0)' : 'Unweighted CGPA (Grade 9–12, out of 4.0)'}</Label>
+        <Input
+          type="number"
+          step="0.01"
+          min={0}
+          max={4}
+          value={cd.gpa_unweighted || ''}
+          onChange={e => update({ gpa_unweighted: parseFloat(e.target.value) || undefined })}
+          placeholder="3.5"
+        />
       </div>
 
+      {/* AP Exams */}
       <div>
         <div className="flex items-center gap-2">
           <Label className="text-sm font-medium">Have you taken any AP (Advanced Placement) exams? *</Label>
@@ -445,10 +439,11 @@ function AmericanDiplomaFields({ data, onUpdate }: { data: Record<string, any>; 
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <Label className="text-sm">SAT Score</Label>
+      {/* SAT / ACT — stacked vertically with clear grouping */}
+      <div className="space-y-3">
+        <div className="rounded-lg border p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">SAT</Label>
             <Switch
               checked={cd.has_sat || false}
               onCheckedChange={v => update({ has_sat: v })}
@@ -461,13 +456,13 @@ function AmericanDiplomaFields({ data, onUpdate }: { data: Record<string, any>; 
               max={1600}
               value={cd.sat_score || ''}
               onChange={e => update({ sat_score: parseInt(e.target.value) || undefined })}
-              placeholder="1200"
+              placeholder="Total score (400–1600)"
             />
           )}
         </div>
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <Label className="text-sm">ACT Score</Label>
+        <div className="rounded-lg border p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">ACT</Label>
             <Switch
               checked={cd.has_act || false}
               onCheckedChange={v => update({ has_act: v })}
@@ -480,11 +475,25 @@ function AmericanDiplomaFields({ data, onUpdate }: { data: Record<string, any>; 
               max={36}
               value={cd.act_score || ''}
               onChange={e => update({ act_score: parseInt(e.target.value) || undefined })}
-              placeholder="28"
+              placeholder="Composite score (1–36)"
             />
           )}
         </div>
       </div>
+
+      {/* University study — shown at the bottom for graduates */}
+      {cd.graduated === true && (
+        <div className="space-y-3 pt-2 border-t">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Have you started university studies?</Label>
+            <Switch
+              checked={cd.has_university_study || false}
+              onCheckedChange={v => update({ has_university_study: v })}
+            />
+          </div>
+          <UniversityStudyFields data={cd} onUpdate={update} />
+        </div>
+      )}
     </div>
   );
 }
