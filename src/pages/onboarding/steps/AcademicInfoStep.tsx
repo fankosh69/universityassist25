@@ -11,6 +11,7 @@ interface AcademicInfoStepProps {
 
 const CURRICULUM_OPTIONS = [
   { value: 'American Diploma', label: 'American Diploma' },
+  { value: 'German Abitur', label: 'German Abitur' },
   { value: 'IGCSE', label: 'IGCSE' },
   { value: 'IB', label: 'IB' },
   { value: 'NATIONAL DIPLOMA', label: 'National Diploma' },
