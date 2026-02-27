@@ -37,6 +37,7 @@ const RegionDetail = lazy(() => import("./pages/RegionDetail"));
 const AdmissionsNavigator = lazy(() => import("./pages/AdmissionsNavigator"));
 const DocumentsPage = lazy(() => import("./pages/DocumentsPage"));
 const SalesDashboard = lazy(() => import("./pages/SalesDashboard"));
+const EligibilityChecker = lazy(() => import("./pages/EligibilityChecker"));
 
 // Lazy load admin pages
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
@@ -158,6 +159,7 @@ const App = () => {
                 <Route path="/regions" element={<Regions />} />
                 <Route path="/regions/:slug" element={<RegionDetail />} />
                 <Route path="/admissions-navigator" element={<AdmissionsNavigator />} />
+                <Route path="/eligibility-checker" element={<EligibilityChecker />} />
                 <Route 
                   path="/profile" 
                   element={user ? <OnboardingGuard><ProfilePage /></OnboardingGuard> : <Navigate to="/auth" />} 

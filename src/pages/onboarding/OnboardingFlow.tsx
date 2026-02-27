@@ -140,11 +140,18 @@ export default function OnboardingFlow() {
         await supabase.from('student_academics').upsert({
           profile_id: user.id,
           curriculum: formData.curriculum,
+          target_level: formData.desiredEducationLevel,
           previous_major: formData.previousMajor,
           gpa_raw: formData.gpaRaw,
           gpa_scale: formData.gpaScale,
           gpa_min_pass: formData.gpaMinPass,
           total_ects: formData.totalECTS,
+          extras: {
+            ...(formData.curriculumDetails || {}),
+            desired_major: formData.desiredMajor,
+            school_name: formData.schoolName,
+            still_enrolled: formData.stillEnrolled,
+          },
         });
       }
 
@@ -175,13 +182,24 @@ export default function OnboardingFlow() {
       const { error: academicError } = await supabase.from('student_academics').upsert({
         profile_id: user.id,
         curriculum: formData.curriculum,
-        previous_major: formData.previousMajor,
-        gpa_raw: formData.gpaRaw,
-        gpa_scale: formData.gpaScale,
-        gpa_min_pass: formData.gpaMinPass,
-        total_ects: formData.totalECTS,
-      });
-      if (academicError) throw academicError;
+      previous_major: formData.previousMajor,
+      target_level: formData.desiredEducationLevel,
+      gpa_raw: formData.gpaRaw,
+      gpa_scale: formData.gpaScale,
+      gpa_min_pass: formData.gpaMinPass,
+      total_ects: formData.totalECTS,
+      extras: {
+        ...(formData.curriculumDetails || {}),
+        desired_major: formData.desiredMajor,
+        school_name: formData.schoolName,
+        blocked_bank_account_aware: formData.blockedBankAccountAware,
+        still_enrolled: formData.stillEnrolled,
+        expected_graduation: formData.expectedGraduation,
+        credits_completed_so_far: formData.creditsCompletedSoFar,
+        total_credits_required: formData.totalCreditsRequired,
+      },
+    });
+    if (academicError) throw academicError;
 
       if (formData.languages && formData.languages.length > 0) {
         const { error: langError } = await supabase.from('language_proficiency').insert(
@@ -227,6 +245,8 @@ export default function OnboardingFlow() {
           gpa_min_pass: formData.gpaMinPass,
           german_gpa: formData.germanGpa,
           total_ects: formData.totalECTS,
+          still_enrolled: formData.stillEnrolled,
+          curriculum_details: formData.curriculumDetails || {},
           languages: formData.languages?.map((lang: any) => ({
             language: lang.language, cefr_level: lang.cefrLevel,
             test_type: lang.testType, test_score: lang.testScore,
@@ -234,7 +254,7 @@ export default function OnboardingFlow() {
           preferred_fields: formData.preferredFields,
           preferred_cities: formData.preferredCities,
           career_goals: formData.careerGoals,
-          xp_points: 50, // PROFILE_COMPLETE XP
+          xp_points: 50,
           profile_completion_pct: 100,
         }
       }).catch(err => console.error('HubSpot sync error:', err));
