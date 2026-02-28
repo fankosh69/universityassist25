@@ -197,20 +197,58 @@ export default function OnboardingFlow() {
         expected_graduation: formData.expectedGraduation,
         credits_completed_so_far: formData.creditsCompletedSoFar,
         total_credits_required: formData.totalCreditsRequired,
+        // Language planning metadata
+        intended_study_language: formData.intendedStudyLanguage || null,
+        english_moi_only: formData.studiedFullyInEnglish === 'yes' && formData.hasEnglishTest === 'no',
+        planned_english_test: formData.intendToTakeEnglishTest === 'yes' || formData.hasEnglishTest === 'planning'
+          ? { type: formData.plannedEnglishTestType, month: formData.plannedEnglishTestMonth } : null,
+        planned_german_test: formData.intendToTakeGermanTest === 'yes' || formData.hasGermanCert === 'planning'
+          ? { type: formData.plannedGermanTestType, month: formData.plannedGermanTestMonth } : null,
+        german_knowledge_level: formData.germanKnowledge || formData.germanLevel || null,
       },
     });
     if (academicError) throw academicError;
 
-      if (formData.languages && formData.languages.length > 0) {
-        const { error: langError } = await supabase.from('language_proficiency').insert(
-          formData.languages.map((lang: any) => ({
+      // Save language proficiency from new conditional flow
+      const langRecords: any[] = [];
+      if (formData.intendedStudyLanguage === 'english') {
+        // English record
+        const engTestTypeMap: Record<string, string> = {
+          ielts: 'IELTS Academic', toefl_old: 'TOEFL iBT (0-120)', toefl_new: 'TOEFL iBT (1-6)',
+          pte: 'PTE Academic', cambridge: 'Cambridge', duolingo: 'Duolingo',
+        };
+        const engCefrMap: Record<string, string> = { beginner: 'A1', intermediate: 'B1', advanced: 'B2', fluent: 'C2' };
+        langRecords.push({
+          profile_id: user.id,
+          language: 'English',
+          cefr_level: engCefrMap[formData.englishLevel] || formData.englishLevel || null,
+          test_type: formData.hasEnglishTest === 'yes' ? (engTestTypeMap[formData.englishTestType] || formData.englishTestType) : null,
+          test_score: formData.hasEnglishTest === 'yes' ? formData.englishTestScore : null,
+        });
+        // German sub-section for English-track
+        if (formData.germanKnowledge && formData.germanKnowledge !== 'none') {
+          const germanCefrMap: Record<string, string> = { beginner: 'A1', intermediate: 'B1', advanced: 'C1' };
+          const certTypeMap: Record<string, string> = { goethe: 'Goethe', testdaf: 'TestDaF', dsh: 'DSH', telc: 'telc', oesd: 'ÖSD' };
+          langRecords.push({
             profile_id: user.id,
-            language: lang.language,
-            cefr_level: lang.cefrLevel,
-            test_type: lang.testType,
-            test_score: lang.testScore,
-          }))
-        );
+            language: 'German',
+            cefr_level: formData.hasGermanCert === 'yes' ? formData.germanCertLevel : (germanCefrMap[formData.germanKnowledge] || null),
+            test_type: formData.hasGermanCert === 'yes' ? (certTypeMap[formData.germanCertType] || formData.germanCertType) : null,
+            test_score: null,
+          });
+        }
+      } else if (formData.intendedStudyLanguage === 'german') {
+        const certTypeMap: Record<string, string> = { goethe: 'Goethe', testdaf: 'TestDaF', dsh: 'DSH', telc: 'telc', oesd: 'ÖSD' };
+        langRecords.push({
+          profile_id: user.id,
+          language: 'German',
+          cefr_level: formData.hasGermanCert === 'yes' ? formData.germanCertLevel : (formData.germanLevel || null),
+          test_type: formData.hasGermanCert === 'yes' ? (certTypeMap[formData.germanCertType] || formData.germanCertType) : null,
+          test_score: null,
+        });
+      }
+      if (langRecords.length > 0) {
+        const { error: langError } = await supabase.from('language_proficiency').insert(langRecords);
         if (langError) throw langError;
       }
 
@@ -247,10 +285,18 @@ export default function OnboardingFlow() {
           total_ects: formData.totalECTS,
           still_enrolled: formData.stillEnrolled,
           curriculum_details: formData.curriculumDetails || {},
-          languages: formData.languages?.map((lang: any) => ({
-            language: lang.language, cefr_level: lang.cefrLevel,
-            test_type: lang.testType, test_score: lang.testScore,
-          })) || [],
+          intended_study_language: formData.intendedStudyLanguage,
+          english_level: formData.englishLevel,
+          has_english_test: formData.hasEnglishTest,
+          english_test_type: formData.englishTestType,
+          english_test_score: formData.englishTestScore,
+          studied_fully_in_english: formData.studiedFullyInEnglish,
+          planned_english_test_month: formData.plannedEnglishTestMonth,
+          german_knowledge: formData.germanKnowledge || formData.germanLevel,
+          has_german_cert: formData.hasGermanCert,
+          german_cert_type: formData.germanCertType,
+          german_cert_level: formData.germanCertLevel,
+          planned_german_test_month: formData.plannedGermanTestMonth,
           preferred_fields: formData.preferredFields,
           preferred_cities: formData.preferredCities,
           career_goals: formData.careerGoals,
