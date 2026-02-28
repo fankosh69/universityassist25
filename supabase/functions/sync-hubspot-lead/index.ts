@@ -34,6 +34,20 @@ interface LeadData {
   gpa_min_pass?: number;
   german_gpa?: number;
   total_ects?: number;
+  // New language fields
+  intended_study_language?: string;
+  english_level?: string;
+  has_english_test?: string;
+  english_test_type?: string;
+  english_test_score?: string;
+  studied_fully_in_english?: string;
+  planned_english_test_month?: string;
+  german_knowledge?: string;
+  has_german_cert?: string;
+  german_cert_type?: string;
+  german_cert_level?: string;
+  planned_german_test_month?: string;
+  // Legacy
   languages?: Array<{
     language: string;
     cefr_level?: string;
@@ -133,8 +147,11 @@ function buildSignupProperties(lead: LeadData): Record<string, string> {
 }
 
 function buildOnboardingProperties(lead: LeadData): Record<string, string> {
+  // Support both new individual fields and legacy array format
   const englishLang = lead.languages?.find(l => l.language.toLowerCase() === "english");
   const germanLang = lead.languages?.find(l => l.language.toLowerCase() === "german");
+
+  const engCefrMap: Record<string, string> = { beginner: 'A1', intermediate: 'B1', advanced: 'B2', fluent: 'C2' };
 
   const educationLevelMap: Record<string, string> = {
     foundation_year: "Foundation Course",
@@ -159,13 +176,16 @@ function buildOnboardingProperties(lead: LeadData): Record<string, string> {
     gpa_min_pass: lead.gpa_min_pass != null ? String(lead.gpa_min_pass) : "",
     german_gpa: lead.german_gpa != null ? String(lead.german_gpa) : "",
     total_credit_points: String(lead.total_ects ?? 0),
-    // Language
-    english_cefr_level: englishLang?.cefr_level || "",
-    language_test_english_type: englishLang?.test_type || "",
-    language_test_english_score: englishLang?.test_score || "",
-    german_cefr_level: germanLang?.cefr_level || "",
-    language_test_german_type: germanLang?.test_type || "",
+    // Language - prefer new individual fields, fall back to legacy array
+    intended_study_language: lead.intended_study_language || "",
+    english_cefr_level: lead.english_level ? (engCefrMap[lead.english_level] || lead.english_level) : (englishLang?.cefr_level || ""),
+    language_test_english_type: lead.english_test_type || englishLang?.test_type || "",
+    language_test_english_score: lead.english_test_score || englishLang?.test_score || "",
+    german_cefr_level: lead.german_cert_level || lead.german_knowledge || germanLang?.cefr_level || "",
+    language_test_german_type: lead.german_cert_type || germanLang?.test_type || "",
     language_test_german_score: germanLang?.test_score || "",
+    planned_english_test_month: lead.planned_english_test_month || "",
+    planned_german_test_month: lead.planned_german_test_month || "",
     // Preferences
     preferred_fields: (lead.preferred_fields || []).join(", "),
     preferred_cities: (lead.preferred_cities || []).join(", "),
