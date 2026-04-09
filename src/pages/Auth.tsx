@@ -266,7 +266,7 @@ const Auth = () => {
         email: signUpData.email,
         password: signUpData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: signUpData.full_name,
             gender: signUpData.gender,
@@ -360,7 +360,7 @@ const Auth = () => {
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-      navigate("/dashboard");
+      navigate("/");
     } catch (error: any) {
       toast({
         title: "Error",
