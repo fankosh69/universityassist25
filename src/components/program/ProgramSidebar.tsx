@@ -10,9 +10,10 @@ import { AskAIButton } from '@/components/program/AskAIButton';
 import { ProgramCampusLocation } from '@/components/program/ProgramCampusLocation';
 import { Share2, Printer, Calendar, ExternalLink, MapPin, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
 import type { StudentProfile, ProgramRequirements } from '@/lib/matching';
 
 interface ProgramSidebarProps {
@@ -48,7 +49,22 @@ export function ProgramSidebar({
 }: ProgramSidebarProps) {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isComplete, isLoggedIn } = useOnboardingStatus();
   const [isSharing, setIsSharing] = useState(false);
+
+  const handleGatedConsultation = () => {
+    if (!isLoggedIn) {
+      navigate('/auth');
+      return;
+    }
+    if (!isComplete) {
+      navigate(`/onboarding?redirect=${encodeURIComponent(location.pathname)}`);
+      return;
+    }
+    onConsultationClick?.();
+  };
 
   const handleShare = async () => {
     setIsSharing(true);
@@ -104,12 +120,10 @@ export function ProgramSidebar({
             className="w-full"
           />
 
-          {onConsultationClick && (
-            <Button variant="secondary" className="w-full" onClick={onConsultationClick}>
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Get Admission Support
-            </Button>
-          )}
+          <Button variant="secondary" className="w-full" onClick={handleGatedConsultation}>
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Get Admission Support
+          </Button>
           
           <div className="w-full">
             <WatchlistButton programId={programId} size="default" variant="outline" />

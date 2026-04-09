@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, User, GraduationCap, Languages, Target, Check } from "lucide-react";
@@ -41,6 +41,8 @@ function validateStep(stepId: string, formData: Record<string, any>): { valid: b
 
 export default function OnboardingFlow() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectAfter = searchParams.get('redirect');
   // -1 = welcome, 0-3 = steps, 4 = completion
   const [currentStep, setCurrentStep] = useState(-1);
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -61,7 +63,7 @@ export default function OnboardingFlow() {
         .maybeSingle();
 
       if (academics?.curriculum && academics?.target_level) {
-        navigate('/dashboard', { replace: true });
+        navigate(redirectAfter || '/dashboard', { replace: true });
         return;
       }
 
@@ -156,7 +158,7 @@ export default function OnboardingFlow() {
       }
 
       toast.info("You can complete your profile later from your dashboard.");
-      navigate('/dashboard');
+      navigate(redirectAfter || '/dashboard');
     } catch (error: any) {
       toast.error(error.message || "Something went wrong");
     } finally {
