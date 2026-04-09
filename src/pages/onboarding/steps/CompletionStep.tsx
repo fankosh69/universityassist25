@@ -1,18 +1,20 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Trophy, Star, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 export function CompletionStep() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate('/dashboard', { replace: true });
+      navigate(redirectTo, { replace: true });
     }, 6000);
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, redirectTo]);
 
   return (
     <div className="text-center space-y-8 py-4">
@@ -65,14 +67,14 @@ export function CompletionStep() {
       >
         <Button
           size="lg"
-          onClick={() => navigate('/dashboard', { replace: true })}
+          onClick={() => navigate(redirectTo, { replace: true })}
           className="gap-2 px-8"
         >
-          Go to Dashboard
+          {redirectTo !== '/dashboard' ? 'Continue to Program' : 'Go to Dashboard'}
           <ArrowRight className="w-4 h-4" />
         </Button>
         <p className="text-xs text-muted-foreground mt-3 animate-pulse">
-          Redirecting to dashboard in a few seconds...
+          Redirecting in a few seconds...
         </p>
       </motion.div>
     </div>
