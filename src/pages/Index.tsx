@@ -291,7 +291,7 @@ const Index = () => {
               <h3 className="font-semibold">{t('footer.support')}</h3>
               <ul className="space-y-2 text-white/70">
                 <li><Link to="/help" className="hover:text-white transition-colors">{t('footer.helpCenter')}</Link></li>
-                <li><Link to="/contact" className="hover:text-white transition-colors">{t('footer.contactUs')}</Link></li>
+                <li><a href="mailto:info@uniassist.net" className="hover:text-white transition-colors">{t('footer.contactUs')}</a></li>
                 <li><Link to="/faq" className="hover:text-white transition-colors">{t('footer.faq')}</Link></li>
                 <li><Link to="/impressum" className="hover:text-white transition-colors">Impressum</Link></li>
               </ul>
