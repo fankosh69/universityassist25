@@ -127,13 +127,17 @@ const Navigation = () => {
               <SearchIcon className="h-3.5 w-3.5" />
               {t('navigation.search')}
             </Link>
-            <Link to="/admissions-navigator" className="text-sm text-gray-700 hover:text-gray-900 transition-colors">
-              Eligibility
-            </Link>
-            <Link to="/ai-assistant" className="text-sm text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1.5">
-              <Bot className="h-3.5 w-3.5" />
-              AI Assistant
-            </Link>
+            {isAdmin && (
+              <>
+                <Link to="/admissions-navigator" className="text-sm text-gray-700 hover:text-gray-900 transition-colors">
+                  Eligibility
+                </Link>
+                <Link to="/ai-assistant" className="text-sm text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1.5">
+                  <Bot className="h-3.5 w-3.5" />
+                  AI Assistant
+                </Link>
+              </>
+            )}
             
             {user ? (
               <>
@@ -253,22 +257,26 @@ const Navigation = () => {
                   <span className="text-sm font-medium">{t('navigation.search')}</span>
                 </Link>
 
-                <Link 
-                  to="/admissions-navigator" 
-                  onClick={closeMobileMenu}
-                  className="flex items-center py-3 px-4 hover:bg-muted rounded-lg transition-colors"
-                >
-                  <span className="text-sm font-medium">Eligibility</span>
-                </Link>
+                {isAdmin && (
+                  <>
+                    <Link 
+                      to="/admissions-navigator" 
+                      onClick={closeMobileMenu}
+                      className="flex items-center py-3 px-4 hover:bg-muted rounded-lg transition-colors"
+                    >
+                      <span className="text-sm font-medium">Eligibility</span>
+                    </Link>
 
-                <Link 
-                  to="/ai-assistant" 
-                  onClick={closeMobileMenu}
-                  className="flex items-center gap-2 py-3 px-4 hover:bg-muted rounded-lg transition-colors"
-                >
-                  <Bot className="h-4 w-4" />
-                  <span className="text-sm font-medium">AI Assistant</span>
-                </Link>
+                    <Link 
+                      to="/ai-assistant" 
+                      onClick={closeMobileMenu}
+                      className="flex items-center gap-2 py-3 px-4 hover:bg-muted rounded-lg transition-colors"
+                    >
+                      <Bot className="h-4 w-4" />
+                      <span className="text-sm font-medium">AI Assistant</span>
+                    </Link>
+                  </>
+                )}
 
                 <Separator className="my-4" />
 
