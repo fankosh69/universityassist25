@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Sparkles, Building2, HelpCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
 
 interface ProgramContactProps {
   programId: string;
@@ -23,6 +24,22 @@ export function ProgramContact({
   universityWebsite,
   onConsultationClick,
 }: ProgramContactProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isComplete, isLoading, isLoggedIn } = useOnboardingStatus();
+
+  const handleGatedAction = () => {
+    if (!isLoggedIn) {
+      navigate('/auth');
+      return;
+    }
+    if (!isComplete) {
+      navigate(`/onboarding?redirect=${encodeURIComponent(location.pathname)}`);
+      return;
+    }
+    onConsultationClick();
+  };
+
   return (
     <Card className="border-2 border-primary">
       <CardHeader>
@@ -36,7 +53,7 @@ export function ProgramContact({
 
           {/* Primary Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Button size="lg" className="w-full" onClick={onConsultationClick}>
+            <Button size="lg" className="w-full" onClick={handleGatedAction}>
               <MessageSquare className="h-4 w-4 mr-2" />
               Start Your Journey
             </Button>
@@ -53,7 +70,7 @@ export function ProgramContact({
             size="lg"
             variant="secondary"
             className="w-full"
-            onClick={onConsultationClick}
+            onClick={handleGatedAction}
           >
             <HelpCircle className="h-4 w-4 mr-2" />
             Get Application Support
@@ -68,7 +85,7 @@ export function ProgramContact({
             <Button
               variant="ghost"
               className="w-full justify-start h-auto py-3"
-              onClick={onConsultationClick}
+              onClick={handleGatedAction}
             >
               <MessageSquare className="h-4 w-4 mr-3 text-muted-foreground shrink-0" />
               <div className="text-left">

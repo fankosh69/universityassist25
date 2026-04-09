@@ -16,7 +16,7 @@ import LoadingScreen from "./components/LoadingScreen";
 import LoadingSpinner from "./components/LoadingSpinner";
 import DashboardEnhanced from "./pages/DashboardEnhanced";
 import OnboardingFlow from "./pages/onboarding/OnboardingFlow";
-import { OnboardingGuard } from "./components/OnboardingGuard";
+
 
 // Lazy load secondary pages
 const Profile = lazy(() => import("./pages/Profile"));
@@ -128,7 +128,7 @@ const App = () => {
                 />
                 <Route 
                   path="/dashboard" 
-                  element={user ? <OnboardingGuard><DashboardEnhanced /></OnboardingGuard> : <Navigate to="/auth" />} 
+                  element={user ? <DashboardEnhanced /> : <Navigate to="/auth" />} 
                 />
                 <Route 
                   path="/onboarding" 
@@ -136,15 +136,15 @@ const App = () => {
                 />
                 <Route 
                   path="/documents" 
-                  element={user ? <OnboardingGuard><DocumentsPage /></OnboardingGuard> : <Navigate to="/auth" />} 
+                  element={user ? <DocumentsPage /> : <Navigate to="/auth" />} 
                 />
                 <Route 
                   path="/saved" 
-                  element={user ? <OnboardingGuard><SavedPrograms /></OnboardingGuard> : <Navigate to="/auth" />} 
+                  element={user ? <SavedPrograms /> : <Navigate to="/auth" />} 
                 />
                 <Route 
                   path="/sales-dashboard" 
-                  element={user ? <OnboardingGuard><SalesDashboard /></OnboardingGuard> : <Navigate to="/auth" />} 
+                  element={user ? <SalesDashboard /> : <Navigate to="/auth" />} 
                 />
                 <Route path="/cities" element={<Cities />} />
                 <Route path="/cities/:city" element={<CityPage />} />
@@ -154,7 +154,7 @@ const App = () => {
           <Route path="/ambassadors" element={<AmbassadorsList />} />
           <Route path="/ambassadors/:slug" element={<AmbassadorProfile />} />
           <Route path="/recommendations" element={<ShortlistsReceived />} />
-                <Route path="/ai-assistant" element={user ? <OnboardingGuard><AIAssistant /></OnboardingGuard> : <Navigate to="/auth" />} />
+                <Route path="/ai-assistant" element={user ? <AIAssistant /> : <Navigate to="/auth" />} />
                 <Route path="/impressum" element={<Impressum />} />
                 <Route path="/regions" element={<Regions />} />
                 <Route path="/regions/:slug" element={<RegionDetail />} />
@@ -162,7 +162,7 @@ const App = () => {
                 <Route path="/eligibility-checker" element={<EligibilityChecker />} />
                 <Route 
                   path="/profile" 
-                  element={user ? <OnboardingGuard><ProfilePage /></OnboardingGuard> : <Navigate to="/auth" />} 
+                  element={user ? <ProfilePage /> : <Navigate to="/auth" />} 
                 />
                 
                 {/* Admin Routes */}

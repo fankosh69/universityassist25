@@ -26,7 +26,7 @@ import { BackToTop } from '@/components/BackToTop';
 import { ApplicantRequirementsCard } from '@/components/program/ApplicantRequirementsCard';
 import { useApplicantStatus } from '@/hooks/useApplicantStatus';
 import { useAdmin } from '@/hooks/useAdmin';
-import { OnboardingGate } from '@/components/OnboardingGate';
+
 
 export default function ProgramPage() {
   const { uni, program } = useParams();
@@ -252,31 +252,27 @@ export default function ProgramPage() {
 
             {/* Description - gated */}
             {programData.description && (
-              <OnboardingGate feature="full program descriptions">
                 <Card>
                   <CardHeader><CardTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5" />Program Description</CardTitle></CardHeader>
                   <CardContent><p className="text-muted-foreground whitespace-pre-wrap">{programData.description}</p></CardContent>
                 </Card>
-              </OnboardingGate>
             )}
 
             {/* Admission Requirements - gated */}
-            <OnboardingGate feature="admission requirements">
-              <Card>
-                <CardHeader><CardTitle>Admission Requirements</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
-                  {programData.prerequisites && (
-                    <div><h4 className="font-semibold mb-2 flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-600" />Prerequisites</h4><p className="text-sm text-muted-foreground">{programData.prerequisites}</p></div>
-                  )}
-                  {programData.minimum_gpa && (
-                    <div><h4 className="font-semibold mb-2">Minimum GPA</h4><p className="text-sm text-muted-foreground">German GPA: {programData.minimum_gpa} or better</p></div>
-                  )}
-                  {programData.language_requirements && (
-                    <div><h4 className="font-semibold mb-2">Language Requirements</h4><p className="text-sm text-muted-foreground">{programData.language_requirements}</p></div>
-                  )}
-                </CardContent>
-              </Card>
-            </OnboardingGate>
+            <Card>
+              <CardHeader><CardTitle>Admission Requirements</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                {programData.prerequisites && (
+                  <div><h4 className="font-semibold mb-2 flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-600" />Prerequisites</h4><p className="text-sm text-muted-foreground">{programData.prerequisites}</p></div>
+                )}
+                {programData.minimum_gpa && (
+                  <div><h4 className="font-semibold mb-2">Minimum GPA</h4><p className="text-sm text-muted-foreground">German GPA: {programData.minimum_gpa} or better</p></div>
+                )}
+                {programData.language_requirements && (
+                  <div><h4 className="font-semibold mb-2">Language Requirements</h4><p className="text-sm text-muted-foreground">{programData.language_requirements}</p></div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* English Language Requirements */}
             {programData.language_of_instruction?.includes('en') && programData.english_language_requirements && (
