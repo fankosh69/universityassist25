@@ -163,7 +163,7 @@ function CompaniesTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("universities")
-        .select("id, name, website, institution_type, hubspot_company_id")
+        .select("id, name, website, control_type, hubspot_company_id")
         .order("name");
       if (error) throw error;
       return data;
@@ -171,14 +171,14 @@ function CompaniesTab() {
   });
 
   const syncMutation = useMutation({
-    mutationFn: async (universityId?: string) => {
+    mutationFn: async (universityId: string | undefined) => {
       const { data, error } = await supabase.functions.invoke("hubspot-sync-universities", {
         body: universityId ? { universityId } : {},
       });
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast.success(`Synced ${data.synced} universities to HubSpot`);
       queryClient.invalidateQueries({ queryKey: ["universities-hubspot"] });
     },
@@ -189,7 +189,7 @@ function CompaniesTab() {
     <div className="space-y-4">
       <div className="flex justify-end gap-2">
         <Button
-          onClick={() => syncMutation.mutate()}
+          onClick={() => syncMutation.mutate(undefined)}
           disabled={syncMutation.isPending}
           size="sm"
         >
@@ -215,11 +215,11 @@ function CompaniesTab() {
             {universities?.map((uni) => (
               <TableRow key={uni.id}>
                 <TableCell className="font-medium">{uni.name}</TableCell>
-                <TableCell>{uni.institution_type || "—"}</TableCell>
+                <TableCell>{uni.control_type || "—"}</TableCell>
                 <TableCell className="max-w-[200px] truncate">{uni.website || "—"}</TableCell>
                 <TableCell>
                   {uni.hubspot_company_id ? (
-                    <Badge className="bg-green-100 text-green-800">Synced</Badge>
+                    <Badge variant="default">Synced</Badge>
                   ) : (
                     <Badge variant="outline">Not synced</Badge>
                   )}
