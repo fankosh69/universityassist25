@@ -1297,6 +1297,45 @@ export type Database = {
           },
         ]
       }
+      hubspot_webhook_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_type: string
+          id: string
+          object_id: string | null
+          object_type: string | null
+          processed: boolean | null
+          processed_at: string | null
+          properties: Json | null
+          raw_payload: Json | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_type: string
+          id?: string
+          object_id?: string | null
+          object_type?: string | null
+          processed?: boolean | null
+          processed_at?: string | null
+          properties?: Json | null
+          raw_payload?: Json | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          object_id?: string | null
+          object_type?: string | null
+          processed?: boolean | null
+          processed_at?: string | null
+          properties?: Json | null
+          raw_payload?: Json | null
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount_egp: number
@@ -3017,6 +3056,7 @@ export type Database = {
           founded_year: number | null
           fts: unknown
           hero_image_url: string | null
+          hubspot_company_id: string | null
           id: string
           international_student_percentage: number | null
           keywords: string[] | null
@@ -3071,6 +3111,7 @@ export type Database = {
           founded_year?: number | null
           fts?: unknown
           hero_image_url?: string | null
+          hubspot_company_id?: string | null
           id?: string
           international_student_percentage?: number | null
           keywords?: string[] | null
@@ -3125,6 +3166,7 @@ export type Database = {
           founded_year?: number | null
           fts?: unknown
           hero_image_url?: string | null
+          hubspot_company_id?: string | null
           id?: string
           international_student_percentage?: number | null
           keywords?: string[] | null
@@ -3425,6 +3467,7 @@ export type Database = {
           assigned_admissions_officer: string | null
           created_at: string
           documents_verified: boolean | null
+          hubspot_deal_id: string | null
           id: string
           last_reminder_sent: string | null
           metadata: Json | null
@@ -3446,6 +3489,7 @@ export type Database = {
           assigned_admissions_officer?: string | null
           created_at?: string
           documents_verified?: boolean | null
+          hubspot_deal_id?: string | null
           id?: string
           last_reminder_sent?: string | null
           metadata?: Json | null
@@ -3467,6 +3511,7 @@ export type Database = {
           assigned_admissions_officer?: string | null
           created_at?: string
           documents_verified?: boolean | null
+          hubspot_deal_id?: string | null
           id?: string
           last_reminder_sent?: string | null
           metadata?: Json | null
