@@ -21,7 +21,8 @@ import {
   Database,
   Network,
   Mail,
-  MessageSquare
+  MessageSquare,
+  Waypoints
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -53,6 +54,7 @@ const adminMenuItems = [
   { title: "User Management", url: "/admin/users", icon: Users },
   { title: "Historical Data", url: "/admin/historical-data", icon: Database },
   { title: "Security", url: "/admin/security", icon: Shield },
+  { title: "HubSpot CRM", url: "/admin/hubspot", icon: Waypoints },
   { title: "Sitemap", url: "/admin/sitemap", icon: FileText },
 ];
 
