@@ -89,3 +89,15 @@ verify_jwt = false
 
 [functions.send-auth-email]
 verify_jwt = false
+
+[functions.hubspot-read-contacts]
+verify_jwt = false
+
+[functions.hubspot-manage-deals]
+verify_jwt = false
+
+[functions.hubspot-sync-universities]
+verify_jwt = false
+
+[functions.hubspot-webhook]
+verify_jwt = false
