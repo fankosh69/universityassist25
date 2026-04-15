@@ -48,7 +48,7 @@ serve(async (req) => {
     const { universityId } = body; // optional: sync single university
 
     // Fetch universities to sync
-    let query = supabase.from("universities").select("id, name, website, city_id, institution_type, country_code, hubspot_company_id");
+    let query = supabase.from("universities").select("id, name, website, city_id, control_type, country_code, hubspot_company_id");
     if (universityId) {
       query = query.eq("id", universityId);
     }
@@ -76,7 +76,7 @@ serve(async (req) => {
           ...(uni.website ? { website: uni.website } : {}),
           ...(uni.city_id && cityMap[uni.city_id] ? { city: cityMap[uni.city_id] } : {}),
           ...(uni.country_code ? { country: uni.country_code === "DE" ? "Germany" : uni.country_code } : {}),
-          ...(uni.institution_type ? { description: `Type: ${uni.institution_type}` } : {}),
+          ...(uni.control_type ? { description: `Type: ${uni.control_type}` } : {}),
         };
 
         let response;
