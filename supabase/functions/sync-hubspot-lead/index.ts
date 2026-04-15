@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const HUBSPOT_API_BASE = "https://api.hubapi.com";
+const GATEWAY_URL = "https://connector-gateway.lovable.dev/hubspot";
 
 interface LeadData {
   sync_type?: "signup" | "onboarding_complete" | "eligibility_check";
@@ -64,15 +64,17 @@ interface LeadData {
 // --- HubSpot API helpers ---
 
 async function hubspotRequest(
-  token: string,
+  lovableApiKey: string,
+  hubspotApiKey: string,
   method: string,
   path: string,
   body?: Record<string, any>
 ): Promise<{ ok: boolean; status: number; data: any }> {
-  const res = await fetch(`${HUBSPOT_API_BASE}${path}`, {
+  const res = await fetch(`${GATEWAY_URL}${path}`, {
     method,
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${lovableApiKey}`,
+      "X-Connection-Api-Key": hubspotApiKey,
       "Content-Type": "application/json",
     },
     body: body ? JSON.stringify(body) : undefined,
@@ -81,30 +83,29 @@ async function hubspotRequest(
   return { ok: res.ok, status: res.status, data };
 }
 
-async function searchContactByEmail(token: string, email: string) {
-  const res = await hubspotRequest(token, "POST", "/crm/v3/objects/contacts/search", {
+async function searchContactByEmail(lovableApiKey: string, hubspotApiKey: string, email: string) {
+  const res = await hubspotRequest(lovableApiKey, hubspotApiKey, "POST", "/crm/v3/objects/contacts/search", {
     filterGroups: [{
       filters: [{ propertyName: "email", operator: "EQ", value: email }],
     }],
   });
   if (res.ok && res.data.total > 0) {
-    return res.data.results[0]; // { id, properties }
+    return res.data.results[0];
   }
   return null;
 }
 
 async function createOrUpdateContact(
-  token: string,
+  lovableApiKey: string,
+  hubspotApiKey: string,
   email: string,
   properties: Record<string, any>
 ): Promise<{ ok: boolean; contactId?: string; error?: string }> {
-  // Search for existing contact
-  const existing = await searchContactByEmail(token, email);
+  const existing = await searchContactByEmail(lovableApiKey, hubspotApiKey, email);
 
   if (existing) {
-    // Update
     const res = await hubspotRequest(
-      token, "PATCH",
+      lovableApiKey, hubspotApiKey, "PATCH",
       `/crm/v3/objects/contacts/${existing.id}`,
       { properties }
     );
@@ -113,9 +114,8 @@ async function createOrUpdateContact(
     }
     return { ok: false, error: `Update failed: ${res.status} ${JSON.stringify(res.data)}` };
   } else {
-    // Create
     const res = await hubspotRequest(
-      token, "POST",
+      lovableApiKey, hubspotApiKey, "POST",
       "/crm/v3/objects/contacts",
       { properties: { ...properties, email } }
     );
@@ -220,12 +220,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const HUBSPOT_TOKEN = Deno.env.get("HUBSPOT_ACCESS_TOKEN");
-
-    if (!HUBSPOT_TOKEN) {
-      console.error("HUBSPOT_ACCESS_TOKEN is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY is not configured");
       return new Response(
-        JSON.stringify({ success: false, error: "HubSpot token not configured" }),
+        JSON.stringify({ success: false, error: "LOVABLE_API_KEY not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const HUBSPOT_API_KEY = Deno.env.get("HUBSPOT_API_KEY");
+    if (!HUBSPOT_API_KEY) {
+      console.error("HUBSPOT_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({ success: false, error: "HUBSPOT_API_KEY not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -259,7 +267,7 @@ Deno.serve(async (req) => {
     }
 
     // Create or update contact in HubSpot
-    const result = await createOrUpdateContact(HUBSPOT_TOKEN, leadData.email, cleanProperties);
+    const result = await createOrUpdateContact(LOVABLE_API_KEY, HUBSPOT_API_KEY, leadData.email, cleanProperties);
 
     // Log to hubspot_sync_log table
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
