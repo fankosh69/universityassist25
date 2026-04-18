@@ -1,74 +1,41 @@
 
+The user's custom domain `uniassist.net` works without `www.` but fails when prefixed with `www.`. This is a DNS/domain configuration issue, not a code issue.
 
-## Plan: Full HubSpot Bi-Directional Integration
+Per Lovable's custom domain docs:
+- Both `yourdomain.com` AND `www.yourdomain.com` must be added as **separate entries** in Project Settings → Domains
+- `www` is NOT auto-added
+- An A record for `www` pointing to `185.158.133.1` must exist at the registrar
 
-### Summary
-Build 5 edge functions and an Admin CRM panel to enable full bi-directional HubSpot sync: read contacts, create deals, sync universities as companies, receive webhooks, and view CRM data in admin.
+The user likely only connected the root domain (`uniassist.net`) and never added the `www.uniassist.net` entry, OR added the entry in Lovable but never created the corresponding DNS A record at their registrar.
 
-### 1. Edge Function: `hubspot-read-contacts`
-- New edge function that proxies HubSpot CRM v3 `GET /crm/v3/objects/contacts` through the gateway
-- Supports search by email, pagination, and fetching specific contact properties
-- Admin-only (validate JWT + admin role)
-- Used by the Admin CRM panel to display HubSpot contact data alongside student profiles
+This is a configuration task the user must do themselves — no code changes needed.
 
-### 2. Edge Function: `hubspot-manage-deals`
-- New edge function for creating/updating HubSpot deals via gateway
-- `POST` to create a deal when a student submits an application (triggered from the app)
-- Maps application data → deal properties (student name, program, university, stage)
-- Also supports `GET` to list deals for a contact
-- Admin-only access
+## Why `www.uniassist.net` doesn't work
 
-### 3. Edge Function: `hubspot-sync-universities`
-- New edge function that syncs universities from the `universities` table to HubSpot as Companies
-- Uses `POST /crm/v3/objects/companies` via gateway
-- Maps: university name → company name, city, website, type (public/private)
-- Supports bulk sync (all universities) or single university sync
-- Stores `hubspot_company_id` back in the universities table (new column)
-- Admin-only trigger
+Lovable treats `uniassist.net` and `www.uniassist.net` as two separate domains. You connected the root, but `www` was never added — so browsers visiting `www.uniassist.net` get no response from Lovable.
 
-### 4. Edge Function: `hubspot-webhook`
-- New edge function to receive HubSpot webhook events
-- Handles contact property changes → updates relevant profile/academic data in Supabase
-- Handles deal stage changes → updates application status
-- Validates webhook signature for security
-- No JWT required (incoming from HubSpot), but validates via shared secret
+## Fix (2 steps)
 
-### 5. Admin CRM Panel Page (`/admin/hubspot`)
-- New admin page added to sidebar with HubSpot icon
-- **Contacts tab**: Search/browse HubSpot contacts, view mapped properties, see sync status from `hubspot_sync_log`
-- **Deals tab**: View deals by contact, create new deals, update deal stages
-- **Companies tab**: View synced universities, trigger sync for individual or all universities
-- **Sync Log tab**: Show recent entries from `hubspot_sync_log` with status/errors
+**Step 1 — Add `www` in Lovable**
+1. Go to **Project Settings → Domains**
+2. Click **Connect Domain**
+3. Enter `www.uniassist.net` (full subdomain)
+4. Lovable will show you the DNS record to add
 
-### 6. Database Migration
-- Add `hubspot_company_id` column to `universities` table
-- Add `hubspot_deal_id` column to `user_applications` table
-- Create `hubspot_webhook_log` table for incoming webhook audit trail
+**Step 2 — Add the DNS record at your registrar**
+At wherever you bought/manage `uniassist.net`, add:
+- **Type:** A
+- **Name:** `www`
+- **Value:** `185.158.133.1`
 
-### Technical Details
+(If you bought the domain through Lovable, use **⋯ → Configure → Manage DNS records** instead.)
 
-**All edge functions use the connector gateway pattern:**
-```
-Gateway: https://connector-gateway.lovable.dev/hubspot
-Headers: Authorization: Bearer ${LOVABLE_API_KEY}, X-Connection-Api-Key: ${HUBSPOT_API_KEY}
-```
+**Step 3 — Pick a primary**
+Once both are Active, set one as **Primary** in Project Settings → Domains. The other will redirect to it (recommended: redirect `www` → root, or vice versa, your choice).
 
-**University → Company property mapping:**
-- `name` → `name`
-- `website` → `website`  
-- `city` → `city`
-- `institution_type` → `industry` (mapped to "Higher Education")
-- `country_code` → `country`
+DNS propagation can take a few minutes up to 72 hours. SSL is provisioned automatically once verified.
 
-**Files to create:**
-- `supabase/functions/hubspot-read-contacts/index.ts`
-- `supabase/functions/hubspot-manage-deals/index.ts`
-- `supabase/functions/hubspot-sync-universities/index.ts`
-- `supabase/functions/hubspot-webhook/index.ts`
-- `src/pages/admin/AdminHubSpot.tsx`
+## If you're using Cloudflare
+When connecting `www`, expand **Advanced** in the Connect Domain dialog and check **"Domain uses Cloudflare or a similar proxy"** — this switches to CNAME-based verification.
 
-**Files to edit:**
-- `src/components/admin/AdminSidebar.tsx` — add HubSpot menu item
-- `src/App.tsx` — add `/admin/hubspot` route
-- Database migration for new columns and webhook log table
-
+No code changes are needed for this — it's purely DNS configuration.
