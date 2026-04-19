@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -39,25 +40,91 @@ Return JSON format:
 
 If a field cannot be found or is ambiguous, set confidence < 0.5 and include in missing_fields.`;
 
+// SSRF protection: only allow public HTTPS URLs
+function isSafeUrl(input: string): { ok: boolean; url?: URL; reason?: string } {
+  let url: URL;
+  try {
+    url = new URL(input);
+  } catch {
+    return { ok: false, reason: 'Invalid URL' };
+  }
+  if (url.protocol !== 'https:') {
+    return { ok: false, reason: 'Only https:// URLs are allowed' };
+  }
+  const host = url.hostname.toLowerCase();
+  // Block localhost, internal hostnames, and IP literals
+  if (
+    host === 'localhost' ||
+    host === '0.0.0.0' ||
+    host.endsWith('.local') ||
+    host.endsWith('.internal') ||
+    /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host) || // IPv4 literal
+    host.includes(':') // IPv6 literal
+  ) {
+    return { ok: false, reason: 'URL host is not publicly routable' };
+  }
+  return { ok: true, url };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Require authenticated admin caller
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const userId = claimsData.claims.sub as string;
+    const { data: roleRow } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('profile_id', userId)
+      .eq('role', 'admin')
+      .maybeSingle();
+    if (!roleRow) {
+      return new Response(JSON.stringify({ success: false, error: 'Forbidden: admin role required' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { programUrl } = await req.json();
 
-    if (!programUrl) {
+    if (!programUrl || typeof programUrl !== 'string') {
       throw new Error('Program URL is required');
     }
 
-    console.log('Scraping program details from:', programUrl);
+    const safe = isSafeUrl(programUrl);
+    if (!safe.ok) {
+      return new Response(JSON.stringify({ success: false, error: safe.reason }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-    // Fetch the webpage HTML
-    const response = await fetch(programUrl, {
+    console.log('Scraping program details from:', safe.url!.toString());
+
+    const response = await fetch(safe.url!.toString(), {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; UniversityAssist/1.0)',
       },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!response.ok) {
@@ -66,18 +133,16 @@ serve(async (req) => {
 
     const html = await response.text();
 
-    // Extract text content from HTML (simple extraction)
     const textContent = html
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
       .replace(/<[^>]+>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .substring(0, 8000); // Limit to 8000 chars to fit in AI context
+      .substring(0, 8000);
 
     console.log('Extracted text length:', textContent.length);
 
-    // Use Lovable AI to extract structured data
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
       throw new Error('LOVABLE_API_KEY not configured');
@@ -108,12 +173,8 @@ serve(async (req) => {
     const aiData = await aiResponse.json();
     const extractedText = aiData.choices[0].message.content;
 
-    console.log('AI extracted data:', extractedText);
-
-    // Parse JSON from AI response
     let extractedData;
     try {
-      // Try to extract JSON from the response
       const jsonMatch = extractedText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         extractedData = JSON.parse(jsonMatch[0]);
@@ -133,11 +194,9 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         data: extractedData,
-        source_url: programUrl,
+        source_url: safe.url!.toString(),
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error in scrape-program-details:', error);
@@ -146,10 +205,7 @@ serve(async (req) => {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
