@@ -73,7 +73,31 @@ serve(async (req) => {
 
   try {
     console.log('Edge function started');
-    
+
+    // Require authenticated admin caller
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: claims, error: claimsErr } = await userClient.auth.getClaims(authHeader.replace('Bearer ', ''));
+    if (claimsErr || !claims?.claims) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const userId = claims.claims.sub as string;
+    const { data: roleRow } = await userClient
+      .from('user_roles').select('role').eq('profile_id', userId).eq('role', 'admin').maybeSingle();
+    if (!roleRow) {
+      return new Response(JSON.stringify({ success: false, error: 'Forbidden: admin role required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -341,19 +365,17 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in ingest-programs-bulk:', error);
-    console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    
+    console.error('Error name:', (error as any)?.name);
+    console.error('Error message:', (error as any)?.message);
+    console.error('Error stack:', (error as any)?.stack);
+
     return new Response(
       JSON.stringify({
         success: false,
         processedRows: 0,
         errors: [{
           row: 0,
-          error: `Processing failed: ${error.message}`,
-          errorName: error.name,
-          errorStack: error.stack
+          error: 'Processing failed. Please check the server logs.',
         }]
       }),
       {
