@@ -132,6 +132,32 @@ serve(async (req) => {
 
   try {
     console.log('[scrape-university-website] Function invoked');
+
+    // Require authenticated admin caller
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { createClient: createUserClient } = await import('https://esm.sh/@supabase/supabase-js@2.55.0');
+    const userClient = createUserClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: claims, error: claimsErr } = await userClient.auth.getClaims(authHeader.replace('Bearer ', ''));
+    if (claimsErr || !claims?.claims) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const callerId = claims.claims.sub as string;
+    const { data: roleRow } = await userClient
+      .from('user_roles').select('role').eq('profile_id', callerId).eq('role', 'admin').maybeSingle();
+    if (!roleRow) {
+      return new Response(JSON.stringify({ success: false, error: 'Forbidden: admin role required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const { universityName, city } = await req.json();
 
     if (!universityName || !city) {
