@@ -389,7 +389,54 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Require authenticated admin caller
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.55.0");
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: claims, error: claimsErr } = await userClient.auth.getClaims(authHeader.replace('Bearer ', ''));
+    if (claimsErr || !claims?.claims) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const adminUserId = claims.claims.sub as string;
+    const { data: roleRow } = await userClient
+      .from('user_roles').select('role').eq('profile_id', adminUserId).eq('role', 'admin').maybeSingle();
+    if (!roleRow) {
+      return new Response(JSON.stringify({ success: false, error: 'Forbidden: admin role required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const { url, mode = 'discover', programUrls = [], deepDiscovery = true } = await req.json();
+
+    // SSRF guard: validate the input URL(s)
+    const isSafe = (u: string) => {
+      try {
+        const parsed = new URL(u);
+        if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
+        const host = parsed.hostname.toLowerCase();
+        if (host === 'localhost' || host.endsWith('.local') || host.endsWith('.internal') ||
+            /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host) || host.includes(':')) return false;
+        return true;
+      } catch { return false; }
+    };
+    if (url && !isSafe(url)) {
+      return new Response(JSON.stringify({ success: false, error: 'URL host is not publicly routable' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    for (const pu of programUrls) {
+      if (!isSafe(pu)) {
+        return new Response(JSON.stringify({ success: false, error: 'One or more program URLs are not publicly routable' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    }
 
     if (!url && programUrls.length === 0) {
       return new Response(
