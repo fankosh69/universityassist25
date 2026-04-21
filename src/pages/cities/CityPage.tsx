@@ -40,7 +40,7 @@ export default function CityPage() {
         if (!city) return;
         
         // Fetch city data with all new fields
-        const { data: cityInfo, error: cityError } = await supabase
+        let { data: cityInfo, error: cityError } = await supabase
           .from('cities')
           .select('*')
           .eq('slug', city)
@@ -49,6 +49,52 @@ export default function CityPage() {
         if (cityError) {
           console.error('Error fetching city:', cityError);
           return;
+        }
+
+        // Fallback 1: many links generate the URL by lowercasing the city
+        // name (e.g. "Düsseldorf" → "düsseldorf", "Frankfurt am Main" →
+        // "frankfurt-am-main"). The real DB slugs use ASCII transliterations
+        // ("dusseldorf", "frankfurt"). Try a few variants before giving up.
+        if (!cityInfo) {
+          const decoded = decodeURIComponent(city);
+          const looseName = decoded.replace(/-/g, ' ').trim();
+
+          // Try ilike on name (handles "frankfurt-am-main" → "Frankfurt am Main")
+          const byName = await supabase
+            .from('cities')
+            .select('*')
+            .ilike('name', looseName)
+            .maybeSingle();
+          cityInfo = byName.data ?? null;
+
+          // Try a contains match (handles "frankfurt-am-main" matching "Frankfurt")
+          if (!cityInfo) {
+            const firstWord = looseName.split(' ')[0];
+            const byContains = await supabase
+              .from('cities')
+              .select('*')
+              .ilike('name', `%${firstWord}%`)
+              .order('name', { ascending: true })
+              .limit(1)
+              .maybeSingle();
+            cityInfo = byContains.data ?? null;
+          }
+
+          // Try slug starts-with (handles umlaut-stripped variants like
+          // "düsseldorf" → "dusseldorf")
+          if (!cityInfo) {
+            const asciiSlug = decoded
+              .toLowerCase()
+              .normalize('NFKD')
+              .replace(/[^\w\s-]/g, '')
+              .replace(/\s+/g, '-');
+            const bySlug = await supabase
+              .from('cities')
+              .select('*')
+              .eq('slug', asciiSlug)
+              .maybeSingle();
+            cityInfo = bySlug.data ?? null;
+          }
         }
 
         setCityData(cityInfo);
