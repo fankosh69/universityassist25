@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ChevronRight } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -36,6 +38,7 @@ export function HierarchicalFieldSelect({
   const [fields, setFields] = useState<FieldNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     loadFieldsHierarchy();
@@ -101,25 +104,86 @@ export function HierarchicalFieldSelect({
     return selectedDescendants.length > 0 && selectedDescendants.length < descendantIds.length;
   };
 
+  // Recursive search filter — keeps a node if it matches OR any descendant matches
+  const matchesQuery = (field: FieldNode, q: string): boolean => {
+    const ql = q.trim().toLowerCase();
+    if (!ql) return true;
+    const selfMatch =
+      field.name.toLowerCase().includes(ql) ||
+      (field.name_de?.toLowerCase().includes(ql) ?? false) ||
+      (field.name_ar?.toLowerCase().includes(ql) ?? false);
+    if (selfMatch) return true;
+    return field.children.some((c) => matchesQuery(c, ql));
+  };
+
+  const filterTree = (nodes: FieldNode[], q: string): FieldNode[] => {
+    if (!q.trim()) return nodes;
+    return nodes
+      .filter((n) => matchesQuery(n, q))
+      .map((n) => ({ ...n, children: filterTree(n.children, q) }));
+  };
+
+  const filteredFields = useMemo(() => filterTree(fields, search), [fields, search]);
+
+  // Auto-expand parents that have descendants matching the current search
+  const autoExpandedIds = useMemo(() => {
+    if (!search.trim()) return [] as string[];
+    const ids: string[] = [];
+    const walk = (node: FieldNode) => {
+      if (node.children.length > 0) {
+        ids.push(node.id);
+        node.children.forEach(walk);
+      }
+    };
+    filteredFields.forEach(walk);
+    return ids;
+  }, [filteredFields, search]);
+
+  const effectiveExpanded = search.trim()
+    ? Array.from(new Set([...expandedItems, ...autoExpandedIds]))
+    : expandedItems;
+
+  // Highlight matched text inside a label
+  const highlight = (text: string) => {
+    const q = search.trim();
+    if (!q) return text;
+    const idx = text.toLowerCase().indexOf(q.toLowerCase());
+    if (idx === -1) return text;
+    return (
+      <>
+        {text.slice(0, idx)}
+        <mark className="bg-primary/15 text-foreground rounded-sm px-0.5">
+          {text.slice(idx, idx + q.length)}
+        </mark>
+        {text.slice(idx + q.length)}
+      </>
+    );
+  };
+
   const renderField = (field: FieldNode, level: number = 1) => {
     const hasChildren = field.children.length > 0;
     const isSelected = isFieldSelected(field.id);
     const isIndeterminate = isFieldIndeterminate(field);
-    const isExpanded = expandedItems.includes(field.id);
 
-    // Calculate indentation based on level
-    const indentClass = level === 1 ? "" : level === 2 ? "ml-6" : "ml-12";
-    
+    // Indentation by level — visual hierarchy via spacing + left border only
+    const indentClass =
+      level === 1 ? "" : level === 2 ? "ml-4" : "ml-8";
+    const borderClass =
+      level === 1
+        ? ""
+        : level === 2
+        ? "border-l border-border/60"
+        : "border-l border-border/40";
+
     if (!hasChildren) {
-      // Leaf node - simple checkbox with name and count
       return (
         <div
           key={field.id}
           className={cn(
-            "flex items-center gap-3 py-2 px-3 rounded-md transition-colors hover:bg-accent/50",
+            "flex items-center gap-2.5 py-1.5 pr-2 pl-3 rounded-md transition-colors hover:bg-accent/40",
+            isSelected && "bg-accent/60",
             indentClass,
-            level === 2 && "border-l-2 border-border/40",
-            level === 3 && "border-l-2 border-border/60 bg-muted/30"
+            borderClass
           )}
         >
           <Checkbox
@@ -129,12 +193,10 @@ export function HierarchicalFieldSelect({
           />
           <label
             htmlFor={`field-${field.id}`}
-            className="flex items-center justify-between flex-1 cursor-pointer text-sm"
+            className="flex items-center justify-between flex-1 cursor-pointer text-sm font-normal text-foreground"
           >
-            <span className={cn("text-foreground", level === 3 && "text-sm text-muted-foreground")}>
-              {field.name}
-            </span>
-            <Badge variant="secondary" className="ml-2 text-xs">
+            <span className="truncate">{highlight(field.name)}</span>
+            <Badge variant="secondary" className="ml-2 text-xs font-normal shrink-0">
               {field.programCount}
             </Badge>
           </label>
@@ -142,38 +204,31 @@ export function HierarchicalFieldSelect({
       );
     }
 
-    // Parent node - accordion with checkbox
     return (
       <AccordionItem key={field.id} value={field.id} className="border-none">
         <div
           className={cn(
-            "flex items-center gap-2 rounded-md transition-colors",
-            level === 1 && "bg-accent/10 font-semibold border border-border/50 mb-1",
-            level === 2 && "border-l-2 border-primary/30 bg-accent/5",
-            level === 3 && "border-l-2 border-primary/20 bg-muted/20",
-            isExpanded && level === 1 && "bg-primary/5 border-primary/30",
-            isExpanded && level === 2 && "bg-accent/20",
-            indentClass
+            "flex items-center gap-2 rounded-md transition-colors hover:bg-accent/30",
+            isSelected && !isIndeterminate && "bg-accent/60",
+            indentClass,
+            borderClass
           )}
         >
           <Checkbox
             id={`field-${field.id}`}
             checked={isSelected && !isIndeterminate}
             onCheckedChange={() => handleFieldToggle(field)}
-            className={cn("ml-3", isIndeterminate && "data-[state=checked]:bg-primary/50")}
+            className={cn(
+              "ml-3",
+              isIndeterminate && "data-[state=checked]:bg-primary/50"
+            )}
           />
           <AccordionTrigger
-            className={cn(
-              "flex-1 py-2.5 pr-3 hover:no-underline [&>svg]:ml-auto",
-              level === 1 && "font-semibold text-base",
-              level === 2 && "font-medium",
-              level === 3 && "text-sm",
-              isExpanded && "text-primary"
-            )}
+            className="flex-1 py-1.5 pr-3 hover:no-underline [&>svg]:ml-auto text-sm font-normal text-foreground"
             onClick={() => {
-              setExpandedItems(prev =>
+              setExpandedItems((prev) =>
                 prev.includes(field.id)
-                  ? prev.filter(id => id !== field.id)
+                  ? prev.filter((id) => id !== field.id)
                   : [...prev, field.id]
               );
             }}
@@ -181,36 +236,19 @@ export function HierarchicalFieldSelect({
             <div className="flex items-center justify-between w-full pr-2">
               <label
                 htmlFor={`field-${field.id}`}
-                className={cn(
-                  "cursor-pointer",
-                  level === 1 && "font-semibold text-base",
-                  level === 2 && "font-medium text-sm",
-                  level === 3 && "text-sm"
-                )}
+                className="cursor-pointer text-sm font-normal text-foreground truncate"
                 onClick={(e) => e.preventDefault()}
               >
-                {field.name}
+                {highlight(field.name)}
               </label>
-              <Badge
-                variant="secondary"
-                className={cn(
-                  "ml-2 text-xs shrink-0",
-                  level === 1 && "bg-primary/20 text-primary font-semibold",
-                  level === 2 && "bg-accent/50",
-                  isExpanded && "bg-primary/30 text-primary"
-                )}
-              >
+              <Badge variant="secondary" className="ml-2 text-xs font-normal shrink-0">
                 {field.programCount}
               </Badge>
             </div>
           </AccordionTrigger>
         </div>
-        <AccordionContent className={cn(
-          "pb-1 pt-1",
-          level === 1 && "border-l-2 border-primary/10 ml-3",
-          level === 2 && "pl-2"
-        )}>
-          {field.children.map(child => renderField(child, level + 1))}
+        <AccordionContent className="pb-1 pt-1">
+          {field.children.map((child) => renderField(child, level + 1))}
         </AccordionContent>
       </AccordionItem>
     );
@@ -237,10 +275,60 @@ export function HierarchicalFieldSelect({
   }
 
   return (
-    <div className={cn("space-y-1", className)}>
-      <Accordion type="multiple" value={expandedItems} className="space-y-1">
-        {fields.map(field => renderField(field, 1))}
-      </Accordion>
+    <div className={cn("space-y-2", className)}>
+      {/* Search bar */}
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search fields..."
+          className="pl-8 pr-8 h-8 text-sm"
+        />
+        {search && (
+          <button
+            type="button"
+            aria-label="Clear search"
+            onClick={() => setSearch("")}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+
+      {/* Selection summary + clear */}
+      {selectedFieldIds.length > 0 && (
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">
+            {selectedFieldIds.length} selected
+          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onSelectionChange([])}
+            className="h-6 px-2 text-xs"
+          >
+            Clear
+          </Button>
+        </div>
+      )}
+
+      {filteredFields.length === 0 ? (
+        <div className="text-sm text-muted-foreground py-4 text-center">
+          No fields match "{search}"
+        </div>
+      ) : (
+        <Accordion
+          type="multiple"
+          value={effectiveExpanded}
+          onValueChange={setExpandedItems}
+          className="space-y-0.5"
+        >
+          {filteredFields.map((field) => renderField(field, 1))}
+        </Accordion>
+      )}
     </div>
   );
 }

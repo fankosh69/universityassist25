@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { format, startOfMonth } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { SearchLayout } from './SearchLayout';
-import { FilterSidebar } from './FilterSidebar';
+import { FilterSidebar, type CityOption } from './FilterSidebar';
 import { ResultsPanel } from './ResultsPanel';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { normalizeInstitutionType, normalizeControlType } from '@/lib/institution-types';
@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import type { DeadlineRange } from './DeadlineRangeFilter';
 
 interface Program {
   id: string;
@@ -53,7 +54,7 @@ interface SearchFilters {
   institutionType: string;
   controlType: string;
   intake: string[];
-  applicationStatus: string[];
+  deadlineRange: DeadlineRange;
   acceptsMOI: boolean;
   acceptsIELTS: boolean;
   acceptsTOEFL: boolean;
@@ -65,6 +66,7 @@ export function EnhancedSearchContainer() {
   const [searchQuery, setSearchQuery] = useState('');
   const [programs, setPrograms] = useState<Program[]>([]);
   const [allPrograms, setAllPrograms] = useState<Program[]>([]);
+  const [allCities, setAllCities] = useState<Array<{ name: string; region: string | null }>>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [savedPrograms, setSavedPrograms] = useState<Set<string>>(new Set());
@@ -83,7 +85,7 @@ export function EnhancedSearchContainer() {
     institutionType: 'all',
     controlType: 'all',
     intake: [],
-    applicationStatus: [],
+    deadlineRange: { from: null, to: null },
     acceptsMOI: false,
     acceptsIELTS: false,
     acceptsTOEFL: false,
@@ -95,13 +97,43 @@ export function EnhancedSearchContainer() {
   const filterOptions = useMemo(() => {
     const degreeLevels = [...new Set(allPrograms.map(p => p.degree_level))].filter(Boolean);
     const fieldsOfStudy = [...new Set(allPrograms.map(p => p.field_of_study))].filter(Boolean);
-    const cities = [...new Set(allPrograms.map(p => p.universities?.city))].filter(Boolean);
     const durations = [...new Set(allPrograms.map(p => p.duration_semesters))].filter(Boolean).sort((a, b) => a - b);
     const institutionTypes = [...new Set(allPrograms.map(p => p.universities?.type))].filter(Boolean);
     const controlTypes = [...new Set(allPrograms.map(p => p.universities?.control_type))].filter(Boolean);
-    
+
+    // Program-count map keyed by lowercased city name
+    const countByCity = new Map<string, number>();
+    allPrograms.forEach((p) => {
+      const c = p.universities?.city?.trim();
+      if (!c) return;
+      const key = c.toLowerCase();
+      countByCity.set(key, (countByCity.get(key) || 0) + 1);
+    });
+
+    // Merge cities from `cities` table with program counts; include cities that
+    // currently have no programs so users can still see/select them.
+    const cityMap = new Map<string, CityOption>();
+    allCities.forEach((c) => {
+      const key = c.name.toLowerCase();
+      cityMap.set(key, {
+        name: c.name,
+        region: c.region,
+        programCount: countByCity.get(key) || 0,
+      });
+    });
+    // Also include any program city not present in the cities table (defensive)
+    allPrograms.forEach((p) => {
+      const c = p.universities?.city?.trim();
+      if (!c) return;
+      const key = c.toLowerCase();
+      if (!cityMap.has(key)) {
+        cityMap.set(key, { name: c, region: null, programCount: countByCity.get(key) || 0 });
+      }
+    });
+    const cities: CityOption[] = Array.from(cityMap.values());
+
     return { degreeLevels, fieldsOfStudy, cities, durations, institutionTypes, controlTypes };
-  }, [allPrograms]);
+  }, [allPrograms, allCities]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -135,6 +167,25 @@ export function EnhancedSearchContainer() {
     fetchPrograms();
   }, []);
 
+  // Fetch full city list for the location filter (independent of programs).
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('cities')
+          .select('id, name, slug, region')
+          .order('name');
+        if (error) throw error;
+        setAllCities(
+          (data || []).map((c: any) => ({ name: c.name, region: c.region ?? null }))
+        );
+      } catch (e) {
+        console.error('Error fetching cities:', e);
+      }
+    };
+    fetchCities();
+  }, []);
+
   useEffect(() => {
     const fetchSavedPrograms = async () => {
       if (!user) return;
@@ -155,22 +206,6 @@ export function EnhancedSearchContainer() {
     fetchSavedPrograms();
   }, [user]);
 
-  // Auto-clean expired deadline months
-  useEffect(() => {
-    const currentMonth = format(startOfMonth(new Date()), 'yyyy-MM');
-    
-    if (filters.applicationStatus.length > 0) {
-      const validMonths = filters.applicationStatus.filter(month => month >= currentMonth);
-      
-      // Only update if we removed any expired months
-      if (validMonths.length !== filters.applicationStatus.length) {
-        setFilters(prev => ({
-          ...prev,
-          applicationStatus: validMonths
-        }));
-      }
-    }
-  }, [filters.applicationStatus]);
 
   // Filter and search programs
   useEffect(() => {
@@ -266,27 +301,20 @@ export function EnhancedSearchContainer() {
       });
     }
 
-    // Filter by application deadline month
-    if (filters.applicationStatus && filters.applicationStatus.length > 0) {
-      filtered = filtered.filter(program => {
-        const winterDeadline = program.winter_deadline ? new Date(program.winter_deadline) : null;
-        const summerDeadline = program.summer_deadline ? new Date(program.summer_deadline) : null;
-        
-        return filters.applicationStatus.some(selectedMonth => {
-          // Check if winter deadline falls in selected month
-          if (winterDeadline) {
-            const winterMonth = winterDeadline.toISOString().slice(0, 7); // 'yyyy-MM'
-            if (winterMonth === selectedMonth) return true;
-          }
-          
-          // Check if summer deadline falls in selected month
-          if (summerDeadline) {
-            const summerMonth = summerDeadline.toISOString().slice(0, 7); // 'yyyy-MM'
-            if (summerMonth === selectedMonth) return true;
-          }
-          
-          return false;
-        });
+    // Filter by application deadline range — winter OR summer deadline within [from, to]
+    const dr = filters.deadlineRange;
+    if (dr && (dr.from || dr.to)) {
+      const fromTs = dr.from ? parseISO(dr.from).getTime() : -Infinity;
+      const toTs = dr.to ? parseISO(dr.to).getTime() : Infinity;
+      filtered = filtered.filter((program) => {
+        const checkDeadline = (raw: string | null) => {
+          if (!raw) return false;
+          const d = parseISO(raw);
+          if (!isValid(d)) return false;
+          const ts = d.getTime();
+          return ts >= fromTs && ts <= toTs;
+        };
+        return checkDeadline(program.winter_deadline) || checkDeadline(program.summer_deadline);
       });
     }
 
@@ -364,7 +392,7 @@ export function EnhancedSearchContainer() {
       institutionType: 'all',
       controlType: 'all',
       intake: [],
-      applicationStatus: [],
+      deadlineRange: { from: null, to: null },
       acceptsMOI: false,
       acceptsIELTS: false,
       acceptsTOEFL: false,
@@ -375,8 +403,12 @@ export function EnhancedSearchContainer() {
   };
 
   const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
-    if (key === 'fieldOfStudyIds' || key === 'intake' || key === 'applicationStatus') {
+    if (key === 'fieldOfStudyIds' || key === 'intake') {
       return Array.isArray(value) && value.length > 0;
+    }
+    if (key === 'deadlineRange') {
+      const v = value as DeadlineRange;
+      return !!(v?.from || v?.to);
     }
     if (key === 'acceptsMOI' || key === 'acceptsIELTS' || key === 'acceptsTOEFL' || key === 'acceptsPTE') {
       return value === true;
@@ -389,8 +421,12 @@ export function EnhancedSearchContainer() {
 
   const getActiveFilterCount = () => {
     return Object.entries(filters).filter(([key, value]) => {
-      if (key === 'fieldOfStudyIds' || key === 'intake' || key === 'applicationStatus') {
+      if (key === 'fieldOfStudyIds' || key === 'intake') {
         return Array.isArray(value) && value.length > 0;
+      }
+      if (key === 'deadlineRange') {
+        const v = value as DeadlineRange;
+        return !!(v?.from || v?.to);
       }
       if (key === 'acceptsMOI' || key === 'acceptsIELTS' || key === 'acceptsTOEFL' || key === 'acceptsPTE') {
         return value === true;
@@ -403,7 +439,7 @@ export function EnhancedSearchContainer() {
   };
 
   const removeFilter = (key: keyof SearchFilters, value?: string) => {
-    if (value && (key === 'intake' || key === 'applicationStatus' || key === 'fieldOfStudyIds')) {
+    if (value && (key === 'intake' || key === 'fieldOfStudyIds')) {
       // Remove specific value from array filter
       setFilters(prev => ({
         ...prev,
@@ -413,10 +449,12 @@ export function EnhancedSearchContainer() {
       // Clear entire filter
       if (key === 'acceptsMOI' || key === 'acceptsIELTS' || key === 'acceptsTOEFL' || key === 'acceptsPTE') {
         setFilters(prev => ({ ...prev, [key]: false }));
+      } else if (key === 'deadlineRange') {
+        setFilters(prev => ({ ...prev, deadlineRange: { from: null, to: null } }));
       } else {
         setFilters(prev => ({
           ...prev,
-          [key]: (key === 'fieldOfStudyIds' || key === 'intake' || key === 'applicationStatus') ? [] : 'all'
+          [key]: (key === 'fieldOfStudyIds' || key === 'intake') ? [] : 'all'
         }));
       }
     }
@@ -539,22 +577,27 @@ export function EnhancedSearchContainer() {
                       />
                     </Badge>
                   ))}
-                  {filters.applicationStatus?.map(month => {
-                    // Format month for display (e.g., "2025-01" -> "January 2025")
-                    const [year, monthNum] = month.split('-');
-                    const date = new Date(parseInt(year), parseInt(monthNum) - 1);
-                    const monthLabel = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-                    
+                  {(filters.deadlineRange?.from || filters.deadlineRange?.to) && (() => {
+                    const fmt = (iso: string | null, fallback: string) => {
+                      if (!iso) return fallback;
+                      try {
+                        const d = parseISO(iso);
+                        return isValid(d) ? format(d, 'MMM d, yyyy') : fallback;
+                      } catch {
+                        return fallback;
+                      }
+                    };
+                    const label = `Deadline ${fmt(filters.deadlineRange.from, 'today')} – ${fmt(filters.deadlineRange.to, '+18 mo')}`;
                     return (
-                      <Badge key={month} variant="secondary" className="text-xs">
-                        {monthLabel}
+                      <Badge variant="secondary" className="text-xs">
+                        {label}
                         <X
                           className="h-3 w-3 ml-1 cursor-pointer"
-                          onClick={() => removeFilter('applicationStatus', month)}
+                          onClick={() => removeFilter('deadlineRange')}
                         />
                       </Badge>
                     );
-                  })}
+                  })()}
                   {filters.acceptsMOI && (
                     <Badge variant="secondary" className="text-xs">
                       Accepts MOI
