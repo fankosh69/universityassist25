@@ -98,94 +98,79 @@ function UniversityLogo({
 }
 
 export function UniversityCard({ university, variant = "grid" }: UniversityCardProps) {
+  const programCount = university.program_count ?? 0;
+  const programLabel =
+    programCount === 0
+      ? "No programs yet"
+      : `${programCount} ${programCount === 1 ? "program" : "programs"}`;
+
   if (variant === "list") {
     return (
-      <Card className="hover:shadow-lg transition-shadow group overflow-hidden">
-        <CardContent className="p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-            <div className="flex w-full sm:w-auto items-start justify-between gap-3">
-              <UniversityLogo
-                name={university.name}
-                logoUrl={university.logo_url}
-                website={university.website}
-                size="lg"
-              />
-              <Button variant="ghost" size="icon" className="sm:hidden" aria-label="Save">
-                <Heart className="h-5 w-5" />
-              </Button>
-            </div>
+      <Card className="hover:shadow-md transition-shadow group overflow-hidden border-l-4 border-l-primary/40 hover:border-l-primary">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Compact logo */}
+            <UniversityLogo
+              name={university.name}
+              logoUrl={university.logo_url}
+              website={university.website}
+              size="md"
+            />
 
-            <div className="flex-1 min-w-0 w-full">
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg sm:text-xl font-bold group-hover:text-primary transition-colors mb-2 break-words">
+            {/* Main info: name + meta in a single dense row on desktop */}
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-bold group-hover:text-primary transition-colors truncate">
                     {university.name}
                   </h3>
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
-                    <div className="inline-flex items-center gap-1.5">
-                      <MapPin className="h-4 w-4 flex-shrink-0" />
-                      <Link
-                        to={`/cities/${university.city.toLowerCase().replace(/\s+/g, "-")}`}
-                        className="text-sm hover:text-primary transition-colors"
-                      >
-                        {university.city}
-                      </Link>
-                    </div>
-                    {university.founded_year && (
-                      <span className="text-sm">• Founded {university.founded_year}</span>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    <Link
+                      to={`/cities/${university.city.toLowerCase().replace(/\s+/g, "-")}`}
+                      className="inline-flex items-center gap-1 hover:text-primary transition-colors"
+                    >
+                      <MapPin className="h-3.5 w-3.5" />
+                      {university.city}
+                    </Link>
+                    <span className="inline-flex items-center gap-1">
+                      <GraduationCap className="h-3.5 w-3.5" />
+                      {programLabel}
+                    </span>
+                    {university.ranking && (
+                      <span className="inline-flex items-center gap-1">
+                        <Trophy className="h-3.5 w-3.5 text-accent" />
+                        QS #{university.ranking}
+                      </span>
                     )}
+                    {university.student_count && (
+                      <span className="hidden md:inline-flex items-center gap-1">
+                        <Users className="h-3.5 w-3.5" />
+                        {university.student_count.toLocaleString()}
+                      </span>
+                    )}
+                    {university.founded_year && (
+                      <span className="hidden lg:inline">• Est. {university.founded_year}</span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {university.type && <InstitutionTypeBadge type={university.type} useShort />}
+                    {university.control_type && <ControlTypeBadge type={university.control_type} useShort />}
                   </div>
                 </div>
 
-                <Button variant="ghost" size="icon" className="hidden sm:inline-flex" aria-label="Save">
-                  <Heart className="h-5 w-5" />
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                {university.ranking && (
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Trophy className="h-4 w-4 text-accent flex-shrink-0" />
-                    <span className="text-sm font-semibold truncate">QS #{university.ranking}</span>
-                  </div>
-                )}
-                {university.student_count && (
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Users className="h-4 w-4 text-secondary flex-shrink-0" />
-                    <span className="text-sm truncate">{university.student_count.toLocaleString()} students</span>
-                  </div>
-                )}
-                {university.international_student_percentage && (
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Globe className="h-4 w-4 text-primary flex-shrink-0" />
-                    <span className="text-sm truncate">{university.international_student_percentage}% intl</span>
-                  </div>
-                )}
-                {university.program_count && university.program_count > 0 && (
-                  <div className="flex items-center gap-2 min-w-0">
-                    <GraduationCap className="h-4 w-4 text-primary flex-shrink-0" />
-                    <span className="text-sm truncate">{university.program_count} programs</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-wrap gap-2 mb-4">
-                {university.type && <InstitutionTypeBadge type={university.type} useShort />}
-                {university.control_type && <ControlTypeBadge type={university.control_type} useShort />}
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Link to={`/universities/${university.slug}`} className="flex-1 min-w-0">
-                  <Button className="w-full">View Details</Button>
-                </Link>
-                {university.website && (
-                  <Button variant="outline" asChild className="w-full sm:w-auto">
-                    <a href={university.website} target="_blank" rel="noopener noreferrer">
-                      <Globe className="h-4 w-4 mr-2" />
-                      Website
-                    </a>
-                  </Button>
-                )}
+                {/* Right-aligned actions */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {university.website && (
+                    <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
+                      <a href={university.website} target="_blank" rel="noopener noreferrer" aria-label="Website">
+                        <Globe className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  )}
+                  <Link to={`/universities/${university.slug}`}>
+                    <Button size="sm">View</Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -243,12 +228,10 @@ export function UniversityCard({ university, variant = "grid" }: UniversityCardP
               <span>{university.international_student_percentage}% international</span>
             </div>
           )}
-          {university.program_count && university.program_count > 0 && (
-            <div className="flex items-center gap-2 text-sm">
-              <GraduationCap className="h-4 w-4 text-primary" />
-              <span>{university.program_count} programs</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2 text-sm">
+            <GraduationCap className={`h-4 w-4 ${programCount === 0 ? 'text-muted-foreground' : 'text-primary'}`} />
+            <span className={programCount === 0 ? 'text-muted-foreground italic' : ''}>{programLabel}</span>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
