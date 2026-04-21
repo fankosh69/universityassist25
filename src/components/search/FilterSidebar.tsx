@@ -8,10 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { FilterGroup } from './FilterGroup';
 import { HierarchicalFieldSelect } from './HierarchicalFieldSelect';
-import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X, Calendar, Info, Languages, Receipt } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X, Calendar, Languages, Receipt } from 'lucide-react';
+import { InfoHint } from '@/components/ui/info-hint';
+import { SearchableSelect } from '@/components/ui/searchable-select';
+import { DeadlineRangeFilter, type DeadlineRange } from './DeadlineRangeFilter';
 import { INSTITUTION_TYPES, CONTROL_TYPES } from '@/lib/institution-types';
-import { format, addMonths, startOfMonth } from 'date-fns';
 
 interface SearchFilters {
   degreeLevel: string;
@@ -24,7 +25,7 @@ interface SearchFilters {
   institutionType: string;
   controlType: string;
   intake: string[];
-  applicationStatus: string[];
+  deadlineRange: DeadlineRange;
   acceptsMOI: boolean;
   acceptsIELTS: boolean;
   acceptsTOEFL: boolean;
@@ -32,10 +33,16 @@ interface SearchFilters {
   applicationFee: string; // 'all' | 'no-fee' | 'has-fee'
 }
 
+export interface CityOption {
+  name: string;
+  region?: string | null;
+  programCount: number;
+}
+
 interface FilterOptions {
   degreeLevels: string[];
   fieldsOfStudy: string[];
-  cities: string[];
+  cities: CityOption[];
   durations: number[];
   institutionTypes: string[];
   controlTypes: string[];
@@ -66,8 +73,12 @@ export function FilterSidebar({
 
   const getActiveFilterCount = () => {
     return Object.entries(filters).filter(([key, value]) => {
-      if (key === 'fieldOfStudyIds' || key === 'intake' || key === 'applicationStatus') {
+      if (key === 'fieldOfStudyIds' || key === 'intake') {
         return Array.isArray(value) && value.length > 0;
+      }
+      if (key === 'deadlineRange') {
+        const v = value as DeadlineRange;
+        return !!(v?.from || v?.to);
       }
       if (key === 'acceptsMOI' || key === 'acceptsIELTS' || key === 'acceptsTOEFL' || key === 'acceptsPTE') {
         return value === true;
@@ -79,19 +90,22 @@ export function FilterSidebar({
     }).length;
   };
 
-  // Generate next 12 months for deadline filter
-  const availableMonths = useMemo(() => {
-    const months = [];
-    const now = startOfMonth(new Date());
-    for (let i = 0; i < 12; i++) {
-      const month = addMonths(now, i);
-      months.push({
-        value: format(month, 'yyyy-MM'),
-        label: format(month, 'MMMM yyyy')
-      });
-    }
-    return months;
-  }, []);
+  // Build city options for searchable combobox
+  const cityOptions = useMemo(() => {
+    const opts = [{ value: 'all', label: 'All Cities' }];
+    const sorted = [...filterOptions.cities].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+    sorted.forEach((c) => {
+      const label = c.region
+        ? `${c.name} — ${c.region}${c.programCount > 0 ? ` (${c.programCount})` : ' · no programs yet'}`
+        : `${c.name}${c.programCount > 0 ? ` (${c.programCount})` : ' · no programs yet'}`;
+      opts.push({ value: c.name, label });
+    });
+    return opts;
+  }, [filterOptions.cities]);
+
+  const deadlineActive = !!(filters.deadlineRange?.from || filters.deadlineRange?.to);
 
   return (
     <div className="h-full flex flex-col">
@@ -153,19 +167,24 @@ export function FilterSidebar({
             icon={<MapPin className="h-4 w-4" />}
             activeCount={filters.city !== 'all' ? 1 : 0}
           >
-            <Select value={filters.city} onValueChange={(value) => updateFilter('city', value)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select city..." />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                <SelectItem value="all">All Cities</SelectItem>
-                {filterOptions.cities.sort().map(city => (
-                  <SelectItem key={city} value={city}>
-                    {city.charAt(0).toUpperCase() + city.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={filters.city}
+              onValueChange={(v) => updateFilter('city', v || 'all')}
+              options={cityOptions}
+              placeholder="All cities"
+              emptyText="No matching city"
+              className="w-full"
+              maxDisplayOptions={50}
+            />
+            {filters.city !== 'all' && (
+              <button
+                type="button"
+                onClick={() => updateFilter('city', 'all')}
+                className="mt-2 text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+              >
+                Clear selection
+              </button>
+            )}
           </FilterGroup>
 
           {/* Tuition */}
@@ -184,20 +203,15 @@ export function FilterSidebar({
                 <RadioGroupItem value="1500" id="tuition-free" />
                 <Label htmlFor="tuition-free" className="text-sm cursor-pointer flex items-center gap-1.5">
                   Free (incl. semester contribution)
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-[280px] text-xs">
-                        <p>
-                          Most German public universities charge only semester contributions (€100-€350) 
-                          for administration and student services, not actual tuition. Programs up to 
-                          €1,500/semester are considered "free" in this filter.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <InfoHint
+                    content={
+                      <p>
+                        Most German public universities charge only semester contributions (€100-€350)
+                        for administration and student services, not actual tuition. Programs up to
+                        €1,500/semester are considered "free" in this filter.
+                      </p>
+                    }
+                  />
                 </Label>
               </div>
               <div className="flex items-center space-x-2 mb-2">
@@ -323,19 +337,14 @@ export function FilterSidebar({
                 <RadioGroupItem value="no-fee" id="appfee-no" />
                 <Label htmlFor="appfee-no" className="text-sm cursor-pointer flex items-center gap-1.5">
                   No Application Fee
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-[280px] text-xs">
-                        <p>
-                          Shows only programs with direct application that don't charge an application fee.
-                          Uni-Assist programs always have fees (€75 first, €30 additional).
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <InfoHint
+                    content={
+                      <p>
+                        Shows only programs with direct application that don't charge an application fee.
+                        Uni-Assist programs always have fees (€75 first, €30 additional).
+                      </p>
+                    }
+                  />
                 </Label>
               </div>
               <div className="flex items-center space-x-2 mb-2">
@@ -397,33 +406,17 @@ export function FilterSidebar({
             </div>
           </FilterGroup>
 
-          {/* Application Deadline Month */}
+          {/* Application Deadline — date range */}
           <FilterGroup 
             value="deadline" 
             title="Application Deadline" 
             icon={<Calendar className="h-4 w-4" />}
-            activeCount={filters.applicationStatus?.length || 0}
+            activeCount={deadlineActive ? 1 : 0}
           >
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {availableMonths.map(month => (
-                <div key={month.value} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`month-${month.value}`}
-                    checked={filters.applicationStatus?.includes(month.value)}
-                    onCheckedChange={(checked) => {
-                      const currentStatus = filters.applicationStatus || [];
-                      const newStatus = checked 
-                        ? [...currentStatus, month.value]
-                        : currentStatus.filter(s => s !== month.value);
-                      updateFilter('applicationStatus', newStatus);
-                    }}
-                  />
-                  <Label htmlFor={`month-${month.value}`} className="text-sm font-normal cursor-pointer">
-                    {month.label}
-                  </Label>
-                </div>
-              ))}
-            </div>
+            <DeadlineRangeFilter
+              value={filters.deadlineRange || { from: null, to: null }}
+              onChange={(v) => updateFilter('deadlineRange', v)}
+            />
           </FilterGroup>
 
           {/* English Language Proof */}
@@ -449,16 +442,14 @@ export function FilterSidebar({
                 <div className="flex-1">
                   <Label htmlFor="accepts-moi" className="text-sm font-medium flex items-center gap-1.5 cursor-pointer">
                     Accepts MOI Certificate
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          <p>Medium of Instruction (MOI) Certificate proves your degree was taught entirely in English. Often accepted as proof of English proficiency without IELTS/TOEFL scores.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <InfoHint
+                      content={
+                        <p>
+                          Medium of Instruction (MOI) Certificate proves your degree was taught entirely
+                          in English. Often accepted as proof of English proficiency without IELTS/TOEFL scores.
+                        </p>
+                      }
+                    />
                   </Label>
                 </div>
               </div>
