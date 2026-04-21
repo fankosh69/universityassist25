@@ -577,22 +577,27 @@ export function EnhancedSearchContainer() {
                       />
                     </Badge>
                   ))}
-                  {filters.applicationStatus?.map(month => {
-                    // Format month for display (e.g., "2025-01" -> "January 2025")
-                    const [year, monthNum] = month.split('-');
-                    const date = new Date(parseInt(year), parseInt(monthNum) - 1);
-                    const monthLabel = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-                    
+                  {(filters.deadlineRange?.from || filters.deadlineRange?.to) && (() => {
+                    const fmt = (iso: string | null, fallback: string) => {
+                      if (!iso) return fallback;
+                      try {
+                        const d = parseISO(iso);
+                        return isValid(d) ? format(d, 'MMM d, yyyy') : fallback;
+                      } catch {
+                        return fallback;
+                      }
+                    };
+                    const label = `Deadline ${fmt(filters.deadlineRange.from, 'today')} – ${fmt(filters.deadlineRange.to, '+18 mo')}`;
                     return (
-                      <Badge key={month} variant="secondary" className="text-xs">
-                        {monthLabel}
+                      <Badge variant="secondary" className="text-xs">
+                        {label}
                         <X
                           className="h-3 w-3 ml-1 cursor-pointer"
-                          onClick={() => removeFilter('applicationStatus', month)}
+                          onClick={() => removeFilter('deadlineRange')}
                         />
                       </Badge>
                     );
-                  })}
+                  })()}
                   {filters.acceptsMOI && (
                     <Badge variant="secondary" className="text-xs">
                       Accepts MOI
