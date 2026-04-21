@@ -278,7 +278,7 @@ export default function Universities() {
       <div className="container mx-auto px-4 py-8">
 
         {/* Search and Filters */}
-        <Card className="mb-6 -mt-12 sm:-mt-16 relative shadow-elegant">
+        <Card className="mb-6 -mt-12 sm:-mt-16 relative shadow-xl">
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-muted-foreground">
               <SlidersHorizontal className="h-4 w-4" />
