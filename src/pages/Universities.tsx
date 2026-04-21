@@ -14,8 +14,8 @@ import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
-import { INSTITUTION_TYPES } from '@/lib/institution-types';
-import { MapPin, Building, Trophy, Globe, Search, GraduationCap, Grid3x3, List, Map as MapIcon } from "lucide-react";
+import { INSTITUTION_TYPES, CONTROL_TYPES, normalizeInstitutionType, normalizeControlType, getInstitutionTypeLabel, getControlTypeLabel } from '@/lib/institution-types';
+import { MapPin, Building, Trophy, Globe, Search, GraduationCap, Grid3x3, List, Map as MapIcon, SlidersHorizontal } from "lucide-react";
 import { UniversityCard } from "@/components/university/UniversityCard";
 
 interface University {
@@ -184,6 +184,20 @@ export default function Universities() {
       </div>
     );
   }
+
+  // Dedupe + normalize filter values for display
+  const normalizedTypes = Array.from(
+    new Set(types.map((t) => normalizeInstitutionType(t)))
+  );
+  const normalizedControlTypes = Array.from(
+    new Set(controlTypes.map((t) => normalizeControlType(t)))
+  );
+
+  const totalPrograms = universities.reduce(
+    (sum, u) => sum + (u.program_count || 0),
+    0
+  );
+  const totalCities = new Set(universities.map((u) => u.city).filter(Boolean)).size;
 
   const jsonLd = {
     "@context": "https://schema.org",
