@@ -3732,6 +3732,7 @@ export type Database = {
       }
     }
     Functions: {
+      award_user_badge: { Args: { _badge_code: string }; Returns: Json }
       can_access_profile: { Args: { profile_id: string }; Returns: boolean }
       check_profile_access_rate_limit: { Args: never; Returns: boolean }
       check_profile_access_rights: {

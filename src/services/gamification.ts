@@ -116,41 +116,12 @@ export class GamificationService {
    */
   static async awardBadge(profileId: string, badgeCode: string): Promise<boolean> {
     try {
-      // Get badge ID
-      const { data: badge, error: badgeError } = await supabase
-        .from('badges')
-        .select('id')
-        .eq('code', badgeCode)
-        .single();
-
-      if (badgeError || !badge) {
-        console.error('Badge not found:', badgeCode);
-        return false;
-      }
-
-      // Check if already awarded
-      const { data: existing } = await supabase
-        .from('user_badges')
-        .select('id')
-        .eq('profile_id', profileId)
-        .eq('badge_id', badge.id)
-        .single();
-
-      if (existing) {
-        return true; // Already has badge
-      }
-
-      // Award badge
-      const { error: awardError } = await supabase
-        .from('user_badges')
-        .insert({
-          profile_id: profileId,
-          badge_id: badge.id
-        });
-
-      if (awardError) throw awardError;
-
-      return true;
+      // Award via SECURITY DEFINER RPC; direct writes to user_badges are admin-only.
+      const { data, error } = await supabase.rpc('award_user_badge', {
+        _badge_code: badgeCode,
+      });
+      if (error) throw error;
+      return (data as { success?: boolean } | null)?.success === true;
     } catch (error) {
       console.error('Error awarding badge:', error);
       return false;
