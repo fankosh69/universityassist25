@@ -14,8 +14,8 @@ import JsonLd from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
-import { INSTITUTION_TYPES } from '@/lib/institution-types';
-import { MapPin, Building, Trophy, Globe, Search, GraduationCap, Grid3x3, List, Map as MapIcon } from "lucide-react";
+import { INSTITUTION_TYPES, CONTROL_TYPES, normalizeInstitutionType, normalizeControlType, getInstitutionTypeLabel, getControlTypeLabel } from '@/lib/institution-types';
+import { MapPin, Building, Trophy, Globe, Search, GraduationCap, Grid3x3, List, Map as MapIcon, SlidersHorizontal } from "lucide-react";
 import { UniversityCard } from "@/components/university/UniversityCard";
 
 interface University {
@@ -185,6 +185,20 @@ export default function Universities() {
     );
   }
 
+  // Dedupe + normalize filter values for display
+  const normalizedTypes = Array.from(
+    new Set(types.map((t) => normalizeInstitutionType(t)))
+  );
+  const normalizedControlTypes = Array.from(
+    new Set(controlTypes.map((t) => normalizeControlType(t)))
+  );
+
+  const totalPrograms = universities.reduce(
+    (sum, u) => sum + (u.program_count || 0),
+    0
+  );
+  const totalCities = new Set(universities.map((u) => u.city).filter(Boolean)).size;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -213,27 +227,63 @@ export default function Universities() {
       <JsonLd data={jsonLd} />
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <nav className="text-sm text-muted-foreground mb-4">
-            <Link to="/" className="hover:text-primary">Home</Link>
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-gradient-hero text-primary-foreground">
+        <div className="absolute inset-0 opacity-20" aria-hidden="true">
+          <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-secondary blur-3xl" />
+          <div className="absolute -bottom-24 -right-10 h-80 w-80 rounded-full bg-accent blur-3xl" />
+        </div>
+        <div className="container relative mx-auto px-4 py-10 sm:py-14">
+          <nav className="text-sm text-primary-foreground/80 mb-4">
+            <Link to="/" className="hover:text-primary-foreground transition-colors">Home</Link>
             <span className="mx-2">/</span>
-            <span>Universities</span>
+            <span className="text-primary-foreground">Universities</span>
           </nav>
-          
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4">Universities in Germany</h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Discover world-class German universities offering international programs. 
+
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-3 py-1 text-xs font-medium backdrop-blur-sm mb-4 border border-primary-foreground/20">
+              <Building className="h-3.5 w-3.5" />
+              Germany · {universities.length} institutions
+            </div>
+            <h1 className="text-3xl sm:text-5xl font-bold mb-3 leading-tight">
+              Universities in Germany
+            </h1>
+            <p className="text-base sm:text-lg text-primary-foreground/90 max-w-2xl">
+              Discover world-class German universities offering international programs.
               Find the perfect institution for your academic journey.
             </p>
           </div>
+
+          <div className="mt-6 grid grid-cols-3 gap-3 max-w-xl">
+            {[
+              { label: "Universities", value: universities.length, icon: Building },
+              { label: "Programs", value: totalPrograms.toLocaleString(), icon: GraduationCap },
+              { label: "Cities", value: totalCities, icon: MapPin },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="rounded-xl bg-primary-foreground/10 backdrop-blur-sm border border-primary-foreground/20 px-3 py-3 sm:px-4 sm:py-4"
+              >
+                <div className="flex items-center gap-2 text-primary-foreground/80 text-xs mb-1">
+                  <s.icon className="h-3.5 w-3.5" />
+                  <span className="truncate">{s.label}</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-bold">{s.value}</div>
+              </div>
+            ))}
+          </div>
         </div>
+      </section>
+
+      <div className="container mx-auto px-4 py-8">
 
         {/* Search and Filters */}
-        <Card className="mb-6">
+        <Card className="mb-6 -mt-12 sm:-mt-16 relative shadow-xl">
           <CardContent className="p-6">
+            <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-muted-foreground">
+              <SlidersHorizontal className="h-4 w-4" />
+              Filter universities
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -251,9 +301,9 @@ export default function Universities() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Institution Types</SelectItem>
-                  {types.map((type) => (
+                  {normalizedTypes.map((type) => (
                     <SelectItem key={type} value={type}>
-                      {INSTITUTION_TYPES.find(t => t.value === type)?.labelEn || type}
+                      {getInstitutionTypeLabel(type, "en", false, false)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -265,9 +315,9 @@ export default function Universities() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Control Types</SelectItem>
-                  {controlTypes.map((controlType) => (
+                  {normalizedControlTypes.map((controlType) => (
                     <SelectItem key={controlType} value={controlType}>
-                      {controlType.charAt(0).toUpperCase() + controlType.slice(1)}
+                      {getControlTypeLabel(controlType, "en")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -355,13 +405,18 @@ export default function Universities() {
         </Card>
 
         {/* Results Counter */}
-        <div className="mb-6 flex justify-between items-center">
-          <p className="text-muted-foreground">
-            Showing {filteredUniversities.length} of {universities.length} universities in Germany
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Total: {universities.length} universities on platform
-          </p>
+        <div className="mb-6 flex flex-wrap items-baseline gap-2">
+          <span className="text-2xl font-bold text-foreground">
+            {filteredUniversities.length}
+          </span>
+          <span className="text-muted-foreground">
+            of {universities.length} universities
+            {(searchTerm ||
+              selectedType !== "all" ||
+              selectedControlType !== "all" ||
+              selectedCity !== "all" ||
+              selectedRegion !== "all") && " match your filters"}
+          </span>
         </div>
 
         {/* Universities Grid/List */}
