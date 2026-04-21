@@ -132,7 +132,7 @@ export function ResultsPanel({
                     ))}
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {sortedPrograms.map(program => (
                       <ProgramListItem
                         key={program.id}
