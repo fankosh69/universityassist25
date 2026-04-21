@@ -405,13 +405,18 @@ export default function Universities() {
         </Card>
 
         {/* Results Counter */}
-        <div className="mb-6 flex justify-between items-center">
-          <p className="text-muted-foreground">
-            Showing {filteredUniversities.length} of {universities.length} universities in Germany
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Total: {universities.length} universities on platform
-          </p>
+        <div className="mb-6 flex flex-wrap items-baseline gap-2">
+          <span className="text-2xl font-bold text-foreground">
+            {filteredUniversities.length}
+          </span>
+          <span className="text-muted-foreground">
+            of {universities.length} universities
+            {(searchTerm ||
+              selectedType !== "all" ||
+              selectedControlType !== "all" ||
+              selectedCity !== "all" ||
+              selectedRegion !== "all") && " match your filters"}
+          </span>
         </div>
 
         {/* Universities Grid/List */}
