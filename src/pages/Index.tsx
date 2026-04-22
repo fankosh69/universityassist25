@@ -275,7 +275,7 @@ const Index = () => {
       {/* Popular Programs Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 text-foreground">
               {t('popularPrograms.title')}
             </h2>
@@ -284,62 +284,135 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                title: t('popularPrograms.computerScience'),
-                university: "Technical University of Munich",
-                location: "Munich, Bavaria",
-                degree: t('popularPrograms.masters'),
-                duration: `4 ${t('popularPrograms.semesters')}`,
-                tuition: t('popularPrograms.free')
-              },
-              {
-                title: t('popularPrograms.mechanicalEngineering'),
-                university: "RWTH Aachen University",
-                location: "Aachen, NRW",
-                degree: t('popularPrograms.masters'),
-                duration: `4 ${t('popularPrograms.semesters')}`,
-                tuition: t('popularPrograms.free')
-              },
-              {
-                title: t('popularPrograms.medicine'),
-                university: "Heidelberg University",
-                location: "Heidelberg, BW",
-                degree: t('popularPrograms.bachelors'),
-                duration: `12 ${t('popularPrograms.semesters')}`,
-                tuition: t('popularPrograms.free')
-              }
-            ].map((program, index) => (
-              <Card key={index} className="shadow-soft hover:shadow-medium transition-shadow duration-300">
-                <CardHeader>
-                  <CardTitle className="text-lg">{program.title}</CardTitle>
-                  <p className="text-muted-foreground">{program.university}</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      {program.location}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary">{program.degree}</Badge>
-                      <Badge variant="outline">{program.duration}</Badge>
-                      <Badge variant="outline" className="text-success border-success">
-                        {program.tuition}
-                      </Badge>
-                    </div>
-                    <Button variant="ghost" className="w-full justify-between">
-                      {t('popularPrograms.learnMore')}
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          {loadingPrograms ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} className="shadow-soft animate-pulse">
+                  <CardHeader>
+                    <div className="h-5 bg-muted rounded w-3/4 mb-2" />
+                    <div className="h-4 bg-muted rounded w-1/2" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-4 bg-muted rounded w-2/3 mb-3" />
+                    <div className="h-8 bg-muted rounded" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : programs.length === 0 ? (
+            <p className="text-center text-muted-foreground">{t('popularPrograms.noPrograms')}</p>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {programs.map((program) => {
+                const tuitionLabel = formatTuition(program.tuition_amount);
+                const href = program.university
+                  ? `/universities/${program.university.slug}/programs/${program.slug}`
+                  : '/search';
+                return (
+                  <Link key={program.id} to={href} className="group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
+                    <Card className="h-full shadow-soft hover:shadow-medium transition-shadow duration-300">
+                      <CardHeader>
+                        <CardTitle className="text-lg group-hover:text-primary transition-colors line-clamp-2">
+                          {program.name}
+                        </CardTitle>
+                        {program.university && (
+                          <p className="text-muted-foreground text-sm flex items-center gap-1.5">
+                            <Building2 className="h-3.5 w-3.5" />
+                            {program.university.name}
+                          </p>
+                        )}
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {program.city && (
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <MapPin className="h-4 w-4 mr-2" />
+                              {program.city.name}{program.city.state ? `, ${program.city.state}` : ''}
+                            </div>
+                          )}
+                          <div className="flex flex-wrap gap-2">
+                            {program.degree_type && <Badge variant="secondary">{program.degree_type}</Badge>}
+                            {program.duration_semesters && (
+                              <Badge variant="outline">
+                                {program.duration_semesters} {t('popularPrograms.semesters')}
+                              </Badge>
+                            )}
+                            {tuitionLabel && (
+                              <Badge variant="outline" className={program.tuition_amount === 0 ? 'text-success border-success' : ''}>
+                                {tuitionLabel}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between text-sm font-medium text-primary pt-1">
+                            <span>{t('popularPrograms.learnMore')}</span>
+                            <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="text-center mt-10">
+            <Link to="/search">
+              <Button variant="outline" size="lg">
+                {t('popularPrograms.viewAll')}
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
+
+      {/* Explore Cities Section */}
+      {cities.length > 0 && (
+        <section className="py-20 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold mb-4 text-foreground">
+                {t('popularPrograms.exploreCitiesTitle')}
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                {t('popularPrograms.exploreCitiesSubtitle')}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {cities.map((city) => (
+                <Link
+                  key={city.slug}
+                  to={`/cities/${city.slug}`}
+                  className="group"
+                >
+                  <Card className="h-full shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-0.5">
+                    <CardContent className="p-5 text-center space-y-2">
+                      <div className="mx-auto bg-gradient-primary rounded-full p-2.5 w-12 h-12 flex items-center justify-center">
+                        <MapPin className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                        {city.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {city.program_count} {city.program_count === 1 ? 'program' : 'programs'}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+            <div className="text-center mt-10">
+              <Link to="/cities">
+                <Button variant="outline" size="lg">
+                  {t('popularPrograms.viewAllCities')}
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-academic text-white">
