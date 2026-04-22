@@ -8,18 +8,127 @@ import {
   Users, 
   BookOpen,
   Award,
-  MapPin 
+  MapPin,
+  GraduationCap,
+  Building2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-image-optimized.jpg";
 import heroImageWebP from "@/assets/hero-image-optimized.webp";
 import SEOHead from "@/components/SEOHead";
 import JsonLd, { organizationSchema, websiteSchema } from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
 
+interface FeaturedProgram {
+  id: string;
+  name: string;
+  slug: string;
+  degree_type: string | null;
+  duration_semesters: number | null;
+  tuition_amount: number | null;
+  language_of_instruction: string[] | null;
+  university: { name: string; slug: string } | null;
+  city: { name: string; state: string | null } | null;
+}
+
+interface FeaturedCity {
+  slug: string;
+  name: string;
+  program_count: number;
+}
+
+interface HomeStats {
+  programs: number;
+  universities: number;
+  cities: number;
+}
+
 const Index = () => {
   const { t } = useTranslation('common');
+  const [programs, setPrograms] = useState<FeaturedProgram[]>([]);
+  const [cities, setCities] = useState<FeaturedCity[]>([]);
+  const [stats, setStats] = useState<HomeStats>({ programs: 0, universities: 0, cities: 0 });
+  const [loadingPrograms, setLoadingPrograms] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const [programsRes, statsProgramsRes, statsUnisRes, statsCitiesRes, citiesRes] = await Promise.all([
+          supabase
+            .from('programs')
+            .select(`
+              id, name, slug, degree_type, duration_semesters, tuition_amount, language_of_instruction,
+              universities:university_id ( name, slug, cities:city_id ( name, state ) )
+            `)
+            .eq('published', true)
+            .eq('status', 'published')
+            .order('created_at', { ascending: false })
+            .limit(6),
+          supabase.from('programs').select('id', { count: 'exact', head: true }).eq('published', true).eq('status', 'published'),
+          supabase.from('universities').select('id', { count: 'exact', head: true }).eq('status', 'published'),
+          supabase.from('cities').select('id', { count: 'exact', head: true }),
+          supabase.rpc('get_cities_with_program_counts').limit(6).then(
+            res => res,
+            () => ({ data: null, error: true })
+          ),
+        ]);
+
+        if (cancelled) return;
+
+        // Programs
+        const list: FeaturedProgram[] = (programsRes.data ?? []).map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          degree_type: p.degree_type,
+          duration_semesters: p.duration_semesters,
+          tuition_amount: p.tuition_amount,
+          language_of_instruction: p.language_of_instruction,
+          university: p.universities ? { name: p.universities.name, slug: p.universities.slug } : null,
+          city: p.universities?.cities ? { name: p.universities.cities.name, state: p.universities.cities.state } : null,
+        }));
+        setPrograms(list);
+
+        // Stats
+        setStats({
+          programs: statsProgramsRes.count ?? 0,
+          universities: statsUnisRes.count ?? 0,
+          cities: statsCitiesRes.count ?? 0,
+        });
+
+        // Featured cities — fall back to a manual aggregate query if RPC missing
+        if (citiesRes && (citiesRes as any).data) {
+          setCities((citiesRes as any).data as FeaturedCity[]);
+        } else {
+          const { data: cityRows } = await supabase
+            .from('cities')
+            .select('slug, name, universities:universities!city_id(id, programs:programs!university_id(id, published, status))')
+            .limit(50);
+          const aggregated: FeaturedCity[] = (cityRows ?? [])
+            .map((c: any) => {
+              const count = (c.universities ?? []).reduce((sum: number, u: any) => {
+                return sum + ((u.programs ?? []).filter((p: any) => p.published && p.status === 'published').length);
+              }, 0);
+              return { slug: c.slug, name: c.name, program_count: count };
+            })
+            .filter(c => c.program_count > 0)
+            .sort((a, b) => b.program_count - a.program_count)
+            .slice(0, 6);
+          if (!cancelled) setCities(aggregated);
+        }
+      } finally {
+        if (!cancelled) setLoadingPrograms(false);
+      }
+    };
+
+    load();
+    return () => { cancelled = true; };
+  }, []);
   
   // Debug fallback - if translations fail
   if (!t) {
@@ -48,12 +157,19 @@ const Index = () => {
     }
   ];
 
-  const stats = [
-    { number: "400+", label: t('stats.programs') },
-    { number: "50+", label: t('stats.universities') },
-    { number: "95%", label: t('stats.accuracy') },
-    { number: "24/7", label: t('stats.support') }
+  const formatCount = (n: number) => (n >= 50 ? `${Math.floor(n / 10) * 10}+` : `${n}`);
+  const statsList = [
+    { number: formatCount(stats.programs), label: t('stats.programs') },
+    { number: formatCount(stats.universities), label: t('stats.universities') },
+    { number: formatCount(stats.cities), label: t('cities.title', { defaultValue: 'German Cities' }) },
+    { number: "24/7", label: t('stats.support') },
   ];
+
+  const formatTuition = (amount: number | null) => {
+    if (amount === null || amount === undefined) return null;
+    if (amount === 0) return t('popularPrograms.free');
+    return `€${amount.toLocaleString()} / sem`;
+  };
 
   return (
     <div className="min-h-screen bg-background">
