@@ -22,6 +22,7 @@ import {
   ClipboardCheck,
   Users
 } from 'lucide-react';
+import { SignedDocumentLink } from '@/components/program/SignedDocumentLink';
 
 interface SubjectArea {
   area: string;
