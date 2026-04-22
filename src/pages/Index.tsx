@@ -456,24 +456,24 @@ const Index = () => {
               <h3 className="font-semibold">{t('footer.platform')}</h3>
               <ul className="space-y-2 text-white/70">
                 <li><Link to="/search" className="hover:text-white transition-colors">{t('footer.searchPrograms')}</Link></li>
-                <li><Link to="/profile" className="hover:text-white transition-colors">{t('footer.profileBuilder')}</Link></li>
-                <li><Link to="/dashboard" className="hover:text-white transition-colors">{t('footer.matchAlgorithm')}</Link></li>
+                <li><Link to="/universities" className="hover:text-white transition-colors">Universities</Link></li>
+                <li><Link to="/cities" className="hover:text-white transition-colors">Cities</Link></li>
+                <li><Link to="/regions" className="hover:text-white transition-colors">Regions</Link></li>
               </ul>
             </div>
             <div className="space-y-4">
               <h3 className="font-semibold">{t('footer.resources')}</h3>
               <ul className="space-y-2 text-white/70">
-                <li><Link to="/guides" className="hover:text-white transition-colors">{t('footer.studyGuide')}</Link></li>
-                <li><Link to="/tips" className="hover:text-white transition-colors">{t('footer.applicationTips')}</Link></li>
-                <li><Link to="/visa" className="hover:text-white transition-colors">{t('footer.visaInformation')}</Link></li>
+                <li><Link to="/ambassadors" className="hover:text-white transition-colors">Student Ambassadors</Link></li>
+                <li><Link to="/eligibility-checker" className="hover:text-white transition-colors">Eligibility Checker</Link></li>
+                <li><Link to="/auth?tab=signup" className="hover:text-white transition-colors">{t('footer.profileBuilder')}</Link></li>
               </ul>
             </div>
             <div className="space-y-4">
               <h3 className="font-semibold">{t('footer.support')}</h3>
               <ul className="space-y-2 text-white/70">
-                <li><Link to="/help" className="hover:text-white transition-colors">{t('footer.helpCenter')}</Link></li>
                 <li><a href="mailto:info@uniassist.net" className="hover:text-white transition-colors">{t('footer.contactUs')}</a></li>
-                <li><Link to="/faq" className="hover:text-white transition-colors">{t('footer.faq')}</Link></li>
+                <li><a href="https://wa.me/" className="hover:text-white transition-colors">WhatsApp</a></li>
                 <li><Link to="/impressum" className="hover:text-white transition-colors">Impressum</Link></li>
               </ul>
             </div>
