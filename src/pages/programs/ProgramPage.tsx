@@ -26,6 +26,8 @@ import { BackToTop } from '@/components/BackToTop';
 import { ApplicantRequirementsCard } from '@/components/program/ApplicantRequirementsCard';
 import { useApplicantStatus } from '@/hooks/useApplicantStatus';
 import { useAdmin } from '@/hooks/useAdmin';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown } from 'lucide-react';
 
 
 export default function ProgramPage() {
@@ -39,6 +41,7 @@ export default function ProgramPage() {
   const [consultationModalOpen, setConsultationModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [descExpanded, setDescExpanded] = useState(false);
   
   const { isApplicant, isLoading: applicantLoading } = useApplicantStatus(userId);
   const { isAdmin } = useAdmin();
@@ -192,19 +195,6 @@ export default function ProgramPage() {
           backButtonLabel="Back to University"
           backButtonTo={`/universities/${uni}`}
         />
-        
-        {/* Breadcrumbs (kept for compatibility) */}
-        <Breadcrumb className="mb-6">
-          <BreadcrumbList>
-            <BreadcrumbItem><BreadcrumbLink href="/">Home</BreadcrumbLink></BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem><BreadcrumbLink href="/search">Programs</BreadcrumbLink></BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem><BreadcrumbLink href={`/universities/${university?.slug}`}>{university?.name}</BreadcrumbLink></BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbPage>{programData.name}</BreadcrumbPage>
-          </BreadcrumbList>
-        </Breadcrumb>
 
         {/* Hero Section */}
         <div className="mb-8">
