@@ -22,6 +22,7 @@ import {
   ClipboardCheck,
   Users
 } from 'lucide-react';
+import { SignedDocumentLink } from '@/components/program/SignedDocumentLink';
 
 interface SubjectArea {
   area: string;
@@ -366,28 +367,25 @@ export function ApplicantRequirementsCard({
                 <h4 className="font-semibold">Official Documents</h4>
                 <div className="flex flex-wrap gap-2">
                   {requirements.admission_regulations_url && (
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={requirements.admission_regulations_url} target="_blank" rel="noopener noreferrer">
-                        <Download className="h-3 w-3 mr-1" />
-                        Admission Regulations
-                      </a>
-                    </Button>
+                    <SignedDocumentLink
+                      url={requirements.admission_regulations_url}
+                      label="Admission Regulations"
+                      icon="download"
+                    />
                   )}
                   {requirements.program_flyer_url && (
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={requirements.program_flyer_url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        Program Flyer
-                      </a>
-                    </Button>
+                    <SignedDocumentLink
+                      url={requirements.program_flyer_url}
+                      label="Program Flyer"
+                      icon="external"
+                    />
                   )}
                   {requirements.module_description_url && (
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={requirements.module_description_url} target="_blank" rel="noopener noreferrer">
-                        <Download className="h-3 w-3 mr-1" />
-                        Module Handbook
-                      </a>
-                    </Button>
+                    <SignedDocumentLink
+                      url={requirements.module_description_url}
+                      label="Module Handbook"
+                      icon="download"
+                    />
                   )}
                 </div>
               </div>

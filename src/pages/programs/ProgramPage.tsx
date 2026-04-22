@@ -13,7 +13,6 @@ import { ProgramCosts } from '@/components/program/ProgramCosts';
 import { ProgramContact } from '@/components/program/ProgramContact';
 import { ProgramSidebar } from '@/components/program/ProgramSidebar';
 import { ConsultationModal } from '@/components/consultation/ConsultationModal';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
 import { MapPin, GraduationCap, BookOpen, FileCheck, Info, CheckCircle2, XCircle } from 'lucide-react';
@@ -26,6 +25,8 @@ import { BackToTop } from '@/components/BackToTop';
 import { ApplicantRequirementsCard } from '@/components/program/ApplicantRequirementsCard';
 import { useApplicantStatus } from '@/hooks/useApplicantStatus';
 import { useAdmin } from '@/hooks/useAdmin';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown } from 'lucide-react';
 
 
 export default function ProgramPage() {
@@ -39,6 +40,7 @@ export default function ProgramPage() {
   const [consultationModalOpen, setConsultationModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [descExpanded, setDescExpanded] = useState(false);
   
   const { isApplicant, isLoading: applicantLoading } = useApplicantStatus(userId);
   const { isAdmin } = useAdmin();
@@ -192,19 +194,6 @@ export default function ProgramPage() {
           backButtonLabel="Back to University"
           backButtonTo={`/universities/${uni}`}
         />
-        
-        {/* Breadcrumbs (kept for compatibility) */}
-        <Breadcrumb className="mb-6">
-          <BreadcrumbList>
-            <BreadcrumbItem><BreadcrumbLink href="/">Home</BreadcrumbLink></BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem><BreadcrumbLink href="/search">Programs</BreadcrumbLink></BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem><BreadcrumbLink href={`/universities/${university?.slug}`}>{university?.name}</BreadcrumbLink></BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbPage>{programData.name}</BreadcrumbPage>
-          </BreadcrumbList>
-        </Breadcrumb>
 
         {/* Hero Section */}
         <div className="mb-8">
@@ -250,12 +239,45 @@ export default function ProgramPage() {
               programUrl={programData.program_url}
             />
 
-            {/* Description - gated */}
+            {/* Description - collapsed by default to keep the page snapshot-friendly */}
             {programData.description && (
-                <Card>
-                  <CardHeader><CardTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5" />Program Description</CardTitle></CardHeader>
-                  <CardContent><p className="text-muted-foreground whitespace-pre-wrap">{programData.description}</p></CardContent>
-                </Card>
+              <Card>
+                <Collapsible open={descExpanded} onOpenChange={setDescExpanded}>
+                  <CardHeader className="pb-3">
+                    <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 text-left">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <BookOpen className="h-5 w-5" />
+                        Program Description
+                      </CardTitle>
+                      <ChevronDown
+                        className={`h-4 w-4 text-muted-foreground transition-transform ${descExpanded ? 'rotate-180' : ''}`}
+                      />
+                    </CollapsibleTrigger>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    {!descExpanded ? (
+                      <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-wrap">
+                        {programData.description}
+                      </p>
+                    ) : (
+                      <CollapsibleContent>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {programData.description}
+                        </p>
+                      </CollapsibleContent>
+                    )}
+                    {programData.description.length > 220 && (
+                      <button
+                        type="button"
+                        onClick={() => setDescExpanded((v) => !v)}
+                        className="mt-2 text-xs font-medium text-primary hover:underline"
+                      >
+                        {descExpanded ? 'Show less' : 'Read more'}
+                      </button>
+                    )}
+                  </CardContent>
+                </Collapsible>
+              </Card>
             )}
 
             {/* Admission Requirements - gated */}

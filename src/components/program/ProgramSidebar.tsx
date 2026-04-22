@@ -218,12 +218,6 @@ export function ProgramSidebar({
         </CardHeader>
         <CardContent className="space-y-2">
           <Button asChild variant="link" size="sm" className="w-full justify-start px-0">
-            <a href="https://www.daad.de" target="_blank" rel="noopener noreferrer">
-              DAAD Scholarships
-              <ExternalLink className="h-3 w-3 ml-2" />
-            </a>
-          </Button>
-          <Button asChild variant="link" size="sm" className="w-full justify-start px-0">
             <a href="https://www.make-it-in-germany.com" target="_blank" rel="noopener noreferrer">
               Student Visa Guide
               <ExternalLink className="h-3 w-3 ml-2" />

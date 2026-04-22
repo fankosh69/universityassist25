@@ -273,12 +273,6 @@ export function ProgramCosts({ tuitionAmount, tuitionStructure, durationSemester
               <h3 className="text-sm font-semibold">Financing Options</h3>
               <div className="space-y-2">
                 <div className="p-3 rounded-lg border">
-                  <p className="text-sm font-medium">Scholarships</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    DAAD, Erasmus+, and other scholarship programs available for international students
-                  </p>
-                </div>
-                <div className="p-3 rounded-lg border">
                   <p className="text-sm font-medium">Student Jobs</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     International students can work up to 120 full days or 240 half days per year
