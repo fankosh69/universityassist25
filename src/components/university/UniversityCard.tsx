@@ -228,10 +228,17 @@ export function UniversityCard({ university, variant = "grid" }: UniversityCardP
               <span>{university.international_student_percentage}% international</span>
             </div>
           )}
-          <div className="flex items-center gap-2 text-sm">
-            <GraduationCap className={`h-4 w-4 ${programCount === 0 ? 'text-muted-foreground' : 'text-primary'}`} />
-            <span className={programCount === 0 ? 'text-muted-foreground italic' : ''}>{programLabel}</span>
-          </div>
+          {programCount === 0 ? (
+            <div className="flex items-center gap-2 text-sm">
+              <GraduationCap className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground italic">No programs yet</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-sm">
+              <GraduationCap className="h-4 w-4 text-primary" />
+              <span>{programLabel}</span>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-2">
