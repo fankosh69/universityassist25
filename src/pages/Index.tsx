@@ -58,7 +58,7 @@ const Index = () => {
 
     const load = async () => {
       try {
-        const [programsRes, statsProgramsRes, statsUnisRes, statsCitiesRes, citiesRes] = await Promise.all([
+        const [programsRes, statsProgramsRes, statsUnisRes, statsCitiesRes, cityRowsRes] = await Promise.all([
           supabase
             .from('programs')
             .select(`
@@ -72,10 +72,10 @@ const Index = () => {
           supabase.from('programs').select('id', { count: 'exact', head: true }).eq('published', true).eq('status', 'published'),
           supabase.from('universities').select('id', { count: 'exact', head: true }).eq('status', 'published'),
           supabase.from('cities').select('id', { count: 'exact', head: true }),
-          supabase.rpc('get_cities_with_program_counts').limit(6).then(
-            res => res,
-            () => ({ data: null, error: true })
-          ),
+          supabase
+            .from('cities')
+            .select('slug, name, universities:universities!city_id(id, programs:programs!university_id(id, published, status))')
+            .limit(120),
         ]);
 
         if (cancelled) return;
@@ -101,26 +101,18 @@ const Index = () => {
           cities: statsCitiesRes.count ?? 0,
         });
 
-        // Featured cities — fall back to a manual aggregate query if RPC missing
-        if (citiesRes && (citiesRes as any).data) {
-          setCities((citiesRes as any).data as FeaturedCity[]);
-        } else {
-          const { data: cityRows } = await supabase
-            .from('cities')
-            .select('slug, name, universities:universities!city_id(id, programs:programs!university_id(id, published, status))')
-            .limit(50);
-          const aggregated: FeaturedCity[] = (cityRows ?? [])
-            .map((c: any) => {
-              const count = (c.universities ?? []).reduce((sum: number, u: any) => {
-                return sum + ((u.programs ?? []).filter((p: any) => p.published && p.status === 'published').length);
-              }, 0);
-              return { slug: c.slug, name: c.name, program_count: count };
-            })
-            .filter(c => c.program_count > 0)
-            .sort((a, b) => b.program_count - a.program_count)
-            .slice(0, 6);
-          if (!cancelled) setCities(aggregated);
-        }
+        // Featured cities — aggregate published-program counts client-side
+        const aggregated: FeaturedCity[] = ((cityRowsRes.data ?? []) as any[])
+          .map((c: any) => {
+            const count = (c.universities ?? []).reduce((sum: number, u: any) => {
+              return sum + ((u.programs ?? []).filter((p: any) => p.published && p.status === 'published').length);
+            }, 0);
+            return { slug: c.slug, name: c.name, program_count: count };
+          })
+          .filter(c => c.program_count > 0)
+          .sort((a, b) => b.program_count - a.program_count)
+          .slice(0, 6);
+        if (!cancelled) setCities(aggregated);
       } finally {
         if (!cancelled) setLoadingPrograms(false);
       }
