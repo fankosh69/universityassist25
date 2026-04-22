@@ -240,12 +240,45 @@ export default function ProgramPage() {
               programUrl={programData.program_url}
             />
 
-            {/* Description - gated */}
+            {/* Description - collapsed by default to keep the page snapshot-friendly */}
             {programData.description && (
-                <Card>
-                  <CardHeader><CardTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5" />Program Description</CardTitle></CardHeader>
-                  <CardContent><p className="text-muted-foreground whitespace-pre-wrap">{programData.description}</p></CardContent>
-                </Card>
+              <Card>
+                <Collapsible open={descExpanded} onOpenChange={setDescExpanded}>
+                  <CardHeader className="pb-3">
+                    <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 text-left">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <BookOpen className="h-5 w-5" />
+                        Program Description
+                      </CardTitle>
+                      <ChevronDown
+                        className={`h-4 w-4 text-muted-foreground transition-transform ${descExpanded ? 'rotate-180' : ''}`}
+                      />
+                    </CollapsibleTrigger>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    {!descExpanded ? (
+                      <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-wrap">
+                        {programData.description}
+                      </p>
+                    ) : (
+                      <CollapsibleContent>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {programData.description}
+                        </p>
+                      </CollapsibleContent>
+                    )}
+                    {programData.description.length > 220 && (
+                      <button
+                        type="button"
+                        onClick={() => setDescExpanded((v) => !v)}
+                        className="mt-2 text-xs font-medium text-primary hover:underline"
+                      >
+                        {descExpanded ? 'Show less' : 'Read more'}
+                      </button>
+                    )}
+                  </CardContent>
+                </Collapsible>
+              </Card>
             )}
 
             {/* Admission Requirements - gated */}
