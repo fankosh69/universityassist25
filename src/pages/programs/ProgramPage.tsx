@@ -13,7 +13,6 @@ import { ProgramCosts } from '@/components/program/ProgramCosts';
 import { ProgramContact } from '@/components/program/ProgramContact';
 import { ProgramSidebar } from '@/components/program/ProgramSidebar';
 import { ConsultationModal } from '@/components/consultation/ConsultationModal';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
 import { MapPin, GraduationCap, BookOpen, FileCheck, Info, CheckCircle2, XCircle } from 'lucide-react';
