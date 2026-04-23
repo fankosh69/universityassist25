@@ -1689,10 +1689,29 @@ export const AdminPrograms = () => {
 
             <div>
               <Label htmlFor="program_url">Program URL</Label>
-              <Input id="program_url" type="url" value={formData.program_url} onChange={e => setFormData({
-              ...formData,
-              program_url: e.target.value
-            })} placeholder="https://university.edu/program" />
+              <div className="flex gap-2">
+                <Input
+                  id="program_url"
+                  type="url"
+                  value={formData.program_url}
+                  onChange={e => setFormData({ ...formData, program_url: e.target.value })}
+                  placeholder="https://university.edu/program"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleRescrapeFromUrl}
+                  disabled={isRescraping || !formData.program_url?.trim()}
+                  title="Fetch deadlines and language requirements from this URL"
+                >
+                  <RefreshCw className={cn("h-4 w-4 mr-2", isRescraping && "animate-spin")} />
+                  {isRescraping ? "Refreshing..." : "Re-scrape"}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Refreshes deadlines and language requirements from the program page. Review changes, then Save.
+              </p>
             </div>
 
             <div>
