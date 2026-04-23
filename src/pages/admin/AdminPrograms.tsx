@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Trash2, Search, ExternalLink, Clock, AlertTriangle, Upload, Info } from "lucide-react";
+import { Plus, Edit, Trash2, Search, ExternalLink, Clock, AlertTriangle, Upload, Info, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -466,6 +466,107 @@ export const AdminPrograms = () => {
       });
     }
   };
+  const [isRescraping, setIsRescraping] = useState(false);
+
+  const handleRescrapeFromUrl = async () => {
+    const url = formData.program_url?.trim();
+    if (!url) {
+      toast({
+        title: "No Program URL",
+        description: "Please enter the program page URL first.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setIsRescraping(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('scrape-program-details', {
+        body: { programUrl: url }
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Scrape failed');
+
+      const extracted = data.data || {};
+      const updated: Partial<typeof formData> = {};
+      const updatedFields: string[] = [];
+
+      // Helper: parse YYYY-MM-DD into month/day
+      const parseDate = (val: any): { month: number; day: number } | null => {
+        if (!val || typeof val !== 'string') return null;
+        const m = val.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!m) return null;
+        const month = parseInt(m[2], 10);
+        const day = parseInt(m[3], 10);
+        if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+        return { month, day };
+      };
+
+      const winter = parseDate(extracted?.winter_deadline?.value);
+      if (winter) {
+        updated.winter_deadline_month = winter.month;
+        updated.winter_deadline_day = winter.day;
+        updated.winter_intake = true;
+        updatedFields.push('Winter deadline');
+      }
+      const summer = parseDate(extracted?.summer_deadline?.value);
+      if (summer) {
+        updated.summer_deadline_month = summer.month;
+        updated.summer_deadline_day = summer.day;
+        updated.summer_intake = true;
+        updatedFields.push('Summer deadline');
+      }
+
+      // Language requirements (CEFR level strings like A1..C2)
+      const cefr = (v: any): string | null => {
+        if (!v || typeof v !== 'string') return null;
+        const m = v.toUpperCase().match(/\b([ABC][12])\b/);
+        return m ? m[1] : null;
+      };
+      const germanLevel = cefr(extracted?.german_level_required?.value);
+      const englishLevel = cefr(extracted?.english_level_required?.value);
+
+      if (germanLevel) {
+        const current = formData.german_language_requirements || {} as GermanLanguageRequirements;
+        updated.german_language_requirements = {
+          ...current,
+          minimum_level: germanLevel,
+        } as GermanLanguageRequirements;
+        updatedFields.push(`German level (${germanLevel})`);
+      }
+      if (englishLevel) {
+        const current = formData.english_language_requirements || {} as EnglishLanguageRequirements;
+        updated.english_language_requirements = {
+          ...current,
+          minimum_level: englishLevel,
+        } as EnglishLanguageRequirements;
+        updatedFields.push(`English level (${englishLevel})`);
+      }
+
+      if (Object.keys(updated).length === 0) {
+        toast({
+          title: "No new data extracted",
+          description: "Could not find deadlines or language requirements on that page.",
+          variant: "destructive"
+        });
+      } else {
+        setFormData({ ...formData, ...updated });
+        toast({
+          title: "Refreshed from website",
+          description: `Updated: ${updatedFields.join(', ')}. Review and click Save to persist.`
+        });
+      }
+    } catch (err) {
+      console.error('Re-scrape error:', err);
+      toast({
+        title: "Re-scrape failed",
+        description: err instanceof Error ? err.message : 'Unknown error',
+        variant: "destructive"
+      });
+    } finally {
+      setIsRescraping(false);
+    }
+  };
+
   const handleEdit = async (program: Program) => {
     setEditingProgram(program);
     
@@ -1588,10 +1689,29 @@ export const AdminPrograms = () => {
 
             <div>
               <Label htmlFor="program_url">Program URL</Label>
-              <Input id="program_url" type="url" value={formData.program_url} onChange={e => setFormData({
-              ...formData,
-              program_url: e.target.value
-            })} placeholder="https://university.edu/program" />
+              <div className="flex gap-2">
+                <Input
+                  id="program_url"
+                  type="url"
+                  value={formData.program_url}
+                  onChange={e => setFormData({ ...formData, program_url: e.target.value })}
+                  placeholder="https://university.edu/program"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleRescrapeFromUrl}
+                  disabled={isRescraping || !formData.program_url?.trim()}
+                  title="Fetch deadlines and language requirements from this URL"
+                >
+                  <RefreshCw className={cn("h-4 w-4 mr-2", isRescraping && "animate-spin")} />
+                  {isRescraping ? "Refreshing..." : "Re-scrape"}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Refreshes deadlines and language requirements from the program page. Review changes, then Save.
+              </p>
             </div>
 
             <div>
