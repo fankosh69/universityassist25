@@ -1803,79 +1803,84 @@ export const AdminPrograms = () => {
               )}
             </div>
 
-            <div className="space-y-4">
-              <Label>Intake Availability</Label>
-              <div className="flex gap-6">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="winter_intake" checked={formData.winter_intake} onCheckedChange={checked => setFormData({
-                  ...formData,
-                  winter_intake: !!checked
-                })} />
-                  <Label htmlFor="winter_intake">Winter Intake</Label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold">Intake Periods</Label>
+                <p className="text-xs text-muted-foreground">Toggle to enable. Dates repeat yearly.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Winter Intake Card */}
+                <div className={`rounded-lg border transition-colors ${formData.winter_intake ? 'bg-card' : 'bg-muted/30 border-dashed'}`}>
+                  <div className="flex items-center justify-between px-4 py-2.5 border-b">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">❄️</span>
+                      <Label htmlFor="winter_intake" className="font-medium cursor-pointer">Winter Intake</Label>
+                    </div>
+                    <Checkbox
+                      id="winter_intake"
+                      checked={formData.winter_intake}
+                      onCheckedChange={(checked) => setFormData({ ...formData, winter_intake: !!checked })}
+                    />
+                  </div>
+                  {formData.winter_intake && (
+                    <div className="p-4 space-y-3">
+                      <MonthDaySelector
+                        label="Application Opens"
+                        month={formData.winter_open_month}
+                        day={formData.winter_open_day}
+                        onMonthChange={(m) => setFormData({ ...formData, winter_open_month: m })}
+                        onDayChange={(d) => setFormData({ ...formData, winter_open_day: d })}
+                        intake="winter"
+                        dateType="opening"
+                      />
+                      <MonthDaySelector
+                        label="Application Deadline"
+                        month={formData.winter_deadline_month}
+                        day={formData.winter_deadline_day}
+                        onMonthChange={(m) => setFormData({ ...formData, winter_deadline_month: m })}
+                        onDayChange={(d) => setFormData({ ...formData, winter_deadline_day: d })}
+                        intake="winter"
+                      />
+                    </div>
+                  )}
                 </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="summer_intake" checked={formData.summer_intake} onCheckedChange={checked => setFormData({
-                  ...formData,
-                  summer_intake: !!checked
-                })} />
-                  <Label htmlFor="summer_intake">Summer Intake</Label>
+
+                {/* Summer Intake Card */}
+                <div className={`rounded-lg border transition-colors ${formData.summer_intake ? 'bg-card' : 'bg-muted/30 border-dashed'}`}>
+                  <div className="flex items-center justify-between px-4 py-2.5 border-b">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">☀️</span>
+                      <Label htmlFor="summer_intake" className="font-medium cursor-pointer">Summer Intake</Label>
+                    </div>
+                    <Checkbox
+                      id="summer_intake"
+                      checked={formData.summer_intake}
+                      onCheckedChange={(checked) => setFormData({ ...formData, summer_intake: !!checked })}
+                    />
+                  </div>
+                  {formData.summer_intake && (
+                    <div className="p-4 space-y-3">
+                      <MonthDaySelector
+                        label="Application Opens"
+                        month={formData.summer_open_month}
+                        day={formData.summer_open_day}
+                        onMonthChange={(m) => setFormData({ ...formData, summer_open_month: m })}
+                        onDayChange={(d) => setFormData({ ...formData, summer_open_day: d })}
+                        intake="summer"
+                        dateType="opening"
+                      />
+                      <MonthDaySelector
+                        label="Application Deadline"
+                        month={formData.summer_deadline_month}
+                        day={formData.summer_deadline_day}
+                        onMonthChange={(m) => setFormData({ ...formData, summer_deadline_month: m })}
+                        onDayChange={(d) => setFormData({ ...formData, summer_deadline_day: d })}
+                        intake="summer"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6">
-              {formData.winter_intake && (
-                <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
-                  <h4 className="font-medium text-lg">Winter Intake Period</h4>
-                  <p className="text-sm text-muted-foreground">Set dates as month and day - they will automatically apply to each year.</p>
-                  <div className="grid grid-cols-2 gap-4">
-                    <MonthDaySelector
-                      label="Application Opens"
-                      month={formData.winter_open_month}
-                      day={formData.winter_open_day}
-                      onMonthChange={(m) => setFormData({ ...formData, winter_open_month: m })}
-                      onDayChange={(d) => setFormData({ ...formData, winter_open_day: d })}
-                      intake="winter"
-                      dateType="opening"
-                    />
-                    <MonthDaySelector
-                      label="Application Deadline"
-                      month={formData.winter_deadline_month}
-                      day={formData.winter_deadline_day}
-                      onMonthChange={(m) => setFormData({ ...formData, winter_deadline_month: m })}
-                      onDayChange={(d) => setFormData({ ...formData, winter_deadline_day: d })}
-                      intake="winter"
-                    />
-                  </div>
-                </div>
-              )}
-              
-              {formData.summer_intake && (
-                <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
-                  <h4 className="font-medium text-lg">Summer Intake Period</h4>
-                  <p className="text-sm text-muted-foreground">Set dates as month and day - they will automatically apply to each year.</p>
-                  <div className="grid grid-cols-2 gap-4">
-                    <MonthDaySelector
-                      label="Application Opens"
-                      month={formData.summer_open_month}
-                      day={formData.summer_open_day}
-                      onMonthChange={(m) => setFormData({ ...formData, summer_open_month: m })}
-                      onDayChange={(d) => setFormData({ ...formData, summer_open_day: d })}
-                      intake="summer"
-                      dateType="opening"
-                    />
-                    <MonthDaySelector
-                      label="Application Deadline"
-                      month={formData.summer_deadline_month}
-                      day={formData.summer_deadline_day}
-                      onMonthChange={(m) => setFormData({ ...formData, summer_deadline_month: m })}
-                      onDayChange={(d) => setFormData({ ...formData, summer_deadline_day: d })}
-                      intake="summer"
-                    />
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Language of Instruction Configuration */}
