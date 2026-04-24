@@ -435,6 +435,7 @@ const Index = () => {
           </Link>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
       <footer className="bg-foreground text-white py-12">
