@@ -92,6 +92,37 @@ export function getGuestWatchlistCount(): number {
   return read().items.length;
 }
 
+/**
+ * Merge any guest-watchlist entries into the authenticated user's saved list,
+ * then clear local storage. Idempotent — duplicates are ignored thanks to the
+ * unique (profile_id, program_id) constraint on `saved_programs`.
+ *
+ * Pass an authenticated Supabase client. Returns the number of items merged.
+ */
+export async function mergeGuestWatchlistInto(
+  supabase: { from: (table: string) => any },
+  userId: string,
+): Promise<number> {
+  const items = getGuestWatchlist();
+  if (items.length === 0) return 0;
+  const rows = items.map((i) => ({ profile_id: userId, program_id: i.programId }));
+  try {
+    // Use upsert-style insert ignoring conflicts to avoid breaking on dupes.
+    const { error } = await supabase
+      .from("saved_programs")
+      .upsert(rows, { onConflict: "profile_id,program_id", ignoreDuplicates: true });
+    if (error) {
+      console.warn("[guest-watchlist] merge failed", error);
+      return 0;
+    }
+    clearGuestWatchlist();
+    return rows.length;
+  } catch (err) {
+    console.warn("[guest-watchlist] merge threw", err);
+    return 0;
+  }
+}
+
 /** Subscribe to guest-watchlist changes (cross-tab via `storage` + same-tab custom event). */
 export function subscribeToGuestWatchlist(cb: () => void): () => void {
   if (typeof window === "undefined") return () => {};
