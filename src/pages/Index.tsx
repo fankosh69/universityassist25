@@ -17,8 +17,9 @@ import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-image-optimized.jpg";
 import heroImageWebP from "@/assets/hero-image-optimized.webp";
 import SEOHead from "@/components/SEOHead";
-import JsonLd, { organizationSchema, websiteSchema } from "@/components/JsonLd";
+import JsonLd, { organizationSchema, websiteSchema, homepageFaqSchema } from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
+import HeroQuickFinder from "@/components/HeroQuickFinder";
 
 interface FeaturedProgram {
   id: string;
@@ -173,17 +174,21 @@ const Index = () => {
       />
       <JsonLd data={organizationSchema} />
       <JsonLd data={websiteSchema} />
+      <JsonLd data={homepageFaqSchema} />
       
       <Navigation />
 
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+
+      <main id="main-content" role="main">
       {/* Hero Section */}
-      <section className="relative bg-gradient-hero overflow-hidden">
+      <header className="relative bg-gradient-hero overflow-hidden" aria-label="University Assist hero">
         <div className="absolute inset-0">
           <picture>
             <source srcSet={heroImageWebP} type="image/webp" />
             <img 
               src={heroImage}
-              alt="German University Campus"
+              alt="Students walking on a German university campus with historic architecture in the background"
               className="w-full h-full object-cover opacity-20"
               width="1335"
               height="751"
@@ -202,7 +207,8 @@ const Index = () => {
           <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto">
             {t('hero.subtitle')}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <HeroQuickFinder />
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <Link to="/auth?tab=signup">
               <Button variant="hero" size="xl" className="min-w-48">
                 {t('hero.startJourney')}
@@ -220,10 +226,10 @@ const Index = () => {
             </Link>
           </div>
         </div>
-      </section>
+      </header>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white">
+      <aside className="py-16 bg-white" aria-label="Platform statistics">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {statsList.map((stat, index) => (
@@ -238,7 +244,7 @@ const Index = () => {
             ))}
           </div>
         </div>
-      </section>
+      </aside>
 
       {/* Features Section */}
       <section className="py-20 bg-muted/30">
