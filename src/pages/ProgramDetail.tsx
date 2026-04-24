@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import SEOHead from "@/components/SEOHead";
-import JsonLd from "@/components/JsonLd";
+import SEOProgramPage from "@/components/SEOProgramPage";
+import ProgramDetailSkeleton from "@/components/skeletons/ProgramDetailSkeleton";
+import WatchlistButton from "@/components/WatchlistButton";
+import MobileStickyCTA from "@/components/MobileStickyCTA";
 import Navigation from "@/components/Navigation";
-import { MapPin, Clock, Euro, GraduationCap, Calendar, FileText, Heart } from "lucide-react";
+import { MapPin, Clock, Euro, GraduationCap, Calendar, FileText, CheckCircle2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { LanguageFlags } from "@/components/LanguageFlags";
 import { formatProgramTitle } from "@/lib/degree-formatting";
@@ -143,9 +144,7 @@ export default function ProgramDetail() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5">
         <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <LoadingSpinner />
-        </div>
+        <ProgramDetailSkeleton />
       </div>
     );
   }
@@ -171,40 +170,38 @@ export default function ProgramDetail() {
     );
   }
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Course",
-    "name": program.name,
-    "description": program.description,
-    "provider": {
-      "@type": "CollegeOrUniversity",
-      "name": program.universities.name,
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": program.universities.city,
-        "addressCountry": "DE"
-      }
-    },
-    "courseCode": program.degree_type,
-    "educationalLevel": program.degree_level,
-    "timeRequired": `${program.duration_semesters} semesters`,
-    "offers": {
-      "@type": "Offer",
-      "price": program.semester_fees,
-      "priceCurrency": "EUR"
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5">
-      <SEOHead 
-        title={`${program.name} - ${program.universities.name} | University Assist`}
-        description={`Study ${program.name} at ${program.universities.name} in ${program.universities.city}. ${program.degree_type} in ${program.field_of_study}. ${program.description?.substring(0, 150)}...`}
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 pb-24 md:pb-0">
+      <SEOProgramPage
+        program={{
+          id: program.id,
+          name: program.name,
+          slug: programSlug || "",
+          description: program.description,
+          degree_type: program.degree_type,
+          degree_level: program.degree_level,
+          field_of_study: program.field_of_study,
+          duration_semesters: program.duration_semesters,
+          semester_fees: program.semester_fees,
+          ects_credits: program.ects_credits,
+          language_of_instruction: program.language_of_instruction,
+          uni_assist_required: program.uni_assist_required,
+          application_method: program.application_method,
+          winter_intake: program.winter_intake,
+          summer_intake: program.summer_intake,
+          winter_deadline: program.winter_deadline,
+          summer_deadline: program.summer_deadline,
+          language_requirements: program.language_requirements,
+        }}
+        university={{
+          name: program.universities.name,
+          slug: program.universities.slug,
+          city: program.universities.city,
+        }}
       />
-      <JsonLd data={jsonLd} />
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <nav className="text-sm text-muted-foreground mb-4">
@@ -285,15 +282,13 @@ export default function ProgramDetail() {
               </div>
             </div>
             
-            <Button 
-              onClick={handleSaveProgram}
-              variant={isSaved ? "default" : "outline"}
+            <WatchlistButton
+              programId={program.id}
+              isWatched={isSaved}
               size="lg"
-              className="flex items-center gap-2"
-            >
-              <Heart className={`h-5 w-5 ${isSaved ? 'fill-current' : ''}`} />
-              {isSaved ? 'Saved' : 'Save Program'}
-            </Button>
+              variant={isSaved ? 'default' : 'outline'}
+              onToggle={setIsSaved}
+            />
           </div>
         </div>
 
@@ -549,7 +544,19 @@ export default function ProgramDetail() {
             </Card>
           </div>
         </div>
-      </div>
+      </main>
+
+      {/* Mobile sticky action bar — keeps key actions reachable */}
+      <MobileStickyCTA ariaLabel="Program quick actions">
+        <Button className="flex-1 tap-target" aria-label="Check eligibility for this program">
+          <CheckCircle2 className="h-4 w-4 mr-2" />
+          Check Eligibility
+        </Button>
+        <Button variant="outline" className="flex-1 tap-target" aria-label="Start application for this program">
+          <Send className="h-4 w-4 mr-2" />
+          Apply Now
+        </Button>
+      </MobileStickyCTA>
     </div>
   );
 }
