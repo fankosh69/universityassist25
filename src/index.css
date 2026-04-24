@@ -137,3 +137,23 @@
     font-family: var(--font-heading);
   }
 }
+
+@layer utilities {
+  /* WCAG 2.5.5 — minimum 44x44 touch targets on touch-first devices.
+     Apply to icon-only buttons; on desktop pointer devices, components
+     can opt back into smaller sizes via md: variants. */
+  .tap-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* iOS safe-area helper for sticky bottom CTAs / nav bars. */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+  }
+
+  /* Visually hidden but available to assistive tech and on focus. */
+  .skip-link {
+    @apply absolute left-4 -top-12 z-[100] px-4 py-2 rounded-md bg-primary text-primary-foreground
+      shadow-md transition-all focus:top-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+}
