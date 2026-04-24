@@ -192,3 +192,32 @@ export function createWebsiteSchema() {
     }
   };
 }
+
+export interface FaqItem {
+  q: string;
+  a: string;
+}
+
+/**
+ * Build a Schema.org FAQPage JSON-LD object.
+ * Filters out items with missing question or answer so we never emit
+ * empty FAQ entries.
+ */
+export function createFaqSchema(items: FaqItem[]) {
+  const cleaned = items
+    .map(({ q, a }) => ({ q: (q || '').trim(), a: (a || '').trim() }))
+    .filter(({ q, a }) => q.length > 0 && a.length > 0);
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": cleaned.map(({ q, a }) => ({
+      "@type": "Question",
+      "name": q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": a,
+      },
+    })),
+  };
+}
