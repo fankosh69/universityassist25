@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import SEOProgramPage from "@/components/SEOProgramPage";
-import ProgramDetailSkeleton from "@/components/skeletons/ProgramDetailSkeleton";
+import { ProgramDetailSkeleton } from "@/components/skeletons/ProgramDetailSkeleton";
 import WatchlistButton from "@/components/WatchlistButton";
 import MobileStickyCTA from "@/components/MobileStickyCTA";
 import Navigation from "@/components/Navigation";
