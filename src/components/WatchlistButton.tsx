@@ -7,6 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNavigate } from 'react-router-dom';
+import {
+  addToGuestWatchlist,
+  removeFromGuestWatchlist,
+  isInGuestWatchlist,
+} from '@/lib/guest-watchlist';
 
 interface WatchlistButtonProps {
   programId: string;
@@ -28,12 +33,28 @@ export default function WatchlistButton({
   const navigate = useNavigate();
   const { isComplete, isLoggedIn } = useOnboardingStatus();
   const [isLoading, setIsLoading] = useState(false);
-  const [watched, setWatched] = useState(isWatched);
+  // For guests, hydrate from localStorage so the icon reflects existing saves.
+  const [watched, setWatched] = useState(
+    isWatched || (!isLoggedIn && isInGuestWatchlist(programId)),
+  );
 
   const handleToggle = async () => {
     if (!isLoggedIn) {
-      toast({ title: t('watchlist.login_required'), description: t('watchlist.login_required_desc'), variant: 'destructive' });
-      navigate('/auth');
+      // Guest mode: persist locally; prompt sign-in only when they open the list.
+      if (watched) {
+        removeFromGuestWatchlist(programId);
+        setWatched(false);
+        onToggle?.(false);
+        toast({ title: t('watchlist.removed'), description: t('watchlist.removed_desc') });
+      } else {
+        addToGuestWatchlist(programId);
+        setWatched(true);
+        onToggle?.(true);
+        toast({
+          title: t('watchlist.added'),
+          description: 'Sign in to access your list from anywhere.',
+        });
+      }
       return;
     }
     if (!isComplete) {

@@ -7,6 +7,7 @@ import { useEffect, useState, useRef, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { HelmetProvider } from "react-helmet-async";
+import { mergeGuestWatchlistInto } from "@/lib/guest-watchlist";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Search from "./pages/Search";
@@ -81,12 +82,19 @@ const App = () => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       const newUser = session?.user ?? null;
       if (loadingRef.current) {
         pendingUserRef.current = newUser;
       } else {
         setUser(newUser);
+      }
+      // Merge any guest-watchlist entries into the user's saved list on sign-in.
+      if (event === "SIGNED_IN" && newUser?.id) {
+        // Defer to avoid running inside the auth callback.
+        setTimeout(() => {
+          mergeGuestWatchlistInto(supabase as any, newUser.id).catch(() => {});
+        }, 0);
       }
     });
 
