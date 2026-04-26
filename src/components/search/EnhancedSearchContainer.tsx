@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, parseISO, isValid } from 'date-fns';
@@ -63,6 +64,7 @@ interface SearchFilters {
 }
 
 export function EnhancedSearchContainer() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [programs, setPrograms] = useState<Program[]>([]);
   const [allPrograms, setAllPrograms] = useState<Program[]>([]);
@@ -73,6 +75,7 @@ export function EnhancedSearchContainer() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('relevance');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [languageFilter, setLanguageFilter] = useState<string>('all');
   
   const [filters, setFilters] = useState<SearchFilters>({
     degreeLevel: 'all',
@@ -92,6 +95,44 @@ export function EnhancedSearchContainer() {
     acceptsPTE: false,
     applicationFee: 'all'
   });
+
+  // Hydrate filters from URL params (e.g., when coming from HeroQuickFinder).
+  // Resolve `field` slug to a fields_of_study id so the hierarchical filter applies.
+  useEffect(() => {
+    const level = searchParams.get('level');
+    const lang = searchParams.get('lang');
+    const field = searchParams.get('field');
+    const city = searchParams.get('city');
+
+    if (level && ['bachelor', 'master', 'phd'].includes(level)) {
+      setFilters((prev) => ({ ...prev, degreeLevel: level }));
+    }
+    if (lang && ['en', 'de'].includes(lang)) {
+      setLanguageFilter(lang);
+    }
+    if (city) {
+      setFilters((prev) => ({ ...prev, city }));
+    }
+    if (field) {
+      // `field` may be a slug or a uuid — resolve slugs to id.
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(field);
+      if (isUuid) {
+        setFilters((prev) => ({ ...prev, fieldOfStudyIds: [field] }));
+      } else {
+        (async () => {
+          const { data } = await supabase
+            .from('fields_of_study')
+            .select('id')
+            .eq('slug', field)
+            .maybeSingle();
+          if (data?.id) {
+            setFilters((prev) => ({ ...prev, fieldOfStudyIds: [data.id] }));
+          }
+        })();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Get unique filter options
   const filterOptions = useMemo(() => {
@@ -336,8 +377,16 @@ export function EnhancedSearchContainer() {
       });
     }
 
+    // Filter by instruction language (driven by URL param from HeroQuickFinder)
+    if (languageFilter && languageFilter !== 'all') {
+      filtered = filtered.filter((p) =>
+        Array.isArray(p.language_of_instruction) &&
+        p.language_of_instruction.some((l) => (l || '').toLowerCase().startsWith(languageFilter))
+      );
+    }
+
     setPrograms(filtered);
-  }, [searchQuery, filters, allPrograms]);
+  }, [searchQuery, filters, allPrograms, languageFilter]);
 
   const handleSaveProgram = async (programId: string) => {
     if (!user) {
