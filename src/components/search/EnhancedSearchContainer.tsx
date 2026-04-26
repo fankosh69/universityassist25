@@ -449,6 +449,8 @@ export function EnhancedSearchContainer() {
       applicationFee: 'all'
     });
     setSearchQuery('');
+    setLanguageFilter('all');
+    setSearchParams({}, { replace: true });
   };
 
   const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
