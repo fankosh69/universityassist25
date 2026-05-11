@@ -17,6 +17,8 @@ import LoadingScreen from "./components/LoadingScreen";
 import LoadingSpinner from "./components/LoadingSpinner";
 import DashboardEnhanced from "./pages/DashboardEnhanced";
 import OnboardingFlow from "./pages/onboarding/OnboardingFlow";
+import RouteTransition from "./components/RouteTransition";
+import { useLocation } from "react-router-dom";
 
 
 // Lazy load secondary pages
@@ -128,7 +130,21 @@ const App = () => {
             <Sonner />
             <BrowserRouter>
             <Suspense fallback={<LoadingSpinner />}>
-              <Routes>
+              <AnimatedRoutes user={user} />
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AdminProvider>
+    </QueryClientProvider>
+    </HelmetProvider>
+  );
+};
+
+const AnimatedRoutes = ({ user }: { user: any }) => {
+  const location = useLocation();
+  return (
+    <RouteTransition>
+      <Routes location={location}>
                 <Route path="/" element={<Index />} />
                 <Route path="/search" element={<Search />} />
                 <Route 
@@ -194,12 +210,7 @@ const App = () => {
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AdminProvider>
-    </QueryClientProvider>
-    </HelmetProvider>
+    </RouteTransition>
   );
 };
 
