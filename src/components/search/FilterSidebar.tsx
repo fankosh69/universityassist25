@@ -494,6 +494,67 @@ export function FilterSidebar({
               </div>
             </div>
           </FilterGroup>
+
+          {/* Minimum GPA — match against the user's German GPA (1.0 best – 4.0 worst) */}
+          <FilterGroup
+            value="min-gpa"
+            title="My German GPA"
+            icon={<Award className="h-4 w-4" />}
+            activeCount={typeof filters.myGpa === 'number' ? 1 : 0}
+          >
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Show programs you qualify for. We hide programs whose minimum GPA is stricter than yours.
+                <span className="block mt-1">German scale: 1.0 = best · 4.0 = pass.</span>
+              </p>
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">
+                  {typeof filters.myGpa === 'number' ? filters.myGpa.toFixed(1) : 'Any'}
+                </span>
+                {typeof filters.myGpa === 'number' && (
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                    onClick={() => updateFilter('myGpa', null)}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <Slider
+                min={1}
+                max={4}
+                step={0.1}
+                value={[typeof filters.myGpa === 'number' ? filters.myGpa : 2.5]}
+                onValueChange={(v) => updateFilter('myGpa', Number(v[0].toFixed(1)))}
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground">
+                <span>1.0</span><span>2.0</span><span>3.0</span><span>4.0</span>
+              </div>
+            </div>
+          </FilterGroup>
+
+          {/* Prerequisites */}
+          <FilterGroup
+            value="prerequisites"
+            title="Prerequisites"
+            icon={<ListChecks className="h-4 w-4" />}
+            activeCount={filters.hidePrerequisites ? 1 : 0}
+          >
+            <div className="flex items-start space-x-2">
+              <Checkbox
+                id="hide-prereq"
+                checked={!!filters.hidePrerequisites}
+                onCheckedChange={(checked) => updateFilter('hidePrerequisites', !!checked)}
+              />
+              <Label htmlFor="hide-prereq" className="text-sm cursor-pointer">
+                Hide programs with extra prerequisites
+                <span className="block text-xs text-muted-foreground font-normal mt-0.5">
+                  Excludes programs that list specific prior coursework or subject requirements.
+                </span>
+              </Label>
+            </div>
+          </FilterGroup>
         </Accordion>
       </div>
 
