@@ -13,6 +13,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { BackToTop } from "@/components/BackToTop";
+import MatchesSection from "@/components/dashboard/MatchesSection";
 
 export default function DashboardEnhanced() {
   const navigate = useNavigate();
@@ -195,40 +196,11 @@ export default function DashboardEnhanced() {
                 </Button>
               </div>
             </Card>
+            <MatchesSection limit={5} />
           </TabsContent>
 
           <TabsContent value="matches">
-            <Card className="p-6">
-              <h3 className="text-xl font-semibold mb-4">Top Program Matches</h3>
-              {matches.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>No matches yet. Complete your profile to get started!</p>
-                  <Button onClick={() => navigate('/profile')} className="mt-4">
-                    Complete Profile
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {matches.map((match: any) => (
-                    <div key={match.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-semibold">{match.program?.name}</h4>
-                          <p className="text-sm text-muted-foreground">{match.program?.university_id}</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-primary">{Math.round(match.match_score)}%</div>
-                          <div className="text-xs text-muted-foreground">Match Score</div>
-                        </div>
-                      </div>
-                      <Button onClick={() => navigate(`/programs/${match.program_id}`)} className="w-full mt-4">
-                        View Details
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
+            <MatchesSection limit={10} />
           </TabsContent>
 
           <TabsContent value="tasks">
