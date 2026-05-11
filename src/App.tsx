@@ -19,7 +19,7 @@ import DashboardEnhanced from "./pages/DashboardEnhanced";
 import OnboardingFlow from "./pages/onboarding/OnboardingFlow";
 import RouteTransition from "./components/RouteTransition";
 import { useLocation } from "react-router-dom";
-import { prefetchOnIdle, prefetchRoute } from "@/lib/route-prefetch";
+import { prefetchOnIdle } from "@/lib/route-prefetch";
 
 
 // Lazy load secondary pages
