@@ -401,7 +401,10 @@ const Profile = () => {
                   id="credits"
                   type="number"
                   value={profileData.credits_taken || ""}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, credits_taken: parseInt(e.target.value) }))}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setProfileData(prev => ({ ...prev, credits_taken: v === "" ? undefined : parseInt(v) }));
+                  }}
                   placeholder="Number of credits"
                 />
               </div>
