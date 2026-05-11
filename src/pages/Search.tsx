@@ -3,6 +3,7 @@ import Navigation from "@/components/Navigation";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
 import { BackToTop } from "@/components/BackToTop";
+import { Reveal, StaggerGroup, StaggerItem } from "@/components/Reveal";
 import { GraduationCap, Sparkles, Globe2, Search as SearchIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
@@ -41,7 +42,7 @@ export default function Search() {
           </nav>
 
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
-            <div className="max-w-2xl">
+            <Reveal className="max-w-2xl" y={20}>
               <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 backdrop-blur px-3 py-1 text-xs font-medium ring-1 ring-primary-foreground/20 mb-4">
                 <Sparkles className="h-3.5 w-3.5" />
                 Discover your future in Germany
@@ -52,14 +53,14 @@ export default function Search() {
               <p className="mt-3 md:mt-4 text-base md:text-lg text-primary-foreground/85 max-w-xl">
                 Search, filter and compare Bachelor's and Master's degrees across Germany — eligibility, deadlines, and tuition all in one place.
               </p>
-            </div>
+            </Reveal>
 
             {/* Stat highlights */}
-            <div className="grid grid-cols-3 gap-3 md:gap-4 lg:min-w-[420px]">
-              <HeroStat icon={<GraduationCap className="h-4 w-4" />} label="Programs" value="500+" />
-              <HeroStat icon={<Globe2 className="h-4 w-4" />} label="Universities" value="200+" />
-              <HeroStat icon={<SearchIcon className="h-4 w-4" />} label="Cities" value="80+" />
-            </div>
+            <StaggerGroup className="grid grid-cols-3 gap-3 md:gap-4 lg:min-w-[420px]" stagger={0.1}>
+              <StaggerItem><HeroStat icon={<GraduationCap className="h-4 w-4" />} label="Programs" value="500+" /></StaggerItem>
+              <StaggerItem><HeroStat icon={<Globe2 className="h-4 w-4" />} label="Universities" value="200+" /></StaggerItem>
+              <StaggerItem><HeroStat icon={<SearchIcon className="h-4 w-4" />} label="Cities" value="80+" /></StaggerItem>
+            </StaggerGroup>
           </div>
         </div>
 
