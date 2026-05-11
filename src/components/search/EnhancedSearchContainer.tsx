@@ -61,6 +61,8 @@ interface SearchFilters {
   acceptsTOEFL: boolean;
   acceptsPTE: boolean;
   applicationFee: string; // 'all' | 'no-fee' | 'has-fee'
+  myGpa?: number | null;
+  hidePrerequisites?: boolean;
 }
 
 export function EnhancedSearchContainer() {
@@ -93,7 +95,9 @@ export function EnhancedSearchContainer() {
     acceptsIELTS: false,
     acceptsTOEFL: false,
     acceptsPTE: false,
-    applicationFee: 'all'
+    applicationFee: 'all',
+    myGpa: null,
+    hidePrerequisites: false,
   });
 
   // Hydrate filters from URL params (e.g., when coming from HeroQuickFinder).
@@ -377,6 +381,24 @@ export function EnhancedSearchContainer() {
       });
     }
 
+    // Filter by user's German GPA — keep programs with no minimum, or whose minimum is >= user's GPA
+    if (typeof filters.myGpa === 'number') {
+      const myGpa = filters.myGpa;
+      filtered = filtered.filter((program) => {
+        const min = (program as any).minimum_gpa ?? (program as any).gpa_minimum;
+        if (min === null || min === undefined) return true;
+        return Number(min) >= myGpa;
+      });
+    }
+
+    // Filter out programs that list extra prerequisites
+    if (filters.hidePrerequisites) {
+      filtered = filtered.filter((program) => {
+        const prereq = (program as any).prerequisites;
+        return !Array.isArray(prereq) || prereq.length === 0;
+      });
+    }
+
     // Filter by instruction language (driven by URL param from HeroQuickFinder)
     if (languageFilter && languageFilter !== 'all') {
       filtered = filtered.filter((p) =>
@@ -446,7 +468,9 @@ export function EnhancedSearchContainer() {
       acceptsIELTS: false,
       acceptsTOEFL: false,
       acceptsPTE: false,
-      applicationFee: 'all'
+      applicationFee: 'all',
+      myGpa: null,
+      hidePrerequisites: false,
     });
     setSearchQuery('');
     setLanguageFilter('all');
@@ -467,6 +491,12 @@ export function EnhancedSearchContainer() {
     if (key === 'applicationFee') {
       return value !== 'all';
     }
+    if (key === 'myGpa') {
+      return typeof value === 'number';
+    }
+    if (key === 'hidePrerequisites') {
+      return value === true;
+    }
     return value !== 'all' && value !== null && value !== '';
   }) || searchQuery.trim() !== '';
 
@@ -485,6 +515,8 @@ export function EnhancedSearchContainer() {
       if (key === 'applicationFee') {
         return value !== 'all';
       }
+      if (key === 'myGpa') return typeof value === 'number';
+      if (key === 'hidePrerequisites') return value === true;
       return value !== 'all' && value !== null && value !== '';
     }).length;
   };
