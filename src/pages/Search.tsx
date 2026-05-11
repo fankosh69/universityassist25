@@ -3,6 +3,7 @@ import Navigation from "@/components/Navigation";
 import SEOHead from "@/components/SEOHead";
 import JsonLd from "@/components/JsonLd";
 import { BackToTop } from "@/components/BackToTop";
+import { Reveal, StaggerGroup, StaggerItem } from "@/components/Reveal";
 import { GraduationCap, Sparkles, Globe2, Search as SearchIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
