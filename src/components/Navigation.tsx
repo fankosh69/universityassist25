@@ -113,46 +113,46 @@ const Navigation = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
                 <DropdownMenuItem asChild>
-                  <Link to="/regions" className="cursor-pointer">Regions</Link>
+                  <PrefetchLink to="/regions" className="cursor-pointer">Regions</PrefetchLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/cities" className="cursor-pointer">{t('navigation.cities')}</Link>
+                  <PrefetchLink to="/cities" className="cursor-pointer">{t('navigation.cities')}</PrefetchLink>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             
-            <Link to="/universities" className="text-sm text-gray-700 hover:text-gray-900 transition-colors">
+            <PrefetchLink to="/universities" className="text-sm text-gray-700 hover:text-gray-900 transition-colors">
               {t('navigation.universities')}
-            </Link>
-            <Link to="/search" className="text-sm text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1.5">
+            </PrefetchLink>
+            <PrefetchLink to="/search" className="text-sm text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1.5">
               <SearchIcon className="h-3.5 w-3.5" />
               {t('navigation.search')}
-            </Link>
+            </PrefetchLink>
             {isAdmin && (
               <>
-                <Link to="/admissions-navigator" className="text-sm text-gray-700 hover:text-gray-900 transition-colors">
+                <PrefetchLink to="/admissions-navigator" className="text-sm text-gray-700 hover:text-gray-900 transition-colors">
                   Eligibility
-                </Link>
-                <Link to="/ai-assistant" className="text-sm text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1.5">
+                </PrefetchLink>
+                <PrefetchLink to="/ai-assistant" className="text-sm text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1.5">
                   <Bot className="h-3.5 w-3.5" />
                   AI Assistant
-                </Link>
+                </PrefetchLink>
               </>
             )}
             
             {user ? (
               <>
                 {(userRole === 'company_sales' || userRole === 'company_admissions' || userRole === 'school_counselor') && (
-                  <Link to="/sales-dashboard" className="text-sm text-accent hover:text-accent/80 transition-colors flex items-center gap-1.5">
+                  <PrefetchLink to="/sales-dashboard" className="text-sm text-accent hover:text-accent/80 transition-colors flex items-center gap-1.5">
                     <Users className="h-3.5 w-3.5" />
                     My Students
-                  </Link>
+                  </PrefetchLink>
                 )}
                 {isAdmin && !adminLoading && (
-                  <Link to="/admin" className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5">
+                  <PrefetchLink to="/admin" className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5">
                     <Settings className="h-3.5 w-3.5" />
                     Admin
-                  </Link>
+                  </PrefetchLink>
                 )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -162,23 +162,23 @@ const Navigation = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48 bg-background z-50">
                     <DropdownMenuItem asChild>
-                      <Link to="/profile" className="cursor-pointer flex items-center gap-2">
+                      <PrefetchLink to="/profile" className="cursor-pointer flex items-center gap-2">
                         <User className="h-4 w-4" />
                         {t('navigation.profile')}
-                      </Link>
+                      </PrefetchLink>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/dashboard" className="cursor-pointer flex items-center gap-2">
+                      <PrefetchLink to="/dashboard" className="cursor-pointer flex items-center gap-2">
                         <Target className="h-4 w-4" />
                         {t('navigation.dashboard')}
-                      </Link>
+                      </PrefetchLink>
                     </DropdownMenuItem>
                     {isAdmin && !adminLoading && (
                       <DropdownMenuItem asChild>
-                        <Link to="/admin" className="cursor-pointer flex items-center gap-2">
+                        <PrefetchLink to="/admin" className="cursor-pointer flex items-center gap-2">
                           <Settings className="h-4 w-4" />
                           Admin
-                        </Link>
+                        </PrefetchLink>
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem 
@@ -193,12 +193,12 @@ const Navigation = () => {
               </>
             ) : (
               <>
-                <Link to="/auth?tab=signin">
+                <PrefetchLink to="/auth?tab=signin">
                   <Button variant="ghost" size="sm">{t('navigation.signin')}</Button>
-                </Link>
-                <Link to="/auth?tab=signup">
+                </PrefetchLink>
+                <PrefetchLink to="/auth?tab=signup">
                   <Button variant="hero" size="sm">Get Started</Button>
-                </Link>
+                </PrefetchLink>
               </>
             )}
           </div>
@@ -230,14 +230,14 @@ const Navigation = () => {
                       className="block py-3 px-4 hover:bg-muted rounded-lg transition-colors"
                     >
                       <span className="text-sm">Regions</span>
-                    </Link>
+                    </PrefetchLink>
                     <Link 
                       to="/cities" 
                       onClick={closeMobileMenu}
                       className="block py-3 px-4 hover:bg-muted rounded-lg transition-colors"
                     >
                       <span className="text-sm">{t('navigation.cities')}</span>
-                    </Link>
+                    </PrefetchLink>
                   </CollapsibleContent>
                 </Collapsible>
 
@@ -247,7 +247,7 @@ const Navigation = () => {
                   className="flex items-center py-3 px-4 hover:bg-muted rounded-lg transition-colors"
                 >
                   <span className="text-sm font-medium">{t('navigation.universities')}</span>
-                </Link>
+                </PrefetchLink>
 
                 <Link 
                   to="/search" 
@@ -256,7 +256,7 @@ const Navigation = () => {
                 >
                   <SearchIcon className="h-4 w-4" />
                   <span className="text-sm font-medium">{t('navigation.search')}</span>
-                </Link>
+                </PrefetchLink>
 
                 {isAdmin && (
                   <>
@@ -266,7 +266,7 @@ const Navigation = () => {
                       className="flex items-center py-3 px-4 hover:bg-muted rounded-lg transition-colors"
                     >
                       <span className="text-sm font-medium">Eligibility</span>
-                    </Link>
+                    </PrefetchLink>
 
                     <Link 
                       to="/ai-assistant" 
@@ -275,7 +275,7 @@ const Navigation = () => {
                     >
                       <Bot className="h-4 w-4" />
                       <span className="text-sm font-medium">AI Assistant</span>
-                    </Link>
+                    </PrefetchLink>
                   </>
                 )}
 
@@ -290,7 +290,7 @@ const Navigation = () => {
                     >
                       <Target className="h-4 w-4" />
                       <span className="text-sm font-medium">{t('navigation.dashboard')}</span>
-                    </Link>
+                    </PrefetchLink>
 
                     {(userRole === 'company_sales' || userRole === 'company_admissions' || userRole === 'school_counselor') && (
                       <Link 
@@ -300,7 +300,7 @@ const Navigation = () => {
                       >
                         <Users className="h-4 w-4" />
                         <span className="text-sm font-medium">My Students</span>
-                      </Link>
+                      </PrefetchLink>
                     )}
 
                     <Link 
@@ -310,7 +310,7 @@ const Navigation = () => {
                     >
                       <User className="h-4 w-4" />
                       <span className="text-sm font-medium">{t('navigation.profile')}</span>
-                    </Link>
+                    </PrefetchLink>
 
                     {isAdmin && !adminLoading && (
                       <Link 
@@ -320,7 +320,7 @@ const Navigation = () => {
                       >
                         <Settings className="h-4 w-4" />
                         <span className="text-sm font-medium">Admin</span>
-                      </Link>
+                      </PrefetchLink>
                     )}
 
                     <Button 
@@ -337,16 +337,16 @@ const Navigation = () => {
                   </>
                 ) : (
                   <>
-                    <Link to="/auth?tab=signin" onClick={closeMobileMenu} className="block">
+                    <PrefetchLink to="/auth?tab=signin" onClick={closeMobileMenu} className="block">
                       <Button variant="ghost" className="w-full justify-start py-3 px-4">
                         {t('navigation.signin')}
                       </Button>
-                    </Link>
-                    <Link to="/auth?tab=signup" onClick={closeMobileMenu} className="block mt-2">
+                    </PrefetchLink>
+                    <PrefetchLink to="/auth?tab=signup" onClick={closeMobileMenu} className="block mt-2">
                       <Button variant="hero" className="w-full py-3 px-4">
                         Get Started
                       </Button>
-                    </Link>
+                    </PrefetchLink>
                   </>
                 )}
               </div>
