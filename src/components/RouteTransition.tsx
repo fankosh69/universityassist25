@@ -1,26 +1,31 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 /**
- * Lightweight route-change transition. Plays a short fade + 4px slide
- * whenever the pathname changes. Respects `prefers-reduced-motion` via the
- * `motion-safe:` Tailwind variant — users who disable motion get an instant
- * swap with no animation.
+ * Smooth route-change transition using framer-motion. Fades + subtle slide
+ * whenever the pathname changes. Respects `prefers-reduced-motion`.
  */
 export default function RouteTransition({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const [displayKey, setDisplayKey] = useState(location.pathname);
+  const reduce = useReducedMotion();
 
+  // Scroll to top on each route change for a polished feel.
   useEffect(() => {
-    setDisplayKey(location.pathname);
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   }, [location.pathname]);
 
   return (
-    <div
-      key={displayKey}
-      className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-200"
-    >
-      {children}
-    </div>
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: reduce ? 0 : 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: reduce ? 0 : -8 }}
+        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
   );
 }
