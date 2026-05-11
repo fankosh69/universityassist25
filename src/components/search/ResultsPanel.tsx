@@ -4,6 +4,7 @@ import { ProgramListItem } from './ProgramListItem';
 import { ProgramMobileCard } from './ProgramMobileCard';
 import { SearchHeader } from './SearchHeader';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Reveal, StaggerGroup, StaggerItem } from '@/components/Reveal';
 
 interface Program {
   id: string;
