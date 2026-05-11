@@ -196,6 +196,7 @@ export default function DashboardEnhanced() {
                 </Button>
               </div>
             </Card>
+            <MatchesSection limit={5} />
           </TabsContent>
 
           <TabsContent value="matches">
