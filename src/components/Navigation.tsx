@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, User, Search as SearchIcon, Settings, Bot, ChevronDown, Target, Menu, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import PrefetchLink from "@/components/PrefetchLink";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
