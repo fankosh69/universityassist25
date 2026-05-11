@@ -8,12 +8,13 @@ import { StreakDisplay } from "@/components/gamification/StreakDisplay";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, FileText, Calendar, Trophy, Target } from "lucide-react";
+import { BookOpen, FileText, Calendar, Trophy, Target, CalendarClock } from "lucide-react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { BackToTop } from "@/components/BackToTop";
 import MatchesSection from "@/components/dashboard/MatchesSection";
+import ShortlistDeadlinesSection from "@/components/dashboard/ShortlistDeadlinesSection";
 
 export default function DashboardEnhanced() {
   const navigate = useNavigate();
@@ -109,7 +110,7 @@ export default function DashboardEnhanced() {
 
         {/* Main Content */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto">
             <TabsTrigger value="overview">
               <Target className="w-4 h-4 mr-2" />
               Overview
@@ -117,6 +118,10 @@ export default function DashboardEnhanced() {
             <TabsTrigger value="matches">
               <BookOpen className="w-4 h-4 mr-2" />
               Matches
+            </TabsTrigger>
+            <TabsTrigger value="deadlines">
+              <CalendarClock className="w-4 h-4 mr-2" />
+              Deadlines
             </TabsTrigger>
             <TabsTrigger value="tasks">
               <Calendar className="w-4 h-4 mr-2" />
@@ -197,10 +202,15 @@ export default function DashboardEnhanced() {
               </div>
             </Card>
             <MatchesSection limit={5} />
+            <ShortlistDeadlinesSection limit={5} />
           </TabsContent>
 
           <TabsContent value="matches">
             <MatchesSection limit={10} />
+          </TabsContent>
+
+          <TabsContent value="deadlines">
+            <ShortlistDeadlinesSection />
           </TabsContent>
 
           <TabsContent value="tasks">
