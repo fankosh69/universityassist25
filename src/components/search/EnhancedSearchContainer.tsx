@@ -515,6 +515,8 @@ export function EnhancedSearchContainer() {
       if (key === 'applicationFee') {
         return value !== 'all';
       }
+      if (key === 'myGpa') return typeof value === 'number';
+      if (key === 'hidePrerequisites') return value === true;
       return value !== 'all' && value !== null && value !== '';
     }).length;
   };
