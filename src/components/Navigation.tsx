@@ -224,14 +224,14 @@ const Navigation = () => {
                     <ChevronDown className={`h-4 w-4 transition-transform ${exploreOpen ? 'rotate-180' : ''}`} />
                   </CollapsibleTrigger>
                   <CollapsibleContent className="pl-4 space-y-1 mt-1">
-                    <Link 
+                    <PrefetchLink 
                       to="/regions" 
                       onClick={closeMobileMenu}
                       className="block py-3 px-4 hover:bg-muted rounded-lg transition-colors"
                     >
                       <span className="text-sm">Regions</span>
                     </PrefetchLink>
-                    <Link 
+                    <PrefetchLink 
                       to="/cities" 
                       onClick={closeMobileMenu}
                       className="block py-3 px-4 hover:bg-muted rounded-lg transition-colors"
@@ -241,7 +241,7 @@ const Navigation = () => {
                   </CollapsibleContent>
                 </Collapsible>
 
-                <Link 
+                <PrefetchLink 
                   to="/universities" 
                   onClick={closeMobileMenu}
                   className="flex items-center py-3 px-4 hover:bg-muted rounded-lg transition-colors"
@@ -249,7 +249,7 @@ const Navigation = () => {
                   <span className="text-sm font-medium">{t('navigation.universities')}</span>
                 </PrefetchLink>
 
-                <Link 
+                <PrefetchLink 
                   to="/search" 
                   onClick={closeMobileMenu}
                   className="flex items-center gap-2 py-3 px-4 hover:bg-muted rounded-lg transition-colors"
@@ -260,7 +260,7 @@ const Navigation = () => {
 
                 {isAdmin && (
                   <>
-                    <Link 
+                    <PrefetchLink 
                       to="/admissions-navigator" 
                       onClick={closeMobileMenu}
                       className="flex items-center py-3 px-4 hover:bg-muted rounded-lg transition-colors"
@@ -268,7 +268,7 @@ const Navigation = () => {
                       <span className="text-sm font-medium">Eligibility</span>
                     </PrefetchLink>
 
-                    <Link 
+                    <PrefetchLink 
                       to="/ai-assistant" 
                       onClick={closeMobileMenu}
                       className="flex items-center gap-2 py-3 px-4 hover:bg-muted rounded-lg transition-colors"
@@ -283,7 +283,7 @@ const Navigation = () => {
 
                 {user ? (
                   <>
-                    <Link 
+                    <PrefetchLink 
                       to="/dashboard" 
                       onClick={closeMobileMenu}
                       className="flex items-center gap-2 py-3 px-4 hover:bg-muted rounded-lg transition-colors"
@@ -293,7 +293,7 @@ const Navigation = () => {
                     </PrefetchLink>
 
                     {(userRole === 'company_sales' || userRole === 'company_admissions' || userRole === 'school_counselor') && (
-                      <Link 
+                      <PrefetchLink 
                         to="/sales-dashboard" 
                         onClick={closeMobileMenu}
                         className="flex items-center gap-2 py-3 px-4 hover:bg-muted rounded-lg transition-colors"
@@ -303,7 +303,7 @@ const Navigation = () => {
                       </PrefetchLink>
                     )}
 
-                    <Link 
+                    <PrefetchLink 
                       to="/profile" 
                       onClick={closeMobileMenu}
                       className="flex items-center gap-2 py-3 px-4 hover:bg-muted rounded-lg transition-colors"
@@ -313,7 +313,7 @@ const Navigation = () => {
                     </PrefetchLink>
 
                     {isAdmin && !adminLoading && (
-                      <Link 
+                      <PrefetchLink 
                         to="/admin" 
                         onClick={closeMobileMenu}
                         className="flex items-center gap-2 py-3 px-4 hover:bg-muted rounded-lg transition-colors"
