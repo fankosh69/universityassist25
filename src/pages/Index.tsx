@@ -20,6 +20,8 @@ import SEOHead from "@/components/SEOHead";
 import JsonLd, { organizationSchema, websiteSchema, homepageFaqSchema } from "@/components/JsonLd";
 import Navigation from "@/components/Navigation";
 import HeroQuickFinder from "@/components/HeroQuickFinder";
+import { Reveal, StaggerGroup, StaggerItem } from "@/components/Reveal";
+import { motion, useReducedMotion } from "framer-motion";
 
 interface FeaturedProgram {
   id: string;
@@ -47,6 +49,7 @@ interface HomeStats {
 
 const Index = () => {
   const { t } = useTranslation('common');
+  const reduce = useReducedMotion();
   const [programs, setPrograms] = useState<FeaturedProgram[]>([]);
   const [cities, setCities] = useState<FeaturedCity[]>([]);
   const [stats, setStats] = useState<HomeStats>({ programs: 0, universities: 0, cities: 0 });
@@ -199,16 +202,37 @@ const Index = () => {
           </picture>
         </div>
         <div className="relative container mx-auto px-4 py-24 text-center text-white">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+          <motion.h1
+            initial={{ opacity: 0, y: reduce ? 0 : 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="text-5xl md:text-6xl font-bold mb-6 leading-tight"
+          >
             {t('hero.title')}
             <br />
             <span className="text-accent">{t('hero.titleHighlight')}</span>
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto">
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: reduce ? 0 : 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto"
+          >
             {t('hero.subtitle')}
-          </p>
-          <HeroQuickFinder />
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: reduce ? 0 : 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <HeroQuickFinder />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: reduce ? 0 : 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col sm:flex-row gap-4 justify-center mt-8"
+          >
             <Link to="/auth?tab=signup">
               <Button variant="hero" size="xl" className="min-w-48">
                 {t('hero.startJourney')}
@@ -224,69 +248,71 @@ const Index = () => {
                 {t('hero.browsePrograms')}
               </Button>
             </Link>
-          </div>
+          </motion.div>
         </div>
       </header>
 
       {/* Stats Section */}
       <aside className="py-16 bg-white" aria-label="Platform statistics">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <StaggerGroup className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center" stagger={0.1}>
             {statsList.map((stat, index) => (
-              <div key={index} className="space-y-2">
+              <StaggerItem key={index} className="space-y-2">
                 <div className="text-3xl md:text-4xl font-bold text-primary">
                   {stat.number}
                 </div>
                 <div className="text-muted-foreground font-medium">
                   {stat.label}
                 </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
         </div>
       </aside>
 
       {/* Features Section */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <Reveal className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 text-foreground">
               {t('features.howItWorks')}
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               {t('features.howItWorksSubtitle')}
             </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
+          </Reveal>
+
+          <StaggerGroup className="grid md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="shadow-medium hover:shadow-strong transition-shadow duration-300">
-                <CardHeader className="text-center">
-                  <div className="mx-auto bg-gradient-primary rounded-full p-3 w-16 h-16 flex items-center justify-center mb-4">
-                    <feature.icon className="h-8 w-8 text-white" />
-                  </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className="text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
+              <StaggerItem key={index}>
+                <Card className="h-full shadow-medium hover:shadow-strong hover:-translate-y-1 transition-all duration-300">
+                  <CardHeader className="text-center">
+                    <div className="mx-auto bg-gradient-primary rounded-full p-3 w-16 h-16 flex items-center justify-center mb-4">
+                      <feature.icon className="h-8 w-8 text-white" />
+                    </div>
+                    <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <p className="text-muted-foreground">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
         </div>
       </section>
 
       {/* Popular Programs Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
+          <Reveal className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 text-foreground">
               {t('popularPrograms.title')}
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               {t('popularPrograms.subtitle')}
             </p>
-          </div>
+          </Reveal>
 
           {loadingPrograms ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -306,15 +332,16 @@ const Index = () => {
           ) : programs.length === 0 ? (
             <p className="text-center text-muted-foreground">{t('popularPrograms.noPrograms')}</p>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <StaggerGroup className="grid md:grid-cols-2 lg:grid-cols-3 gap-6" stagger={0.06}>
               {programs.map((program) => {
                 const tuitionLabel = formatTuition(program.tuition_amount);
                 const href = program.university
                   ? `/universities/${program.university.slug}/programs/${program.slug}`
                   : '/search';
                 return (
-                  <Link key={program.id} to={href} className="group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
-                    <Card className="h-full shadow-soft hover:shadow-medium transition-shadow duration-300">
+                  <StaggerItem key={program.id}>
+                  <Link to={href} className="group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl block h-full">
+                    <Card className="h-full shadow-soft hover:shadow-medium hover:-translate-y-1 transition-all duration-300">
                       <CardHeader>
                         <CardTitle className="text-lg group-hover:text-primary transition-colors line-clamp-2">
                           {program.name}
@@ -355,9 +382,10 @@ const Index = () => {
                       </CardContent>
                     </Card>
                   </Link>
+                  </StaggerItem>
                 );
               })}
-            </div>
+            </StaggerGroup>
           )}
 
           <div className="text-center mt-10">
@@ -375,22 +403,22 @@ const Index = () => {
       {cities.length > 0 && (
         <section className="py-20 bg-muted/30">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
+            <Reveal className="text-center mb-12">
               <h2 className="text-4xl font-bold mb-4 text-foreground">
                 {t('popularPrograms.exploreCitiesTitle')}
               </h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 {t('popularPrograms.exploreCitiesSubtitle')}
               </p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            </Reveal>
+            <StaggerGroup className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" stagger={0.05}>
               {cities.map((city) => (
+                <StaggerItem key={city.slug}>
                 <Link
-                  key={city.slug}
                   to={`/cities/${city.slug}`}
-                  className="group"
+                  className="group block h-full"
                 >
-                  <Card className="h-full shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-0.5">
+                  <Card className="h-full shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
                     <CardContent className="p-5 text-center space-y-2">
                       <div className="mx-auto bg-gradient-primary rounded-full p-2.5 w-12 h-12 flex items-center justify-center">
                         <MapPin className="h-5 w-5 text-white" />
@@ -404,8 +432,9 @@ const Index = () => {
                     </CardContent>
                   </Card>
                 </Link>
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerGroup>
             <div className="text-center mt-10">
               <Link to="/cities">
                 <Button variant="outline" size="lg">
@@ -420,7 +449,7 @@ const Index = () => {
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-academic text-white">
-        <div className="container mx-auto px-4 text-center">
+        <Reveal className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-6">
             {t('hero.readyToMatch')}
           </h2>
@@ -433,7 +462,7 @@ const Index = () => {
               <Award className="ml-2 h-5 w-5" />
             </Button>
           </Link>
-        </div>
+        </Reveal>
       </section>
       </main>
 
