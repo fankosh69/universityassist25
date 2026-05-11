@@ -19,6 +19,7 @@ import DashboardEnhanced from "./pages/DashboardEnhanced";
 import OnboardingFlow from "./pages/onboarding/OnboardingFlow";
 import RouteTransition from "./components/RouteTransition";
 import { useLocation } from "react-router-dom";
+import { prefetchOnIdle } from "@/lib/route-prefetch";
 
 
 // Lazy load secondary pages
@@ -142,6 +143,19 @@ const App = () => {
 
 const AnimatedRoutes = ({ user }: { user: any }) => {
   const location = useLocation();
+
+  // Prefetch high-intent routes during browser idle time, and warm the
+  // routes that depend on auth state once we know whether the user is
+  // signed in.
+  useEffect(() => {
+    prefetchOnIdle([
+      "/search",
+      "/cities",
+      "/universities",
+      user ? "/dashboard" : "/auth",
+    ]);
+  }, [user]);
+
   return (
     <RouteTransition>
       <Routes location={location}>
