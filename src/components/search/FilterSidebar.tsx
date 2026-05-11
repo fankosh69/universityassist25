@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { FilterGroup } from './FilterGroup';
 import { HierarchicalFieldSelect } from './HierarchicalFieldSelect';
-import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X, Calendar, Languages, Receipt } from 'lucide-react';
+import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X, Calendar, Languages, Receipt, Award, ListChecks } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 import { InfoHint } from '@/components/ui/info-hint';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { DeadlineRangeFilter, type DeadlineRange } from './DeadlineRangeFilter';
@@ -31,6 +32,8 @@ interface SearchFilters {
   acceptsTOEFL: boolean;
   acceptsPTE: boolean;
   applicationFee: string; // 'all' | 'no-fee' | 'has-fee'
+  myGpa?: number | null; // user's German GPA (1.0 best – 4.0 worst); filters programs they qualify for
+  hidePrerequisites?: boolean; // hide programs that list special prerequisites
 }
 
 export interface CityOption {
