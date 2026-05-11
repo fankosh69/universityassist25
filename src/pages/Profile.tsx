@@ -111,7 +111,17 @@ const Profile = () => {
       if (!user) return;
 
       // Separate profile data and academic data
-      const { gpa_raw, gpa_scale_max, gpa_min_pass, ...profileOnlyData } = profileData;
+      const { gpa_raw, gpa_scale_max, gpa_min_pass, ...rest } = profileData;
+
+      // Coerce empty strings / NaN to null for numeric columns
+      const toNum = (v: any) =>
+        v === "" || v === null || v === undefined || Number.isNaN(Number(v)) ? null : Number(v);
+
+      const profileOnlyData = {
+        ...rest,
+        current_gpa: toNum((rest as any).current_gpa),
+        credits_taken: toNum((rest as any).credits_taken),
+      };
 
       // Update profile data
       const result = await secureUpdateProfile(user.id, profileOnlyData);
@@ -121,13 +131,16 @@ const Profile = () => {
       }
 
       // Update academic data using RPC
-      if (gpa_raw || gpa_scale_max || gpa_min_pass) {
+      const gpaRawNum = toNum(gpa_raw);
+      const gpaScaleMaxNum = toNum(gpa_scale_max);
+      const gpaMinPassNum = toNum(gpa_min_pass);
+      if (gpaRawNum !== null || gpaScaleMaxNum !== null || gpaMinPassNum !== null) {
         const { error: academicError } = await supabase.rpc('secure_update_academic_data', {
           target_profile_id: user.id,
           update_data: {
-            gpa_raw,
-            gpa_scale_max,
-            gpa_min_pass,
+            gpa_raw: gpaRawNum,
+            gpa_scale_max: gpaScaleMaxNum,
+            gpa_min_pass: gpaMinPassNum,
           }
         });
 
