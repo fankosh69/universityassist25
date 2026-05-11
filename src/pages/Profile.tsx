@@ -143,8 +143,8 @@ const Profile = () => {
 
       // Generate matches after profile update
       try {
-        const { matchingService } = await import("@/lib/matching-service");
-        await matchingService.generateMatches(user.id);
+        const { computeMatchesForProfile } = await import("@/services/match-programs");
+        await computeMatchesForProfile(user.id);
       } catch (matchError) {
         console.error('Error generating matches:', matchError);
       }
