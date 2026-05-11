@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -72,15 +73,20 @@ export default function HeroQuickFinder() {
     <form
       onSubmit={handleSubmit}
       aria-label={t("hero.quickFinder.aria", { defaultValue: "Quick program finder" })}
-      className="mx-auto mt-8 max-w-4xl rounded-2xl border border-white/30 bg-white/95 backdrop-blur-md p-4 sm:p-5 shadow-[var(--shadow-strong)] text-foreground"
+      className="relative mx-auto mt-8 max-w-4xl overflow-hidden rounded-2xl border border-white/30 bg-white/10 backdrop-blur-2xl p-4 sm:p-5 text-white shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.35),inset_0_1px_1px_rgba(255,255,255,0.4)]"
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+      {/* Subtle radial depth overlay */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(ellipse_at_top,hsl(var(--secondary)/0.22),transparent_60%)]"
+      />
+      <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
         <div className="space-y-1.5">
-          <Label htmlFor="qf-level" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <Label htmlFor="qf-level" className="text-xs font-semibold uppercase tracking-wide text-white/80">
             {labelLevel}
           </Label>
           <Select value={level} onValueChange={setLevel}>
-            <SelectTrigger id="qf-level" className="h-11">
+            <SelectTrigger id="qf-level" className="h-11 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40 hover:shadow-[0_0_0_3px_hsl(var(--secondary)/0.2)] transition-all duration-200">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -93,11 +99,11 @@ export default function HeroQuickFinder() {
         </div>
 
         <div className="space-y-1.5 sm:col-span-1 lg:col-span-1">
-          <Label htmlFor="qf-field" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <Label htmlFor="qf-field" className="text-xs font-semibold uppercase tracking-wide text-white/80">
             {labelField}
           </Label>
           <Select value={field} onValueChange={setField}>
-            <SelectTrigger id="qf-field" className="h-11">
+            <SelectTrigger id="qf-field" className="h-11 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40 hover:shadow-[0_0_0_3px_hsl(var(--secondary)/0.2)] transition-all duration-200">
               <SelectValue placeholder="Any field" />
             </SelectTrigger>
             <SelectContent className="max-h-72">
@@ -112,11 +118,11 @@ export default function HeroQuickFinder() {
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="qf-lang" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <Label htmlFor="qf-lang" className="text-xs font-semibold uppercase tracking-wide text-white/80">
             {labelLanguage}
           </Label>
           <Select value={language} onValueChange={setLanguage}>
-            <SelectTrigger id="qf-lang" className="h-11">
+            <SelectTrigger id="qf-lang" className="h-11 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40 hover:shadow-[0_0_0_3px_hsl(var(--secondary)/0.2)] transition-all duration-200">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -130,22 +136,36 @@ export default function HeroQuickFinder() {
         <Button
           type="submit"
           size="lg"
-          className="h-11 w-full bg-[image:var(--gradient-hero)] hover:opacity-95 text-primary-foreground border-0 group"
+          className="relative h-11 w-full overflow-hidden bg-[image:var(--gradient-hero)] hover:opacity-95 text-primary-foreground border-0 group active:scale-95 transition-transform"
         >
+          <motion.span
+            aria-hidden="true"
+            className="pointer-events-none absolute top-0 left-0 h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+            initial={{ x: "-150%" }}
+            animate={{ x: "350%" }}
+            transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 2, ease: "easeInOut" }}
+          />
           {labelCta}
           <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </Button>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+      <div className="relative mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-white/70">
         <p className="inline-flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
+          <motion.span
+            aria-hidden="true"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            className="inline-flex"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
+          </motion.span>
           Free, no signup needed to browse.
         </p>
         <button
           type="button"
           onClick={() => navigate("/eligibility-checker")}
-          className="font-medium text-primary hover:underline"
+          className="font-medium text-secondary hover:text-white hover:underline transition-colors"
         >
           Not sure? Check your eligibility →
         </button>
