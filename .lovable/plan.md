@@ -1,33 +1,53 @@
-## HeroQuickFinder Visual Upgrade Plan
+## HeroQuickFinder Interactive Upgrade
 
-Purely stylistic edits to `src/components/HeroQuickFinder.tsx`. No changes to imports, state, `useEffect`, `handleSubmit`, or translation keys. Framer Motion (`motion`) will be added to the existing import surface only as needed for the shine/pulse loops.
+Replace `src/components/HeroQuickFinder.tsx` with the enhanced version. All required shadcn deps (`command`, `popover`, `badge`) already exist in the project, so no install is needed.
 
-### 1. Premium glass container
-Replace the form's class string with a richer glass treatment:
-- `bg-white/10` (was `bg-white/95`) + `backdrop-blur-2xl`
-- Keep `border border-white/30`
-- Add layered shadow: `shadow-[var(--shadow-strong),inset_0_1px_1px_rgba(255,255,255,0.4)]`
-- Wrap content in a `relative` container and add an absolutely-positioned `::before`-style div with a subtle radial gradient overlay (`bg-[radial-gradient(ellipse_at_top,hsl(var(--secondary)/0.18),transparent_60%)]`) and `pointer-events-none rounded-2xl`
-- Switch text color to `text-white` so labels/selects read on the darker glass; muted helpers become `text-white/70`
+### What ships
+1. **Searchable Field combobox** — `Popover` + `Command` with `CommandInput` for typeahead across all Level-2 fields.
+2. **Iconified labels** — `GraduationCap` (level), `BookOpen` (field), `Globe` (language).
+3. **Contextual tip** — `AnimatePresence` swap based on `level × language` matrix.
+4. **Trending preset chips** — One-tap fill + 250ms delayed navigate, with active-state checkmark.
+5. **Smart CTA** — When all 3 fields are non-default: gradient bg, shadow glow, infinite shimmer sweep (motion span).
+6. **Dirty/Reset** — Reset button appears only when state diverges from defaults.
+7. **`/` keyboard shortcut** — Smooth-scroll + focus first trigger; ignores typing in inputs.
+8. **Entry animation** — Card fades + slides up; top border has infinite gradient sweep.
+9. **Preserves**: existing Supabase fetch, i18n keys, `handleSubmit` URL params, eligibility-checker link.
 
-### 2. Tactile select triggers
-Add to each `<SelectTrigger>`:
-- `bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40 hover:shadow-[0_0_0_3px_hsl(var(--secondary)/0.2)] transition-all duration-200`
-- Labels: change `text-muted-foreground` → `text-white/80`
-- Placeholder text inherits via trigger color
+### Preset slugs (corrected to real DB values)
+Verified against `fields_of_study` (level=2). The user's draft used non-existent slugs like `engineering`, `business`, `data-science`. Replace with:
+```
+Mechanical Eng. → mechanical-engineering
+Business Admin → business-administration
+Medicine → medicine
+Computer Science → computer-science
+Electrical Eng. → electrical-engineering
+```
+(Drop "Data Science" — not in DB; "Electrical Engineering" is a high-intent substitute.)
 
-### 3. Animated CTA with shine
-- Wrap button content's parent (the button itself) with `relative overflow-hidden active:scale-95 transition-transform`
-- Add a `motion.span` absolutely positioned inside the button: a thin diagonal white gradient bar (`bg-gradient-to-r from-transparent via-white/40 to-transparent w-1/3 h-full skew-x-12`) animated with `animate={{ x: ['-150%', '250%'] }}` and `transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 2, ease: 'easeInOut' }}`
-- `pointer-events-none` on the shine; keep the existing arrow `group-hover:translate-x-0.5`
+### Visual integration with prior glass design
+Keep the previous premium glass look from the last iteration:
+- Form container: `bg-white/10 backdrop-blur-2xl`, white text, radial overlay, inset highlight shadow.
+- Select/Combobox triggers: `bg-white/10 border-white/20 text-white hover:bg-white/20`.
+- Tip + footer copy: `text-white/80` / `text-white/70`; eligibility link uses `text-secondary`.
+- Preset chips below the card sit on the hero bg, so use the user's lighter style (`bg-white/80 backdrop-blur` inactive, `bg-primary text-primary-foreground` active) — that contrast still works.
+- Keyboard hint pill: `bg-white/10 text-white/70 border-white/20`.
 
-### 4. Footer polish
-- Wrap the `Sparkles` icon in a `motion.span` with a slow scale + opacity loop (`animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}`, `duration: 2.4, repeat: Infinity`) — falls back gracefully under reduced motion via Framer Motion's defaults
-- Update footer text colors: `text-white/70` for the tagline, link becomes `text-secondary hover:text-white`
+### Animations
+- Card mount: `initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.5, ease:[0.22,1,0.36,1] }}`.
+- Top gradient line: absolutely positioned 1px bar with `bg-gradient-to-r from-transparent via-secondary to-transparent`, animated `backgroundPosition` or translate loop (4s).
+- Smart-CTA shimmer: reuses prior `motion.span` shine (only when `allFieldsSet`).
+- Tip swap: `AnimatePresence` mode="wait", fade+y 6px, 0.25s.
+- Preset hover/tap: `whileHover={{ scale:1.05, y:-2 }}`, `whileTap={{ scale:0.95 }}`.
+- Active preset checkmark: `motion.span` scale-in.
 
-### Out of scope
-- No changes to logic, props, fetches, routing, translation strings, or labels
-- No new files, no new dependencies (framer-motion already in project)
+### Accessibility
+- All triggers keep `id` + `<Label htmlFor>`.
+- `/` shortcut bails when focus is in INPUT/TEXTAREA/SELECT/contentEditable.
+- Combobox uses `role="combobox"` (provided by shadcn Command pattern) with `aria-expanded`.
+- Reduced-motion: motion components inherit Framer Motion's reduced-motion behavior; shimmer is decorative (`aria-hidden`).
 
 ### Files touched
-- `src/components/HeroQuickFinder.tsx` (single file, class + small JSX additions)
+- `src/components/HeroQuickFinder.tsx` — full rewrite per spec above.
+
+### Out of scope
+- No new dependencies, no shadcn install, no changes to other components, no business-logic changes.
