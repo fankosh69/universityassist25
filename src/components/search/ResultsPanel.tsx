@@ -88,61 +88,66 @@ export function ResultsPanel({
 
       <div className="p-4">
         {sortedPrograms.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold mb-2">No Programs Found</h3>
-            <p className="text-muted-foreground max-w-md mb-6">
-              Try adjusting your filters or search query to find more programs.
-            </p>
-            <div className="text-sm text-muted-foreground">
-              <p className="mb-1">Suggestions:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Expand your location search</li>
-                <li>Remove tuition limit</li>
-                <li>Check different fields of study</li>
-                <li>Clear all filters and start over</li>
-              </ul>
+          <Reveal y={16}>
+            <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-xl font-semibold mb-2">No Programs Found</h3>
+              <p className="text-muted-foreground max-w-md mb-6">
+                Try adjusting your filters or search query to find more programs.
+              </p>
+              <div className="text-sm text-muted-foreground">
+                <p className="mb-1">Suggestions:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Expand your location search</li>
+                  <li>Remove tuition limit</li>
+                  <li>Check different fields of study</li>
+                  <li>Clear all filters and start over</li>
+                </ul>
+              </div>
             </div>
-          </div>
+          </Reveal>
         ) : (
           <div>
             {/* Mobile: Use optimized mobile cards */}
             {isMobile ? (
-              <div className="space-y-3">
+              <StaggerGroup className="space-y-3" stagger={0.06}>
                 {sortedPrograms.map(program => (
-                  <ProgramMobileCard
-                    key={program.id}
-                    program={program}
-                    isSaved={savedPrograms.has(program.id)}
-                    onSave={onSaveProgram}
-                  />
+                  <StaggerItem key={program.id}>
+                    <ProgramMobileCard
+                      program={program}
+                      isSaved={savedPrograms.has(program.id)}
+                      onSave={onSaveProgram}
+                    />
+                  </StaggerItem>
                 ))}
-              </div>
+              </StaggerGroup>
             ) : (
               /* Desktop: Use grid or list view */
               <>
                 {viewMode === 'grid' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" stagger={0.06}>
                     {sortedPrograms.map(program => (
-                      <ProgramCard
-                        key={program.id}
-                        program={program}
-                        isSaved={savedPrograms.has(program.id)}
-                        onSave={onSaveProgram}
-                      />
+                      <StaggerItem key={program.id}>
+                        <ProgramCard
+                          program={program}
+                          isSaved={savedPrograms.has(program.id)}
+                          onSave={onSaveProgram}
+                        />
+                      </StaggerItem>
                     ))}
-                  </div>
+                  </StaggerGroup>
                 ) : (
-                  <div className="space-y-3">
+                  <StaggerGroup className="space-y-3" stagger={0.05}>
                     {sortedPrograms.map(program => (
-                      <ProgramListItem
-                        key={program.id}
-                        program={program}
-                        isSaved={savedPrograms.has(program.id)}
-                        onSave={onSaveProgram}
-                      />
+                      <StaggerItem key={program.id}>
+                        <ProgramListItem
+                          program={program}
+                          isSaved={savedPrograms.has(program.id)}
+                          onSave={onSaveProgram}
+                        />
+                      </StaggerItem>
                     ))}
-                  </div>
+                  </StaggerGroup>
                 )}
               </>
             )}
