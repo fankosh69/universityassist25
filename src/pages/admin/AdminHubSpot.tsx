@@ -258,24 +258,11 @@ function SyncLogTab() {
     },
   });
 
-  const { data: webhookLogs, isLoading: webhookLoading } = useQuery({
-    queryKey: ["hubspot-webhook-log"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("hubspot_webhook_log")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data;
-    },
-  });
-
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Outbound Sync Log</CardTitle>
+          <CardTitle className="text-base">Sync Log</CardTitle>
           <CardDescription>Records of data synced from UA → HubSpot</CardDescription>
         </CardHeader>
         <CardContent>
@@ -308,48 +295,6 @@ function SyncLogTab() {
                 ))}
                 {(!logs || logs.length === 0) && (
                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-4">No sync logs</TableCell></TableRow>
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Inbound Webhook Log</CardTitle>
-          <CardDescription>Events received from HubSpot → UA</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {webhookLoading ? (
-            <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin" /></div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Event</TableHead>
-                  <TableHead>Object</TableHead>
-                  <TableHead>Object ID</TableHead>
-                  <TableHead>Processed</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {webhookLogs?.map((log: any) => (
-                  <TableRow key={log.id}>
-                    <TableCell>{log.event_type}</TableCell>
-                    <TableCell>{log.object_type || "—"}</TableCell>
-                    <TableCell className="font-mono text-xs">{log.object_id || "—"}</TableCell>
-                    <TableCell>
-                      <Badge variant={log.processed ? "default" : "outline"}>
-                        {log.processed ? "Yes" : "Pending"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs">{new Date(log.created_at).toLocaleString()}</TableCell>
-                  </TableRow>
-                ))}
-                {(!webhookLogs || webhookLogs.length === 0) && (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-4">No webhook events</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
