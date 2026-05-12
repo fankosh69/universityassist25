@@ -1297,45 +1297,6 @@ export type Database = {
           },
         ]
       }
-      hubspot_webhook_log: {
-        Row: {
-          created_at: string
-          error_message: string | null
-          event_type: string
-          id: string
-          object_id: string | null
-          object_type: string | null
-          processed: boolean | null
-          processed_at: string | null
-          properties: Json | null
-          raw_payload: Json | null
-        }
-        Insert: {
-          created_at?: string
-          error_message?: string | null
-          event_type: string
-          id?: string
-          object_id?: string | null
-          object_type?: string | null
-          processed?: boolean | null
-          processed_at?: string | null
-          properties?: Json | null
-          raw_payload?: Json | null
-        }
-        Update: {
-          created_at?: string
-          error_message?: string | null
-          event_type?: string
-          id?: string
-          object_id?: string | null
-          object_type?: string | null
-          processed?: boolean | null
-          processed_at?: string | null
-          properties?: Json | null
-          raw_payload?: Json | null
-        }
-        Relationships: []
-      }
       invoices: {
         Row: {
           amount_egp: number

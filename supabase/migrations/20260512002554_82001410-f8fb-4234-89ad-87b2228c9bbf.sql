@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS public.hubspot_webhook_log CASCADE;
