@@ -1564,9 +1564,7 @@ export type Database = {
           created_at: string | null
           id: string
           message_type: string | null
-          recipient_email: string | null
           recipient_id: string | null
-          recipient_phone: string | null
           sent_at: string | null
           status: string | null
           subject: string | null
@@ -1576,9 +1574,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           message_type?: string | null
-          recipient_email?: string | null
           recipient_id?: string | null
-          recipient_phone?: string | null
           sent_at?: string | null
           status?: string | null
           subject?: string | null
@@ -1588,9 +1584,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           message_type?: string | null
-          recipient_email?: string | null
           recipient_id?: string | null
-          recipient_phone?: string | null
           sent_at?: string | null
           status?: string | null
           subject?: string | null
@@ -3771,6 +3765,7 @@ export type Database = {
           status: string
         }[]
       }
+      get_email_for_profile: { Args: { _profile_id: string }; Returns: string }
       get_field_descendants: {
         Args: { field_id: string }
         Returns: {
