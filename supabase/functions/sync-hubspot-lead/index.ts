@@ -253,6 +253,53 @@ Deno.serve(async (req) => {
       );
     }
 
+    // --- Caller verification ---
+    // Prevent unauthenticated CRM pollution. We accept two cases:
+    //   1. A valid Supabase JWT whose email matches leadData.email (logged-in
+    //      user syncing their own profile — used by onboarding & eligibility).
+    //   2. No JWT, but the email belongs to an auth.users row created in the
+    //      last 15 minutes (signup flow before the email is confirmed).
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+    const authHeader = req.headers.get("Authorization");
+    const bearer = authHeader?.startsWith("Bearer ")
+      ? authHeader.replace("Bearer ", "")
+      : null;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const hasUserToken = !!bearer && bearer !== anonKey;
+
+    let authorized = false;
+    if (hasUserToken) {
+      const { data: userData } = await supabaseAdmin.auth.getUser(bearer!);
+      const userEmail = userData?.user?.email?.toLowerCase();
+      if (userEmail && userEmail === leadData.email.toLowerCase()) {
+        authorized = true;
+      }
+    } else {
+      // Signup path: confirm a recently-created auth user with this email exists.
+      try {
+        const { data: list } = await supabaseAdmin.auth.admin.listUsers();
+        const match = list?.users?.find(
+          (u: any) => (u.email || "").toLowerCase() === leadData.email.toLowerCase()
+        );
+        if (match?.created_at) {
+          const ageMs = Date.now() - new Date(match.created_at).getTime();
+          if (ageMs < 15 * 60 * 1000) authorized = true;
+        }
+      } catch (e) {
+        console.error("Auth user lookup failed:", e);
+      }
+    }
+
+    if (!authorized) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Build properties based on sync type
     const properties = syncType === "onboarding_complete"
       ? buildOnboardingProperties(leadData)
@@ -270,11 +317,7 @@ Deno.serve(async (req) => {
     const result = await createOrUpdateContact(LOVABLE_API_KEY, HUBSPOT_API_KEY, leadData.email, cleanProperties);
 
     // Log to hubspot_sync_log table
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    await supabase.from("hubspot_sync_log").insert({
+    await supabaseAdmin.from("hubspot_sync_log").insert({
       sync_type: syncType,
       sync_status: result.ok ? "success" : "failed",
       hubspot_contact_id: result.contactId || null,

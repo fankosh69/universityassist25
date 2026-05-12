@@ -152,6 +152,25 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Require authenticated caller and verify ownership of the document
+    // (or admin role) before triggering privileged OCR processing.
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const callerId = userData.user.id;
+
     const { document_id } = await req.json();
 
     if (!document_id) {
@@ -169,6 +188,21 @@ serve(async (req) => {
 
     if (docError || !document) {
       throw new Error('Document not found');
+    }
+
+    // Authorize: caller must own the document or be an admin
+    if (document.uploaded_by !== callerId) {
+      const { data: roles } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('profile_id', callerId)
+        .eq('role', 'admin');
+      if (!roles || roles.length === 0) {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     // Update status to processing
