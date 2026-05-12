@@ -1,23 +1,26 @@
-## Fixes
+## Remove HubSpot inbound webhook
 
-### 1. Recompute toast: "Could not find a relationship between 'program_matches_v2' and 'programs'"
+HubSpot is updated only from this app (outbound via `sync-hubspot-lead`, `hubspot-manage-deals`, `hubspot-sync-universities`). The inbound `hubspot-webhook` endpoint and its log table aren't needed and the unsigned endpoint is a security finding — removing it eliminates the issue entirely.
 
-Root cause: `src/pages/DashboardEnhanced.tsx` runs an embedded select `program:programs(*)` on `program_matches_v2`, but the table only has a FK to `profiles` — no FK on `program_id` → `programs.id`. PostgREST therefore can't auto-join.
+### Changes
 
-Fix (migration):
-- Clean up any orphan rows in `program_matches_v2` whose `program_id` is not in `programs`.
-- Add `ALTER TABLE public.program_matches_v2 ADD CONSTRAINT program_matches_v2_program_id_fkey FOREIGN KEY (program_id) REFERENCES public.programs(id) ON DELETE CASCADE;`
-- Add an index on `program_matches_v2(program_id)` if missing.
+1. **Delete edge function**
+   - Remove `supabase/functions/hubspot-webhook/index.ts`
+   - Remove `[functions.hubspot-webhook]` block from `supabase/config.toml`
+   - Call `supabase--delete_edge_functions` for `hubspot-webhook` to remove the deployed function
 
-After the FK lands, the existing embed call works as-is. (Also re-check that `match_score` is the column being ordered by — it is, per types.ts.)
+2. **Drop the webhook log table** (new migration)
+   - `DROP TABLE IF EXISTS public.hubspot_webhook_log CASCADE;`
 
-### 2. Profile save: `invalid input syntax for type numeric: ""`
+3. **Clean up admin UI** (`src/pages/admin/AdminHubSpot.tsx`)
+   - Remove the `webhookLogs` query (lines 261–272)
+   - Remove the "Inbound Webhook Log" Card (lines 318–358)
+   - Rename the Sync Log tab heading context to drop the "Outbound" qualifier (optional polish)
 
-Root cause: in `src/pages/Profile.tsx` `handleSaveProfile`, the GPA fields (`gpa_raw`, `gpa_scale_max`, `gpa_min_pass`) and `credits_taken` can be `""` from the inputs and are forwarded as-is to `secureUpdateProfile` / `secure_update_academic_data`.
-
-Fix (frontend only):
-- Coerce empty strings to `null` for `gpa_raw`, `gpa_scale_max`, `gpa_min_pass`, `current_gpa`, `credits_taken` before sending.
-- In the `credits_taken` input `onChange`, guard `parseInt` so empty input becomes `null` rather than `NaN`.
+4. **Mark security finding resolved**
+   - Note: the open scan findings shown are for `sync-hubspot-lead` and `enrich-cities-de`, not the webhook. Those are separate and not addressed here. The webhook removal closes the prior unsigned-webhook concern raised earlier in the conversation.
 
 ### Out of scope
-No UI / business-logic changes. No edits to `src/integrations/supabase/types.ts` (auto-regenerated after migration).
+- No changes to outbound HubSpot functions
+- No changes to `hubspot_sync_log`
+- The two scanner findings currently visible (`sync-hubspot-lead`, `enrich-cities-de`) are not part of this request
