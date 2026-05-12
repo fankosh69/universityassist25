@@ -66,6 +66,35 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Admin-only: this function reads sensitive historical applicant data
+    // (GPA, nationality, language scores) using the service role key.
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const { data: roles } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('profile_id', userData.user.id)
+      .eq('role', 'admin');
+    if (!roles || roles.length === 0) {
+      return new Response(JSON.stringify({ error: 'Forbidden: admin only' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { program_id, analysis_type } = await req.json();
 
     if (!program_id) {
