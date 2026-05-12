@@ -98,6 +98,3 @@ verify_jwt = false
 
 [functions.hubspot-sync-universities]
 verify_jwt = false
-
-[functions.hubspot-webhook]
-verify_jwt = false
