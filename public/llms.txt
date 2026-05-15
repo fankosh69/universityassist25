@@ -1,0 +1,26 @@
+# University Assist
+
+> Your way to Germany — a free multilingual platform that helps students in MENA find and apply to Bachelor's, Master's, and PhD programs at German universities.
+
+University Assist is a multilingual platform (English, Arabic, German) that helps international students discover, evaluate, and apply to German university programs. It provides intelligent program matching based on academic background, language proficiency, and preferences. The platform covers public and private universities, universities of applied sciences (Fachhochschulen), and programs taught in English or German. Features include an eligibility checker with Modified Bavarian GPA conversion, program watchlists, deadline tracking, city guides with interactive maps, student ambassador testimonials, and guided onboarding. The platform is not affiliated with uni-assist e.V., DAAD, or any German university.
+
+## Pages
+
+- [/](/): Homepage with program search, featured universities, and city highlights
+- [/search](/search): Search and filter German university programs by degree level, field of study, language, tuition, and more
+- [/eligibility-checker](/eligibility-checker): Check your eligibility for German universities using the Modified Bavarian Formula GPA conversion
+- [/cities](/cities): Browse German cities with universities, cost of living, and student life info
+- [/cities/berlin](/cities/berlin): Berlin — universities, living costs, and student guides (example city page)
+- [/cities/munich](/cities/munich): Munich — universities, living costs, and student guides (example city page)
+- [/universities](/universities): Directory of German universities and universities of applied sciences
+- [/universities/tu-berlin](/universities/tu-berlin): Technical University of Berlin — overview and programs (example university page)
+- [/universities/lmu-munich](/universities/lmu-munich): Ludwig Maximilian University of Munich — overview and programs (example university page)
+- [/universities/tu-berlin/programs/computer-science](/universities/tu-berlin/programs/computer-science): Example program page with requirements, deadlines, and tuition
+- [/regions](/regions): Browse German regions and states (Bundesländer)
+- [/ambassadors](/ambassadors): Student ambassador directory with testimonials and video stories
+- [/impressum](/impressum): Legal notice and contact information
+
+## Optional
+
+- [/ambassadors/john-smith](/ambassadors/john-smith): Example ambassador profile page
+- [/regions/bavaria](/regions/bavaria): Example region detail page
