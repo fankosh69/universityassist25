@@ -168,8 +168,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
-        title="University Assist - Your Way to Germany | Find German University Programs"
-        description="Your way to Germany - Discover 400+ German university programs with intelligent matching. Find bachelor's, master's, and PhD programs that match your academic profile and career goals."
+        title="University Assist — Find German University Programs"
+        description="Discover 400+ German bachelor's, master's, and PhD programs. Get matched to universities that fit your academic profile and goals."
         keywords="German universities, study in Germany, university programs, bachelor, master, PhD, Germany education, university admission, University Assist"
         ogTitle="University Assist - Your Way to Germany | Find German University Programs"
         ogDescription="Your way to Germany - Join thousands of students who found their ideal German university program with our intelligent matching system."
