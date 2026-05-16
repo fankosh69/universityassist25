@@ -253,6 +253,14 @@ const Navigation = () => {
                 </PrefetchLink>
 
                 <PrefetchLink 
+                  to="/blog" 
+                  onClick={closeMobileMenu}
+                  className="flex items-center py-3 px-4 hover:bg-muted rounded-lg transition-colors"
+                >
+                  <span className="text-sm font-medium">Blog</span>
+                </PrefetchLink>
+
+                <PrefetchLink 
                   to="/search" 
                   onClick={closeMobileMenu}
                   className="flex items-center gap-2 py-3 px-4 hover:bg-muted rounded-lg transition-colors"
