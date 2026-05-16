@@ -47,7 +47,7 @@ const EligibilityChecker = lazy(() => import("./pages/EligibilityChecker"));
 // Slugs MUST match the legacy URLs for SEO continuity.
 const BlogIndex = lazy(() => import("./pages/blog/BlogIndex"));
 const LegacyBlogRoute = lazy(() => import("./pages/blog/LegacyBlogRoute"));
-import { LEGACY_BLOG_POSTS } from "@/content/legacy-blog-posts";
+import { LEGACY_BLOG_POSTS, LEGACY_BLOG_REDIRECTS } from "@/content/legacy-blog-posts";
 
 // SEO landing pages targeting high-intent keywords; funnel into /search.
 const LandingRoute = lazy(() => import("./pages/landing/LandingRoute"));
@@ -214,6 +214,11 @@ const AnimatedRoutes = ({ user }: { user: any }) => {
                 {LEGACY_BLOG_POSTS.flatMap((p) => [
                   <Route key={p.slug} path={`/${p.slug}`} element={<LegacyBlogRoute slug={p.slug} />} />,
                   <Route key={`${p.slug}-trailing`} path={`/${p.slug}/`} element={<LegacyBlogRoute slug={p.slug} />} />,
+                ])}
+                {/* Old WordPress slugs that map to a rebuilt canonical post */}
+                {Object.entries(LEGACY_BLOG_REDIRECTS).flatMap(([from, to]) => [
+                  <Route key={`rdr-${from}`} path={`/${from}`} element={<Navigate to={`/${to}`} replace />} />,
+                  <Route key={`rdr-${from}-tr`} path={`/${from}/`} element={<Navigate to={`/${to}`} replace />} />,
                 ])}
                 {/* SEO landing pages (high-intent keywords -> search funnel) */}
                 {LANDING_PAGES.flatMap((p) => [

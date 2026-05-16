@@ -477,8 +477,107 @@ export const LEGACY_BLOG_POSTS: LegacyBlogPost[] = [
     ],
     primaryCta: { label: "Start with a free eligibility check", href: "/eligibility-checker" },
   },
+  {
+    slug: "highest-paying-cities-for-jobs-in-germany-in-2025",
+    title: "Highest-Paying Cities for Jobs in Germany in 2026",
+    metaTitle: "Highest-Paying Cities for Jobs in Germany (2026 Salary Guide)",
+    metaDescription:
+      "Where graduates earn the most in Germany — Munich, Frankfurt, Stuttgart, Düsseldorf and more, with median gross salaries and cost-of-living context.",
+    keyword: "most paid jobs in germany",
+    category: "Cities",
+    readingMinutes: 8,
+    publishedDate: "2024-09-12",
+    updatedDate: TODAY,
+    excerpt:
+      "Salary varies more by city than by sector in Germany. Here are the highest-paying cities for graduates and skilled workers in 2026 — with the catch: most of them are also the most expensive to live in.",
+    intro:
+      "Germany's headline gross median salary of about €52,000 hides huge regional gaps. A software engineer in Munich typically earns 25–35% more than one in Leipzig, but rent can be double. This guide ranks the cities where graduates earn the most, then weighs that pay against the cost of living so you can pick where to apply for your first job after studying.",
+    sections: [
+      {
+        heading: "How we ranked the highest-paying cities",
+        paragraphs: [
+          "We combined Destatis 2025 wage statistics, Stepstone's annual salary report and Federal Employment Agency (BA) data on full-time gross median income for employees aged 25–34. Cities had to host at least one university or applied-sciences institution so the data is relevant for graduating students.",
+        ],
+        bullets: [
+          "Median full-time gross salary for ages 25–34",
+          "Share of jobs in well-paying sectors (tech, finance, automotive, pharma)",
+          "Cost-of-living index relative to the national average",
+        ],
+      },
+      {
+        heading: "1. Munich — Germany's salary capital",
+        paragraphs: [
+          "Munich tops every salary ranking in Germany. The median full-time gross salary is around €58,500, and graduates in engineering, software and consulting routinely start above €55,000. BMW, Siemens, Allianz, Google and a dense Mittelstand ecosystem keep demand for skilled workers high.",
+          "The catch: Munich is also the most expensive German city. Expect €1,200–€1,600 for a small one-bedroom flat. Net of rent, Munich's salary advantage shrinks to about 10–15% over the national average.",
+        ],
+      },
+      {
+        heading: "2. Frankfurt am Main — finance and consulting",
+        paragraphs: [
+          "Frankfurt is the European Central Bank's home and Germany's banking capital. Median salary sits at roughly €56,800, with finance, audit and consulting graduates earning the highest starting packages outside of Munich. The airport hub also drives strong logistics and aviation hiring.",
+          "Rent is high (€1,050–€1,350 for a one-bedroom) but the city is compact and well connected. Frankfurt's salary-to-cost ratio is arguably the best of the top-three.",
+        ],
+      },
+      {
+        heading: "3. Stuttgart — automotive engineering",
+        paragraphs: [
+          "Mercedes-Benz, Porsche and Bosch headquarter here, and the surrounding Baden-Württemberg region pays engineering and IT graduates exceptionally well. Median salary is around €55,400, with mechanical and electrical engineers often clearing €60,000 within three years.",
+        ],
+      },
+      {
+        heading: "4. Düsseldorf — corporate HQs and tech",
+        paragraphs: [
+          "Düsseldorf has the highest concentration of corporate HQs in NRW (Henkel, E.ON, Vodafone Germany). Median salary is about €53,900, and the city's growing AI/data-engineering scene continues to push tech pay upward. Cost of living is meaningfully lower than Munich or Frankfurt.",
+        ],
+      },
+      {
+        heading: "5. Hamburg — media, logistics, life sciences",
+        paragraphs: [
+          "Hamburg combines Airbus, Beiersdorf and a strong media cluster (Spiegel, ZEIT) with Europe's third-largest port. Median salary sits at around €52,700 and quality of life is consistently rated among the highest in Germany.",
+        ],
+      },
+      {
+        heading: "Honourable mentions: Erlangen, Wolfsburg, Ingolstadt",
+        paragraphs: [
+          "Smaller cities can punch well above their weight when a single large employer dominates. Erlangen (Siemens Healthineers), Wolfsburg (Volkswagen) and Ingolstadt (Audi) all post median salaries above €54,000, often with lower living costs than the big-five.",
+        ],
+      },
+      {
+        heading: "Salary vs. cost of living: pick by net, not gross",
+        paragraphs: [
+          "A €60,000 Munich offer leaves roughly the same in your account at month-end as a €50,000 offer in Leipzig once rent, transport and groceries are paid. If your goal is to save during your first years, second-tier cities like Leipzig, Dresden or Bremen can outperform the headline rankings.",
+        ],
+        bullets: [
+          "Use Destatis cost-of-living index to compare your shortlist",
+          "Factor in employer pension contributions and 13th-month bonuses",
+          "Public transport pass (Deutschlandticket €49–€58/month) flattens commute costs nationwide",
+        ],
+      },
+      {
+        heading: "What this means for your university choice",
+        paragraphs: [
+          "Most graduates stay in or near the city where they studied for at least 2–3 years. Studying in or close to one of these high-pay hubs gives you a head start on internships, working-student roles and networking — all of which translate into faster first-job placement and higher starting offers.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Cheapest cities for international students", href: "/the-most-budget-friendly-cities-in-germany-for-international-students" },
+      { label: "Browse universities by city", href: "/cities" },
+      { label: "Search Master's programs in Germany", href: "/search?level=master" },
+      { label: "English-taught programs", href: "/english-taught-programs-in-germany" },
+    ],
+    primaryCta: { label: "Find programs in Germany's top-paying cities", href: "/search" },
+  },
 ];
 
 export function getLegacyBlogPostBySlug(slug: string): LegacyBlogPost | undefined {
   return LEGACY_BLOG_POSTS.find((p) => p.slug === slug);
 }
+
+// Old WordPress slugs that should 301-equivalent redirect to a canonical new
+// slug. Used by App.tsx to render a <Navigate replace> so existing backlinks
+// and SERP impressions land on the rebuilt page.
+export const LEGACY_BLOG_REDIRECTS: Record<string, string> = {
+  "ue-university-of-europe-for-applied-sciences-your-gateway-to-a-bright-future":
+    "ue-university-of-europe-for-applied-sciences",
+};
