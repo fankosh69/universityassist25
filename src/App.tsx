@@ -49,6 +49,10 @@ const BlogIndex = lazy(() => import("./pages/blog/BlogIndex"));
 const LegacyBlogRoute = lazy(() => import("./pages/blog/LegacyBlogRoute"));
 import { LEGACY_BLOG_POSTS } from "@/content/legacy-blog-posts";
 
+// SEO landing pages targeting high-intent keywords; funnel into /search.
+const LandingRoute = lazy(() => import("./pages/landing/LandingRoute"));
+import { LANDING_PAGES } from "@/content/landing-pages";
+
 // Lazy load admin pages
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
@@ -210,6 +214,11 @@ const AnimatedRoutes = ({ user }: { user: any }) => {
                 {LEGACY_BLOG_POSTS.flatMap((p) => [
                   <Route key={p.slug} path={`/${p.slug}`} element={<LegacyBlogRoute slug={p.slug} />} />,
                   <Route key={`${p.slug}-trailing`} path={`/${p.slug}/`} element={<LegacyBlogRoute slug={p.slug} />} />,
+                ])}
+                {/* SEO landing pages (high-intent keywords -> search funnel) */}
+                {LANDING_PAGES.flatMap((p) => [
+                  <Route key={`lp-${p.slug}`} path={`/${p.slug}`} element={<LandingRoute slug={p.slug} />} />,
+                  <Route key={`lp-${p.slug}-tr`} path={`/${p.slug}/`} element={<LandingRoute slug={p.slug} />} />,
                 ])}
                 <Route 
                   path="/profile" 
