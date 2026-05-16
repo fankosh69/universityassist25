@@ -216,6 +216,12 @@ export default function SEOProgramPage({
       },
       tuition_eur: program.tuition_amount ?? program.semester_fees ?? undefined,
       duration_semesters: program.duration_semesters ?? undefined,
+      description: cleanDescription || undefined,
+      url: canonical,
+      language:
+        program.language_of_instruction && program.language_of_instruction.length > 0
+          ? program.language_of_instruction[0]
+          : "de",
     },
     [],
   );
