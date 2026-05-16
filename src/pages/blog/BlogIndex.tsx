@@ -5,6 +5,7 @@ import Navigation from "@/components/Navigation";
 import JsonLd from "@/components/JsonLd";
 import { Card } from "@/components/ui/card";
 import { LEGACY_BLOG_POSTS } from "@/content/legacy-blog-posts";
+import { LANDING_PAGES } from "@/content/landing-pages";
 
 const SITE = "https://uniassist.net";
 
@@ -52,6 +53,25 @@ export default function BlogIndex() {
             Independent, up-to-date guides for international students applying to German Bachelor's and Master's programs.
           </p>
         </header>
+
+        {/* Quick-access landing pages */}
+        <section className="mb-10">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+            Start your search
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {LANDING_PAGES.map((lp) => (
+              <Link
+                key={lp.slug}
+                to={`/${lp.slug}`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary hover:bg-accent/40"
+              >
+                {lp.title}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            ))}
+          </div>
+        </section>
 
         <div className="grid gap-5 md:grid-cols-2">
           {posts.map((p) => (
