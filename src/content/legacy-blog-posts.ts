@@ -482,3 +482,11 @@ export const LEGACY_BLOG_POSTS: LegacyBlogPost[] = [
 export function getLegacyBlogPostBySlug(slug: string): LegacyBlogPost | undefined {
   return LEGACY_BLOG_POSTS.find((p) => p.slug === slug);
 }
+
+// Old WordPress slugs that should 301-equivalent redirect to a canonical new
+// slug. Used by App.tsx to render a <Navigate replace> so existing backlinks
+// and SERP impressions land on the rebuilt page.
+export const LEGACY_BLOG_REDIRECTS: Record<string, string> = {
+  "ue-university-of-europe-for-applied-sciences-your-gateway-to-a-bright-future":
+    "ue-university-of-europe-for-applied-sciences",
+};
