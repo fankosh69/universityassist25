@@ -20,7 +20,8 @@ async function fetchLiveCount(counter: LandingPage["counter"]): Promise<number |
         .select("id", { count: "exact", head: true })
         .eq("published", true);
       const f = counter.filter || {};
-      if (f.level) q = q.eq("degree_level", String(f.level));
+      if (f.level === "master" || f.level === "bachelor")
+        q = q.eq("degree_level", f.level);
       if (f.language === "english") q = q.contains("language_of_instruction", ["en"]);
       if (f.language === "german") q = q.contains("language_of_instruction", ["de"]);
       const { count } = await q;
