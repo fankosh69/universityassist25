@@ -124,6 +124,9 @@ const Navigation = () => {
             <PrefetchLink to="/universities" className="text-sm text-gray-700 hover:text-gray-900 transition-colors">
               {t('navigation.universities')}
             </PrefetchLink>
+            <PrefetchLink to="/blog" className="text-sm text-gray-700 hover:text-gray-900 transition-colors">
+              Blog
+            </PrefetchLink>
             <PrefetchLink to="/search" className="text-sm text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1.5">
               <SearchIcon className="h-3.5 w-3.5" />
               {t('navigation.search')}
