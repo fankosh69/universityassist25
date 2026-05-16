@@ -6,12 +6,36 @@ import JsonLd from "@/components/JsonLd";
 import { Card } from "@/components/ui/card";
 import { LEGACY_BLOG_POSTS } from "@/content/legacy-blog-posts";
 import { LANDING_PAGES } from "@/content/landing-pages";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const SITE = "https://uniassist.net";
 
 export default function BlogIndex() {
   const url = `${SITE}/blog`;
-  const posts = [...LEGACY_BLOG_POSTS].sort(
+  const { data: dbPosts } = useQuery({
+    queryKey: ["blog-posts-public"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("blog_posts")
+        .select("slug, title, meta_description, category, reading_minutes, published_at, updated_at")
+        .eq("status", "published")
+        .order("published_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const dbAsLegacyShape = (dbPosts ?? []).map((p) => ({
+    slug: `blog/${p.slug}`,
+    title: p.title,
+    excerpt: p.meta_description ?? "",
+    category: (p.category ?? "Study tips") as any,
+    readingMinutes: p.reading_minutes ?? 7,
+    updatedDate: p.updated_at,
+  }));
+
+  const posts = [...dbAsLegacyShape, ...LEGACY_BLOG_POSTS].sort(
     (a, b) => +new Date(b.updatedDate) - +new Date(a.updatedDate)
   );
 

@@ -71,6 +71,8 @@ const AdminFieldsOfStudy = lazy(() => import("./pages/admin/AdminFieldsOfStudy")
 const AdminShortlists = lazy(() => import("./pages/admin/AdminShortlists"));
 const AdminProgramInquiries = lazy(() => import("./pages/admin/AdminProgramInquiries"));
 const AdminHubSpot = lazy(() => import("./pages/admin/AdminHubSpot"));
+const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
+const BlogPost = lazy(() => import("./pages/blog/BlogPost"));
 
 const queryClient = new QueryClient();
 
@@ -211,6 +213,7 @@ const AnimatedRoutes = ({ user }: { user: any }) => {
                 <Route path="/eligibility-checker" element={<EligibilityChecker />} />
                 {/* Blog index + legacy ranking URLs rebuilt as native pages */}
                 <Route path="/blog" element={<BlogIndex />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
                 {LEGACY_BLOG_POSTS.flatMap((p) => [
                   <Route key={p.slug} path={`/${p.slug}`} element={<LegacyBlogRoute slug={p.slug} />} />,
                   <Route key={`${p.slug}-trailing`} path={`/${p.slug}/`} element={<LegacyBlogRoute slug={p.slug} />} />,
@@ -247,6 +250,7 @@ const AnimatedRoutes = ({ user }: { user: any }) => {
                 <Route path="/admin/historical-data" element={<AdminLayout><AdminHistoricalData /></AdminLayout>} />
                 <Route path="/admin/program-inquiries" element={<AdminLayout><AdminProgramInquiries /></AdminLayout>} />
                 <Route path="/admin/hubspot" element={<AdminLayout><AdminHubSpot /></AdminLayout>} />
+                <Route path="/admin/blog" element={<AdminLayout><AdminBlog /></AdminLayout>} />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -129,6 +129,20 @@ async function main() {
   ];
   write("sitemap-static.xml", wrapUrlset(staticEntries));
 
+  // DB-driven blog posts
+  const blogRows = await fetchAll("blog_posts", "slug,updated_at", "&status=eq.published");
+  const blogEntries = blogRows.map((r) =>
+    urlEntry(`/blog/${r.slug}`, {
+      changefreq: "monthly",
+      priority: "0.7",
+      lastmod: (r.updated_at as string)?.slice(0, 10),
+      alternates: false,
+    })
+  );
+  if (blogEntries.length > 0) {
+    write("sitemap-blog.xml", wrapUrlset(blogEntries));
+  }
+
   if (!SUPABASE_KEY) {
     console.warn("[sitemap] no Supabase key — skipping dynamic sitemaps");
     write("sitemap.xml", wrapIndex(["sitemap-static.xml"]));

@@ -56,6 +56,7 @@ const adminMenuItems = [
   { title: "Security", url: "/admin/security", icon: Shield },
   { title: "HubSpot CRM", url: "/admin/hubspot", icon: Waypoints },
   { title: "Sitemap", url: "/admin/sitemap", icon: FileText },
+  { title: "Blog Pipeline", url: "/admin/blog", icon: FileText },
 ];
 
 export function AdminSidebar() {
