@@ -116,7 +116,11 @@ export default function AdminBlog() {
 
   const updatePost = useMutation({
     mutationFn: async (p: Partial<Post> & { id: string }) => {
-      const { error } = await supabase.from("blog_posts").update(p).eq("id", p.id);
+      const { id, ...rest } = p;
+      const { error } = await supabase
+        .from("blog_posts")
+        .update(rest as never)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
