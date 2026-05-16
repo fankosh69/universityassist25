@@ -124,6 +124,7 @@ async function main() {
       "best-5-universities-to-pursue-a-business-degree-in-germany",
       "ects-and-its-benefits-for-international-students",
       "about-us",
+      "highest-paying-cities-for-jobs-in-germany-in-2025",
     ].map((s) => urlEntry(`/${s}`, { changefreq: "monthly", priority: "0.8", alternates: false })),
   ];
   write("sitemap-static.xml", wrapUrlset(staticEntries));
