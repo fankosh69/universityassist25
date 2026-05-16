@@ -106,6 +106,14 @@ async function main() {
     urlEntry("/ambassadors", { changefreq: "weekly", priority: "0.7" }),
     urlEntry("/impressum", { changefreq: "yearly", priority: "0.3", alternates: false }),
     urlEntry("/blog", { changefreq: "weekly", priority: "0.7", alternates: false }),
+    // High-intent SEO landing pages
+    ...[
+      "study-in-germany",
+      "english-taught-programs-in-germany",
+      "masters-in-germany",
+      "bachelors-in-germany",
+      "free-universities-in-germany",
+    ].map((s) => urlEntry(`/${s}`, { changefreq: "weekly", priority: "0.9" })),
     // Legacy WordPress URLs rebuilt as native pages — keep slugs verbatim.
     ...[
       "the-most-budget-friendly-cities-in-germany-for-international-students",
