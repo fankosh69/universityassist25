@@ -641,6 +641,134 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          ai_model: string | null
+          ai_prompt_version: string | null
+          author_id: string | null
+          category: string | null
+          created_at: string
+          faqs: Json
+          id: string
+          intro: string | null
+          keyword: string | null
+          meta_description: string | null
+          meta_title: string | null
+          primary_cta: Json | null
+          published_at: string | null
+          reading_minutes: number | null
+          related_links: Json
+          sections: Json
+          slug: string
+          source_candidate_id: string | null
+          status: Database["public"]["Enums"]["blog_post_status"]
+          title: string
+          tldr: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_model?: string | null
+          ai_prompt_version?: string | null
+          author_id?: string | null
+          category?: string | null
+          created_at?: string
+          faqs?: Json
+          id?: string
+          intro?: string | null
+          keyword?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          primary_cta?: Json | null
+          published_at?: string | null
+          reading_minutes?: number | null
+          related_links?: Json
+          sections?: Json
+          slug: string
+          source_candidate_id?: string | null
+          status?: Database["public"]["Enums"]["blog_post_status"]
+          title: string
+          tldr?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_model?: string | null
+          ai_prompt_version?: string | null
+          author_id?: string | null
+          category?: string | null
+          created_at?: string
+          faqs?: Json
+          id?: string
+          intro?: string | null
+          keyword?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          primary_cta?: Json | null
+          published_at?: string | null
+          reading_minutes?: number | null
+          related_links?: Json
+          sections?: Json
+          slug?: string
+          source_candidate_id?: string | null
+          status?: Database["public"]["Enums"]["blog_post_status"]
+          title?: string
+          tldr?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_source_candidate_id_fkey"
+            columns: ["source_candidate_id"]
+            isOneToOne: false
+            referencedRelation: "blog_topic_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_topic_candidates: {
+        Row: {
+          created_at: string
+          current_position: number | null
+          est_volume: number | null
+          id: string
+          kdi: number | null
+          keyword: string
+          notes: string | null
+          score: number | null
+          source: Database["public"]["Enums"]["blog_candidate_source"]
+          source_url: string | null
+          status: Database["public"]["Enums"]["blog_candidate_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_position?: number | null
+          est_volume?: number | null
+          id?: string
+          kdi?: number | null
+          keyword: string
+          notes?: string | null
+          score?: number | null
+          source?: Database["public"]["Enums"]["blog_candidate_source"]
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["blog_candidate_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_position?: number | null
+          est_volume?: number | null
+          id?: string
+          kdi?: number | null
+          keyword?: string
+          notes?: string | null
+          score?: number | null
+          source?: Database["public"]["Enums"]["blog_candidate_source"]
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["blog_candidate_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cities: {
         Row: {
           city_type: string | null
@@ -3936,6 +4064,9 @@ export type Database = {
         | "accepted"
         | "rejected"
         | "waitlisted"
+      blog_candidate_source: "gsc" | "firecrawl_gap" | "manual" | "semrush"
+      blog_candidate_status: "proposed" | "selected" | "rejected" | "drafted"
+      blog_post_status: "draft" | "published" | "archived"
       degree_level: "bachelor" | "master"
       education_system:
         | "abitur"
@@ -4106,6 +4237,9 @@ export const Constants = {
         "rejected",
         "waitlisted",
       ],
+      blog_candidate_source: ["gsc", "firecrawl_gap", "manual", "semrush"],
+      blog_candidate_status: ["proposed", "selected", "rejected", "drafted"],
+      blog_post_status: ["draft", "published", "archived"],
       degree_level: ["bachelor", "master"],
       education_system: [
         "abitur",
