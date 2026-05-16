@@ -105,6 +105,18 @@ async function main() {
     urlEntry("/regions", { changefreq: "weekly", priority: "0.7" }),
     urlEntry("/ambassadors", { changefreq: "weekly", priority: "0.7" }),
     urlEntry("/impressum", { changefreq: "yearly", priority: "0.3", alternates: false }),
+    urlEntry("/blog", { changefreq: "weekly", priority: "0.7", alternates: false }),
+    // Legacy WordPress URLs rebuilt as native pages — keep slugs verbatim.
+    ...[
+      "the-most-budget-friendly-cities-in-germany-for-international-students",
+      "karlsruhe-a-city-of-history",
+      "ue-university-of-europe-for-applied-sciences",
+      "why-to-study-entrepreneurship-in-germany",
+      "ebs-germany-a-way-to-success",
+      "best-5-universities-to-pursue-a-business-degree-in-germany",
+      "ects-and-its-benefits-for-international-students",
+      "about-us",
+    ].map((s) => urlEntry(`/${s}`, { changefreq: "monthly", priority: "0.8", alternates: false })),
   ];
   write("sitemap-static.xml", wrapUrlset(staticEntries));
 
