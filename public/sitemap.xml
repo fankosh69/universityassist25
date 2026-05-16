@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://uniassist.net/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://uniassist.net/search</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>https://uniassist.net/eligibility-checker</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://uniassist.net/cities</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://uniassist.net/universities</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://uniassist.net/regions</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://uniassist.net/ambassadors</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://uniassist.net/auth</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
-  <url><loc>https://uniassist.net/impressum</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-</urlset>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap><loc>https://uniassist.net/sitemap-static.xml</loc><lastmod>2026-05-16</lastmod></sitemap>
+  <sitemap><loc>https://uniassist.net/sitemap-cities.xml</loc><lastmod>2026-05-16</lastmod></sitemap>
+  <sitemap><loc>https://uniassist.net/sitemap-universities.xml</loc><lastmod>2026-05-16</lastmod></sitemap>
+  <sitemap><loc>https://uniassist.net/sitemap-programs.xml</loc><lastmod>2026-05-16</lastmod></sitemap>
+</sitemapindex>
