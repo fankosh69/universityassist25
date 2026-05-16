@@ -43,6 +43,12 @@ const DocumentsPage = lazy(() => import("./pages/DocumentsPage"));
 const SalesDashboard = lazy(() => import("./pages/SalesDashboard"));
 const EligibilityChecker = lazy(() => import("./pages/EligibilityChecker"));
 
+// Legacy blog routes — recreated WordPress posts that still rank on Google.
+// Slugs MUST match the legacy URLs for SEO continuity.
+const BlogIndex = lazy(() => import("./pages/blog/BlogIndex"));
+const LegacyBlogRoute = lazy(() => import("./pages/blog/LegacyBlogRoute"));
+import { LEGACY_BLOG_POSTS } from "@/content/legacy-blog-posts";
+
 // Lazy load admin pages
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
@@ -199,6 +205,12 @@ const AnimatedRoutes = ({ user }: { user: any }) => {
                 <Route path="/regions/:slug" element={<RegionDetail />} />
                 <Route path="/admissions-navigator" element={<AdmissionsNavigator />} />
                 <Route path="/eligibility-checker" element={<EligibilityChecker />} />
+                {/* Blog index + legacy ranking URLs rebuilt as native pages */}
+                <Route path="/blog" element={<BlogIndex />} />
+                {LEGACY_BLOG_POSTS.flatMap((p) => [
+                  <Route key={p.slug} path={`/${p.slug}`} element={<LegacyBlogRoute slug={p.slug} />} />,
+                  <Route key={`${p.slug}-trailing`} path={`/${p.slug}/`} element={<LegacyBlogRoute slug={p.slug} />} />,
+                ])}
                 <Route 
                   path="/profile" 
                   element={user ? <ProfilePage /> : <Navigate to="/auth" />} 
