@@ -26,6 +26,10 @@ export interface Program {
   university: University;
   tuition_eur?: number;
   duration_semesters?: number;
+  description?: string;
+  url?: string;
+  language?: string;
+  mode?: "online" | "onsite" | "blended";
 }
 
 export interface Ambassador {
@@ -118,31 +122,57 @@ export function createUniversitySchema(university: University, programs: Program
 }
 
 export function createProgramSchema(program: Program, breadcrumbs: Array<{name: string, url: string}>) {
+  const workload = program.duration_semesters
+    ? `P${program.duration_semesters * 6}M`
+    : undefined;
+  const courseMode =
+    program.mode === "online"
+      ? "Online"
+      : program.mode === "blended"
+      ? "Blended"
+      : "Onsite";
+
   return {
     "@context": "https://schema.org",
     "@type": "Course",
     "name": program.title,
-    "description": `${program.degree_level} in ${program.major}`,
+    "description":
+      program.description && program.description.trim().length > 0
+        ? program.description.trim().slice(0, 500)
+        : `${program.degree_level} in ${program.major} at ${program.university.name}.`,
+    ...(program.url && { "url": program.url }),
     "courseCode": program.major,
     "educationalLevel": program.degree_level,
     "provider": {
       "@type": "CollegeOrUniversity",
       "name": program.university.name,
+      ...(program.university.website && {
+        "url": program.university.website,
+        "sameAs": program.university.website,
+      }),
       "address": {
         "@type": "PostalAddress",
         "addressLocality": program.university.city,
         "addressCountry": "Germany"
       }
     },
-    ...(program.tuition_eur && {
+    "hasCourseInstance": {
+      "@type": "CourseInstance",
+      "courseMode": courseMode,
+      ...(workload && { "courseWorkload": workload }),
+      "inLanguage": program.language || "de",
+    },
+    ...(program.tuition_eur !== undefined && {
       "offers": {
         "@type": "Offer",
+        "category": program.tuition_eur === 0 ? "Free" : "Tuition",
         "price": program.tuition_eur,
-        "priceCurrency": "EUR"
+        "priceCurrency": "EUR",
+        "availability": "https://schema.org/InStock",
       }
     }),
-    "timeRequired": program.duration_semesters ? `P${program.duration_semesters * 6}M` : undefined,
-    "inLanguage": "de"
+    ...(workload && { "timeRequired": workload }),
+    "inLanguage": program.language || "de"
   };
 }
 
