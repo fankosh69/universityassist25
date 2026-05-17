@@ -98,3 +98,6 @@ verify_jwt = false
 
 [functions.hubspot-sync-universities]
 verify_jwt = false
+
+[functions.blog-generate-hero-image]
+verify_jwt = true

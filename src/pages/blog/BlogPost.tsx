@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import LoadingScreen from "@/components/LoadingScreen";
+import BlogImage from "@/components/blog/BlogImage";
 
 const SITE = "https://uniassist.net";
 
@@ -85,6 +86,7 @@ export default function BlogPost() {
       url: SITE,
     },
     mainEntityOfPage: url,
+    image: data.hero_image_url ? [data.hero_image_url] : undefined,
   };
 
   const faqSchema = faqs.length
@@ -147,6 +149,16 @@ export default function BlogPost() {
           {data.published_at && (
             <span>· Updated {new Date(data.updated_at).toLocaleDateString()}</span>
           )}
+        </div>
+
+        <div className="aspect-[16/9] overflow-hidden rounded-xl bg-muted mb-8 shadow-sm">
+          <BlogImage
+            src={data.hero_image_url ?? null}
+            alt={data.hero_image_alt ?? data.title}
+            category={data.category ?? undefined}
+            className="h-full w-full object-cover"
+            loading="eager"
+          />
         </div>
 
         {data.tldr && (
