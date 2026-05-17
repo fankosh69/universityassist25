@@ -137,7 +137,7 @@ export default function BlogPost() {
         {data.tldr && (
           <Card className="p-5 mb-8 bg-accent/30 border-l-4 border-l-primary">
             <div className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">
-              TL;DR
+              Quick Summary
             </div>
             <p className="text-base leading-relaxed">{data.tldr}</p>
           </Card>
