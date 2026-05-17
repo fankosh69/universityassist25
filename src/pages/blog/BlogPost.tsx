@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import type React from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowRight, Clock } from "lucide-react";
@@ -10,6 +11,20 @@ import { supabase } from "@/integrations/supabase/client";
 import LoadingScreen from "@/components/LoadingScreen";
 
 const SITE = "https://uniassist.net";
+
+// Renders inline markdown bold (**text**) as <strong>. Escapes HTML first so
+// AI-generated content can't inject markup. Italics (*text*) optional.
+function renderInline(text: string): React.ReactNode {
+  if (!text) return text;
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const html = escaped
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[\s(])\*(?!\s)([^*\n]+?)\*(?=[\s.,;:!?)]|$)/g, "$1<em>$2</em>");
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+}
 
 interface Section {
   heading: string;
@@ -139,35 +154,35 @@ export default function BlogPost() {
             <div className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">
               Quick Summary
             </div>
-            <p className="text-base leading-relaxed">{data.tldr}</p>
+            <p className="text-base leading-relaxed">{renderInline(data.tldr)}</p>
           </Card>
         )}
 
         {data.intro && (
           <p className="text-lg leading-relaxed text-foreground/90 mb-10">
-            {data.intro}
+            {renderInline(data.intro)}
           </p>
         )}
 
         {sections.map((s, i) => (
           <section key={i} className="mb-10">
             <h2 className="font-[var(--font-heading)] text-2xl md:text-3xl font-bold mb-3">
-              {s.heading}
+              {renderInline(s.heading)}
             </h2>
             {s.answer && (
               <p className="text-base font-medium text-foreground bg-muted/40 px-4 py-3 rounded-md mb-4">
-                {s.answer}
+                {renderInline(s.answer)}
               </p>
             )}
             {s.paragraphs?.map((p, j) => (
               <p key={j} className="text-base leading-relaxed text-foreground/90 mb-4">
-                {p}
+                {renderInline(p)}
               </p>
             ))}
             {s.bullets && s.bullets.length > 0 && (
               <ul className="list-disc list-outside ml-6 space-y-1.5 text-foreground/90 mb-4">
                 {s.bullets.map((b, k) => (
-                  <li key={k}>{b}</li>
+                  <li key={k}>{renderInline(b)}</li>
                 ))}
               </ul>
             )}
@@ -182,8 +197,8 @@ export default function BlogPost() {
             <div className="space-y-4">
               {faqs.map((f, i) => (
                 <Card key={i} className="p-5">
-                  <h3 className="font-semibold text-lg mb-2">{f.question}</h3>
-                  <p className="text-foreground/85">{f.answer}</p>
+                  <h3 className="font-semibold text-lg mb-2">{renderInline(f.question)}</h3>
+                  <p className="text-foreground/85">{renderInline(f.answer)}</p>
                 </Card>
               ))}
             </div>
