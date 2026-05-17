@@ -28,26 +28,45 @@ function json(body: unknown, status = 200) {
 
 function buildPrompt(title: string, category: string | null): string {
   const cat = (category ?? "").toLowerCase();
-  let scene = "international university students in Germany, candid editorial photography";
+  // Rotate through several distinct visual treatments so hero images don't
+  // feel repetitive. Pick deterministically per title so the same post is
+  // stable on regenerate-by-design, but varies across posts.
+  const styles = [
+    "cinematic editorial photography, 35mm film grain, golden-hour light, shallow depth of field, Kinfolk magazine aesthetic",
+    "vibrant modern illustration, flat-but-textured vector art, bold geometric shapes, brand blue #2E57F6 and teal accents, Behance editorial illustration style",
+    "isometric 3D render, soft pastel palette with brand blue accent, clean studio lighting, Blender octane look, playful but premium",
+    "double-exposure artistic composition blending German architecture with abstract gradients, painterly, museum-quality",
+    "minimal collage / cut-paper art with torn-edge textures, risograph print feel, limited palette with brand blue, indie magazine cover energy",
+    "dreamy cinematic photo with bokeh, warm sunlight rays, lifestyle moment, Unsplash trending aesthetic",
+    "abstract conceptual artwork using metaphors related to the article topic, gradient mesh, glassmorphism, contemporary digital art",
+  ];
+  let h = 0;
+  for (let i = 0; i < title.length; i++) h = (h * 31 + title.charCodeAt(i)) >>> 0;
+  const style = styles[h % styles.length];
+
+  let subject = "a creative metaphor for international students discovering Germany";
   if (cat.includes("city") || cat.includes("cities"))
-    scene = "iconic German cityscape with warm golden-hour light, no text or signs, no people in focus";
+    subject = "an evocative interpretation of a German cityscape — rooftops, bridges, trams or iconic silhouettes — atmospheric and artistic, not a generic stock photo";
   else if (cat.includes("cost"))
-    scene = "cozy German student apartment interior with desk, books and coffee, warm natural light";
+    subject = "a creative still-life metaphor for student budgeting in Germany: coins, plants, a notebook, a coffee cup, arranged artfully";
   else if (cat.includes("visa"))
-    scene = "calm flat-lay of a passport, neutral travel documents, a small German flag detail, soft daylight, no readable text";
+    subject = "an artistic conceptual scene about travel and paperwork — paper planes, abstract stamps, a stylized passport silhouette — symbolic rather than literal";
   else if (cat.includes("language"))
-    scene = "students chatting in a sunlit German university courtyard, friendly atmosphere";
+    subject = "a poetic visual metaphor for learning German — speech bubbles, abstract letterforms (non-readable), open books with light spilling out";
   else if (cat.includes("career"))
-    scene = "modern German office or campus career fair, diverse young professionals, bright contemporary mood";
+    subject = "a hopeful conceptual scene about a young professional's path — staircase, open doors, city skyline at dawn — symbolic, cinematic";
   else if (cat.includes("universit"))
-    scene = "elegant German university building with students walking, soft cinematic light";
+    subject = "a striking artistic view of a German university — dramatic architecture angle, light and shadow play, lone student silhouette";
+  else if (cat.includes("study"))
+    subject = "a warm, creative study scene — books, plants, a window with soft light, a laptop — lifestyle editorial mood";
 
   return [
-    `Editorial hero image for an article titled "${title}".`,
-    `Scene: ${scene}.`,
-    "Style: photographic, modern, warm, soft natural light, shallow depth of field, on-brand for an education platform.",
-    "Composition: wide 16:9 cinematic framing with negative space on one side.",
-    "Strict: no text, no letters, no logos, no watermarks, no signage with readable words, no flags besides subtle context.",
+    `Hero image for an article titled "${title}".`,
+    `Subject: ${subject}.`,
+    `Visual style: ${style}.`,
+    "Composition: wide 16:9 cinematic framing, strong focal point, generous negative space, premium magazine-cover quality.",
+    "Mood: inspiring, optimistic, warm, premium — an image people want to share.",
+    "Strict: absolutely no text, no letters, no words, no numbers, no logos, no watermarks, no readable signage of any kind.",
   ].join(" ");
 }
 
