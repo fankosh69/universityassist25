@@ -9,6 +9,7 @@
 // Runs from pg_cron daily. Picks oldest `proposed` candidate.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { Resend } from "npm:resend@4.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,6 +18,8 @@ const corsHeaders = {
 
 const PROMPT_VERSION = "v1-2026-05-16";
 const MODEL = "google/gemini-2.5-pro";
+const NOTIFY_EMAIL = "info@uniassist.net";
+const SITE_URL = "https://www.uniassist.net";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -216,5 +219,44 @@ Deno.serve(async (req) => {
       .eq("id", candidate.id);
   }
 
+  // Fire-and-forget notification email
+  try {
+    const resendKey = Deno.env.get("RESEND_API_KEY");
+    if (resendKey && inserted) {
+      const resend = new Resend(resendKey);
+      const adminUrl = `${SITE_URL}/admin/blog`;
+      const previewUrl = `${SITE_URL}/blog/${inserted.slug}`;
+      const safeTldr = (ai.tldr ?? "").toString().slice(0, 400);
+      await resend.emails.send({
+        from: "University Assist <info@uniassist.net>",
+        to: [NOTIFY_EMAIL],
+        subject: `New blog draft ready: ${ai.title}`,
+        html: `<!doctype html><html><body style="margin:0;padding:0;background:#ffffff;font-family:Arial,sans-serif;color:#1a1a1a;">
+  <div style="max-width:560px;margin:0 auto;padding:32px 24px;">
+    <p style="font-size:12px;color:#6b7280;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.5px;">New draft ready for review</p>
+    <h1 style="font-size:22px;line-height:1.3;margin:0 0 12px;color:#0f172a;">${escapeHtml(ai.title)}</h1>
+    <p style="font-size:13px;color:#6b7280;margin:0 0 20px;">
+      ${escapeHtml(ai.category ?? "")} · ${ai.readingMinutes ?? 7} min read · keyword: <strong>${escapeHtml(candidate.keyword)}</strong>
+    </p>
+    <p style="font-size:14px;line-height:1.6;color:#374151;margin:0 0 24px;">${escapeHtml(safeTldr)}</p>
+    <a href="${adminUrl}" style="display:inline-block;background:#2E57F6;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600;font-size:14px;">Review & publish</a>
+    <p style="font-size:12px;color:#9ca3af;margin:24px 0 0;">Preview: <a href="${previewUrl}" style="color:#2E57F6;">${previewUrl}</a></p>
+  </div>
+</body></html>`,
+      });
+    }
+  } catch (e) {
+    console.error("[draft] notification email failed", e);
+  }
+
   return json({ success: true, post: inserted });
 });
+
+function escapeHtml(s: string): string {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
