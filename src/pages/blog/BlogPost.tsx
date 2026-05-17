@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import type React from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowRight, Clock } from "lucide-react";
