@@ -60,7 +60,7 @@ const Index = () => {
 
     const load = async () => {
       try {
-        const [programsRes, statsProgramsRes, statsUnisRes, statsCitiesRes, cityRowsRes] = await Promise.all([
+        const settled = await Promise.allSettled([
           supabase
             .from('programs')
             .select(`
@@ -81,6 +81,14 @@ const Index = () => {
         ]);
 
         if (cancelled) return;
+
+        const [programsRes, statsProgramsRes, statsUnisRes, statsCitiesRes, cityRowsRes] = settled.map(
+          (r) => (r.status === 'fulfilled' ? r.value : { data: null, count: 0, error: r.reason })
+        ) as any[];
+
+        settled.forEach((r, i) => {
+          if (r.status === 'rejected') console.warn('[Index load] query', i, 'failed:', r.reason);
+        });
 
         // Programs
         const list: FeaturedProgram[] = (programsRes.data ?? []).map((p: any) => ({
