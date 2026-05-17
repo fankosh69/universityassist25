@@ -1567,6 +1567,27 @@ export type Database = {
           },
         ]
       }
+      legacy_blog_hero_images: {
+        Row: {
+          hero_image_alt: string | null
+          hero_image_url: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          hero_image_alt?: string | null
+          hero_image_url: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          hero_image_alt?: string | null
+          hero_image_url?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       location_events: {
         Row: {
           city: string | null
