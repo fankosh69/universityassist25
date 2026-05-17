@@ -5,6 +5,8 @@
 //   - { post_id }     -> generate for one post
 //   - { backfill: true } -> generate for all published/draft posts missing an image
 //   - { title, category, slug } -> internal call from blog-draft-generator
+//   - { legacy_slug, title, category } -> generate for a legacy (code-defined) post
+//     and upsert into the `legacy_blog_hero_images` table.
 //
 // Auth: verify_jwt = true (admin-only callers from the UI). Internal calls
 // from other edge functions use the service-role and bypass verify_jwt.
@@ -134,7 +136,13 @@ Deno.serve(async (req) => {
     { auth: { persistSession: false } },
   );
 
-  let body: { post_id?: string; backfill?: boolean } = {};
+  let body: {
+    post_id?: string;
+    backfill?: boolean;
+    legacy_slug?: string;
+    title?: string;
+    category?: string | null;
+  } = {};
   try {
     body = (await req.json()) ?? {};
   } catch {
@@ -142,6 +150,32 @@ Deno.serve(async (req) => {
   }
 
   try {
+    if (body.legacy_slug) {
+      if (!body.title) return json({ error: "title required for legacy_slug" }, 400);
+      const prompt = buildPrompt(body.title, body.category ?? null);
+      const bytes = await generateImage(lovableKey, prompt);
+      const path = `legacy/${body.legacy_slug}-${Date.now()}.png`;
+      const { error: upErr } = await sb.storage
+        .from(BUCKET)
+        .upload(path, bytes, { contentType: "image/png", upsert: true });
+      if (upErr) throw new Error(`upload: ${upErr.message}`);
+      const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(path);
+      const url = pub.publicUrl;
+      const { error: dbErr } = await sb
+        .from("legacy_blog_hero_images")
+        .upsert(
+          {
+            slug: body.legacy_slug,
+            hero_image_url: url,
+            hero_image_alt: body.title,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "slug" },
+        );
+      if (dbErr) throw new Error(`upsert: ${dbErr.message}`);
+      return json({ success: true, url });
+    }
+
     if (body.backfill) {
       const { data: posts, error } = await sb
         .from("blog_posts")

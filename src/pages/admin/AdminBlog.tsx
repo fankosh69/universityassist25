@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles, Search, ExternalLink, Trash2, ImageIcon, RefreshCw } from "lucide-react";
+import { LEGACY_BLOG_POSTS } from "@/content/legacy-blog-posts";
 
 type Candidate = {
   id: string;
@@ -57,6 +58,8 @@ export default function AdminBlog() {
   const [editorPost, setEditorPost] = useState<Post | null>(null);
   const [imageBusy, setImageBusy] = useState<string | null>(null);
   const [backfilling, setBackfilling] = useState(false);
+  const [legacyImageBusy, setLegacyImageBusy] = useState<string | null>(null);
+  const [legacyBackfilling, setLegacyBackfilling] = useState(false);
 
   const { data: candidates } = useQuery({
     queryKey: ["blog-candidates"],
@@ -81,6 +84,21 @@ export default function AdminBlog() {
         .limit(100);
       if (error) throw error;
       return data as Post[];
+    },
+  });
+
+  const { data: legacyImages } = useQuery({
+    queryKey: ["legacy-blog-hero-images"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("legacy_blog_hero_images")
+        .select("slug, hero_image_url, hero_image_alt, updated_at");
+      if (error) throw error;
+      const map = new Map<string, { url: string; alt: string | null; updated_at: string }>();
+      (data ?? []).forEach((r) =>
+        map.set(r.slug, { url: r.hero_image_url, alt: r.hero_image_alt, updated_at: r.updated_at }),
+      );
+      return map;
     },
   });
 
@@ -187,6 +205,47 @@ export default function AdminBlog() {
     }
   }
 
+  async function regenerateLegacyImage(p: { slug: string; title: string; category: string }) {
+    setLegacyImageBusy(p.slug);
+    try {
+      const { data, error } = await supabase.functions.invoke("blog-generate-hero-image", {
+        body: { legacy_slug: p.slug, title: p.title, category: p.category },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Image generated" });
+      qc.invalidateQueries({ queryKey: ["legacy-blog-hero-images"] });
+    } catch (e) {
+      toast({ title: "Image generation failed", description: String(e), variant: "destructive" });
+    } finally {
+      setLegacyImageBusy(null);
+    }
+  }
+
+  async function backfillLegacyImages() {
+    const missing = LEGACY_BLOG_POSTS.filter((p) => !legacyImages?.has(p.slug));
+    if (missing.length === 0) {
+      toast({ title: "All legacy posts already have images" });
+      return;
+    }
+    if (!confirm(`Generate hero images for ${missing.length} legacy posts without one?`)) return;
+    setLegacyBackfilling(true);
+    let ok = 0;
+    for (const p of missing) {
+      try {
+        await supabase.functions.invoke("blog-generate-hero-image", {
+          body: { legacy_slug: p.slug, title: p.title, category: p.category },
+        });
+        ok++;
+      } catch (e) {
+        console.error("legacy backfill failed for", p.slug, e);
+      }
+    }
+    toast({ title: "Legacy backfill complete", description: `Generated ${ok}/${missing.length} images.` });
+    qc.invalidateQueries({ queryKey: ["legacy-blog-hero-images"] });
+    setLegacyBackfilling(false);
+  }
+
   async function rejectCandidate(c: Candidate) {
     await supabase.from("blog_topic_candidates").update({ status: "rejected" }).eq("id", c.id);
     qc.invalidateQueries({ queryKey: ["blog-candidates"] });
@@ -220,6 +279,9 @@ export default function AdminBlog() {
           </TabsTrigger>
           <TabsTrigger value="published">
             Published ({posts?.filter((p) => p.status === "published").length ?? 0})
+          </TabsTrigger>
+          <TabsTrigger value="legacy">
+            Legacy ({LEGACY_BLOG_POSTS.length})
           </TabsTrigger>
           <TabsTrigger value="candidates">
             Topic candidates ({candidates?.filter((c) => c.status === "proposed").length ?? 0})
@@ -299,6 +361,73 @@ export default function AdminBlog() {
               </div>
             </Card>
           ))}
+        </TabsContent>
+
+        <TabsContent value="legacy" className="space-y-3 mt-4">
+          <Card className="p-4 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold">Legacy posts (code-defined)</h3>
+              <p className="text-sm text-muted-foreground">
+                These articles live in <code>src/content/legacy-blog-posts.ts</code>. You can
+                generate or regenerate AI hero images for them here.
+              </p>
+            </div>
+            <Button onClick={backfillLegacyImages} disabled={legacyBackfilling} variant="outline">
+              {legacyBackfilling ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <ImageIcon className="h-4 w-4 mr-2" />
+              )}
+              Backfill missing
+            </Button>
+          </Card>
+
+          {LEGACY_BLOG_POSTS.map((p) => {
+            const img = legacyImages?.get(p.slug);
+            return (
+              <Card key={p.slug} className="p-4 flex items-center gap-4">
+                <div className="shrink-0 w-28 h-20 rounded-md overflow-hidden bg-muted border border-border">
+                  {img?.url ? (
+                    <img src={img.url} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                      <ImageIcon className="h-5 w-5" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                    <Badge variant="secondary">{p.category}</Badge>
+                    <span>· {p.readingMinutes} min</span>
+                    {img?.updated_at && (
+                      <span>· image updated {new Date(img.updated_at).toLocaleDateString()}</span>
+                    )}
+                  </div>
+                  <h3 className="font-semibold truncate">{p.title}</h3>
+                  <p className="text-xs text-muted-foreground truncate">/{p.slug}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => regenerateLegacyImage(p)}
+                    disabled={legacyImageBusy === p.slug}
+                    title={img ? "Regenerate image" : "Generate image"}
+                  >
+                    {legacyImageBusy === p.slug ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    {img ? "Regenerate" : "Generate"}
+                  </Button>
+                  <Link to={`/${p.slug}`} target="_blank">
+                    <Button size="sm" variant="ghost"><ExternalLink className="h-4 w-4" /></Button>
+                  </Link>
+                </div>
+              </Card>
+            );
+          })}
         </TabsContent>
 
         <TabsContent value="candidates" className="space-y-3 mt-4">

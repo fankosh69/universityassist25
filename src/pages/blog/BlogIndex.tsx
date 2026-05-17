@@ -35,6 +35,19 @@ export default function BlogIndex() {
     },
   });
 
+  const { data: legacyImages } = useQuery({
+    queryKey: ["legacy-blog-hero-images-public"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("legacy_blog_hero_images")
+        .select("slug, hero_image_url");
+      if (error) throw error;
+      const map = new Map<string, string>();
+      (data ?? []).forEach((r) => map.set(r.slug, r.hero_image_url));
+      return map;
+    },
+  });
+
   const posts = useMemo<(BlogCardItem & { updatedDate: string })[]>(() => {
     const fromDb = (dbPosts ?? []).map((p) => ({
       slug: `blog/${p.slug}`,
@@ -52,12 +65,12 @@ export default function BlogIndex() {
       category: p.category as string,
       readingMinutes: p.readingMinutes,
       updatedDate: p.updatedDate,
-      heroImageUrl: null,
+      heroImageUrl: legacyImages?.get(p.slug) ?? null,
     }));
     return [...fromDb, ...fromLegacy].sort(
       (a, b) => +new Date(b.updatedDate) - +new Date(a.updatedDate),
     );
-  }, [dbPosts]);
+  }, [dbPosts, legacyImages]);
 
   const categories = useMemo(() => {
     const set = new Set<string>();

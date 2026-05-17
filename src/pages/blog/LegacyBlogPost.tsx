@@ -6,11 +6,27 @@ import JsonLd from "@/components/JsonLd";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { LegacyBlogPost } from "@/content/legacy-blog-posts";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import BlogImage from "@/components/blog/BlogImage";
 
 const SITE = "https://uniassist.net";
 
 export default function LegacyBlogPostPage({ post }: { post: LegacyBlogPost }) {
   const url = `${SITE}/${post.slug}`;
+
+  const { data: heroImage } = useQuery({
+    queryKey: ["legacy-blog-hero-image", post.slug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("legacy_blog_hero_images")
+        .select("hero_image_url, hero_image_alt")
+        .eq("slug", post.slug)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -21,6 +37,7 @@ export default function LegacyBlogPostPage({ post }: { post: LegacyBlogPost }) {
     dateModified: post.updatedDate,
     inLanguage: "en",
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    ...(heroImage?.hero_image_url ? { image: heroImage.hero_image_url } : {}),
     author: { "@type": "Organization", name: "University Assist", url: SITE },
     publisher: {
       "@type": "Organization",
@@ -76,6 +93,16 @@ export default function LegacyBlogPostPage({ post }: { post: LegacyBlogPost }) {
           <ChevronRight className="h-4 w-4" />
           <span className="text-foreground line-clamp-1">{post.title}</span>
         </nav>
+
+        {/* Hero image */}
+        <div className="mb-8 aspect-[16/9] overflow-hidden rounded-2xl bg-muted">
+          <BlogImage
+            src={heroImage?.hero_image_url ?? null}
+            alt={heroImage?.hero_image_alt ?? post.title}
+            category={post.category}
+            className="h-full w-full object-cover"
+          />
+        </div>
 
         {/* Header */}
         <header className="mb-8 md:mb-10">
