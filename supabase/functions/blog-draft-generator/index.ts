@@ -219,6 +219,22 @@ Deno.serve(async (req) => {
       .eq("id", candidate.id);
   }
 
+  // Fire-and-forget: generate hero image for the new post.
+  try {
+    const fnUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/blog-generate-hero-image`;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    fetch(fnUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${serviceKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ post_id: inserted?.id }),
+    }).catch((e) => console.error("[draft] hero image dispatch failed", e));
+  } catch (e) {
+    console.error("[draft] hero image dispatch error", e);
+  }
+
   // Fire-and-forget notification email
   try {
     const resendKey = Deno.env.get("RESEND_API_KEY");
