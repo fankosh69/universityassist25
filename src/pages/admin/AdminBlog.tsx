@@ -348,7 +348,7 @@ function PostEditor({
             <Textarea value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} rows={2} />
           </div>
           <div>
-            <label className="text-xs font-medium">TL;DR</label>
+            <label className="text-xs font-medium">Quick Summary</label>
             <Textarea value={tldr} onChange={(e) => setTldr(e.target.value)} rows={3} />
           </div>
           <div>
