@@ -649,6 +649,8 @@ export type Database = {
           category: string | null
           created_at: string
           faqs: Json
+          hero_image_alt: string | null
+          hero_image_url: string | null
           id: string
           intro: string | null
           keyword: string | null
@@ -673,6 +675,8 @@ export type Database = {
           category?: string | null
           created_at?: string
           faqs?: Json
+          hero_image_alt?: string | null
+          hero_image_url?: string | null
           id?: string
           intro?: string | null
           keyword?: string | null
@@ -697,6 +701,8 @@ export type Database = {
           category?: string | null
           created_at?: string
           faqs?: Json
+          hero_image_alt?: string | null
+          hero_image_url?: string | null
           id?: string
           intro?: string | null
           keyword?: string | null
