@@ -1,36 +1,51 @@
-## Goal
-Send an email to admins each time the blog pipeline creates a new draft (manual, candidate-based, or daily cron), so you know when something is waiting for review at `/admin/blog`.
+## 1. Redesigned `/blog` index
 
-## Approach
-Use Lovable's built-in email system (already configured — `info@uniassist.net` via the verified `notify` subdomain). Add one transactional template + invoke it from the existing `blog-draft-generator` edge function right after a draft is inserted.
+Inspired by the study-in-germany.com community page, but on-brand (Primary #2E57F6, Poppins/Ubuntu, rounded-2xl, soft shadows).
 
-## Steps
+**Structure:**
+- **Hero band** — full-width brand-gradient header with H1, intro line, and a search input. No stock photo (avoids "stock photo" feel and keeps load fast).
+- **Category chips row** — filter by `Cities / Universities / Study tips / Costs / Visa / Language / Careers`. Active chip uses primary; client-side filter.
+- **Featured post** — the newest published post gets a large 2-column card: hero image left, title + excerpt + category + read-time + "Read article →" right.
+- **Article grid** — 3-column on desktop / 2 on tablet / 1 on mobile. Each card: 16:9 hero image on top, category pill, H3 title, 2-line excerpt, read-time. Hover lifts the card, image zooms slightly.
+- **Quick-access landing pages** kept as a slim section below the grid (currently above — moved so articles lead).
+- Skeleton loaders while posts fetch; empty-state when a category filter has no results.
 
-1. **Confirm app-email infrastructure is set up**
-   - Verify the shared email queue + `send-transactional-email` function exists. If not, scaffold it (one-time setup). Auth emails are already live, so the domain + queue are ready.
+Files: `src/pages/blog/BlogIndex.tsx` (rewrite), `src/components/blog/BlogCard.tsx` (new), `src/components/blog/BlogFeaturedCard.tsx` (new), `src/components/blog/BlogCategoryFilter.tsx` (new).
 
-2. **Add a new template** `blog-draft-ready` in `supabase/functions/_shared/transactional-email-templates/`
-   - React Email component, branded with #2E57F6.
-   - Props: `title`, `keyword`, `category`, `readingMinutes`, `adminUrl` (deep link to `/admin/blog`), `previewSnippet` (TL;DR).
-   - Subject: `New blog draft ready: {title}`.
-   - Register in `registry.ts`.
+The single blog post page (`/blog/:slug`) also gets the hero image rendered above the title.
 
-3. **Recipients list**
-   - New table `blog_notification_recipients` (email, active) so you can add/remove addresses without redeploying. Seed with your address.
-   - RLS: admin-only read/write (uses existing `has_role(auth.uid(), 'admin')`).
-   - Alternative if you'd rather skip a table: hardcode `info@uniassist.net` as the single recipient. I'll default to the table approach unless you say otherwise.
+## 2. AI-generated hero images
 
-4. **Trigger from `blog-draft-generator`**
-   - After the successful `blog_posts` insert, fetch active recipients and, for each, call `send-transactional-email` with `idempotencyKey = draft-ready-{post.id}-{email}` so retries/cron re-runs never double-send.
-   - Failures to send are logged but don't fail the draft creation.
+Auto-generate one 16:9 hero image per blog post using **Lovable AI Gateway image model** (`google/gemini-2.5-flash-image` — Nano Banana). No new secret needed; reuses `LOVABLE_API_KEY`.
 
-5. **Small admin UI addition (optional, in `AdminBlog.tsx`)**
-   - Tiny "Notifications" section listing recipients with add/remove. Skip if you only want one fixed address.
+**Storage:** new public Supabase bucket `blog-images`. Files keyed by post slug (e.g. `what-is-uni-assist-guide.jpg`). Public-read; admin-write via RLS.
 
-## Technical notes
-- No new secrets needed.
-- Daily cron path already calls `blog-draft-generator`, so the email fires automatically when the 06:30 UTC job creates a draft.
-- Email body background stays white per platform rule; brand color used only for the CTA button.
+**Schema:** add `hero_image_url TEXT` and `hero_image_alt TEXT` to `blog_posts`.
 
-## Open question
-Do you want a managed recipients table (multi-address, editable in admin UI) or just hardcode `info@uniassist.net`?
+**Generation flow (`blog-draft-generator` edge function):**
+1. After inserting the draft, call AI gateway image endpoint with a prompt built from title + category:
+   `"Editorial hero image for an article titled \"{title}\". Category: {category}. Style: modern, warm, photographic, soft natural light, featuring international students or German university imagery as appropriate. No text, no logos, no watermarks. Wide 16:9."`
+2. Decode the returned base64 PNG, upload to `blog-images/{slug}.png` via service-role client.
+3. Update the row with `hero_image_url` (public URL) and `hero_image_alt` = title.
+4. Wrapped in try/catch — failure logs but does not fail the draft creation; admin can regenerate from UI.
+
+**Admin UI (`AdminBlog.tsx`):**
+- Draft & published cards show the thumbnail.
+- "Regenerate image" button per post → calls new edge function `blog-generate-hero-image` with `{ post_id }`.
+- Editor dialog adds an "Image" section: preview + Regenerate + manual URL override.
+
+**Backfill:** the new `blog-generate-hero-image` function accepts `{ backfill: true }` and loops over posts where `hero_image_url IS NULL`. Triggered from a one-click admin button.
+
+## 3. Technical notes
+
+- New edge function `blog-generate-hero-image` (config in `supabase/config.toml`, `verify_jwt = true` so only authenticated admins can invoke from UI; internal calls from `blog-draft-generator` use service key).
+- Image model call uses Lovable AI Gateway `/v1/chat/completions` with `model: "google/gemini-2.5-flash-image"` and `modalities: ["image","text"]` per gateway image spec; returns base64 PNG in `message.images[0].image_url.url`.
+- Card images use `loading="lazy"` + `decoding="async"`; featured card eager-loads.
+- All colors via semantic tokens — no raw hex in components.
+- Add `BlogPosting.image` to existing JSON-LD on the post page.
+
+## 4. Out of scope
+
+- No translations of blog content (separate effort).
+- No comments / community submissions.
+- No newsletter signup block (can add later if you want).
