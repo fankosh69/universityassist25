@@ -1,0 +1,5 @@
+SELECT cron.unschedule(jobid) FROM cron.job WHERE jobname IN ('blog-draft-daily','blog-discover-daily');
+
+SELECT cron.schedule('blog-discover-daily', '0 6 * * *', $$ select net.http_post(url:='https://zfiexgjcuojodmnsinsz.supabase.co/functions/v1/blog-topic-discovery', headers:='{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmaWV4Z2pjdW9qb2RtbnNpbnN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1MTczMjMsImV4cCI6MjA3MTA5MzMyM30.POGAKsZdQXRtshrQbVbuhm2xGz5JO3491yTvn88ipaQ"}'::jsonb, body:='{}'::jsonb, timeout_milliseconds:=120000); $$);
+
+SELECT cron.schedule('blog-draft-daily', '30 6 * * *', $$ select net.http_post(url:='https://zfiexgjcuojodmnsinsz.supabase.co/functions/v1/blog-draft-generator', headers:='{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmaWV4Z2pjdW9qb2RtbnNpbnN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1MTczMjMsImV4cCI6MjA3MTA5MzMyM30.POGAKsZdQXRtshrQbVbuhm2xGz5JO3491yTvn88ipaQ"}'::jsonb, body:='{}'::jsonb, timeout_milliseconds:=120000); $$);
