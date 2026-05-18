@@ -1,51 +1,39 @@
-## 1. Redesigned `/blog` index
+## Why no draft email arrived today
 
-Inspired by the study-in-germany.com community page, but on-brand (Primary #2E57F6, Poppins/Ubuntu, rounded-2xl, soft shadows).
+The daily cron jobs DID fire on schedule (06:00 and 06:30 UTC today), but both `pg_net` HTTP calls **timed out after 5 seconds** before the edge function could complete:
 
-**Structure:**
-- **Hero band** — full-width brand-gradient header with H1, intro line, and a search input. No stock photo (avoids "stock photo" feel and keeps load fast).
-- **Category chips row** — filter by `Cities / Universities / Study tips / Costs / Visa / Language / Careers`. Active chip uses primary; client-side filter.
-- **Featured post** — the newest published post gets a large 2-column card: hero image left, title + excerpt + category + read-time + "Read article →" right.
-- **Article grid** — 3-column on desktop / 2 on tablet / 1 on mobile. Each card: 16:9 hero image on top, category pill, H3 title, 2-line excerpt, read-time. Hover lifts the card, image zooms slightly.
-- **Quick-access landing pages** kept as a slim section below the grid (currently above — moved so articles lead).
-- Skeleton loaders while posts fetch; empty-state when a category filter has no results.
+```
+2026-05-18 06:30:00  error_msg: Timeout of 5000 ms reached
+2026-05-18 06:00:00  error_msg: Timeout of 5000 ms reached
+```
 
-Files: `src/pages/blog/BlogIndex.tsx` (rewrite), `src/components/blog/BlogCard.tsx` (new), `src/components/blog/BlogFeaturedCard.tsx` (new), `src/components/blog/BlogCategoryFilter.tsx` (new).
+No edge function logs exist for `blog-draft-generator` because the connection was severed before the AI call (Gemini 2.5 Pro article generation) could finish — it easily takes 15–60s. Result: no draft was inserted, no email was sent.
 
-The single blog post page (`/blog/:slug`) also gets the hero image rendered above the title.
+This is the default `pg_net` behavior — `net.http_post` has a 5 second timeout unless explicitly overridden.
 
-## 2. AI-generated hero images
+## Fix
 
-Auto-generate one 16:9 hero image per blog post using **Lovable AI Gateway image model** (`google/gemini-2.5-flash-image` — Nano Banana). No new secret needed; reuses `LOVABLE_API_KEY`.
+Re-schedule both cron jobs (`blog-discover-daily`, `blog-draft-daily`) with an explicit `timeout_milliseconds` argument of 120000 (2 min). Since the cron command contains the project's anon key (user-specific), per Lovable conventions this is run via a one-off SQL `insert` call (not a migration file):
 
-**Storage:** new public Supabase bucket `blog-images`. Files keyed by post slug (e.g. `what-is-uni-assist-guide.jpg`). Public-read; admin-write via RLS.
+```sql
+select cron.unschedule('blog-draft-daily');
+select cron.schedule(
+  'blog-draft-daily', '30 6 * * *',
+  $$ select net.http_post(
+      url:='https://zfiexgjcuojodmnsinsz.supabase.co/functions/v1/blog-draft-generator',
+      headers:='{"Content-Type":"application/json","Authorization":"Bearer <anon>"}'::jsonb,
+      body:='{}'::jsonb,
+      timeout_milliseconds:=120000
+  ); $$
+);
+-- same pattern for blog-discover-daily
+```
 
-**Schema:** add `hero_image_url TEXT` and `hero_image_alt TEXT` to `blog_posts`.
+Then immediately trigger `blog-draft-generator` once manually so today's draft + notification email goes out for the existing `proposed` candidate (`uni assist germany`).
 
-**Generation flow (`blog-draft-generator` edge function):**
-1. After inserting the draft, call AI gateway image endpoint with a prompt built from title + category:
-   `"Editorial hero image for an article titled \"{title}\". Category: {category}. Style: modern, warm, photographic, soft natural light, featuring international students or German university imagery as appropriate. No text, no logos, no watermarks. Wide 16:9."`
-2. Decode the returned base64 PNG, upload to `blog-images/{slug}.png` via service-role client.
-3. Update the row with `hero_image_url` (public URL) and `hero_image_alt` = title.
-4. Wrapped in try/catch — failure logs but does not fail the draft creation; admin can regenerate from UI.
+## Verification
 
-**Admin UI (`AdminBlog.tsx`):**
-- Draft & published cards show the thumbnail.
-- "Regenerate image" button per post → calls new edge function `blog-generate-hero-image` with `{ post_id }`.
-- Editor dialog adds an "Image" section: preview + Regenerate + manual URL override.
+- Check `net._http_response` tomorrow morning: should show `status_code: 200` instead of timeout.
+- Confirm a draft email lands at info@uniassist.net.
 
-**Backfill:** the new `blog-generate-hero-image` function accepts `{ backfill: true }` and loops over posts where `hero_image_url IS NULL`. Triggered from a one-click admin button.
-
-## 3. Technical notes
-
-- New edge function `blog-generate-hero-image` (config in `supabase/config.toml`, `verify_jwt = true` so only authenticated admins can invoke from UI; internal calls from `blog-draft-generator` use service key).
-- Image model call uses Lovable AI Gateway `/v1/chat/completions` with `model: "google/gemini-2.5-flash-image"` and `modalities: ["image","text"]` per gateway image spec; returns base64 PNG in `message.images[0].image_url.url`.
-- Card images use `loading="lazy"` + `decoding="async"`; featured card eager-loads.
-- All colors via semantic tokens — no raw hex in components.
-- Add `BlogPosting.image` to existing JSON-LD on the post page.
-
-## 4. Out of scope
-
-- No translations of blog content (separate effort).
-- No comments / community submissions.
-- No newsletter signup block (can add later if you want).
+No code or file changes required — this is a database-side scheduler fix.
