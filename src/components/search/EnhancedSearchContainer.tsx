@@ -609,55 +609,79 @@ export function EnhancedSearchContainer() {
                   {searchQuery && (
                     <Badge variant="secondary" className="text-xs">
                       Search: {searchQuery}
-                      <X
-                        className="h-3 w-3 ml-1 cursor-pointer"
+                      <button
+                        type="button"
+                        className="ml-1 p-0.5 rounded-sm hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                        aria-label="Clear search"
                         onClick={() => setSearchQuery('')}
-                      />
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   )}
                   {filters.degreeLevel !== 'all' && (
                     <Badge variant="secondary" className="text-xs">
                       {filters.degreeLevel}
-                      <X
-                        className="h-3 w-3 ml-1 cursor-pointer"
+                      <button
+                        type="button"
+                        className="ml-1 p-0.5 rounded-sm hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                        aria-label={`Remove ${filters.degreeLevel} filter`}
                         onClick={() => removeFilter('degreeLevel')}
-                      />
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   )}
                   {filters.city !== 'all' && (
                     <Badge variant="secondary" className="text-xs">
                       {filters.city}
-                      <X
-                        className="h-3 w-3 ml-1 cursor-pointer"
+                      <button
+                        type="button"
+                        className="ml-1 p-0.5 rounded-sm hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                        aria-label={`Remove ${filters.city} filter`}
                         onClick={() => removeFilter('city')}
-                      />
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   )}
                   {filters.maxTuitionFees !== 'all' && (
                     <Badge variant="secondary" className="text-xs">
                       ≤€{filters.maxTuitionFees}
-                      <X
-                        className="h-3 w-3 ml-1 cursor-pointer"
+                      <button
+                        type="button"
+                        className="ml-1 p-0.5 rounded-sm hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                        aria-label="Remove tuition fee filter"
                         onClick={() => removeFilter('maxTuitionFees')}
-                      />
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   )}
                   {filters.fieldOfStudy !== 'all' && (
                     <Badge variant="secondary" className="text-xs">
                       {filters.fieldOfStudy}
-                      <X
-                        className="h-3 w-3 ml-1 cursor-pointer"
+                      <button
+                        type="button"
+                        className="ml-1 p-0.5 rounded-sm hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                        aria-label={`Remove ${filters.fieldOfStudy} filter`}
                         onClick={() => removeFilter('fieldOfStudy')}
-                      />
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   )}
                   {filters.intake?.map(intake => (
                     <Badge key={intake} variant="secondary" className="text-xs">
                       {intake === 'both' ? 'Both Intakes' : intake === 'winter-only' ? 'Winter Only' : 'Summer Only'}
-                      <X
-                        className="h-3 w-3 ml-1 cursor-pointer"
+                      <button
+                        type="button"
+                        className="ml-1 p-0.5 rounded-sm hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                        aria-label={`Remove ${intake} intake filter`}
                         onClick={() => removeFilter('intake', intake)}
-                      />
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   ))}
                   {(filters.deadlineRange?.from || filters.deadlineRange?.to) && (() => {
