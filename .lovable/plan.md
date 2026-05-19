@@ -1,42 +1,46 @@
-# Unify filter sidebar styling
+## Problem
 
-## Goal
-Every filter category (Degree, Tuition, Institution, Ownership, Duration, Application Method, Application Fee, Intake, Deadline, English Proof, My German GPA, Prerequisites) should use the same `FilterCardSection` card chrome as Course of Study and Location. Also fix Course of Study where nested rows/pills visually break out of the card frame.
+In the Course of Study card, level-2 rows (e.g. "Mathematics, Natural Sciences", "Agricultural and Forest Sci…") render their label and the count pill outside / clipped against the card's right edge. The count pill (`0`, `58`) sits on top of, or past, the card border, and the accordion chevron pushes things further right.
 
-## Changes
+Root cause is in `src/components/search/HierarchicalFieldSelect.tsx`:
 
-### 1. `src/components/search/FilterSidebar.tsx`
-- Remove the `<Accordion>` + `FilterGroup` block entirely.
-- Drop unused imports (`Accordion`, `FilterGroup`).
-- Render every category as a `FilterCardSection` inside one unified `space-y-3 p-4` container, so the sidebar becomes a single vertical stack of identical cards (no more mixed accordion + card styles).
-- For each card, pass:
-  - `title`, matching `icon` (size bumped to `h-5 w-5` to match the hero cards),
-  - `activeCount` computed exactly as today,
-  - `onClear` + `clearLabel` so every card gets the same footer "Clear filter" affordance when active,
-  - `defaultOpen={false}` (cards auto-open when they have an active value via the component's existing logic).
-- Keep the same control inside each card (RadioGroup / Select / Checkbox group / Slider / DeadlineRangeFilter / HierarchicalFieldSelect / CityLocationFilter) — only the wrapper changes.
-- Remove the top-level `Filters` header `Clear all` redundancy is kept (still useful as a global reset).
+1. The parent `AccordionItem` row uses `pl-3` / `pl-6` for indentation but has **no right padding**, so the right edge of its inner flex children touches the card border. The `CountPill` then visually hugs / overlaps the border.
+2. Inside the `AccordionTrigger`, the inner flex wrapper has `pr-2` *and* the trigger itself renders a chevron via `[&>svg]:ml-1.5` — so the real content width is `card − pl − chevron − pr`, but the count pill is placed *before* the chevron with no guaranteed gap, and the label's `truncate` is competing against the pill for space.
+3. Leaf rows use `pr-2` which is tighter than the parent card's body padding (`px-3`), making leaf pills sit closer to the edge than parent pills.
+4. `FilterCardSection` body is `px-3 pb-3` — fine, but combined with the row's own `pl-6` at level 3, the usable inner width gets very narrow at the deepest level, which is why "Agricultural and Forest Sci…" truncates aggressively while the `0` pill still appears clipped.
 
-### 2. `src/components/search/HierarchicalFieldSelect.tsx` — contain content inside the card
-The overflow comes from nested levels: level-2 uses `ml-4`, level-3 uses `ml-8`, plus a left border. Inside the tight `px-4` body of `FilterCardSection`, the deepest rows push into / past the card edge and the count pills get clipped.
+## Fix (single file: `src/components/search/HierarchicalFieldSelect.tsx`)
 
-Fix:
-- Wrap the rendered tree in `min-w-0 w-full` and add `overflow-hidden` to each row container so nothing escapes horizontally.
-- Replace the absolute `ml-4` / `ml-8` indentation with `pl-3` / `pl-6` on the row itself (padding instead of margin) so the row's right edge stays flush with the card and only the inner content shifts.
-- Move the decorative left border to a `before:` pseudo-element / inset border so it sits inside the row's padding rather than pushing layout outward.
-- On the leaf row, ensure the label uses `min-w-0 flex-1` and the `CountPill` keeps `shrink-0`; tighten `gap` so long names like "Mathematics, Natural Sciences" truncate cleanly instead of wrapping under the pill.
-- Reduce the search input + "X selected / Clear" row paddings so they align with the card's `px-4` body (currently they bleed slightly because of the accordion's inner styling).
+Goal: guarantee the count pill always sits **inside** the card with a consistent right gutter, and let the label truncate cleanly before it ever collides with the pill or the chevron.
 
-### 3. `src/components/search/FilterCardSection.tsx` — minor polish so dense content fits
-- Change body padding from `px-4 pb-4 -mt-1` to `px-3 pb-3 -mt-1` so nested checkbox/accordion children have an extra few px of breathing room on each side (prevents the same overflow on Course of Study).
-- Add `min-w-0` to the body wrapper.
-- No API change; existing call sites keep working.
+1. **Add a consistent right padding to every row** (both leaf and parent):
+   - Leaf row container: change `py-1.5 pr-2` → `py-1.5 pr-3`.
+   - Parent row container: add `pr-2` to the outer flex wrapper so the row never reaches the card edge.
+   - This gives every row the same right gutter as the card's `px-3` body.
+
+2. **Reduce indentation slightly so deep rows keep usable width**:
+   - Level 2: `pl-3` → `pl-2`.
+   - Level 3: `pl-6` → `pl-4`.
+   - Indentation is still visually clear (left accent border remains), but the inner content area is wider, so labels like "Agricultural and Forest Sciences" can show more characters before truncating.
+
+3. **Fix the parent-row chevron / pill collision**:
+   - On the `AccordionTrigger`, change `pr-2` (on the inner wrapper) → `pr-1`, and change `[&>svg]:ml-1.5` → `[&>svg]:ml-2` so the chevron has breathing room from the pill.
+   - Wrap the label + pill in a flex with `gap-2` (currently `gap-2` exists but the pill has no guaranteed left margin from the truncated label — add `ml-auto` to `CountPill` wrapper or keep `shrink-0` and ensure the label is `min-w-0 flex-1 truncate` so the pill is pushed right but never clipped).
+
+4. **Ensure overflow never clips the pill**:
+   - Remove `overflow-hidden` from the row containers (it's what causes the pill to be visually cut when it briefly overflows during layout). Keep `min-w-0 w-full` so flex truncation still works on the label.
+   - The card itself (`FilterCardSection` `rounded-2xl … overflow-hidden`) already clips anything that would escape the card, so removing `overflow-hidden` on the inner row is safe and prevents the pill from being chopped mid-character.
+
+5. **Tighten `CountPill` placement**:
+   - Add `ml-2` to `CountPill` usage in both leaf and parent rows so there's always a visible gap between the (possibly truncated) label and the pill.
 
 ## Out of scope
-- No data/business-logic changes.
-- No changes to filter behavior, defaults, or active-count math.
-- `FilterGroup.tsx` stays in the repo (other places may still import it) but is no longer used by the sidebar.
+
+- No changes to `FilterCardSection.tsx`, `FilterSidebar.tsx`, or any business logic.
+- No change to count values, selection logic, or accordion behavior.
 
 ## Result
-- Sidebar becomes a single, consistent stack of rounded card sections — Course of Study and Location no longer feel like a different design language from the rest.
-- Course of Study tree stays fully inside its card at every nesting level, with pills aligned to the card's right edge and long labels truncating.
+
+- "Mathematics, Natural Sciences" and "Agricultural and Forest Sciences" rows show the count pill fully inside the card with a clean right gutter.
+- Labels truncate with an ellipsis *before* touching the pill, and the chevron on parent rows no longer crowds the pill.
+- All nesting levels (1, 2, 3) share the same right gutter so pills align vertically down the card.
