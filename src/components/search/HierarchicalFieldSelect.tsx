@@ -13,6 +13,25 @@ import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
+function CountPill({ count, active }: { count: number; active?: boolean }) {
+  const isZero = count === 0;
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "shrink-0 inline-flex items-center justify-center min-w-[1.5rem] h-5 px-1.5 rounded-md text-[10px] font-bold tabular-nums leading-none transition-colors",
+        active
+          ? "bg-primary text-primary-foreground"
+          : isZero
+          ? "bg-muted/60 text-muted-foreground/60"
+          : "bg-muted text-muted-foreground"
+      )}
+    >
+      {count}
+    </span>
+  );
+}
+
 export interface FieldNode {
   id: string;
   name: string;
