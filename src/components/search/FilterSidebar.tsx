@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Accordion } from '@/components/ui/accordion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -7,10 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { FilterGroup } from './FilterGroup';
 import { HierarchicalFieldSelect } from './HierarchicalFieldSelect';
+import { CityLocationFilter } from './CityLocationFilter';
 import { Search, GraduationCap, MapPin, Euro, Clock, Building2, Calendar, Languages, Receipt, Award, ListChecks } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { InfoHint } from '@/components/ui/info-hint';
-import { SearchableSelect } from '@/components/ui/searchable-select';
 import { DeadlineRangeFilter, type DeadlineRange } from './DeadlineRangeFilter';
 import { INSTITUTION_TYPES, CONTROL_TYPES } from '@/lib/institution-types';
 
@@ -92,21 +92,6 @@ export function FilterSidebar({
     }).length;
   };
 
-  // Build city options for searchable combobox
-  const cityOptions = useMemo(() => {
-    const opts = [{ value: 'all', label: 'All Cities' }];
-    const sorted = [...filterOptions.cities].sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
-    sorted.forEach((c) => {
-      const label = c.region
-        ? `${c.name} — ${c.region}${c.programCount > 0 ? ` (${c.programCount})` : ' · no programs yet'}`
-        : `${c.name}${c.programCount > 0 ? ` (${c.programCount})` : ' · no programs yet'}`;
-      opts.push({ value: c.name, label });
-    });
-    return opts;
-  }, [filterOptions.cities]);
-
   const deadlineActive = !!(filters.deadlineRange?.from || filters.deadlineRange?.to);
 
   return (
@@ -182,14 +167,10 @@ export function FilterSidebar({
             icon={<MapPin className="h-4 w-4" />}
             activeCount={filters.city !== 'all' ? 1 : 0}
           >
-            <SearchableSelect
+            <CityLocationFilter
+              cities={filterOptions.cities}
               value={filters.city}
-              onValueChange={(v) => updateFilter('city', v || 'all')}
-              options={cityOptions}
-              placeholder="All cities"
-              emptyText="No matching city"
-              className="w-full"
-              maxDisplayOptions={50}
+              onChange={(v) => updateFilter('city', v)}
             />
             {filters.city !== 'all' && (
               <button

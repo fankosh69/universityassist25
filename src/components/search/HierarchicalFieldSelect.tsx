@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +11,25 @@ import {
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+
+function CountPill({ count, active }: { count: number; active?: boolean }) {
+  const isZero = count === 0;
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "shrink-0 inline-flex items-center justify-center min-w-[1.5rem] h-5 px-1.5 rounded-md text-[10px] font-bold tabular-nums leading-none transition-colors",
+        active
+          ? "bg-primary text-primary-foreground"
+          : isZero
+          ? "bg-muted/60 text-muted-foreground/60"
+          : "bg-muted text-muted-foreground"
+      )}
+    >
+      {count}
+    </span>
+  );
+}
 
 export interface FieldNode {
   id: string;
@@ -180,7 +198,7 @@ export function HierarchicalFieldSelect({
         <div
           key={field.id}
           className={cn(
-            "flex items-center gap-2.5 py-1.5 pr-2 pl-3 rounded-md transition-colors hover:bg-accent/40",
+            "flex items-center gap-2.5 py-1.5 pr-2 pl-3 rounded-md transition-colors hover:bg-accent/40 min-w-0",
             isSelected && "bg-accent/60",
             indentClass,
             borderClass
@@ -193,12 +211,10 @@ export function HierarchicalFieldSelect({
           />
           <label
             htmlFor={`field-${field.id}`}
-            className="flex items-center justify-between flex-1 cursor-pointer text-sm font-normal text-foreground"
+            className="flex items-center justify-between gap-2 flex-1 min-w-0 cursor-pointer text-sm font-normal text-foreground"
           >
-            <span className="truncate">{highlight(field.name)}</span>
-            <Badge variant="secondary" className="ml-2 text-xs font-normal shrink-0">
-              {field.programCount}
-            </Badge>
+            <span className="truncate min-w-0 flex-1">{highlight(field.name)}</span>
+            <CountPill count={field.programCount} active={isSelected} />
           </label>
         </div>
       );
@@ -208,7 +224,7 @@ export function HierarchicalFieldSelect({
       <AccordionItem key={field.id} value={field.id} className="border-none">
         <div
           className={cn(
-            "flex items-center gap-2 rounded-md transition-colors hover:bg-accent/30",
+            "flex items-center gap-2 rounded-md transition-colors hover:bg-accent/30 min-w-0",
             isSelected && !isIndeterminate && "bg-accent/60",
             indentClass,
             borderClass
@@ -224,7 +240,7 @@ export function HierarchicalFieldSelect({
             )}
           />
           <AccordionTrigger
-            className="flex-1 py-1.5 pr-3 hover:no-underline [&>svg]:ml-auto text-sm font-normal text-foreground"
+            className="flex-1 min-w-0 py-1.5 pr-3 hover:no-underline [&>svg]:ml-2 [&>svg]:shrink-0 text-sm font-normal text-foreground"
             onClick={() => {
               setExpandedItems((prev) =>
                 prev.includes(field.id)
@@ -233,17 +249,15 @@ export function HierarchicalFieldSelect({
               );
             }}
           >
-            <div className="flex items-center justify-between w-full pr-2">
+            <div className="flex items-center justify-between gap-2 w-full min-w-0 pr-2">
               <label
                 htmlFor={`field-${field.id}`}
-                className="cursor-pointer text-sm font-normal text-foreground truncate"
+                className="cursor-pointer text-sm font-normal text-foreground truncate min-w-0 flex-1 text-left"
                 onClick={(e) => e.preventDefault()}
               >
                 {highlight(field.name)}
               </label>
-              <Badge variant="secondary" className="ml-2 text-xs font-normal shrink-0">
-                {field.programCount}
-              </Badge>
+              <CountPill count={field.programCount} active={isSelected && !isIndeterminate} />
             </div>
           </AccordionTrigger>
         </div>
