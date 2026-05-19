@@ -186,7 +186,7 @@ export function HierarchicalFieldSelect({
     // Indentation by level — use padding (not margin) so rows stay flush
     // with the card's right edge; left accent border is inset.
     const indentClass =
-      level === 1 ? "pl-0" : level === 2 ? "pl-3" : "pl-6";
+      level === 1 ? "pl-0" : level === 2 ? "pl-2" : "pl-4";
     const borderClass =
       level === 1
         ? ""
@@ -199,7 +199,7 @@ export function HierarchicalFieldSelect({
         <div
           key={field.id}
           className={cn(
-            "flex items-center gap-2 py-1.5 pr-2 rounded-md transition-colors hover:bg-accent/40 min-w-0 w-full overflow-hidden",
+            "flex items-center gap-2 py-1.5 pr-3 rounded-md transition-colors hover:bg-accent/40 min-w-0 w-full",
             isSelected && "bg-accent/60",
             indentClass,
             borderClass
@@ -216,7 +216,9 @@ export function HierarchicalFieldSelect({
             className="flex items-center justify-between gap-2 flex-1 min-w-0 cursor-pointer text-sm font-normal text-foreground pr-1"
           >
             <span className="truncate min-w-0 flex-1">{highlight(field.name)}</span>
-            <CountPill count={field.programCount} active={isSelected} />
+            <span className="ml-2 shrink-0">
+              <CountPill count={field.programCount} active={isSelected} />
+            </span>
           </label>
         </div>
       );
@@ -226,7 +228,7 @@ export function HierarchicalFieldSelect({
       <AccordionItem key={field.id} value={field.id} className="border-none">
         <div
           className={cn(
-            "flex items-center gap-2 rounded-md transition-colors hover:bg-accent/30 min-w-0 w-full overflow-hidden",
+            "flex items-center gap-2 pr-2 rounded-md transition-colors hover:bg-accent/30 min-w-0 w-full",
             isSelected && !isIndeterminate && "bg-accent/60",
             indentClass,
             borderClass
@@ -242,7 +244,7 @@ export function HierarchicalFieldSelect({
             )}
           />
           <AccordionTrigger
-            className="flex-1 min-w-0 py-1.5 pr-2 hover:no-underline [&>svg]:ml-1.5 [&>svg]:shrink-0 text-sm font-normal text-foreground"
+            className="flex-1 min-w-0 py-1.5 pr-1 hover:no-underline [&>svg]:ml-2 [&>svg]:shrink-0 text-sm font-normal text-foreground"
             onClick={() => {
               setExpandedItems((prev) =>
                 prev.includes(field.id)
@@ -251,7 +253,7 @@ export function HierarchicalFieldSelect({
               );
             }}
           >
-            <div className="flex items-center justify-between gap-2 w-full min-w-0 pr-2">
+            <div className="flex items-center justify-between gap-2 w-full min-w-0 pr-1">
               <label
                 htmlFor={`field-${field.id}`}
                 className="cursor-pointer text-sm font-normal text-foreground truncate min-w-0 flex-1 text-left"
@@ -259,11 +261,13 @@ export function HierarchicalFieldSelect({
               >
                 {highlight(field.name)}
               </label>
-              <CountPill count={field.programCount} active={isSelected && !isIndeterminate} />
+              <span className="ml-2 shrink-0">
+                <CountPill count={field.programCount} active={isSelected && !isIndeterminate} />
+              </span>
             </div>
           </AccordionTrigger>
         </div>
-        <AccordionContent className="pb-1 pt-1 min-w-0 overflow-hidden">
+        <AccordionContent className="pb-1 pt-1 min-w-0">
           {field.children.map((child) => renderField(child, level + 1))}
         </AccordionContent>
       </AccordionItem>
