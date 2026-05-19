@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FilterGroup } from './FilterGroup';
 import { HierarchicalFieldSelect } from './HierarchicalFieldSelect';
 import { CityLocationFilter } from './CityLocationFilter';
+import { FilterCardSection } from './FilterCardSection';
 import { Search, GraduationCap, MapPin, Euro, Clock, Building2, Calendar, Languages, Receipt, Award, ListChecks } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { InfoHint } from '@/components/ui/info-hint';
@@ -124,6 +125,36 @@ export function FilterSidebar({
 
         {/* Scrollable filters */}
         <div className="flex-1 overflow-y-auto">
+          {/* Hero filter cards */}
+          <div className="p-4 space-y-3 border-b border-border bg-muted/20">
+            <FilterCardSection
+              title="Course of Study"
+              icon={<ListChecks className="h-5 w-5" />}
+              activeCount={filters.fieldOfStudyIds?.length || 0}
+              onClear={() => updateFilter('fieldOfStudyIds', [])}
+              clearLabel="Clear fields"
+            >
+              <HierarchicalFieldSelect
+                selectedFieldIds={filters.fieldOfStudyIds || []}
+                onSelectionChange={(fieldIds) => updateFilter('fieldOfStudyIds', fieldIds.length > 0 ? fieldIds : [])}
+              />
+            </FilterCardSection>
+
+            <FilterCardSection
+              title="Location"
+              icon={<MapPin className="h-5 w-5" />}
+              activeCount={filters.city !== 'all' ? 1 : 0}
+              onClear={() => updateFilter('city', 'all')}
+              clearLabel="Clear city"
+            >
+              <CityLocationFilter
+                cities={filterOptions.cities}
+                value={filters.city}
+                onChange={(v) => updateFilter('city', v)}
+              />
+            </FilterCardSection>
+          </div>
+
           <Accordion type="multiple" defaultValue={[]} className="w-full divide-y divide-border">
           {/* Degree Level */}
           <FilterGroup 
@@ -146,41 +177,6 @@ export function FilterSidebar({
                 </div>
               ))}
             </RadioGroup>
-          </FilterGroup>
-
-          {/* Course of Study - Hierarchical */}
-          <FilterGroup 
-            value="field" 
-            title="Course of Study"
-            activeCount={(filters.fieldOfStudyIds?.length || 0) > 0 ? filters.fieldOfStudyIds!.length : 0}
-          >
-            <HierarchicalFieldSelect
-              selectedFieldIds={filters.fieldOfStudyIds || []}
-              onSelectionChange={(fieldIds) => updateFilter('fieldOfStudyIds', fieldIds.length > 0 ? fieldIds : [])}
-            />
-          </FilterGroup>
-
-          {/* Location */}
-          <FilterGroup 
-            value="location" 
-            title="Location" 
-            icon={<MapPin className="h-4 w-4" />}
-            activeCount={filters.city !== 'all' ? 1 : 0}
-          >
-            <CityLocationFilter
-              cities={filterOptions.cities}
-              value={filters.city}
-              onChange={(v) => updateFilter('city', v)}
-            />
-            {filters.city !== 'all' && (
-              <button
-                type="button"
-                onClick={() => updateFilter('city', 'all')}
-                className="mt-2 text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
-              >
-                Clear selection
-              </button>
-            )}
           </FilterGroup>
 
           {/* Tuition */}
