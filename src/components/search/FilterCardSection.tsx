@@ -67,7 +67,7 @@ export function FilterCardSection({
 
       {open && (
         <>
-          <div className="px-4 pb-4 -mt-1">{children}</div>
+          <div className="px-3 pb-3 -mt-1 min-w-0">{children}</div>
           {onClear && activeCount > 0 && (
             <div className="border-t border-border bg-muted/30 p-2.5 flex justify-center">
               <button

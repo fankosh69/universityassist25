@@ -1,71 +1,42 @@
-## Why the live version looks weaker than the prototype
+# Unify filter sidebar styling
 
-The "Smart Hybrid Hub" prototype was a **standalone card** with its own chrome:
+## Goal
+Every filter category (Degree, Tuition, Institution, Ownership, Duration, Application Method, Application Fee, Intake, Deadline, English Proof, My German GPA, Prerequisites) should use the same `FilterCardSection` card chrome as Course of Study and Location. Also fix Course of Study where nested rows/pills visually break out of the card frame.
 
-- rounded-2xl card, soft blue shadow, padded sections
-- header row: icon tile (blue-50 bg) + bold "Location" + active count pill + chevron
-- "POPULAR CITIES" eyebrow + chip row
-- rounded search input with focus ring
-- results list with rounded-xl rows, blue tinted active row, "X Programs" pill, ghosted empty-state rows
-- footer action bar with "Clear Filter"
+## Changes
 
-In the implementation I dropped `CityLocationFilter` **inside** the existing `FilterGroup` accordion, so:
+### 1. `src/components/search/FilterSidebar.tsx`
+- Remove the `<Accordion>` + `FilterGroup` block entirely.
+- Drop unused imports (`Accordion`, `FilterGroup`).
+- Render every category as a `FilterCardSection` inside one unified `space-y-3 p-4` container, so the sidebar becomes a single vertical stack of identical cards (no more mixed accordion + card styles).
+- For each card, pass:
+  - `title`, matching `icon` (size bumped to `h-5 w-5` to match the hero cards),
+  - `activeCount` computed exactly as today,
+  - `onClear` + `clearLabel` so every card gets the same footer "Clear filter" affordance when active,
+  - `defaultOpen={false}` (cards auto-open when they have an active value via the component's existing logic).
+- Keep the same control inside each card (RadioGroup / Select / Checkbox group / Slider / DeadlineRangeFilter / HierarchicalFieldSelect / CityLocationFilter) — only the wrapper changes.
+- Remove the top-level `Filters` header `Clear all` redundancy is kept (still useful as a global reset).
 
-1. The prototype's custom header is replaced by the generic FilterGroup row (small icon tile, no count pill, no chevron treatment).
-2. The card frame / footer bar disappear (the whole sidebar is one card, not per-filter).
-3. The popular-city chip fallback hardcodes "Berlin / Munich / Hamburg / Cologne / Frankfurt" and filters out anything with `programCount === 0` — for many catalogs the chips render empty.
-4. On the current viewport the open accordion shows almost no content (likely the popular-cities row is gone, search + list are squeezed by `lg:p-4` + accordion padding, and the list is collapsed by `max-h-72` minus other paddings). It just looks blank.
-5. The Course of Study pills were tightened but the surrounding FilterGroup chrome is still the old, plainer style — visually inconsistent with what we promised.
+### 2. `src/components/search/HierarchicalFieldSelect.tsx` — contain content inside the card
+The overflow comes from nested levels: level-2 uses `ml-4`, level-3 uses `ml-8`, plus a left border. Inside the tight `px-4` body of `FilterCardSection`, the deepest rows push into / past the card edge and the count pills get clipped.
 
-## Plan
+Fix:
+- Wrap the rendered tree in `min-w-0 w-full` and add `overflow-hidden` to each row container so nothing escapes horizontally.
+- Replace the absolute `ml-4` / `ml-8` indentation with `pl-3` / `pl-6` on the row itself (padding instead of margin) so the row's right edge stays flush with the card and only the inner content shifts.
+- Move the decorative left border to a `before:` pseudo-element / inset border so it sits inside the row's padding rather than pushing layout outward.
+- On the leaf row, ensure the label uses `min-w-0 flex-1` and the `CountPill` keeps `shrink-0`; tighten `gap` so long names like "Mathematics, Natural Sciences" truncate cleanly instead of wrapping under the pill.
+- Reduce the search input + "X selected / Clear" row paddings so they align with the card's `px-4` body (currently they bleed slightly because of the accordion's inner styling).
 
-### 1. Lift CityLocationFilter to a self-contained card section
+### 3. `src/components/search/FilterCardSection.tsx` — minor polish so dense content fits
+- Change body padding from `px-4 pb-4 -mt-1` to `px-3 pb-3 -mt-1` so nested checkbox/accordion children have an extra few px of breathing room on each side (prevents the same overflow on Course of Study).
+- Add `min-w-0` to the body wrapper.
+- No API change; existing call sites keep working.
 
-Stop nesting it under `FilterGroup`. In `FilterSidebar.tsx`, replace the Location `<FilterGroup>` block with the standalone card layout from the prototype:
+## Out of scope
+- No data/business-logic changes.
+- No changes to filter behavior, defaults, or active-count math.
+- `FilterGroup.tsx` stays in the repo (other places may still import it) but is no longer used by the sidebar.
 
-- outer wrapper: `rounded-2xl border border-border bg-card shadow-sm`
-- header: 9x9 `bg-primary/10` icon tile + Space Grotesk title + active-count badge (when city ≠ all) + chevron toggle
-- collapsible body (controlled by local `open` state, default expanded if `city !== 'all'`)
-- footer bar: subtle top border, centered "Clear filter" button (only when active)
-
-This restores all the chrome the prototype had without breaking the other accordion items.
-
-### 2. Fix the popular-cities fallback
-
-Inside `CityLocationFilter`:
-
-- keep the curated `DEFAULT_POPULAR` list, but if fewer than 3 match (after the `programCount > 0` filter), top up from the cities sorted by `programCount desc` until we have up to 5 chips.
-- always show the eyebrow row when at least 1 chip resolves; hide cleanly when none.
-
-### 3. Match prototype item styling
-
-In `CityLocationFilter`:
-
-- active row: `bg-primary/5 border-primary/30` with `Check` icon on the left and a `"<n> Programs"` pill on the right (full word, like the prototype) instead of just a number.
-- available row: subtle hover (`hover:bg-muted/50`), neutral number pill that turns primary-tinted on hover.
-- zero-programs row: opacity 60, 2x2 muted dot instead of the pill, subtitle "No programs yet".
-- bump row vertical padding to match the prototype's `p-3`, keep `space-y-1`.
-
-### 4. Apply the same card treatment to Course of Study
-
-For visual consistency (Course of Study and Location are the two heaviest filters), wrap the `HierarchicalFieldSelect` in the same standalone card shell (header tile + title + active count badge + chevron + footer "Clear" when items selected). The internal list already has the truncating pill from the previous pass — just need the outer chrome to match.
-
-Leave the lighter filters (Degree Type, Tuition, Duration, etc.) inside the existing `FilterGroup` accordion. The result: a two-tier hierarchy where the two "hero" filters feel like prototype cards and the rest stay compact.
-
-### 5. Verify
-
-After implementing, re-open `/search`, expand Location and Course of Study, and confirm:
-
-- chips render (with fallback to top cities by count)
-- active city shows blue tinted row + "X Programs" pill
-- footer "Clear filter" appears when a city is selected
-- Course of Study card mirrors the Location card chrome
-- no empty/blank state when expanded
-
-### Files touched
-
-- `src/components/search/FilterSidebar.tsx` — replace Location and Course of Study `FilterGroup` blocks with new card sections; remove the small wrapper bug that left the open accordion empty.
-- `src/components/search/CityLocationFilter.tsx` — popular-cities fallback, item styling parity, active "X Programs" pill.
-- (new) `src/components/search/FilterCardSection.tsx` — small shared card shell (header + collapsible body + footer) used by both Location and Course of Study to avoid duplication.
-
-No backend/data changes. Pure presentation work, scoped to the search filter sidebar.
+## Result
+- Sidebar becomes a single, consistent stack of rounded card sections — Course of Study and Location no longer feel like a different design language from the rest.
+- Course of Study tree stays fully inside its card at every nesting level, with pills aligned to the card's right edge and long labels truncating.
