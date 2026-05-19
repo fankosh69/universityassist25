@@ -698,47 +698,67 @@ export function EnhancedSearchContainer() {
                     return (
                       <Badge variant="secondary" className="text-xs">
                         {label}
-                        <X
-                          className="h-3 w-3 ml-1 cursor-pointer"
+                        <button
+                          type="button"
+                          className="ml-1 p-0.5 rounded-sm hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                          aria-label="Remove deadline filter"
                           onClick={() => removeFilter('deadlineRange')}
-                        />
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
                       </Badge>
                     );
                   })()}
                   {filters.acceptsMOI && (
                     <Badge variant="secondary" className="text-xs">
                       Accepts MOI
-                      <X
-                        className="h-3 w-3 ml-1 cursor-pointer"
+                      <button
+                        type="button"
+                        className="ml-1 p-0.5 rounded-sm hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                        aria-label="Remove MOI filter"
                         onClick={() => removeFilter('acceptsMOI')}
-                      />
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   )}
                   {filters.acceptsIELTS && (
                     <Badge variant="secondary" className="text-xs">
                       Accepts IELTS
-                      <X
-                        className="h-3 w-3 ml-1 cursor-pointer"
+                      <button
+                        type="button"
+                        className="ml-1 p-0.5 rounded-sm hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                        aria-label="Remove IELTS filter"
                         onClick={() => removeFilter('acceptsIELTS')}
-                      />
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   )}
                   {filters.acceptsTOEFL && (
                     <Badge variant="secondary" className="text-xs">
                       Accepts TOEFL
-                      <X
-                        className="h-3 w-3 ml-1 cursor-pointer"
+                      <button
+                        type="button"
+                        className="ml-1 p-0.5 rounded-sm hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                        aria-label="Remove TOEFL filter"
                         onClick={() => removeFilter('acceptsTOEFL')}
-                      />
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   )}
                   {filters.acceptsPTE && (
                     <Badge variant="secondary" className="text-xs">
                       Accepts PTE
-                      <X
-                        className="h-3 w-3 ml-1 cursor-pointer"
+                      <button
+                        type="button"
+                        className="ml-1 p-0.5 rounded-sm hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                        aria-label="Remove PTE filter"
                         onClick={() => removeFilter('acceptsPTE')}
-                      />
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   )}
                 </div>
