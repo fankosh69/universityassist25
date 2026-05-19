@@ -124,7 +124,7 @@ export function FilterSidebar({
         {/* Scrollable filters */}
         <div className="flex-1 overflow-y-auto">
           {/* Hero filter cards */}
-          <div className="p-4 space-y-3 border-b border-border bg-muted/20">
+          <div className="p-4 pb-0 space-y-3">
             <FilterCardSection
               title="Course of Study"
               icon={<ListChecks className="h-5 w-5" />}
