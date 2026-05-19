@@ -738,7 +738,7 @@ export function EnhancedSearchContainer() {
       {/* Mobile filter drawer */}
       <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
         <SheetContent side="left" className="w-80 p-0">
-          <SheetHeader className="px-4 py-3 border-b">
+          <SheetHeader className="sr-only">
             <SheetTitle>Filters</SheetTitle>
           </SheetHeader>
           {sidebarContent}

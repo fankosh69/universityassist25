@@ -10,7 +10,7 @@ export function SearchLayout({ sidebar, results }: SearchLayoutProps) {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] w-full bg-neutral-50">
       {/* Sidebar - Desktop: Fixed width, Tablet/Mobile: Hidden (will use drawer) */}
-      <aside className="hidden lg:block w-80 bg-background border-r border-border sticky top-0 h-screen overflow-y-auto">
+      <aside className="hidden lg:block w-[22rem] bg-transparent sticky top-0 h-screen overflow-y-auto">
         <Reveal y={16} delay={0.1}>
           {sidebar}
         </Reveal>
