@@ -10,22 +10,34 @@ interface FilterGroupProps {
 }
 
 export function FilterGroup({ value, title, icon, activeCount, children }: FilterGroupProps) {
+  const isActive = (activeCount ?? 0) > 0;
   return (
-    <AccordionItem value={value} className="border-b border-border">
-      <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50">
-        <div className="flex items-center justify-between w-full pr-2">
-          <div className="flex items-center gap-2">
-            {icon && <span className="text-muted-foreground">{icon}</span>}
-            <span className="text-sm font-medium">{title}</span>
+    <AccordionItem value={value} className="border-0">
+      <AccordionTrigger className="group px-5 py-4 hover:no-underline hover:bg-muted/40 transition-colors data-[state=open]:bg-muted/30">
+        <div className="flex items-center justify-between w-full pr-2 gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {icon && (
+              <span
+                className={[
+                  'flex items-center justify-center w-7 h-7 rounded-lg shrink-0 transition-colors',
+                  isActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-muted text-muted-foreground group-hover:bg-primary/5 group-hover:text-primary',
+                ].join(' ')}
+              >
+                {icon}
+              </span>
+            )}
+            <span className="text-sm font-semibold text-foreground truncate">{title}</span>
           </div>
-          {activeCount !== undefined && activeCount > 0 && (
-            <span className="text-xs bg-primary text-primary-foreground rounded-full px-2 py-0.5">
+          {isActive && (
+            <span className="shrink-0 text-[10px] font-bold bg-primary text-primary-foreground rounded-full min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center">
               {activeCount}
             </span>
           )}
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-4 pb-4 pt-2">
+      <AccordionContent className="px-5 pb-5 pt-1">
         {children}
       </AccordionContent>
     </AccordionItem>
