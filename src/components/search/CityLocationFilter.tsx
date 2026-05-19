@@ -35,9 +35,16 @@ export function CityLocationFilter({
 
   const popular = useMemo(() => {
     const map = new Map(cities.map((c) => [c.name.toLowerCase(), c]));
-    return popularCities
+    const fromDefaults = popularCities
       .map((n) => map.get(n.toLowerCase()))
       .filter((c): c is CityOption => !!c && c.programCount > 0);
+    if (fromDefaults.length >= 3) return fromDefaults.slice(0, 5);
+    // Top up by programCount desc
+    const used = new Set(fromDefaults.map((c) => c.name.toLowerCase()));
+    const topUp = [...cities]
+      .filter((c) => c.programCount > 0 && !used.has(c.name.toLowerCase()))
+      .sort((a, b) => b.programCount - a.programCount);
+    return [...fromDefaults, ...topUp].slice(0, 5);
   }, [cities, popularCities]);
 
   const filtered = useMemo(() => {
@@ -142,9 +149,9 @@ export function CityLocationFilter({
                 aria-selected={active}
                 onClick={() => toggle(c.name)}
                 className={cn(
-                  "w-full flex items-center justify-between gap-2 p-2.5 rounded-xl border text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                  "w-full flex items-center justify-between gap-2 p-3 rounded-xl border text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
                   active
-                    ? "bg-primary/5 border-primary/30"
+                    ? "bg-primary/5 border-primary/20"
                     : "border-transparent hover:bg-muted/50 hover:border-border",
                   !hasPrograms && !active && "opacity-60"
                 )}
@@ -176,13 +183,13 @@ export function CityLocationFilter({
                 {hasPrograms ? (
                   <span
                     className={cn(
-                      "shrink-0 px-2 py-0.5 text-[10px] font-bold rounded-md",
+                      "shrink-0 px-2 py-1 text-[10px] font-bold rounded-md whitespace-nowrap",
                       active
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary text-primary-foreground shadow-sm"
                         : "bg-muted text-muted-foreground"
                     )}
                   >
-                    {c.programCount}
+                    {active ? `${c.programCount} ${c.programCount === 1 ? "Program" : "Programs"}` : c.programCount}
                   </span>
                 ) : (
                   <span
