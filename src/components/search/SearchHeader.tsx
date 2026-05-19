@@ -43,6 +43,7 @@ export function SearchHeader({
               size="sm"
               onClick={() => onViewModeChange('grid')}
               className="rounded-r-none border-r"
+              aria-label="Grid view"
             >
               <Grid3x3 className="h-4 w-4" />
             </Button>
@@ -51,6 +52,7 @@ export function SearchHeader({
               size="sm"
               onClick={() => onViewModeChange('list')}
               className="rounded-l-none"
+              aria-label="List view"
             >
               <List className="h-4 w-4" />
             </Button>

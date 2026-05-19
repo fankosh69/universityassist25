@@ -120,7 +120,7 @@ export function FilterSidebar({
               <button
                 type="button"
                 onClick={onClearFilters}
-                className="text-xs font-semibold text-primary hover:underline underline-offset-2"
+                className="text-xs font-semibold text-primary hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
               >
                 Clear all
               </button>
@@ -195,7 +195,7 @@ export function FilterSidebar({
               <button
                 type="button"
                 onClick={() => updateFilter('city', 'all')}
-                className="mt-2 text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+                className="mt-2 text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
               >
                 Clear selection
               </button>
