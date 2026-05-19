@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Accordion } from '@/components/ui/accordion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { FilterGroup } from './FilterGroup';
 import { HierarchicalFieldSelect } from './HierarchicalFieldSelect';
-import { Search, GraduationCap, MapPin, Euro, Clock, Building2, X, Calendar, Languages, Receipt, Award, ListChecks } from 'lucide-react';
+import { Search, GraduationCap, MapPin, Euro, Clock, Building2, Calendar, Languages, Receipt, Award, ListChecks } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { InfoHint } from '@/components/ui/info-hint';
 import { SearchableSelect } from '@/components/ui/searchable-select';
