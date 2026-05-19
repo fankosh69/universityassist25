@@ -183,9 +183,10 @@ export function HierarchicalFieldSelect({
     const isSelected = isFieldSelected(field.id);
     const isIndeterminate = isFieldIndeterminate(field);
 
-    // Indentation by level — visual hierarchy via spacing + left border only
+    // Indentation by level — use padding (not margin) so rows stay flush
+    // with the card's right edge; left accent border is inset.
     const indentClass =
-      level === 1 ? "" : level === 2 ? "ml-4" : "ml-8";
+      level === 1 ? "pl-0" : level === 2 ? "pl-3" : "pl-6";
     const borderClass =
       level === 1
         ? ""
@@ -198,20 +199,21 @@ export function HierarchicalFieldSelect({
         <div
           key={field.id}
           className={cn(
-            "flex items-center gap-2.5 py-1.5 pr-2 pl-3 rounded-md transition-colors hover:bg-accent/40 min-w-0",
+            "flex items-center gap-2 py-1.5 pr-2 rounded-md transition-colors hover:bg-accent/40 min-w-0 w-full overflow-hidden",
             isSelected && "bg-accent/60",
             indentClass,
             borderClass
           )}
         >
           <Checkbox
+            className="ml-2"
             id={`field-${field.id}`}
             checked={isSelected}
             onCheckedChange={() => handleFieldToggle(field)}
           />
           <label
             htmlFor={`field-${field.id}`}
-            className="flex items-center justify-between gap-2 flex-1 min-w-0 cursor-pointer text-sm font-normal text-foreground"
+            className="flex items-center justify-between gap-2 flex-1 min-w-0 cursor-pointer text-sm font-normal text-foreground pr-1"
           >
             <span className="truncate min-w-0 flex-1">{highlight(field.name)}</span>
             <CountPill count={field.programCount} active={isSelected} />
@@ -224,7 +226,7 @@ export function HierarchicalFieldSelect({
       <AccordionItem key={field.id} value={field.id} className="border-none">
         <div
           className={cn(
-            "flex items-center gap-2 rounded-md transition-colors hover:bg-accent/30 min-w-0",
+            "flex items-center gap-2 rounded-md transition-colors hover:bg-accent/30 min-w-0 w-full overflow-hidden",
             isSelected && !isIndeterminate && "bg-accent/60",
             indentClass,
             borderClass
@@ -235,12 +237,12 @@ export function HierarchicalFieldSelect({
             checked={isSelected && !isIndeterminate}
             onCheckedChange={() => handleFieldToggle(field)}
             className={cn(
-              "ml-3",
+              "ml-2 shrink-0",
               isIndeterminate && "data-[state=checked]:bg-primary/50"
             )}
           />
           <AccordionTrigger
-            className="flex-1 min-w-0 py-1.5 pr-3 hover:no-underline [&>svg]:ml-2 [&>svg]:shrink-0 text-sm font-normal text-foreground"
+            className="flex-1 min-w-0 py-1.5 pr-2 hover:no-underline [&>svg]:ml-1.5 [&>svg]:shrink-0 text-sm font-normal text-foreground"
             onClick={() => {
               setExpandedItems((prev) =>
                 prev.includes(field.id)
@@ -261,7 +263,7 @@ export function HierarchicalFieldSelect({
             </div>
           </AccordionTrigger>
         </div>
-        <AccordionContent className="pb-1 pt-1">
+        <AccordionContent className="pb-1 pt-1 min-w-0 overflow-hidden">
           {field.children.map((child) => renderField(child, level + 1))}
         </AccordionContent>
       </AccordionItem>
@@ -289,7 +291,7 @@ export function HierarchicalFieldSelect({
   }
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("space-y-2 min-w-0 w-full", className)}>
       {/* Search bar */}
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
