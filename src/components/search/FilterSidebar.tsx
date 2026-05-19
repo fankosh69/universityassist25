@@ -153,13 +153,13 @@ export function FilterSidebar({
             </FilterCardSection>
           </div>
 
-          <Accordion type="multiple" defaultValue={[]} className="w-full divide-y divide-border">
+          <div className="p-4 pt-3 space-y-3">
           {/* Degree Level */}
-          <FilterGroup 
-            value="degree" 
-            title="Degree Type" 
-            icon={<GraduationCap className="h-4 w-4" />}
+          <FilterCardSection
+            title="Degree Type"
+            icon={<GraduationCap className="h-5 w-5" />}
             activeCount={filters.degreeLevel !== 'all' ? 1 : 0}
+            onClear={() => updateFilter('degreeLevel', 'all')}
           >
             <RadioGroup value={filters.degreeLevel} onValueChange={(value) => updateFilter('degreeLevel', value)}>
               <div className="flex items-center space-x-2 mb-2">
@@ -175,14 +175,14 @@ export function FilterSidebar({
                 </div>
               ))}
             </RadioGroup>
-          </FilterGroup>
+          </FilterCardSection>
 
           {/* Tuition */}
-          <FilterGroup 
-            value="tuition" 
-            title="Tuition Fees" 
-            icon={<Euro className="h-4 w-4" />}
+          <FilterCardSection
+            title="Tuition Fees"
+            icon={<Euro className="h-5 w-5" />}
             activeCount={filters.maxTuitionFees !== 'all' ? 1 : 0}
+            onClear={() => updateFilter('maxTuitionFees', 'all')}
           >
             <RadioGroup value={filters.maxTuitionFees} onValueChange={(value) => updateFilter('maxTuitionFees', value)}>
               <div className="flex items-center space-x-2 mb-2">
@@ -217,14 +217,14 @@ export function FilterSidebar({
                 <Label htmlFor="tuition-10k" className="text-sm cursor-pointer">Up to €10,000</Label>
               </div>
             </RadioGroup>
-          </FilterGroup>
+          </FilterCardSection>
 
           {/* Institution Type */}
-          <FilterGroup 
-            value="institution" 
-            title="Institution Type" 
-            icon={<Building2 className="h-4 w-4" />}
+          <FilterCardSection
+            title="Institution Type"
+            icon={<Building2 className="h-5 w-5" />}
             activeCount={filters.institutionType !== 'all' ? 1 : 0}
+            onClear={() => updateFilter('institutionType', 'all')}
           >
             <Select value={filters.institutionType} onValueChange={(value) => updateFilter('institutionType', value)}>
               <SelectTrigger className="w-full">
@@ -239,14 +239,14 @@ export function FilterSidebar({
                 ))}
               </SelectContent>
             </Select>
-          </FilterGroup>
+          </FilterCardSection>
 
           {/* Control Type Filter */}
-          <FilterGroup 
-            value="controlType" 
-            title="Institution Ownership" 
-            icon={<Building2 className="h-4 w-4" />}
+          <FilterCardSection
+            title="Institution Ownership"
+            icon={<Building2 className="h-5 w-5" />}
             activeCount={filters.controlType !== 'all' ? 1 : 0}
+            onClear={() => updateFilter('controlType', 'all')}
           >
             <Select value={filters.controlType} onValueChange={(value) => updateFilter('controlType', value)}>
               <SelectTrigger className="w-full">
@@ -261,14 +261,14 @@ export function FilterSidebar({
                 ))}
               </SelectContent>
             </Select>
-          </FilterGroup>
+          </FilterCardSection>
 
           {/* Duration */}
-          <FilterGroup 
-            value="duration" 
-            title="Duration" 
-            icon={<Clock className="h-4 w-4" />}
+          <FilterCardSection
+            title="Duration"
+            icon={<Clock className="h-5 w-5" />}
             activeCount={filters.duration !== 'all' ? 1 : 0}
+            onClear={() => updateFilter('duration', 'all')}
           >
             <Select value={filters.duration} onValueChange={(value) => updateFilter('duration', value)}>
               <SelectTrigger className="w-full">
@@ -283,13 +283,14 @@ export function FilterSidebar({
                 ))}
               </SelectContent>
             </Select>
-          </FilterGroup>
+          </FilterCardSection>
 
           {/* Uni-Assist */}
-          <FilterGroup 
-            value="uniassist" 
+          <FilterCardSection
             title="Application Method"
+            icon={<FileCheck className="h-5 w-5" />}
             activeCount={filters.uniAssistRequired !== 'all' ? 1 : 0}
+            onClear={() => updateFilter('uniAssistRequired', 'all')}
           >
             <RadioGroup value={filters.uniAssistRequired} onValueChange={(value) => updateFilter('uniAssistRequired', value)}>
               <div className="flex items-center space-x-2 mb-2">
@@ -309,14 +310,14 @@ export function FilterSidebar({
                 <Label htmlFor="uniassist-vpd" className="text-sm cursor-pointer">Uni-Assist VPD Required</Label>
               </div>
             </RadioGroup>
-          </FilterGroup>
+          </FilterCardSection>
 
           {/* Application Fee */}
-          <FilterGroup 
-            value="applicationFee" 
-            title="Application Fee" 
-            icon={<Receipt className="h-4 w-4" />}
+          <FilterCardSection
+            title="Application Fee"
+            icon={<Receipt className="h-5 w-5" />}
             activeCount={filters.applicationFee !== 'all' ? 1 : 0}
+            onClear={() => updateFilter('applicationFee', 'all')}
           >
             <RadioGroup value={filters.applicationFee || 'all'} onValueChange={(value) => updateFilter('applicationFee', value)}>
               <div className="flex items-center space-x-2 mb-2">
@@ -342,13 +343,13 @@ export function FilterSidebar({
                 <Label htmlFor="appfee-yes" className="text-sm cursor-pointer">Has Application Fee</Label>
               </div>
             </RadioGroup>
-          </FilterGroup>
+          </FilterCardSection>
 
-          <FilterGroup 
-            value="intake" 
-            title="Intake Period" 
-            icon={<Calendar className="h-4 w-4" />}
+          <FilterCardSection
+            title="Intake Period"
+            icon={<Calendar className="h-5 w-5" />}
             activeCount={filters.intake?.length || 0}
+            onClear={() => updateFilter('intake', [])}
           >
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
@@ -394,32 +395,32 @@ export function FilterSidebar({
                 <Label htmlFor="intake-summer" className="text-sm font-normal cursor-pointer">Summer Only</Label>
               </div>
             </div>
-          </FilterGroup>
+          </FilterCardSection>
 
           {/* Application Deadline — date range */}
-          <FilterGroup 
-            value="deadline" 
-            title="Application Deadline" 
-            icon={<Calendar className="h-4 w-4" />}
+          <FilterCardSection
+            title="Application Deadline"
+            icon={<Calendar className="h-5 w-5" />}
             activeCount={deadlineActive ? 1 : 0}
+            onClear={() => updateFilter('deadlineRange', { from: null, to: null })}
           >
             <DeadlineRangeFilter
               value={filters.deadlineRange || { from: null, to: null }}
               onChange={(v) => updateFilter('deadlineRange', v)}
             />
-          </FilterGroup>
+          </FilterCardSection>
 
           {/* English Language Proof */}
-          <FilterGroup 
-            value="language-proof" 
-            title="English Language Proof" 
-            icon={<Languages className="h-4 w-4" />}
+          <FilterCardSection
+            title="English Language Proof"
+            icon={<Languages className="h-5 w-5" />}
             activeCount={
               (filters.acceptsMOI ? 1 : 0) +
               (filters.acceptsIELTS ? 1 : 0) +
               (filters.acceptsTOEFL ? 1 : 0) +
               (filters.acceptsPTE ? 1 : 0)
             }
+            onClear={() => onFiltersChange({ ...filters, acceptsMOI: false, acceptsIELTS: false, acceptsTOEFL: false, acceptsPTE: false })}
           >
             <div className="space-y-3">
               {/* MOI Checkbox with Tooltip */}
@@ -480,14 +481,14 @@ export function FilterSidebar({
                 </Label>
               </div>
             </div>
-          </FilterGroup>
+          </FilterCardSection>
 
           {/* Minimum GPA — match against the user's German GPA (1.0 best – 4.0 worst) */}
-          <FilterGroup
-            value="min-gpa"
+          <FilterCardSection
             title="My German GPA"
-            icon={<Award className="h-4 w-4" />}
+            icon={<Award className="h-5 w-5" />}
             activeCount={typeof filters.myGpa === 'number' ? 1 : 0}
+            onClear={() => updateFilter('myGpa', null)}
           >
             <div className="space-y-3">
               <p className="text-xs text-muted-foreground">
@@ -519,14 +520,14 @@ export function FilterSidebar({
                 <span>1.0</span><span>2.0</span><span>3.0</span><span>4.0</span>
               </div>
             </div>
-          </FilterGroup>
+          </FilterCardSection>
 
           {/* Prerequisites */}
-          <FilterGroup
-            value="prerequisites"
+          <FilterCardSection
             title="Prerequisites"
-            icon={<ListChecks className="h-4 w-4" />}
+            icon={<ListChecks className="h-5 w-5" />}
             activeCount={filters.hidePrerequisites ? 1 : 0}
+            onClear={() => updateFilter('hidePrerequisites', false)}
           >
             <div className="flex items-start space-x-2">
               <Checkbox
@@ -541,8 +542,8 @@ export function FilterSidebar({
                 </span>
               </Label>
             </div>
-          </FilterGroup>
-          </Accordion>
+          </FilterCardSection>
+          </div>
         </div>
       </div>
     </div>
