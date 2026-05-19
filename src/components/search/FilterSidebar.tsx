@@ -111,23 +111,36 @@ export function FilterSidebar({
   const deadlineActive = !!(filters.deadlineRange?.from || filters.deadlineRange?.to);
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Search at top */}
-      <div className="p-4 border-b border-border bg-background">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search programs..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10"
-          />
+    <div className="h-full flex flex-col lg:p-4">
+      <div className="flex flex-col flex-1 min-h-0 lg:rounded-2xl lg:border lg:border-border lg:bg-card lg:shadow-sm overflow-hidden">
+        {/* Header: title + clear all + search */}
+        <div className="p-5 border-b border-border bg-card space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold tracking-tight text-foreground">Filters</h2>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={onClearFilters}
+                className="text-xs font-semibold text-primary hover:underline underline-offset-2"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              placeholder="Search programs..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="pl-10 bg-muted/40 border-border focus-visible:bg-background"
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Scrollable filters */}
-      <div className="flex-1 overflow-y-auto">
-        <Accordion type="multiple" defaultValue={[]} className="w-full">
+        {/* Scrollable filters */}
+        <div className="flex-1 overflow-y-auto">
+          <Accordion type="multiple" defaultValue={[]} className="w-full divide-y divide-border">
           {/* Degree Level */}
           <FilterGroup 
             value="degree" 
@@ -555,22 +568,9 @@ export function FilterSidebar({
               </Label>
             </div>
           </FilterGroup>
-        </Accordion>
-      </div>
-
-      {/* Clear filters button at bottom */}
-      {hasActiveFilters && (
-        <div className="p-4 border-t border-border bg-background">
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            onClick={onClearFilters}
-          >
-            <X className="h-4 w-4 mr-2" />
-            Clear All Filters
-          </Button>
+          </Accordion>
         </div>
-      )}
+      </div>
     </div>
   );
 }
