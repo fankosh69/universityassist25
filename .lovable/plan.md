@@ -1,46 +1,58 @@
-## Problem
+## Goal
 
-In the Course of Study card, level-2 rows (e.g. "Mathematics, Natural Sciences", "Agricultural and Forest Sci…") render their label and the count pill outside / clipped against the card's right edge. The count pill (`0`, `58`) sits on top of, or past, the card border, and the accordion chevron pushes things further right.
+Rebuild the search-page filter sidebar to match the selected direction ("High-density accent stack" with subtle elevation on expand) and definitively fix the Course of Study overflow where labels and count pills collide with the card edge.
 
-Root cause is in `src/components/search/HierarchicalFieldSelect.tsx`:
+## What changes (frontend only)
 
-1. The parent `AccordionItem` row uses `pl-3` / `pl-6` for indentation but has **no right padding**, so the right edge of its inner flex children touches the card border. The `CountPill` then visually hugs / overlaps the border.
-2. Inside the `AccordionTrigger`, the inner flex wrapper has `pr-2` *and* the trigger itself renders a chevron via `[&>svg]:ml-1.5` — so the real content width is `card − pl − chevron − pr`, but the count pill is placed *before* the chevron with no guaranteed gap, and the label's `truncate` is competing against the pill for space.
-3. Leaf rows use `pr-2` which is tighter than the parent card's body padding (`px-3`), making leaf pills sit closer to the edge than parent pills.
-4. `FilterCardSection` body is `px-3 pb-3` — fine, but combined with the row's own `pl-6` at level 3, the usable inner width gets very narrow at the deepest level, which is why "Agricultural and Forest Sci…" truncates aggressively while the `0` pill still appears clipped.
+### 1. `FilterSidebar.tsx` — sidebar shell
+- Sidebar header row: "Filters" in Space Grotesk bold + small "Clear all" link in primary (#2E57F6).
+- Keep the search input but restyle: white bg, `border-[#e8ecf1]`, `rounded-xl`, leading search icon, focus ring `#2E57F6/20`.
+- Stack of filter cards with `gap-3`.
 
-## Fix (single file: `src/components/search/HierarchicalFieldSelect.tsx`)
+### 2. `FilterCardSection.tsx` — unified card pattern (used by EVERY category)
+Every filter (Course of Study, Location, Degree Type, Tuition Fees, Institution Type, Institution Ownership, Duration) renders through this single component. Header structure:
 
-Goal: guarantee the count pill always sits **inside** the card with a consistent right gutter, and let the label truncate cleanly before it ever collides with the pill or the chevron.
+```text
+[ icon-tile ]  Label .................... [ count-chip ] [ chevron ]
+```
 
-1. **Add a consistent right padding to every row** (both leaf and parent):
-   - Leaf row container: change `py-1.5 pr-2` → `py-1.5 pr-3`.
-   - Parent row container: add `pr-2` to the outer flex wrapper so the row never reaches the card edge.
-   - This gives every row the same right gutter as the card's `px-3` body.
+- Card: `bg-white border-[#e8ecf1] rounded-2xl shadow-sm`.
+- Expanded state adds the elevation shift the user picked: `shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] ring-1 ring-black/5` and primary-tinted icon tile (`bg-[#2E57F6]/5 text-[#2E57F6]`).
+- Collapsed state: muted icon tile (`bg-[#94a3b8]/10 text-[#94a3b8]`) and `hover:border-[#2E57F6]/30`.
+- Count chip only renders when active selections > 0: filled `bg-[#2E57F6] text-white` pill.
+- Smooth chevron rotation + content fade/expand transition.
+- Each category gets its own lucide icon (GraduationCap, MapPin, Award, Wallet, Building2, Landmark, Clock).
 
-2. **Reduce indentation slightly so deep rows keep usable width**:
-   - Level 2: `pl-3` → `pl-2`.
-   - Level 3: `pl-6` → `pl-4`.
-   - Indentation is still visually clear (left accent border remains), but the inner content area is wider, so labels like "Agricultural and Forest Sciences" can show more characters before truncating.
+### 3. `HierarchicalFieldSelect.tsx` — definitive row overflow fix
+Replace the current AccordionTrigger-based row with a flat grid row that guarantees containment:
 
-3. **Fix the parent-row chevron / pill collision**:
-   - On the `AccordionTrigger`, change `pr-2` (on the inner wrapper) → `pr-1`, and change `[&>svg]:ml-1.5` → `[&>svg]:ml-2` so the chevron has breathing room from the pill.
-   - Wrap the label + pill in a flex with `gap-2` (currently `gap-2` exists but the pill has no guaranteed left margin from the truncated label — add `ml-auto` to `CountPill` wrapper or keep `shrink-0` and ensure the label is `min-w-0 flex-1 truncate` so the pill is pushed right but never clipped).
+```text
+row = [ checkbox 16px ] [ label flex-1 min-w-0 truncate ] [ count chip shrink-0 ] [ chevron 12px shrink-0 ]
+```
 
-4. **Ensure overflow never clips the pill**:
-   - Remove `overflow-hidden` from the row containers (it's what causes the pill to be visually cut when it briefly overflows during layout). Keep `min-w-0 w-full` so flex truncation still works on the label.
-   - The card itself (`FilterCardSection` `rounded-2xl … overflow-hidden`) already clips anything that would escape the card, so removing `overflow-hidden` on the inner row is safe and prevents the pill from being chopped mid-character.
+Concrete rules applied to every level (parents and leaves):
+- Outer row: `flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-[#fafbfc]`.
+- Left cluster: `flex items-center gap-3 min-w-0` so flex shrinking works.
+- Label: `truncate text-sm font-medium`.
+- Count chip: `shrink-0 text-[10px] font-bold bg-[#e8ecf1] text-[#64748b] px-1.5 py-0.5 rounded-full min-w-[28px] text-center` (selected: `bg-[#2E57F6]/10 text-[#2E57F6]`).
+- Expand chevron (parents only): rendered manually inside the row, `w-3 h-3 shrink-0`, rotates on open.
+- Drop `overflow-hidden` from row wrappers; the card already clips and `truncate` does the work.
+- Indentation: level 2 = `pl-2`, level 3 = `pl-4`, kept tight so the right gutter always has room for the chip.
 
-5. **Tighten `CountPill` placement**:
-   - Add `ml-2` to `CountPill` usage in both leaf and parent rows so there's always a visible gap between the (possibly truncated) label and the pill.
+### 4. Same row pattern applied to all simple list filters
+Location options, Degree Type, Institution Type, Institution Ownership, Duration variants use the same checkbox + truncated label + count chip pattern so the sidebar reads as one consistent system.
+
+### 5. Tokens
+Match the locked palette literally where the design uses them (`#2E57F6`, `#fafbfc`, `#e8ecf1`, `#94a3b8`, `#0f172a`, `#475569`, `#64748b`) so the implementation visually equals the prototype. Fonts: Space Grotesk for headings/labels, DM Sans for body — already wired in the project.
 
 ## Out of scope
 
-- No changes to `FilterCardSection.tsx`, `FilterSidebar.tsx`, or any business logic.
-- No change to count values, selection logic, or accordion behavior.
+- No changes to filter business logic, data sources, counts, sorting, or how selections propagate.
+- No edits to program cards or the page header.
+- No new dependencies.
 
-## Result
+## Verification
 
-- "Mathematics, Natural Sciences" and "Agricultural and Forest Sciences" rows show the count pill fully inside the card with a clean right gutter.
-- Labels truncate with an ellipsis *before* touching the pill, and the chevron on parent rows no longer crowds the pill.
-- All nesting levels (1, 2, 3) share the same right gutter so pills align vertically down the card.
+- Open `/search`, expand Course of Study, confirm long Level 2 / Level 3 labels truncate with ellipsis and the count chip stays fully inside the card.
+- Check collapsed vs expanded card states: expanded card shows the elevation + primary-tinted icon tile.
+- Spot-check Location, Degree Type, Tuition Fees, Institution Type, Institution Ownership, Duration — all share the same header pattern and row pattern.
