@@ -183,30 +183,23 @@ export function HierarchicalFieldSelect({
     const isSelected = isFieldSelected(field.id);
     const isIndeterminate = isFieldIndeterminate(field);
 
-    // Indentation by level — use padding (not margin) so rows stay flush
-    // with the card's right edge; left accent border is inset.
-    const indentClass =
-      level === 1 ? "pl-0" : level === 2 ? "pl-2" : "pl-4";
-    const borderClass =
-      level === 1
-        ? ""
-        : level === 2
-        ? "border-l border-border/60"
-        : "border-l border-border/40";
+    // Dynamic padding ensures perfect alignment regardless of hierarchy depth
+    const dynamicPadding = { paddingLeft: `${(level - 1) * 0.75}rem` };
+    const borderClass = level > 1 ? "border-l border-border/40" : "";
 
     if (!hasChildren) {
       return (
         <div
           key={field.id}
+          style={dynamicPadding}
           className={cn(
             "flex items-center gap-2 py-1.5 pr-3 rounded-md transition-colors hover:bg-accent/40 min-w-0 w-full",
             isSelected && "bg-accent/60",
-            indentClass,
             borderClass
           )}
         >
           <Checkbox
-            className="ml-2"
+            className="ml-2 shrink-0"
             id={`field-${field.id}`}
             checked={isSelected}
             onCheckedChange={() => handleFieldToggle(field)}
@@ -227,10 +220,10 @@ export function HierarchicalFieldSelect({
     return (
       <AccordionItem key={field.id} value={field.id} className="border-none">
         <div
+          style={dynamicPadding}
           className={cn(
             "flex items-center gap-2 pr-2 rounded-md transition-colors hover:bg-accent/30 min-w-0 w-full",
             isSelected && !isIndeterminate && "bg-accent/60",
-            indentClass,
             borderClass
           )}
         >
@@ -239,7 +232,7 @@ export function HierarchicalFieldSelect({
             checked={isSelected && !isIndeterminate}
             onCheckedChange={() => handleFieldToggle(field)}
             className={cn(
-              "ml-2 shrink-0",
+              "ml-2 shrink-0 z-10 relative",
               isIndeterminate && "data-[state=checked]:bg-primary/50"
             )}
           />
@@ -253,14 +246,10 @@ export function HierarchicalFieldSelect({
               );
             }}
           >
-            <div className="flex items-center justify-between gap-2 w-full min-w-0 pr-1">
-              <label
-                htmlFor={`field-${field.id}`}
-                className="cursor-pointer text-sm font-normal text-foreground truncate min-w-0 flex-1 text-left"
-                onClick={(e) => e.preventDefault()}
-              >
+            <div className="flex items-center justify-between gap-2 flex-1 min-w-0 pr-1">
+              <span className="truncate min-w-0 flex-1 text-left">
                 {highlight(field.name)}
-              </label>
+              </span>
               <span className="ml-2 shrink-0">
                 <CountPill count={field.programCount} active={isSelected && !isIndeterminate} />
               </span>
