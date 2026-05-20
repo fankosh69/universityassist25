@@ -123,8 +123,7 @@ export function FilterSidebar({
 
         {/* Scrollable filters */}
         <div className="flex-1 overflow-y-auto">
-          {/* Hero filter cards */}
-          <div className="p-4 pb-0 space-y-3">
+          <div className="divide-y divide-border/60">
             <FilterCardSection
               title="Course of Study"
               icon={<ListChecks className="h-5 w-5" />}
@@ -151,9 +150,6 @@ export function FilterSidebar({
                 onChange={(v) => updateFilter('city', v)}
               />
             </FilterCardSection>
-          </div>
-
-          <div className="p-4 pt-3 space-y-3">
           {/* Degree Level */}
           <FilterCardSection
             title="Degree Type"
