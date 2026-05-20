@@ -14,6 +14,7 @@ import Search from "./pages/Search";
 import SavedPrograms from "./pages/SavedPrograms";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
+import VideoLoadingScreen from "./components/VideoLoadingScreen";
 import LoadingSpinner from "./components/LoadingSpinner";
 import DashboardEnhanced from "./pages/DashboardEnhanced";
 import OnboardingFlow from "./pages/onboarding/OnboardingFlow";
@@ -81,6 +82,16 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const loadingRef = useRef(true);
   const pendingUserRef = useRef<any>(undefined);
+  const isFirstVisitRef = useRef<boolean>(
+    (() => {
+      try {
+        return typeof window !== "undefined" &&
+          !window.localStorage.getItem("ua_intro_played");
+      } catch {
+        return false;
+      }
+    })()
+  );
 
   useEffect(() => {
     // Get initial session - defer state update if still loading
@@ -118,6 +129,13 @@ const App = () => {
 
   const handleLoadingComplete = () => {
     loadingRef.current = false;
+    if (isFirstVisitRef.current) {
+      try {
+        window.localStorage.setItem("ua_intro_played", "1");
+      } catch {
+        // ignore (private mode, etc.)
+      }
+    }
     // Apply any pending user state that was captured during loading
     if (pendingUserRef.current !== undefined) {
       setUser(pendingUserRef.current);
@@ -126,7 +144,11 @@ const App = () => {
   };
 
   if (loading) {
-    return <LoadingScreen key="app-loader" onComplete={handleLoadingComplete} />;
+    return isFirstVisitRef.current ? (
+      <VideoLoadingScreen key="app-loader-video" onComplete={handleLoadingComplete} />
+    ) : (
+      <LoadingScreen key="app-loader" onComplete={handleLoadingComplete} />
+    );
   }
 
   // Debug check - add temporary test
