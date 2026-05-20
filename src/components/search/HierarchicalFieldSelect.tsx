@@ -2,7 +2,13 @@ import { useState, useEffect, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Search, X } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -177,6 +183,8 @@ export function HierarchicalFieldSelect({
     const isSelected = isFieldSelected(field.id);
     const isIndeterminate = isFieldIndeterminate(field);
 
+    // Indentation by level — use padding (not margin) so rows stay flush
+    // with the card's right edge; left accent border is inset.
     const indentClass =
       level === 1 ? "pl-0" : level === 2 ? "pl-2" : "pl-4";
     const borderClass =
@@ -186,22 +194,44 @@ export function HierarchicalFieldSelect({
         ? "border-l border-border/60"
         : "border-l border-border/40";
 
-    const isOpen = effectiveExpanded.includes(field.id);
-
-    const toggleExpand = () => {
-      setExpandedItems((prev) =>
-        prev.includes(field.id)
-          ? prev.filter((id) => id !== field.id)
-          : [...prev, field.id]
+    if (!hasChildren) {
+      return (
+        <div
+          key={field.id}
+          className={cn(
+            "flex items-center gap-2 py-1.5 pr-3 rounded-md transition-colors hover:bg-accent/40 min-w-0 w-full",
+            isSelected && "bg-accent/60",
+            indentClass,
+            borderClass
+          )}
+        >
+          <Checkbox
+            className="ml-2"
+            id={`field-${field.id}`}
+            checked={isSelected}
+            onCheckedChange={() => handleFieldToggle(field)}
+          />
+          <label
+            htmlFor={`field-${field.id}`}
+            className="flex items-center justify-between gap-2 flex-1 min-w-0 cursor-pointer text-sm font-normal text-foreground pr-1"
+          >
+            <span className="truncate min-w-0 flex-1">{highlight(field.name)}</span>
+            <span className="ml-2 shrink-0">
+              <CountPill count={field.programCount} active={isSelected} />
+            </span>
+          </label>
+        </div>
       );
-    };
+    }
 
     return (
-      <div key={field.id} className={cn("min-w-0 w-full", indentClass, borderClass)}>
+      <AccordionItem key={field.id} value={field.id} className="border-none">
         <div
           className={cn(
-            "flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-muted/40 min-w-0 w-full",
-            (isSelected && !isIndeterminate) && "bg-muted/60"
+            "flex items-center gap-2 pr-2 rounded-md transition-colors hover:bg-accent/30 min-w-0 w-full",
+            isSelected && !isIndeterminate && "bg-accent/60",
+            indentClass,
+            borderClass
           )}
         >
           <Checkbox
@@ -209,50 +239,38 @@ export function HierarchicalFieldSelect({
             checked={isSelected && !isIndeterminate}
             onCheckedChange={() => handleFieldToggle(field)}
             className={cn(
-              "shrink-0",
+              "ml-2 shrink-0",
               isIndeterminate && "data-[state=checked]:bg-primary/50"
             )}
           />
-          {hasChildren ? (
-            <button
-              type="button"
-              onClick={toggleExpand}
-              aria-expanded={isOpen}
-              className="flex items-center justify-between gap-2 flex-1 min-w-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
-            >
-              <span className="truncate min-w-0 flex-1 text-sm font-medium text-foreground">
+          <AccordionTrigger
+            className="flex-1 min-w-0 py-1.5 pr-1 hover:no-underline [&>svg]:ml-2 [&>svg]:shrink-0 text-sm font-normal text-foreground"
+            onClick={() => {
+              setExpandedItems((prev) =>
+                prev.includes(field.id)
+                  ? prev.filter((id) => id !== field.id)
+                  : [...prev, field.id]
+              );
+            }}
+          >
+            <div className="flex items-center justify-between gap-2 w-full min-w-0 pr-1">
+              <label
+                htmlFor={`field-${field.id}`}
+                className="cursor-pointer text-sm font-normal text-foreground truncate min-w-0 flex-1 text-left"
+                onClick={(e) => e.preventDefault()}
+              >
                 {highlight(field.name)}
-              </span>
-              <span className="shrink-0 flex items-center gap-1.5">
+              </label>
+              <span className="ml-2 shrink-0">
                 <CountPill count={field.programCount} active={isSelected && !isIndeterminate} />
-                <ChevronDown
-                  className={cn(
-                    "h-3 w-3 text-muted-foreground transition-transform",
-                    isOpen && "rotate-180"
-                  )}
-                />
               </span>
-            </button>
-          ) : (
-            <label
-              htmlFor={`field-${field.id}`}
-              className="flex items-center justify-between gap-2 flex-1 min-w-0 cursor-pointer"
-            >
-              <span className="truncate min-w-0 flex-1 text-sm font-medium text-foreground">
-                {highlight(field.name)}
-              </span>
-              <span className="shrink-0">
-                <CountPill count={field.programCount} active={isSelected} />
-              </span>
-            </label>
-          )}
+            </div>
+          </AccordionTrigger>
         </div>
-        {hasChildren && isOpen && (
-          <div className="pt-1 space-y-0.5 min-w-0">
-            {field.children.map((child) => renderField(child, level + 1))}
-          </div>
-        )}
-      </div>
+        <AccordionContent className="pb-1 pt-1 min-w-0">
+          {field.children.map((child) => renderField(child, level + 1))}
+        </AccordionContent>
+      </AccordionItem>
     );
   };
 
@@ -322,9 +340,14 @@ export function HierarchicalFieldSelect({
           No fields match "{search}"
         </div>
       ) : (
-        <div className="space-y-0.5 min-w-0 w-full">
+        <Accordion
+          type="multiple"
+          value={effectiveExpanded}
+          onValueChange={setExpandedItems}
+          className="space-y-0.5"
+        >
           {filteredFields.map((field) => renderField(field, 1))}
-        </div>
+        </Accordion>
       )}
     </div>
   );

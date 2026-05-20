@@ -26,10 +26,8 @@ export function FilterCardSection({
   return (
     <section
       className={cn(
-        "rounded-2xl border border-border bg-card shadow-sm overflow-hidden transition-all",
-        open
-          ? "shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] ring-1 ring-black/5"
-          : "hover:border-primary/30"
+        "rounded-2xl border border-border bg-card shadow-sm overflow-hidden transition-shadow",
+        activeCount > 0 && "shadow-md shadow-primary/5"
       )}
     >
       <button
@@ -39,18 +37,11 @@ export function FilterCardSection({
         className="w-full flex items-center justify-between gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl"
       >
         <div className="flex items-center gap-3 min-w-0">
-          <span
-            className={cn(
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
-              open
-                ? "bg-primary/5 text-primary"
-                : "bg-muted-foreground/10 text-muted-foreground"
-            )}
-          >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
             {icon}
           </span>
           <h3
-            className="text-sm font-bold tracking-tight text-foreground truncate"
+            className="text-base font-bold tracking-tight text-foreground truncate"
             style={{ fontFamily: "'Space Grotesk', var(--font-sans, ui-sans-serif)" }}
           >
             {title}
