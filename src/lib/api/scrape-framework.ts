@@ -74,7 +74,7 @@ export const scrapeApi = {
     // "Accepting" means publishing the draft.
     if (diff.field_path === "__new_program__") {
       const { error: upErr } = await supabase.from("programs").update({
-        status: "active",
+        status: "published",
         published: true,
         last_verified_at: new Date().toISOString(),
       }).eq("id", diff.program_id);
