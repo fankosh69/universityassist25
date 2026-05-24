@@ -101,3 +101,12 @@ verify_jwt = false
 
 [functions.blog-generate-hero-image]
 verify_jwt = true
+
+[functions.scrape-orchestrator]
+verify_jwt = false
+
+[functions.scrape-university]
+verify_jwt = false
+
+[functions.scrape-queue-drain]
+verify_jwt = false
