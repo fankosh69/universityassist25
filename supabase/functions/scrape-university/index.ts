@@ -58,6 +58,9 @@ Deno.serve(async (req) => {
 
   try {
     const { jobId, universityId: bodyUniId, dryRun } = await req.json().catch(() => ({}));
+    const startedAt = Date.now();
+    const WALL_BUDGET_MS = 110_000; // stay under platform CPU/wall budget
+    const overBudget = () => Date.now() - startedAt > WALL_BUDGET_MS;
 
     // Resolve job — either explicit or pull next pending.
     let job: any = null;
@@ -131,6 +134,7 @@ Deno.serve(async (req) => {
 
       // ---- Pass 2 + 3: per-program surface scrape, gap chasing, PDF ingest ----
       for (const url of urls) {
+        if (overBudget()) { errors.push({ url, err: "wall_budget_exceeded" }); break; }
         try {
           const surface = await firecrawl(firecrawlKey, "scrape", {
             url, formats: ["markdown", "links"], onlyMainContent: true,
@@ -159,15 +163,18 @@ Deno.serve(async (req) => {
             }
           }
 
-          // PDF ingest: collect matching pdf links.
-          const pdfLinks = links.filter((l) =>
-            /\.pdf($|\?)/i.test(l) || matchesAny(l, profile.pdf_link_patterns ?? []),
-          ).slice(0, 5);
-          for (const pdfUrl of pdfLinks) {
-            try {
-              const stored = await ingestPdf(service, job.university_id, pdfUrl);
-              if (stored) pdfs += 1;
-            } catch (e) { errors.push({ url: pdfUrl, err: String(e) }); }
+          // PDF ingest (skipped while over budget or in dry-run).
+          if (!dryRun && !overBudget()) {
+            const pdfLinks = links.filter((l) =>
+              /\.pdf($|\?)/i.test(l) || matchesAny(l, profile.pdf_link_patterns ?? []),
+            ).slice(0, 3);
+            for (const pdfUrl of pdfLinks) {
+              if (overBudget()) break;
+              try {
+                const stored = await ingestPdf(service, job.university_id, pdfUrl);
+                if (stored) pdfs += 1;
+              } catch (e) { errors.push({ url: pdfUrl, err: String(e) }); }
+            }
           }
 
           // Diff against existing program (matched by name + university).
@@ -215,7 +222,7 @@ Deno.serve(async (req) => {
 
       await service.from("scrape_runs").update({
         finished_at: new Date().toISOString(),
-        status: errors.length === pages ? "failed" : "completed",
+        status: pages === 0 ? (errors.length ? "failed" : "completed") : (errors.length >= pages ? "failed" : "completed"),
         pages_crawled: pages, pdfs_ingested: pdfs, credits_used: credits, diffs_created: diffs,
         errors,
       }).eq("id", run.id);
@@ -258,6 +265,7 @@ async function firecrawl(key: string | undefined, path: "scrape" | "map" | "craw
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(45_000),
   });
   if (!res.ok) throw new Error(`firecrawl ${path} ${res.status}`);
   return await res.json();
@@ -274,6 +282,7 @@ async function llmExtract(aiKey: string | undefined, markdown: string, url: stri
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
     }),
+    signal: AbortSignal.timeout(30_000),
   });
   if (!res.ok) throw new Error(`ai ${res.status}`);
   const j = await res.json();
@@ -330,7 +339,7 @@ function mergePreferExisting(base: any, extra: any, sourceUrl: string) {
 
 async function ingestPdf(service: any, universityId: string, url: string) {
   // HEAD-ish check then download.
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(20_000) });
   if (!res.ok) return false;
   const ct = res.headers.get("content-type") ?? "";
   if (!/pdf/i.test(ct) && !/\.pdf/i.test(url)) return false;
