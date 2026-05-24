@@ -214,6 +214,53 @@ Deno.serve(async (req) => {
                 last_verified_at: new Date().toISOString(),
               }, { onConflict: "program_id,field_path" });
             }
+          } else if (!existing && !dryRun && extracted?.name) {
+            // Auto-insert as draft for admin review. Fill required NOT NULL fields with safe defaults.
+            const insertRow: Record<string, unknown> = {
+              university_id: job.university_id,
+              name: String(extracted.name).slice(0, 300),
+              field_of_study: extracted.field_of_study ?? "Unspecified",
+              degree_type: extracted.degree_type ?? (extracted.degree_level === "master" ? "M.Sc." : "B.Sc."),
+              duration_semesters: Number.isFinite(extracted.duration_semesters) ? extracted.duration_semesters : (extracted.degree_level === "master" ? 4 : 6),
+              degree_level: extracted.degree_level ?? null,
+              description: extracted.description ?? null,
+              ects_credits: extracted.ects_credits ?? null,
+              language_of_instruction: extracted.language_of_instruction ?? null,
+              tuition_amount: extracted.tuition_amount ?? 0,
+              tuition_fee_structure: extracted.tuition_fee_structure ?? "semester",
+              uni_assist_required: extracted.uni_assist_required ?? false,
+              application_method: extracted.application_method ?? "direct",
+              winter_intake: extracted.winter_intake ?? false,
+              summer_intake: extracted.summer_intake ?? false,
+              winter_deadline_month: extracted.winter_deadline_month ?? null,
+              winter_deadline_day: extracted.winter_deadline_day ?? null,
+              summer_deadline_month: extracted.summer_deadline_month ?? null,
+              summer_deadline_day: extracted.summer_deadline_day ?? null,
+              program_url: extracted.program_url ?? url,
+              minimum_gpa: extracted.minimum_gpa ?? null,
+              status: "draft",
+              published: false,
+            };
+            const { data: inserted, error: insErr } = await service
+              .from("programs").insert(insertRow).select("id").single();
+            if (insErr) {
+              errors.push({ url, err: `insert_program: ${insErr.message}` });
+            } else if (inserted) {
+              // Log a diff record so the review queue surfaces newly created drafts.
+              await service.from("scrape_diffs").insert({
+                run_id: run.id,
+                program_id: inserted.id,
+                university_id: job.university_id,
+                field_path: "__new_program__",
+                old_value: null,
+                new_value: extracted,
+                confidence: extracted?._confidence?.name ?? 0.6,
+                source_url: url,
+                source_kind: "page",
+                status: "pending",
+              });
+              diffs += 1;
+            }
           }
         } catch (e) {
           errors.push({ url, err: String(e) });
