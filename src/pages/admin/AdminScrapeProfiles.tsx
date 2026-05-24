@@ -19,7 +19,7 @@ export default function AdminScrapeProfiles() {
   const { data: profiles, isLoading } = useQuery({ queryKey: ["scrape-profiles"], queryFn: scrapeApi.listProfiles });
   const { data: universities } = useQuery({
     queryKey: ["unis-for-scrape"],
-    queryFn: async () => (await supabase.from("universities").select("id, name, website_url").order("name")).data ?? [],
+    queryFn: async () => (await supabase.from("universities").select("id, name, website").order("name")).data ?? [],
   });
   const [editing, setEditing] = useState<any | null>(null);
   const [runningOrch, setRunningOrch] = useState(false);
@@ -62,7 +62,7 @@ export default function AdminScrapeProfiles() {
                   <div>
                     <CardTitle className="text-base">{p.universities?.name ?? p.university_id}</CardTitle>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {p.base_urls?.[0] ?? p.universities?.website_url}
+                      {p.base_urls?.[0] ?? p.universities?.website}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
