@@ -57,6 +57,9 @@ const adminMenuItems = [
   { title: "HubSpot CRM", url: "/admin/hubspot", icon: Waypoints },
   { title: "Sitemap", url: "/admin/sitemap", icon: FileText },
   { title: "Blog Pipeline", url: "/admin/blog", icon: FileText },
+  { title: "Scraping Profiles", url: "/admin/scrape-profiles", icon: Waypoints },
+  { title: "Scrape Review", url: "/admin/scrape-review", icon: ClipboardCheck },
+  { title: "Live Data", url: "/admin/live-data", icon: Database },
 ];
 
 export function AdminSidebar() {

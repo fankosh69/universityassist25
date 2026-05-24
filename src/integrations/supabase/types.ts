@@ -2068,6 +2068,47 @@ export type Database = {
           },
         ]
       }
+      program_field_sources: {
+        Row: {
+          confidence: number
+          content_hash: string | null
+          field_path: string
+          id: string
+          last_verified_at: string
+          program_id: string
+          source_kind: string
+          source_url: string
+        }
+        Insert: {
+          confidence?: number
+          content_hash?: string | null
+          field_path: string
+          id?: string
+          last_verified_at?: string
+          program_id: string
+          source_kind?: string
+          source_url: string
+        }
+        Update: {
+          confidence?: number
+          content_hash?: string | null
+          field_path?: string
+          id?: string
+          last_verified_at?: string
+          program_id?: string
+          source_kind?: string
+          source_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_field_sources_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       program_fields_of_study: {
         Row: {
           created_at: string | null
@@ -2419,6 +2460,7 @@ export type Database = {
           interview_required: boolean | null
           language_of_instruction: string[] | null
           language_requirements: string[] | null
+          last_verified_at: string | null
           metadata: Json | null
           minimum_gpa: number | null
           module_description_url: string | null
@@ -2491,6 +2533,7 @@ export type Database = {
           interview_required?: boolean | null
           language_of_instruction?: string[] | null
           language_requirements?: string[] | null
+          last_verified_at?: string | null
           metadata?: Json | null
           minimum_gpa?: number | null
           module_description_url?: string | null
@@ -2563,6 +2606,7 @@ export type Database = {
           interview_required?: boolean | null
           language_of_instruction?: string[] | null
           language_requirements?: string[] | null
+          last_verified_at?: string | null
           metadata?: Json | null
           minimum_gpa?: number | null
           module_description_url?: string | null
@@ -2861,6 +2905,255 @@ export type Database = {
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scrape_budget: {
+        Row: {
+          current_month_start: string
+          current_month_used: number
+          id: boolean
+          monthly_credit_ceiling: number
+          paused: boolean
+          updated_at: string
+        }
+        Insert: {
+          current_month_start?: string
+          current_month_used?: number
+          id?: boolean
+          monthly_credit_ceiling?: number
+          paused?: boolean
+          updated_at?: string
+        }
+        Update: {
+          current_month_start?: string
+          current_month_used?: number
+          id?: boolean
+          monthly_credit_ceiling?: number
+          paused?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      scrape_diffs: {
+        Row: {
+          confidence: number
+          created_at: string
+          field_path: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          program_id: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          run_id: string | null
+          source_kind: string
+          source_url: string | null
+          status: string
+          university_id: string | null
+        }
+        Insert: {
+          confidence?: number
+          created_at?: string
+          field_path: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          program_id?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string | null
+          source_kind?: string
+          source_url?: string | null
+          status?: string
+          university_id?: string | null
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          field_path?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          program_id?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string | null
+          source_kind?: string
+          source_url?: string | null
+          status?: string
+          university_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scrape_diffs_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scrape_diffs_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "scrape_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scrape_diffs_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scrape_jobs: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          created_by: string | null
+          finished_at: string | null
+          id: string
+          job_type: string
+          last_error: string | null
+          payload: Json
+          priority: number
+          profile_id: string | null
+          program_id: string | null
+          scheduled_at: string
+          started_at: string | null
+          status: string
+          university_id: string | null
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          created_by?: string | null
+          finished_at?: string | null
+          id?: string
+          job_type?: string
+          last_error?: string | null
+          payload?: Json
+          priority?: number
+          profile_id?: string | null
+          program_id?: string | null
+          scheduled_at?: string
+          started_at?: string | null
+          status?: string
+          university_id?: string | null
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          created_by?: string | null
+          finished_at?: string | null
+          id?: string
+          job_type?: string
+          last_error?: string | null
+          payload?: Json
+          priority?: number
+          profile_id?: string | null
+          program_id?: string | null
+          scheduled_at?: string
+          started_at?: string | null
+          status?: string
+          university_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scrape_jobs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "university_scrape_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scrape_jobs_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scrape_jobs_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scrape_runs: {
+        Row: {
+          credits_used: number
+          diffs_created: number
+          errors: Json
+          finished_at: string | null
+          id: string
+          job_id: string | null
+          pages_crawled: number
+          pdfs_ingested: number
+          program_id: string | null
+          started_at: string
+          status: string
+          summary: Json
+          university_id: string | null
+        }
+        Insert: {
+          credits_used?: number
+          diffs_created?: number
+          errors?: Json
+          finished_at?: string | null
+          id?: string
+          job_id?: string | null
+          pages_crawled?: number
+          pdfs_ingested?: number
+          program_id?: string | null
+          started_at?: string
+          status?: string
+          summary?: Json
+          university_id?: string | null
+        }
+        Update: {
+          credits_used?: number
+          diffs_created?: number
+          errors?: Json
+          finished_at?: string | null
+          id?: string
+          job_id?: string | null
+          pages_crawled?: number
+          pdfs_ingested?: number
+          program_id?: string | null
+          started_at?: string
+          status?: string
+          summary?: Json
+          university_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scrape_runs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "scrape_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scrape_runs_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scrape_runs_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
             referencedColumns: ["id"]
           },
         ]
@@ -3508,6 +3801,89 @@ export type Database = {
             foreignKeyName: "university_faculties_university_id_fkey"
             columns: ["university_id"]
             isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      university_scrape_profiles: {
+        Row: {
+          base_urls: string[]
+          cadence: string
+          created_at: string
+          discovery_method: string
+          enabled: boolean
+          exclude_patterns: string[]
+          extraction_prompt_overrides: string | null
+          health_score: number | null
+          id: string
+          language_mode: string
+          last_run_at: string | null
+          last_success_at: string | null
+          max_depth: number
+          max_pages: number
+          next_run_at: string | null
+          notes: string | null
+          pdf_link_patterns: string[]
+          program_url_patterns: string[]
+          selectors_hint: Json
+          university_id: string
+          updated_at: string
+          wait_for_ms: number
+        }
+        Insert: {
+          base_urls?: string[]
+          cadence?: string
+          created_at?: string
+          discovery_method?: string
+          enabled?: boolean
+          exclude_patterns?: string[]
+          extraction_prompt_overrides?: string | null
+          health_score?: number | null
+          id?: string
+          language_mode?: string
+          last_run_at?: string | null
+          last_success_at?: string | null
+          max_depth?: number
+          max_pages?: number
+          next_run_at?: string | null
+          notes?: string | null
+          pdf_link_patterns?: string[]
+          program_url_patterns?: string[]
+          selectors_hint?: Json
+          university_id: string
+          updated_at?: string
+          wait_for_ms?: number
+        }
+        Update: {
+          base_urls?: string[]
+          cadence?: string
+          created_at?: string
+          discovery_method?: string
+          enabled?: boolean
+          exclude_patterns?: string[]
+          extraction_prompt_overrides?: string | null
+          health_score?: number | null
+          id?: string
+          language_mode?: string
+          last_run_at?: string | null
+          last_success_at?: string | null
+          max_depth?: number
+          max_pages?: number
+          next_run_at?: string | null
+          notes?: string | null
+          pdf_link_patterns?: string[]
+          program_url_patterns?: string[]
+          selectors_hint?: Json
+          university_id?: string
+          updated_at?: string
+          wait_for_ms?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "university_scrape_profiles_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: true
             referencedRelation: "universities"
             referencedColumns: ["id"]
           },

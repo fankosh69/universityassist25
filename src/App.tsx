@@ -73,6 +73,9 @@ const AdminProgramInquiries = lazy(() => import("./pages/admin/AdminProgramInqui
 const AdminHubSpot = lazy(() => import("./pages/admin/AdminHubSpot"));
 const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const BlogPost = lazy(() => import("./pages/blog/BlogPost"));
+const AdminScrapeProfiles = lazy(() => import("./pages/admin/AdminScrapeProfiles"));
+const AdminScrapeReview = lazy(() => import("./pages/admin/AdminScrapeReview"));
+const AdminLiveData = lazy(() => import("./pages/admin/AdminLiveData"));
 
 const queryClient = new QueryClient();
 
@@ -251,6 +254,9 @@ const AnimatedRoutes = ({ user }: { user: any }) => {
                 <Route path="/admin/program-inquiries" element={<AdminLayout><AdminProgramInquiries /></AdminLayout>} />
                 <Route path="/admin/hubspot" element={<AdminLayout><AdminHubSpot /></AdminLayout>} />
                 <Route path="/admin/blog" element={<AdminLayout><AdminBlog /></AdminLayout>} />
+                <Route path="/admin/scrape-profiles" element={<AdminLayout><AdminScrapeProfiles /></AdminLayout>} />
+                <Route path="/admin/scrape-review" element={<AdminLayout><AdminScrapeReview /></AdminLayout>} />
+                <Route path="/admin/live-data" element={<AdminLayout><AdminLiveData /></AdminLayout>} />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>
