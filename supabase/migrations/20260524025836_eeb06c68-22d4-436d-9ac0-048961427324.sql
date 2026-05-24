@@ -1,0 +1,3 @@
+UPDATE public.scrape_runs SET status='failed', finished_at=now(), errors=COALESCE(errors,'[]'::jsonb)||'[{"fatal":"abandoned_no_logs"}]'::jsonb WHERE id='b018082a-edc7-4bcf-b998-eef23c324129';
+UPDATE public.scrape_jobs SET status='failed', finished_at=now(), last_error='abandoned' WHERE university_id='9e094bbf-43ff-4b04-93e7-9a7bea5d675e' AND status IN ('running','pending');
+UPDATE public.university_scrape_profiles SET max_pages=5 WHERE university_id='9e094bbf-43ff-4b04-93e7-9a7bea5d675e';
