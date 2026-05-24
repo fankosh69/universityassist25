@@ -103,13 +103,21 @@ Deno.serve(async (req) => {
       // ---- Pass 1: discover candidate program URLs (Firecrawl MAP) ----
       const candidateUrls = new Set<string>();
       const bases = profile.base_urls?.length ? profile.base_urls : [university.website];
+      const discoverySearch: string | undefined =
+        (profile.selectors_hint && typeof profile.selectors_hint === "object")
+          ? (profile.selectors_hint as any).discovery_search
+          : undefined;
+      const mapLimit = Math.max(200, (profile.max_pages ?? 200) * 10);
       for (const base of bases) {
         const m = await firecrawl(firecrawlKey, "map", {
-          url: base, limit: Math.min(profile.max_pages ?? 200, 500),
+          url: base,
+          limit: Math.min(mapLimit, 1000),
           includeSubdomains: false,
+          ...(discoverySearch ? { search: discoverySearch } : {}),
         });
         credits += 1;
-        const links: string[] = m?.links ?? m?.data?.links ?? [];
+        const rawLinks: any[] = m?.links ?? m?.data?.links ?? [];
+        const links: string[] = rawLinks.map((l) => (typeof l === "string" ? l : l?.url)).filter(Boolean);
         for (const l of links) {
           if (matchesAny(l, profile.exclude_patterns)) continue;
           if (!profile.program_url_patterns?.length || matchesAny(l, profile.program_url_patterns)) {
