@@ -82,9 +82,9 @@ Deno.serve(async (req) => {
       .from("university_scrape_profiles")
       .select("*").eq("university_id", job.university_id).maybeSingle();
     const { data: university } = await service
-      .from("universities").select("id, name, website_url").eq("id", job.university_id).maybeSingle();
+      .from("universities").select("id, name, website").eq("id", job.university_id).maybeSingle();
 
-    if (!profile || !university?.website_url) {
+    if (!profile || !university?.website) {
       await failJob(service, job.id, "missing profile or university website");
       return json({ ok: false, reason: "missing_profile_or_url" });
     }
@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
     try {
       // ---- Pass 1: discover candidate program URLs (Firecrawl MAP) ----
       const candidateUrls = new Set<string>();
-      const bases = profile.base_urls?.length ? profile.base_urls : [university.website_url];
+      const bases = profile.base_urls?.length ? profile.base_urls : [university.website];
       for (const base of bases) {
         const m = await firecrawl(firecrawlKey, "map", {
           url: base, limit: Math.min(profile.max_pages ?? 200, 500),
