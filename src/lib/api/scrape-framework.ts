@@ -70,10 +70,21 @@ export const scrapeApi = {
     const { data: diff, error } = await supabase
       .from("scrape_diffs").select("*").eq("id", diffId).single();
     if (error) throw error;
-    // Apply the new value to programs.<field>
-    const update: Record<string, unknown> = { [diff.field_path]: diff.new_value, last_verified_at: new Date().toISOString() };
-    const { error: upErr } = await supabase.from("programs").update(update).eq("id", diff.program_id);
-    if (upErr) throw upErr;
+    // Special case: a new draft program was auto-inserted by the scraper.
+    // "Accepting" means publishing the draft.
+    if (diff.field_path === "__new_program__") {
+      const { error: upErr } = await supabase.from("programs").update({
+        status: "active",
+        published: true,
+        last_verified_at: new Date().toISOString(),
+      }).eq("id", diff.program_id);
+      if (upErr) throw upErr;
+    } else {
+      // Apply the new value to programs.<field>
+      const update: Record<string, unknown> = { [diff.field_path]: diff.new_value, last_verified_at: new Date().toISOString() };
+      const { error: upErr } = await supabase.from("programs").update(update).eq("id", diff.program_id);
+      if (upErr) throw upErr;
+    }
     const { error: dErr } = await supabase.from("scrape_diffs").update({
       status: "accepted", reviewed_at: new Date().toISOString(),
     }).eq("id", diffId);
