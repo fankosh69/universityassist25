@@ -92,6 +92,12 @@ export const scrapeApi = {
   },
 
   async rejectDiff(diffId: string, note?: string) {
+    const { data: diff } = await supabase
+      .from("scrape_diffs").select("*").eq("id", diffId).single();
+    // If rejecting a newly auto-inserted draft program, delete it so it never appears.
+    if (diff?.field_path === "__new_program__" && diff?.program_id) {
+      await supabase.from("programs").delete().eq("id", diff.program_id).eq("status", "draft");
+    }
     const { error } = await supabase.from("scrape_diffs").update({
       status: "rejected", reviewed_at: new Date().toISOString(), review_notes: note ?? null,
     }).eq("id", diffId);
