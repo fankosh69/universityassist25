@@ -493,6 +493,13 @@ const Index = () => {
               <p className="text-white/70">
                 {t('footer.tagline')}
               </p>
+              <address className="not-italic text-sm text-white/70 leading-relaxed">
+                <div className="font-semibold text-white/90">Universal Global for Study Abroad L.L.C.</div>
+                322G, Khalid Ibn Elwaleed St<br />
+                North 90th Street, New Cairo<br />
+                Cairo Governorate, Egypt<br />
+                <a href="tel:+20106734761" className="hover:text-white transition-colors">+20 106 734 761</a>
+              </address>
             </div>
             <div className="space-y-4">
               <h3 className="font-semibold">{t('footer.platform')}</h3>
