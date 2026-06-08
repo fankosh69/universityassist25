@@ -213,30 +213,8 @@ export default function CityPage() {
         });
         
         setMapMarkers(markers);
-        
-        // If city coordinates are missing, try to geocode them
-        if (cityInfo && (!cityInfo.lat || !cityInfo.lng)) {
-          try {
-            const response = await supabase.functions.invoke('geocode-city', {
-              body: { slug: city }
-            });
-            
-            if (response.data && response.data.updated > 0) {
-              // Refetch city data after geocoding
-              const { data: updatedCityInfo } = await supabase
-                .from('cities')
-                .select('id, name, slug, lat, lng, region, population_total, population_asof')
-                .eq('slug', city)
-                .maybeSingle();
-              
-              if (updatedCityInfo) {
-                setCityData(updatedCityInfo);
-              }
-            }
-          } catch (geocodeError) {
-            console.error('Geocoding failed:', geocodeError);
-          }
-        }
+        // Note: missing coordinates are now backfilled by an admin-only
+        // geocoding job; public visitors no longer trigger Mapbox calls.
       } catch (error) {
         console.error('Error in fetchData:', error);
       } finally {
