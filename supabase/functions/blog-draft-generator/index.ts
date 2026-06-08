@@ -10,6 +10,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { Resend } from "npm:resend@4.0.0";
+import { requireCronOrAdmin } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -116,6 +117,8 @@ async function callAi(lovableKey: string, keyword: string, notes: string | null)
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const unauth = await requireCronOrAdmin(req);
+  if (unauth) return unauth;
 
   const lovableKey = Deno.env.get("LOVABLE_API_KEY");
   if (!lovableKey) return json({ error: "LOVABLE_API_KEY missing" }, 500);
