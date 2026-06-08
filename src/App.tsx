@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState, useRef, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { HelmetProvider } from "react-helmet-async";
@@ -13,7 +13,6 @@ import Auth from "./pages/Auth";
 import Search from "./pages/Search";
 import SavedPrograms from "./pages/SavedPrograms";
 import NotFound from "./pages/NotFound";
-import LoadingScreen from "./components/LoadingScreen";
 import LoadingSpinner from "./components/LoadingSpinner";
 import DashboardEnhanced from "./pages/DashboardEnhanced";
 import OnboardingFlow from "./pages/onboarding/OnboardingFlow";
@@ -82,31 +81,25 @@ const queryClient = new QueryClient();
 const App = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const loadingRef = useRef(true);
-  const pendingUserRef = useRef<any>(undefined);
 
   useEffect(() => {
-    // Get initial session - defer state update if still loading
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const newUser = session?.user ?? null;
-      if (loadingRef.current) {
-        // Store for later - don't trigger re-render during loading animation
-        pendingUserRef.current = newUser;
-      } else {
-        setUser(newUser);
-      }
-    });
+    let mounted = true;
+
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (mounted) setUser(session?.user ?? null);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       const newUser = session?.user ?? null;
-      if (loadingRef.current) {
-        pendingUserRef.current = newUser;
-      } else {
-        setUser(newUser);
-      }
+      setUser(newUser);
+      setLoading(false);
       // Merge any guest-watchlist entries into the user's saved list on sign-in.
       if (event === "SIGNED_IN" && newUser?.id) {
         // Defer to avoid running inside the auth callback.
@@ -116,24 +109,14 @@ const App = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const handleLoadingComplete = () => {
-    loadingRef.current = false;
-    // Apply any pending user state that was captured during loading
-    if (pendingUserRef.current !== undefined) {
-      setUser(pendingUserRef.current);
-    }
-    setLoading(false);
-  };
-
-  if (loading) {
-    return <LoadingScreen key="app-loader" onComplete={handleLoadingComplete} />;
-  }
-
   // Debug check - add temporary test
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     console.log('App is loading in development mode');
   }
 
@@ -146,7 +129,7 @@ const App = () => {
             <Sonner />
             <BrowserRouter>
             <Suspense fallback={<LoadingSpinner />}>
-              <AnimatedRoutes user={user} />
+              <AnimatedRoutes user={user} authLoading={loading} />
             </Suspense>
           </BrowserRouter>
         </TooltipProvider>
