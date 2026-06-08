@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
+import { requireCronOrAdmin } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,6 +10,9 @@ const corsHeaders = {
 // Triggered by pg_cron or manually from the admin UI.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const unauth = await requireCronOrAdmin(req);
+  if (unauth) return unauth;
 
   const service = createClient(
     Deno.env.get("SUPABASE_URL")!,
