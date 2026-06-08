@@ -115,6 +115,9 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const unauth = await requireCronOrAdmin(req);
+  if (unauth) return unauth;
+
   try {
     const { field_name, program_name, degree_level }: AutoCreateRequest = await req.json();
 
