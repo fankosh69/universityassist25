@@ -139,7 +139,7 @@ const App = () => {
   );
 };
 
-const AnimatedRoutes = ({ user }: { user: any }) => {
+const AnimatedRoutes = ({ user, authLoading }: { user: any; authLoading: boolean }) => {
   const location = useLocation();
 
   // Prefetch high-intent routes during browser idle time, and warm the
@@ -161,27 +161,27 @@ const AnimatedRoutes = ({ user }: { user: any }) => {
                 <Route path="/search" element={<Search />} />
                 <Route 
                   path="/auth" 
-                  element={user ? <Navigate to="/dashboard" /> : <Auth />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <Navigate to="/dashboard" /> : <Auth />} 
                 />
                 <Route 
                   path="/dashboard" 
-                  element={user ? <DashboardEnhanced /> : <Navigate to="/auth" />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <DashboardEnhanced /> : <Navigate to="/auth" />} 
                 />
                 <Route 
                   path="/onboarding" 
-                  element={user ? <OnboardingFlow /> : <Navigate to="/auth" />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <OnboardingFlow /> : <Navigate to="/auth" />} 
                 />
                 <Route 
                   path="/documents" 
-                  element={user ? <DocumentsPage /> : <Navigate to="/auth" />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <DocumentsPage /> : <Navigate to="/auth" />} 
                 />
                 <Route 
                   path="/saved" 
-                  element={user ? <SavedPrograms /> : <Navigate to="/auth" />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <SavedPrograms /> : <Navigate to="/auth" />} 
                 />
                 <Route 
                   path="/sales-dashboard" 
-                  element={user ? <SalesDashboard /> : <Navigate to="/auth" />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <SalesDashboard /> : <Navigate to="/auth" />} 
                 />
                 <Route path="/cities" element={<Cities />} />
                 <Route path="/cities/:city" element={<CityPage />} />
@@ -191,7 +191,7 @@ const AnimatedRoutes = ({ user }: { user: any }) => {
           <Route path="/ambassadors" element={<AmbassadorsList />} />
           <Route path="/ambassadors/:slug" element={<AmbassadorProfile />} />
           <Route path="/recommendations" element={<ShortlistsReceived />} />
-                <Route path="/ai-assistant" element={user ? <AIAssistant /> : <Navigate to="/auth" />} />
+                <Route path="/ai-assistant" element={authLoading ? <LoadingSpinner /> : user ? <AIAssistant /> : <Navigate to="/auth" />} />
                 <Route path="/impressum" element={<Impressum />} />
                 <Route path="/regions" element={<Regions />} />
                 <Route path="/regions/:slug" element={<RegionDetail />} />
@@ -216,7 +216,7 @@ const AnimatedRoutes = ({ user }: { user: any }) => {
                 ])}
                 <Route 
                   path="/profile" 
-                  element={user ? <ProfilePage /> : <Navigate to="/auth" />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <ProfilePage /> : <Navigate to="/auth" />} 
                 />
                 
                 {/* Admin Routes */}
