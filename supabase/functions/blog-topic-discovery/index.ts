@@ -10,6 +10,7 @@
 // Runs from pg_cron daily. Service-role auth (no end-user session needed).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { requireCronOrAdmin } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -110,6 +111,8 @@ function json(body: unknown, status = 200) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const unauth = await requireCronOrAdmin(req);
+  if (unauth) return unauth;
 
   const lovableKey = Deno.env.get("LOVABLE_API_KEY");
   const gscKey = Deno.env.get("GOOGLE_SEARCH_CONSOLE_API_KEY");
