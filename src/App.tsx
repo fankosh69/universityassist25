@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState, useRef, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { HelmetProvider } from "react-helmet-async";
@@ -13,7 +13,6 @@ import Auth from "./pages/Auth";
 import Search from "./pages/Search";
 import SavedPrograms from "./pages/SavedPrograms";
 import NotFound from "./pages/NotFound";
-import LoadingScreen from "./components/LoadingScreen";
 import LoadingSpinner from "./components/LoadingSpinner";
 import DashboardEnhanced from "./pages/DashboardEnhanced";
 import OnboardingFlow from "./pages/onboarding/OnboardingFlow";
@@ -82,31 +81,25 @@ const queryClient = new QueryClient();
 const App = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const loadingRef = useRef(true);
-  const pendingUserRef = useRef<any>(undefined);
 
   useEffect(() => {
-    // Get initial session - defer state update if still loading
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const newUser = session?.user ?? null;
-      if (loadingRef.current) {
-        // Store for later - don't trigger re-render during loading animation
-        pendingUserRef.current = newUser;
-      } else {
-        setUser(newUser);
-      }
-    });
+    let mounted = true;
+
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (mounted) setUser(session?.user ?? null);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       const newUser = session?.user ?? null;
-      if (loadingRef.current) {
-        pendingUserRef.current = newUser;
-      } else {
-        setUser(newUser);
-      }
+      setUser(newUser);
+      setLoading(false);
       // Merge any guest-watchlist entries into the user's saved list on sign-in.
       if (event === "SIGNED_IN" && newUser?.id) {
         // Defer to avoid running inside the auth callback.
@@ -116,24 +109,14 @@ const App = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const handleLoadingComplete = () => {
-    loadingRef.current = false;
-    // Apply any pending user state that was captured during loading
-    if (pendingUserRef.current !== undefined) {
-      setUser(pendingUserRef.current);
-    }
-    setLoading(false);
-  };
-
-  if (loading) {
-    return <LoadingScreen key="app-loader" onComplete={handleLoadingComplete} />;
-  }
-
   // Debug check - add temporary test
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     console.log('App is loading in development mode');
   }
 
@@ -146,7 +129,7 @@ const App = () => {
             <Sonner />
             <BrowserRouter>
             <Suspense fallback={<LoadingSpinner />}>
-              <AnimatedRoutes user={user} />
+              <AnimatedRoutes user={user} authLoading={loading} />
             </Suspense>
           </BrowserRouter>
         </TooltipProvider>
@@ -156,7 +139,7 @@ const App = () => {
   );
 };
 
-const AnimatedRoutes = ({ user }: { user: any }) => {
+const AnimatedRoutes = ({ user, authLoading }: { user: any; authLoading: boolean }) => {
   const location = useLocation();
 
   // Prefetch high-intent routes during browser idle time, and warm the
@@ -178,27 +161,27 @@ const AnimatedRoutes = ({ user }: { user: any }) => {
                 <Route path="/search" element={<Search />} />
                 <Route 
                   path="/auth" 
-                  element={user ? <Navigate to="/dashboard" /> : <Auth />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <Navigate to="/dashboard" /> : <Auth />} 
                 />
                 <Route 
                   path="/dashboard" 
-                  element={user ? <DashboardEnhanced /> : <Navigate to="/auth" />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <DashboardEnhanced /> : <Navigate to="/auth" />} 
                 />
                 <Route 
                   path="/onboarding" 
-                  element={user ? <OnboardingFlow /> : <Navigate to="/auth" />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <OnboardingFlow /> : <Navigate to="/auth" />} 
                 />
                 <Route 
                   path="/documents" 
-                  element={user ? <DocumentsPage /> : <Navigate to="/auth" />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <DocumentsPage /> : <Navigate to="/auth" />} 
                 />
                 <Route 
                   path="/saved" 
-                  element={user ? <SavedPrograms /> : <Navigate to="/auth" />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <SavedPrograms /> : <Navigate to="/auth" />} 
                 />
                 <Route 
                   path="/sales-dashboard" 
-                  element={user ? <SalesDashboard /> : <Navigate to="/auth" />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <SalesDashboard /> : <Navigate to="/auth" />} 
                 />
                 <Route path="/cities" element={<Cities />} />
                 <Route path="/cities/:city" element={<CityPage />} />
@@ -208,7 +191,7 @@ const AnimatedRoutes = ({ user }: { user: any }) => {
           <Route path="/ambassadors" element={<AmbassadorsList />} />
           <Route path="/ambassadors/:slug" element={<AmbassadorProfile />} />
           <Route path="/recommendations" element={<ShortlistsReceived />} />
-                <Route path="/ai-assistant" element={user ? <AIAssistant /> : <Navigate to="/auth" />} />
+                <Route path="/ai-assistant" element={authLoading ? <LoadingSpinner /> : user ? <AIAssistant /> : <Navigate to="/auth" />} />
                 <Route path="/impressum" element={<Impressum />} />
                 <Route path="/regions" element={<Regions />} />
                 <Route path="/regions/:slug" element={<RegionDetail />} />
@@ -233,7 +216,7 @@ const AnimatedRoutes = ({ user }: { user: any }) => {
                 ])}
                 <Route 
                   path="/profile" 
-                  element={user ? <ProfilePage /> : <Navigate to="/auth" />} 
+                  element={authLoading ? <LoadingSpinner /> : user ? <ProfilePage /> : <Navigate to="/auth" />} 
                 />
                 
                 {/* Admin Routes */}
