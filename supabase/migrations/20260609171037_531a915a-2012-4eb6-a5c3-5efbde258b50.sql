@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Blog images are publicly readable" ON storage.objects;
+CREATE POLICY "Admins can list blog images" ON storage.objects FOR SELECT USING (bucket_id = 'blog-images' AND has_role('admin'::app_role));
