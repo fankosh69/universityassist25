@@ -526,6 +526,9 @@ const Index = () => {
             </address>
             <p>{t('footer.copyright')}</p>
             <p className="mt-2 text-sm">{t('footer.disclaimer')}</p>
+            <div className="mt-6 flex justify-center">
+              <IasBadge />
+            </div>
           </div>
         </div>
       </footer>
