@@ -22,6 +22,7 @@ import Navigation from "@/components/Navigation";
 import HeroQuickFinder from "@/components/HeroQuickFinder";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/Reveal";
 import { motion, useReducedMotion } from "framer-motion";
+import { IasBadge } from "@/components/IasBadge";
 
 interface FeaturedProgram {
   id: string;
