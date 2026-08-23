@@ -28,6 +28,10 @@ import { useApplicantStatus } from '@/hooks/useApplicantStatus';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
+import JsonLd from '@/components/JsonLd';
+import { createProgramSchema, createBreadcrumbSchema } from '@/lib/jsonld';
+
+
 
 
 export default function ProgramPage() {
