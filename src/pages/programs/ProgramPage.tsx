@@ -28,6 +28,10 @@ import { useApplicantStatus } from '@/hooks/useApplicantStatus';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
+import JsonLd from '@/components/JsonLd';
+import { createProgramSchema, createBreadcrumbSchema } from '@/lib/jsonld';
+
+
 
 
 export default function ProgramPage() {
@@ -174,13 +178,44 @@ export default function ProgramPage() {
     ? new Date(programData.summer_deadline) 
     : undefined;
 
+  const programCanonical = `https://uniassist.net/universities/${uni}/programs/${programData.slug || program}`;
+  const programSchema = createProgramSchema(
+    {
+      id: programData.id,
+      title: formatProgramTitle(programData.degree_type, programData.name),
+      major: programData.field_of_study || programData.name,
+      degree_level: programData.degree_level || '',
+      university: {
+        id: university?.slug || uni || '',
+        name: university?.name || 'German University',
+        city: university?.city || 'Germany',
+        website: university?.website || undefined,
+      },
+      tuition_eur: programData.tuition_amount ?? undefined,
+      duration_semesters: programData.duration_semesters ?? undefined,
+      description: programData.description || undefined,
+      url: programCanonical,
+      language: programData.language_of_instruction?.[0] || 'de',
+    },
+    [],
+  );
+  const programBreadcrumbSchema = createBreadcrumbSchema([
+    { name: 'Home', url: 'https://uniassist.net/' },
+    { name: 'Universities', url: 'https://uniassist.net/universities' },
+    { name: university?.name || 'University', url: `https://uniassist.net/universities/${uni}` },
+    { name: formatProgramTitle(programData.degree_type, programData.name), url: programCanonical },
+  ]);
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
         title={`${formatProgramTitle(programData.degree_type, programData.name)} at ${university?.name}`}
         description={`${programData.degree_level} program in ${programData.field_of_study}. Learn about requirements, deadlines, costs, and how to apply.`}
       />
+      <JsonLd data={programSchema} />
+      <JsonLd data={programBreadcrumbSchema} />
       <Navigation />
+
       
       <div className="container mx-auto px-4 py-6">
         <PageHeader
