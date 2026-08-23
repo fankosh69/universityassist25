@@ -40,7 +40,12 @@ export interface Ambassador {
   photo_url?: string;
   testimonial?: string;
   video_url?: string;
+  url?: string;
+  city?: string;
+  university?: string;
+  upload_date?: string;
 }
+
 
 export function createCitySchema(city: City, universities: University[]) {
   return {
