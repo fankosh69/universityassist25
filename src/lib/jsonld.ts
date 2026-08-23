@@ -199,19 +199,51 @@ export function createAmbassadorSchema(ambassador: Ambassador) {
     "@context": "https://schema.org",
     "@type": "Person",
     "name": ambassador.full_name,
-    "description": "University Ambassador - Study in Germany",
+    "description": ambassador.testimonial?.trim().slice(0, 500) ||
+      "University Ambassador - Study in Germany",
+    "jobTitle": "Student Ambassador",
+    ...(ambassador.url && { "url": ambassador.url, "mainEntityOfPage": ambassador.url }),
     ...(ambassador.linkedin_url && { "sameAs": [ambassador.linkedin_url] }),
     ...(ambassador.photo_url && { "image": ambassador.photo_url }),
-    ...(ambassador.video_url && {
-      "video": {
-        "@type": "VideoObject",
-        "name": `${ambassador.full_name} - Student Testimonial`,
-        "contentUrl": ambassador.video_url,
-        "description": ambassador.testimonial
-      }
-    })
+    ...(ambassador.city && {
+      "homeLocation": {
+        "@type": "Place",
+        "name": ambassador.city,
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": ambassador.city,
+          "addressCountry": "Germany",
+        },
+      },
+    }),
+    ...(ambassador.university && {
+      "affiliation": {
+        "@type": "CollegeOrUniversity",
+        "name": ambassador.university,
+      },
+    }),
   };
 }
+
+export function createAmbassadorVideoSchema(ambassador: Ambassador) {
+  if (!ambassador.video_url) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "name": `${ambassador.full_name} - Student Testimonial`,
+    "description":
+      ambassador.testimonial?.trim().slice(0, 500) ||
+      `${ambassador.full_name} shares their journey studying in Germany.`,
+    "contentUrl": ambassador.video_url,
+    ...(ambassador.url && { "embedUrl": ambassador.url }),
+    ...(ambassador.photo_url && { "thumbnailUrl": [ambassador.photo_url] }),
+    ...(ambassador.upload_date && { "uploadDate": ambassador.upload_date }),
+    ...(ambassador.full_name && {
+      "creator": { "@type": "Person", "name": ambassador.full_name },
+    }),
+  };
+}
+
 
 export function createWebsiteSchema() {
   return {
