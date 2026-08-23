@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Globe, Euro, Award, FileCheck, GraduationCap, Monitor, Receipt } from 'lucide-react';
-import { format } from 'date-fns';
+import { Calendar, Clock, Globe, Euro, Award, FileCheck, GraduationCap, Monitor, Receipt, BadgeCheck } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { formatTuitionDisplay, type TuitionStructure } from '@/lib/tuition-calculator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -24,6 +24,7 @@ interface ProgramQuickFactsProps {
   programUrl?: string;
   hasApplicationFee?: boolean | null;
   applicationFeeAmount?: number | null;
+  lastVerifiedAt?: string | null;
 }
 
 export function ProgramQuickFacts({
