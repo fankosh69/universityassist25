@@ -38,13 +38,39 @@ export default function AmbassadorProfile() {
 
   if (!ambassador) return <div>Loading...</div>;
 
+  const ambassadorUrl = `https://uniassist.net/ambassadors/${ambassador.slug}`;
+  const ambassadorSeed = {
+    id: ambassador.id,
+    full_name: ambassador.full_name,
+    slug: ambassador.slug,
+    linkedin_url: ambassador.linkedin_url || undefined,
+    photo_url: ambassador.photo_url || undefined,
+    testimonial: ambassador.testimonial || undefined,
+    video_url: ambassador.video_url || undefined,
+    url: ambassadorUrl,
+    city: ambassador.cities?.name || undefined,
+    university: ambassador.universities?.name || undefined,
+    upload_date: ambassador.created_at || undefined,
+  };
+  const personSchema = createAmbassadorSchema(ambassadorSeed);
+  const videoSchema = createAmbassadorVideoSchema(ambassadorSeed);
+  const ambassadorBreadcrumbSchema = createBreadcrumbSchema([
+    { name: 'Home', url: 'https://uniassist.net/' },
+    { name: 'Ambassadors', url: 'https://uniassist.net/ambassadors' },
+    { name: ambassador.full_name, url: ambassadorUrl },
+  ]);
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
         title={`${ambassador.full_name} - Student Ambassador | University Assist`}
         description={`Learn from ${ambassador.full_name}'s journey studying in Germany. ${ambassador.testimonial?.substring(0, 150)}...`}
       />
+      <JsonLd data={personSchema} />
+      {videoSchema && <JsonLd data={videoSchema} />}
+      <JsonLd data={ambassadorBreadcrumbSchema} />
       <Navigation />
+
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
