@@ -215,6 +215,12 @@ export default function ProgramPage() {
                 <InstitutionTypeBadge type={university?.type} />
                 <ControlTypeBadge type={university?.control_type} />
                 {programData.uni_assist_required && <Badge variant="outline"><FileCheck className="h-3 w-3 mr-1" />Uni-Assist</Badge>}
+                {programData.last_verified_at && (
+                  <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                    <BadgeCheck className="h-3 w-3 mr-1" />
+                    Verified {format(parseISO(programData.last_verified_at), 'MMM d, yyyy')}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
