@@ -42,6 +42,7 @@ export function ProgramQuickFacts({
   programUrl,
   hasApplicationFee,
   applicationFeeAmount,
+  lastVerifiedAt,
 }: ProgramQuickFactsProps) {
   const { t } = useTranslation();
 
