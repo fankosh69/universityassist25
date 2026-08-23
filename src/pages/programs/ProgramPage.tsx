@@ -244,6 +244,7 @@ export default function ProgramPage() {
               uniAssistRequired={programData.uni_assist_required}
               deliveryMode={programData.delivery_mode}
               programUrl={programData.program_url}
+              lastVerifiedAt={programData.last_verified_at}
             />
 
             {/* Description - collapsed by default to keep the page snapshot-friendly */}
