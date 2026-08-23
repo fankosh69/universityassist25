@@ -6,7 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Navigation from '@/components/Navigation';
 import SEOHead from '@/components/SEOHead';
+import JsonLd from '@/components/JsonLd';
+import { createAmbassadorSchema, createAmbassadorVideoSchema, createBreadcrumbSchema } from '@/lib/jsonld';
 import { ExternalLink, MapPin, GraduationCap, Play } from 'lucide-react';
+
 
 export default function AmbassadorProfile() {
   const { slug } = useParams();
