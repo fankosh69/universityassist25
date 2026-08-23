@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Globe, Euro, Award, FileCheck, GraduationCap, Monitor, Receipt } from 'lucide-react';
-import { format } from 'date-fns';
+import { Calendar, Clock, Globe, Euro, Award, FileCheck, GraduationCap, Monitor, Receipt, BadgeCheck } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { formatTuitionDisplay, type TuitionStructure } from '@/lib/tuition-calculator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -24,6 +24,7 @@ interface ProgramQuickFactsProps {
   programUrl?: string;
   hasApplicationFee?: boolean | null;
   applicationFeeAmount?: number | null;
+  lastVerifiedAt?: string | null;
 }
 
 export function ProgramQuickFacts({
@@ -41,6 +42,7 @@ export function ProgramQuickFacts({
   programUrl,
   hasApplicationFee,
   applicationFeeAmount,
+  lastVerifiedAt,
 }: ProgramQuickFactsProps) {
   const { t } = useTranslation();
 
@@ -258,6 +260,19 @@ export function ProgramQuickFacts({
                 >
                   Visit official page →
                 </a>
+              </div>
+            </div>
+          )}
+
+          {/* Last Verified */}
+          {lastVerifiedAt && (
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
+              <BadgeCheck className="h-5 w-5 text-primary mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="text-xs text-primary/80">Verified</p>
+                <p className="text-sm font-medium text-foreground">
+                  {format(parseISO(lastVerifiedAt), 'MMM d, yyyy')}
+                </p>
               </div>
             </div>
           )}

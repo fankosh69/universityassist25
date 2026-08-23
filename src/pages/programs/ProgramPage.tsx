@@ -15,7 +15,8 @@ import { ProgramSidebar } from '@/components/program/ProgramSidebar';
 import { ConsultationModal } from '@/components/consultation/ConsultationModal';
 import { InstitutionTypeBadge } from '@/components/InstitutionTypeBadge';
 import { ControlTypeBadge } from '@/components/ControlTypeBadge';
-import { MapPin, GraduationCap, BookOpen, FileCheck, Info, CheckCircle2, XCircle } from 'lucide-react';
+import { MapPin, GraduationCap, BookOpen, FileCheck, Info, CheckCircle2, XCircle, BadgeCheck } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
 import { formatProgramTitle } from '@/lib/degree-formatting';
 import type { StudentProfile, ProgramRequirements } from '@/lib/matching';
 import { EnglishLanguageRequirementsCard } from '@/components/program/EnglishLanguageRequirementsCard';
@@ -214,6 +215,12 @@ export default function ProgramPage() {
                 <InstitutionTypeBadge type={university?.type} />
                 <ControlTypeBadge type={university?.control_type} />
                 {programData.uni_assist_required && <Badge variant="outline"><FileCheck className="h-3 w-3 mr-1" />Uni-Assist</Badge>}
+                {programData.last_verified_at && (
+                  <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                    <BadgeCheck className="h-3 w-3 mr-1" />
+                    Verified {format(parseISO(programData.last_verified_at), 'MMM d, yyyy')}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
@@ -237,6 +244,7 @@ export default function ProgramPage() {
               uniAssistRequired={programData.uni_assist_required}
               deliveryMode={programData.delivery_mode}
               programUrl={programData.program_url}
+              lastVerifiedAt={programData.last_verified_at}
             />
 
             {/* Description - collapsed by default to keep the page snapshot-friendly */}
