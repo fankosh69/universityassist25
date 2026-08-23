@@ -263,6 +263,19 @@ export function ProgramQuickFacts({
               </div>
             </div>
           )}
+
+          {/* Last Verified */}
+          {lastVerifiedAt && (
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
+              <BadgeCheck className="h-5 w-5 text-primary mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="text-xs text-primary/80">Verified</p>
+                <p className="text-sm font-medium text-foreground">
+                  {format(parseISO(lastVerifiedAt), 'MMM d, yyyy')}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
