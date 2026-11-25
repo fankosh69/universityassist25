@@ -523,7 +523,7 @@ const Index = () => {
           </div>
           <div className="border-t border-white/20 mt-8 pt-8 text-center text-white/70">
             <address className="not-italic text-sm mb-3">
-              <span className="font-semibold text-white/90">Main Address:</span> 322G, Khalid Ibn Elwaleed St. North 90th St. New Cairo, Cairo, Egypt
+              <span className="font-semibold text-white/90">Main Address:</span> 78 Street 27, 5th Settlement, Newcairo, Cairo, Egypt
             </address>
             <p>{t('footer.copyright')}</p>
             <p className="mt-2 text-sm">{t('footer.disclaimer')}</p>

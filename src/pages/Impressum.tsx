@@ -34,9 +34,9 @@ const Impressum = () => {
                 </h2>
                 <div className="space-y-2">
                   <p><strong>Physical Address:</strong><br />
-                  322G, Khalid Ibn Elwaleed St<br />
-                  North 90th Street New Cairo<br />
-                  Cairo Governorate, Egypt</p>
+                  78 Street 27<br />
+                  5th Settlement, Newcairo<br />
+                  Cairo, Egypt</p>
                   
                   <p><strong>Email:</strong> info@uniassist</p>
                   <p><strong>Telephone:</strong> +20106734761</p>
